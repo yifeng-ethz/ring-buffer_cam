@@ -672,7 +672,11 @@ begin
 	begin
 		expected_latency_48b(csr.expected_latency'high downto 0)								<= csr.expected_latency; 
 		expected_latency_48b(expected_latency_48b'high downto csr.expected_latency'length)		<= (others => '0'); -- pads 0 in msb
-		read_time_ptr																			<= gts_8n - unsigned(expected_latency_48b);
+        if (to_integer(gts_8n) > to_integer(unsigned(expected_latency_48b))) then 
+            read_time_ptr		<= gts_8n - unsigned(expected_latency_48b);
+        else 
+            read_time_ptr       <= (0 => '1', others => '0'); -- avoid generate descriptor when run has just started
+        end if;
 	end process;
 	
 	
@@ -1160,8 +1164,9 @@ begin
 			aso_hit_type2_endofpacket	<= '0';
 		elsif (rising_edge(i_clk)) then 
 			pop_hit_valid		<= pop_hit_valid_comb; -- latched so, high in the cycle after POPING, come together with the cam/ram's q
-			-- generate sub header 
-			if (pop_pipeline_start = '1' and subheader_gen_done = '0') then -- generate only one sub-header at POPING
+			-- 1) generate sub header (w/ sop or sop+eop)
+			if ((pop_pipeline_start = '1' or pop_cmd_fifo_rdack = '1') and subheader_gen_done = '0') then 
+                -- 1) generate only one sub-header at POPING or 2) generate sub-header for empty subframe
 				-- Streaming
 				aso_hit_type2_valid		<= '1';
 				-- assemble sub-header
@@ -1177,11 +1182,12 @@ begin
 				aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length));
 				-- packet
 				aso_hit_type2_startofpacket			<= '1';
-				if (to_integer(unsigned(match_encoder_flag_comb)) = 0) then -- gen eop for no hit scenario, or last hit
+				if (to_integer(unsigned(bank_combiner_total_count_comb)) = 0) then -- gen eop for no hit scenario, or last hit
 					aso_hit_type2_endofpacket			<= '1';
 				else 
 					aso_hit_type2_endofpacket			<= '0';
 				end if;
+            -- 2) generate hits (w/ eop)
 			elsif (pop_pipeline_start = '1' and subheader_gen_done = '1') then -- at EVAL, 1 cycle after POPING, hits should be available
 				if (pop_hit_valid = '1' and decision_reg = 2) then -- this co-validate this hit is not from push_write (0) . push can win arb in bubbles of pop
 					-- Streaming
