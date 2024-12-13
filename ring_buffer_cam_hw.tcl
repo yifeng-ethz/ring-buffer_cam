@@ -16,7 +16,7 @@ package require -exact qsys 16.1
 # 
 set_module_property DESCRIPTION "This cam is implemented in a special shape of a ring-buffer, where write pointer (wr_ptr) is ever mono-increasing and the read pointer (rd_ptr) is controlled by the look-up result address. The look-up is supported by the CAM natively."
 set_module_property NAME ring_buffer_cam
-set_module_property VERSION 24.0.1104
+set_module_property VERSION 24.0.1210
 set_module_property INTERNAL false
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property GROUP "Mu3e Data Plane/Modules"
@@ -29,20 +29,39 @@ set_module_property ALLOW_GREYBOX_GENERATION false
 set_module_property REPORT_HIERARCHY false
 
 
-# 
+################################################
 # file sets
-# 
+################################################
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file alt_simple_dpram.vhd VHDL PATH alt_simple_dpram.vhd
-add_fileset_file cam_mem_a5.vhd VHDL PATH cam_mem_a5.vhd
-add_fileset_file cam_mem_blk_a5.vhd VHDL PATH cam_mem_blk_a5.vhd
+# +-----+
+# | top |
+# +-----+
 add_fileset_file ring_buffer_cam.vhd VHDL PATH ring_buffer_cam.vhd TOP_LEVEL_FILE
+# +-------------+
+# | cam complex |
+# +-------------+
+# cam complex - side ram, address linked to cam, for storing data segment 
+add_fileset_file alt_simple_dpram.vhd VHDL PATH alt_simple_dpram.vhd
+# cam complex - cam top, including mod_ctl, mod_data and lut ports
+add_fileset_file cam_mem_a5.vhd VHDL PATH cam_mem_a5.vhd
+# cam complex - cam top - cam implementation, in M10K (Arria V)
+add_fileset_file cam_mem_blk_a5.vhd VHDL PATH cam_mem_blk_a5.vhd
+# +-------+
+# | fifos |
+# +-------+
+# deassembly fifo, storing incoming hit from processor
 add_fileset_file scfifo_w40d256.vhd VHDL PATH alt_fifo/scfifo_w40d256.vhd
-add_fileset_file scfifo_w8d32.vhd VHDL PATH alt_fifo/scfifo_w8d32.vhd
+# pop command fifo, storing the ts of subheader to be search and poped, if any
+add_fileset_file cmd_fifo.vhd VHDL PATH alt_fifo/cmd_fifo/cmd_fifo.vhd
+# +------+
+# | misc |
+# +------+
+# decoder (binary -> onehot), for pop/erase address 
 add_fileset_file b2o_encoder.v VERILOG PATH b2o_encoder.v
+# encoder (onehot -> binary), for search result address
 add_fileset_file addr_enc_logic_small.vhd VHDL PATH addr_enc_logic_small.vhd
 
 
@@ -143,7 +162,7 @@ add_interface hit_type1 avalon_streaming end
 set_interface_property hit_type1 associatedClock clock_interface
 set_interface_property hit_type1 associatedReset reset_interface
 set_interface_property hit_type1 dataBitsPerSymbol 39
-set_interface_property hit_type1 errorDescriptor ""
+set_interface_property hit_type1 errorDescriptor {"tserr"}
 set_interface_property hit_type1 firstSymbolInHighOrderBits true
 set_interface_property hit_type1 maxChannel 15
 set_interface_property hit_type1 readyLatency 0
@@ -159,6 +178,7 @@ add_interface_port hit_type1 asi_hit_type1_endofpacket endofpacket Input 1
 add_interface_port hit_type1 asi_hit_type1_data data Input 39
 add_interface_port hit_type1 asi_hit_type1_valid valid Input 1
 add_interface_port hit_type1 asi_hit_type1_ready ready Output 1
+add_interface_port hit_type1 asi_hit_type1_error error Input 1
 
 
 # 
@@ -168,7 +188,7 @@ add_interface hit_type2 avalon_streaming start
 set_interface_property hit_type2 associatedClock clock_interface
 set_interface_property hit_type2 associatedReset reset_interface
 set_interface_property hit_type2 dataBitsPerSymbol 36
-set_interface_property hit_type2 errorDescriptor ""
+set_interface_property hit_type2 errorDescriptor {"tsglitcherr"}
 set_interface_property hit_type2 firstSymbolInHighOrderBits true
 set_interface_property hit_type2 maxChannel 15
 set_interface_property hit_type2 readyLatency 0
@@ -184,6 +204,7 @@ add_interface_port hit_type2 aso_hit_type2_endofpacket endofpacket Output 1
 add_interface_port hit_type2 aso_hit_type2_data data Output 36
 add_interface_port hit_type2 aso_hit_type2_valid valid Output 1
 add_interface_port hit_type2 aso_hit_type2_ready ready Input 1
+add_interface_port hit_type2 aso_hit_type2_error error Output 1
 
 
 # 

@@ -36,7 +36,7 @@ use ieee.std_logic_misc.or_reduce;
 entity ring_buffer_cam is 
 generic(
 	SEARCH_KEY_WIDTH	: natural := 8; -- = timestamp length (8ns) [11:4]
-	RING_BUFFER_N_ENTRY	: natural := 512; -- = CAM size, can be tuned
+	RING_BUFFER_N_ENTRY	: natural := 512; -- = CAM size, can be tuned (TODO: debug N=768. N=512/1024 verified)
 	SIDE_DATA_BITS		: natural := 31; -- type 1 has 39 bit, exclude the search key (8bit), resulting 31 bit
 	--SEL_CHANNEL			: natural := 0; -- from 0 to 31 (the selected channel of avst input, other channels will be ignored) -- deprecated
 	INTERLEAVING_FACTOR	: natural := 4; -- only power of 2 are allowed, this number multiple of ring buffer cam will be instantiated
@@ -58,25 +58,33 @@ port(
 	asi_ctrl_ready					: out std_logic;
 	
 	-- ============ INGRESS ==============
-	-- input stream of processed hits
-	asi_hit_type1_channel			: in  std_logic_vector(3 downto 0); -- max_channel=15
+	-- input stream of processed hits 
+	asi_hit_type1_channel			: in  std_logic_vector(3 downto 0); -- max_channel=15 (same as asic index, span from 0 to 15)
 	asi_hit_type1_startofpacket		: in  std_logic; -- packet is supported by upstream
 	asi_hit_type1_endofpacket		: in  std_logic; -- processor use this to mark the start and end of run (sor/eor)
 	asi_hit_type1_data				: in  std_logic_vector(38 downto 0);
 	asi_hit_type1_valid				: in  std_logic;
 	asi_hit_type1_ready				: out std_logic; -- itself has fifo, so no backpressure is required for upstream, just check for fifo full. 
-	
+	asi_hit_type1_error             : in  std_logic_vector(0 downto 0); -- {"tserr"}
+                                                                        -- timestamp error : this hit has timestamp out of range (0,2000) delay, so it is probably wrong
+    
 	-- ============ EGRESS ==============
 	-- output stream of framed hits (aligned to word) (ts[3:0])
-	aso_hit_type2_channel			: out std_logic_vector(3 downto 0); -- max_channel=15
+	aso_hit_type2_channel			: out std_logic_vector(3 downto 0); -- max_channel=15 (same as interleaving index, span from 0 to INTERLEAVING_FACTOR-1)
 	aso_hit_type2_startofpacket		: out std_logic; -- sop at each subheader
 	aso_hit_type2_endofpacket		: out std_logic; -- eop at last hit in this subheader. if no hit, eop at subheader.
 	aso_hit_type2_data				: out std_logic_vector(35 downto 0); -- [35:32] byte_is_k: "0001"=sub-header. "0000"=hit.
 	-- two cases for [31:0]
-	-- 1) sub-header: [31:24]=ts[11:4], [23:16]=TBD, [15:8]=hit_cnt[7:0], [7:0]=K23.7
+	-- 1) sub-header: [31:24]=ts[11:4], [23:16]=TBD, [15:8]=hit_cnt[7:0], [7:0]=K23.7(0xF7)
 	-- 2) hit: [31:0]=specbook MuTRiG hit format
 	aso_hit_type2_valid				: out std_logic;
 	aso_hit_type2_ready				: in  std_logic;
+    aso_hit_type2_error             : out std_logic_vector(0 downto 0); -- {"tsglitcherr"}
+                                                                        -- timestamp glitch error : ts[12] read from side ram does not match with current header ts[12]
+                                                                        --                          indicating this hit are assigned to a wrong header (delay or forward by an odd number of frames, ex: 1, 3, 5 ...)
+                                                                        --                          this usually happens when you have tserr at the input and did not filter these hits away.
+                                                                        --                          as the wrong hits are in, they occupy cam spaces for no good reason. they will be overwrote by push engine, if fill-level is high.
+                                                                        --                          So, you need to check this is never asserted before dignosing the overwrite count of cam.
 	
 	
 	-- clock and reset interface
@@ -96,7 +104,7 @@ architecture rtl of ring_buffer_cam is
 	constant K237					: std_logic_vector(7 downto 0) := "11110111"; -- 16#F7#
 	-- input avst data format
 	constant ASIC_HI				: natural := 38;
-	constant ASIC_LO				: natural := 35;
+	constant ASIC_LO				: natural := 35; -- asic[3:0], span from 0 to 15
 	constant CHANNEL_HI				: natural := 34;
 	constant CHANNEL_LO				: natural := 30;
 	constant TCC8N_HI				: natural := 29; -- 28
@@ -139,8 +147,17 @@ architecture rtl of ring_buffer_cam is
 	signal side_ram_din				: std_logic_vector(SRAM_DATA_WIDTH-1 downto 0);
 	
 	-- pop command fifo 
-	constant POP_CMD_FIFO_LPM_WIDTH	: natural := 8;
-	constant POP_CMD_FIFO_LPM_WIDTHU	: natural := 2;
+	constant POP_CMD_FIFO_LPM_WIDTH	    : natural := 9; -- data width. ts[12:4]. only ts[11:4] is used for search key and subheader ts. ts[12] is used for ts glitch validation.
+	constant POP_CMD_FIFO_LPM_WIDTHU	: natural := 4; -- used word width (note: 2 to power of <widthu> = fifo depth)
+                                                        -- 2 (depth=4) will overflow at >500kHz rate/ch
+                                                        -- 3 (depth=8) will overflow at >820kHz rate/ch
+                                                        -- 4 (depth=16) should be the *default
+                                                        --              will NOT overflow at 960kHz rate/ch, max fill-level < 11
+                                                        -- TODO: in case of 16, the add-on delay of pop command is as high as 16*<pop_cycles>, which is minimum 16*8 = 128 cycles. 
+                                                        --       you need to adapt the upstream fifo depth (input fifo of feb_frame_assembly) to account for this extra delay.
+                                                        --       as other CAM ways might overflow while waiting for this way to execute its pop command.  
+                                                        --       when depth=4, the up stream fifo depth of 256 has no overflow at near 1MHz rate/ch. 
+                                                        --       *re-confirm this, when changing to higher depth of the command fifo.
 	signal pop_cmd_fifo_rdack		: std_logic;
 	signal pop_cmd_fifo_dout		: std_logic_vector(POP_CMD_FIFO_LPM_WIDTH-1 downto 0);
 	signal pop_cmd_fifo_wrreq		: std_logic;
@@ -150,18 +167,17 @@ architecture rtl of ring_buffer_cam is
 	signal pop_cmd_fifo_usedw		: std_logic_vector(POP_CMD_FIFO_LPM_WIDTHU-1 downto 0);
 	signal pop_cmd_fifo_sclr		: std_logic;
 	-- pop command fifo (cmp)
-	component scfifo_w8d32
-	PORT
-	(
-		clock		: IN STD_LOGIC ;
-		data		: IN STD_LOGIC_VECTOR (POP_CMD_FIFO_LPM_WIDTH-1 DOWNTO 0);
-		rdreq		: IN STD_LOGIC ;
-		sclr		: IN STD_LOGIC ;
-		wrreq		: IN STD_LOGIC ;
-		empty		: OUT STD_LOGIC ;
-		full		: OUT STD_LOGIC ;
-		q			: OUT STD_LOGIC_VECTOR (POP_CMD_FIFO_LPM_WIDTH-1 DOWNTO 0);
-		usedw		: OUT STD_LOGIC_VECTOR (POP_CMD_FIFO_LPM_WIDTHU-1 DOWNTO 0)
+	component cmd_fifo
+	port (
+		clock		: in  std_logic;
+		data		: in  std_logic_vector(POP_CMD_FIFO_LPM_WIDTH-1 downto 0);
+		rdreq		: in  std_logic;
+		sclr		: in  std_logic;
+		wrreq		: in  std_logic;
+		empty		: out std_logic;
+		full		: out std_logic;
+		q			: out std_logic_vector(POP_CMD_FIFO_LPM_WIDTH-1 downto 0);
+		usedw		: out std_logic_vector(POP_CMD_FIFO_LPM_WIDTHU-1 downto 0)
 	);
 	end component;
 	
@@ -243,6 +259,7 @@ architecture rtl of ring_buffer_cam is
 		-- word 0 
 		go							: std_logic; -- (RW)
 		soft_reset					: std_logic; -- (RW)
+        filter_inerr                : std_logic; -- (RW)
 		-- word 1
 		expected_latency			: std_logic_vector(15 downto 0); -- (RW)
 		-- word 2
@@ -272,7 +289,7 @@ architecture rtl of ring_buffer_cam is
 	signal push_erase_grant				: std_logic;
 	signal push_write_grant				: std_logic;
 	signal push_write_grant_reg			: std_logic;
-	signal pop_current_sk				: std_logic_vector(MAIN_CAM_DATA_WIDTH-1 downto 0);
+	signal pop_current_sk				: std_logic_vector(8 downto 0); -- ts[12:4] (9bit)
 	
 	-- pop descriptor generator
 	signal expected_latency_48b			: std_logic_vector(47 downto 0);
@@ -343,21 +360,21 @@ architecture rtl of ring_buffer_cam is
 	
 begin
 
-	main_cam : entity work.cam_mem_a5
+	main_cam : entity work.cam_mem_a5 -- TODO: 1) improve timing of output <lut> address 2) add true-dp variant
 	-- primitive cam construction
 	generic map(
-		CAM_SIZE 	=> MAIN_CAM_SIZE,
-		CAM_WIDTH 	=> MAIN_CAM_DATA_WIDTH,
+		CAM_SIZE 	    => MAIN_CAM_SIZE,
+		CAM_WIDTH 	    => MAIN_CAM_DATA_WIDTH,
 		WR_ADDR_WIDTH	=> MAIN_CAM_ADDR_WIDTH,
-		RAM_TYPE 	=> "Simple Dual-Port RAM") -- currently only simple dp ram is supported
+		RAM_TYPE 	    => "Simple Dual-Port RAM") -- currently only simple dp ram is supported
 	port map(
-		-- Modifying control port ("Erase-Mode": erase=1, write=X; "Write-Mode": erase=0, write=1; "Idle-Mode": erase=0, write=0)
+		-- <mod_ctl> : Modifying control port ("Erase-Mode": erase=1, write=X; "Write-Mode": erase=0, write=1; "Idle-Mode": erase=0, write=0)
 		i_erase_en		=> cam_erase_en, -- erase has higher priority than write
 		i_wr_en			=> cam_wr_en,
-		-- Write port
+		-- <mod_data> : Write port
 		i_wr_data		=> cam_wr_data,
 		i_wr_addr		=> cam_wr_addr,
-		-- Loop up port 
+		-- <lut> : Loop up port 
 		i_cmp_din		=> cam_cmp_din,
 		o_match_addr	=> cam_match_addr_oh,
 		-- clock and reset interface
@@ -384,13 +401,13 @@ begin
 		clk		=> i_clk
 	);
 	
-	pop_cmd_fifo : scfifo_w8d32 PORT MAP (
+	pop_cmd_fifo : cmd_fifo port map (
+        -- write port
+		wrreq	=> pop_cmd_fifo_wrreq,
+		data	=> pop_cmd_fifo_din,
 		-- read port
 		rdreq	=> pop_cmd_fifo_rdack,
 		q		=> pop_cmd_fifo_dout,
-		-- write port
-		wrreq	=> pop_cmd_fifo_wrreq,
-		data	=> pop_cmd_fifo_din,
 		-- status 
 		empty	=> pop_cmd_fifo_empty,
 		full	=> pop_cmd_fifo_full,
@@ -465,6 +482,7 @@ begin
 			csr.expected_latency	<= std_logic_vector(to_unsigned(2000,csr.expected_latency'length)); -- this is the total latency of read pointer time respect to current gts
 			csr.overwrite_cnt		<= (others => '0');
 			csr.overwrite_cnt_rst	<= '1';
+            csr.filter_inerr        <= '1'; -- *default is on
 			avs_csr_waitrequest		<= '1';
 		elsif (rising_edge(i_clk)) then 
 			-- default
@@ -476,6 +494,7 @@ begin
 					when 0 =>
 						avs_csr_readdata(0)					<= csr.go;
 						avs_csr_readdata(1)					<= csr.soft_reset;
+                        avs_csr_readdata(4)                 <= csr.filter_inerr;
 					when 1 =>
 						avs_csr_readdata(15 downto 0)		<= csr.expected_latency;
 					when 2 =>
@@ -500,6 +519,7 @@ begin
 					when 0 =>
 						csr.go						<= avs_csr_writedata(0);
 						csr.soft_reset				<= avs_csr_writedata(1);
+                        csr.filter_inerr            <= avs_csr_writedata(4);
 					when 1 =>
 						csr.expected_latency		<= avs_csr_writedata(15 downto 0);
 					when 2 => 
@@ -513,7 +533,7 @@ begin
 				-- soft reset
 				csr.soft_reset			<= '0'; -- TODO: implement this
 				-- fill level and ow cnt
-				fill_level_tmp				<= to_unsigned((to_integer(debug_msg2.push_cnt) - to_integer(debug_msg2.pop_cnt) - to_integer(debug_msg2.overwrite_cnt) + to_integer(debug_msg2.cache_miss_cnt)),fill_level_tmp'length);	
+				fill_level_tmp				<= debug_msg2.push_cnt - debug_msg2.pop_cnt - debug_msg2.overwrite_cnt + debug_msg2.cache_miss_cnt;	
 				csr.fill_level				<= std_logic_vector(fill_level_tmp(31 downto 0)); -- direct mapped
 				csr.overwrite_cnt			<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0) - ow_cnt_tmp); -- this only shows the incremental amount after csr reset
 				if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
@@ -543,7 +563,14 @@ begin
 			if (asi_hit_type1_valid = '1' and to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX) then 
 			-- only takes the ts modulo interleaving_factor = interleaving_index
 			-- (deprecated) since the data streams are merged in mts_processor, ignore data from other non-selected channel
-				deassembly_fifo_wrreq			<= '1';
+                if (csr.filter_inerr = '1') then 
+                    -- filter the tserr from the processor 
+                    if (asi_hit_type1_error(0) = '0') then 
+                        deassembly_fifo_wrreq			<= '1';
+                    end if;
+                else 
+                    deassembly_fifo_wrreq			<= '1';
+                end if;
 			end if;
 		end if;
 		-- fifo read port
@@ -654,13 +681,13 @@ begin
 				if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX) then -- generate read command every 16 cycle 
 					-- only generate when interleaving condition is met (see input deassembly)
 					pop_cmd_fifo_wrreq		<= '1';
-					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
+					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 				end if;
 			elsif (run_state_cmd = TERMINATING) then -- end of run pop
 				if (read_time_ptr < gts_end_of_run) then -- continue to generate until read the end of run ts marker, at this point all hits should be popped out
 					if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
 						pop_cmd_fifo_wrreq		<= '1';
-						pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
+						pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 					end if;
 				end if;
 			end if;
@@ -703,7 +730,7 @@ begin
 				-- ============= IDLE ==============
 				when IDLE =>
 					if (pop_cmd_fifo_empty /= '1') then -- if not empty, read the showahead word
-						pop_current_sk		<= pop_cmd_fifo_dout; -- latch pop search key for this round
+						pop_current_sk		<= pop_cmd_fifo_dout; -- latch pop search key for this round, ts[11:4]
 						pop_engine_state	<= SEARCH;
 					end if;
 					-- inter-fsm communication (with run state mgmt)
@@ -811,7 +838,7 @@ begin
 		pop_erase_req			<= '0';
 		pop_flush_req			<= '0';
 		pop_hit_valid_comb		<= '0';
-		cam_cmp_din				<= pop_current_sk; -- bug fixed! pop_cmd_fifo_dout; -- pop search key
+		cam_cmp_din				<= pop_current_sk(7 downto 0); -- pop search key ts[11:4]
 		-- logic
 		case pop_engine_state is 
 			when EVAL =>
@@ -1045,7 +1072,7 @@ begin
 				cam_wr_en		<= '0';
 				cam_erase_en	<= '1';
 				cam_wr_addr		<= pop_cam_match_addr; -- erase this consumed hit in cam
-				cam_wr_data		<= pop_current_sk; -- search key for this sub-header -- bug fixed
+				cam_wr_data		<= pop_current_sk(7 downto 0); -- search key for this sub-header -- bug fixed
 				-- write side-ram 
 				side_ram_we		<= '1';
 				side_ram_waddr	<= pop_cam_match_addr; -- erase this consumed hit in side ram
@@ -1164,14 +1191,21 @@ begin
 			aso_hit_type2_endofpacket	<= '0';
 		elsif (rising_edge(i_clk)) then 
 			pop_hit_valid		<= pop_hit_valid_comb; -- latched so, high in the cycle after POPING, come together with the cam/ram's q
-			-- 1) generate sub header (w/ sop or sop+eop)
+			
+            -- 0) default 
+            aso_hit_type2_error(0)              <= '0';
+            aso_hit_type2_valid			        <= '0';
+            aso_hit_type2_data			        <= (others => '0');
+            aso_hit_type2_startofpacket	        <= '0';
+			aso_hit_type2_endofpacket	        <= '0';
+            -- 1) generate sub header (w/ sop or sop+eop)
 			if ((pop_pipeline_start = '1' or pop_cmd_fifo_rdack = '1') and subheader_gen_done = '0') then 
                 -- 1) generate only one sub-header at POPING or 2) generate sub-header for empty subframe
 				-- Streaming
 				aso_hit_type2_valid		<= '1';
 				-- assemble sub-header
 				aso_hit_type2_data(35 downto 32)	<= "0001"; -- byte is k
-				aso_hit_type2_data(31 downto 24)	<= pop_current_sk; -- this is ts[11:4] in the scope of this subheader
+				aso_hit_type2_data(31 downto 24)	<= pop_current_sk(7 downto 0); -- this is ts[11:4] in the scope of this subheader
 				aso_hit_type2_data(23 downto 16)	<= (others => '0'); -- free space, TBD
 				aso_hit_type2_data(15 downto 8)		<= std_logic_vector(to_unsigned(to_integer(unsigned(bank_combiner_total_count_comb)),8));
 				-- fix it '0' & bank_combiner_total_count_comb(6 downto 0); -- truncate (512 entry) 9 bit -> 8 bit. or expand (64 entry) 6 bit -> 8 bit. 
@@ -1184,8 +1218,6 @@ begin
 				aso_hit_type2_startofpacket			<= '1';
 				if (to_integer(unsigned(bank_combiner_total_count_comb)) = 0) then -- gen eop for no hit scenario, or last hit
 					aso_hit_type2_endofpacket			<= '1';
-				else 
-					aso_hit_type2_endofpacket			<= '0';
 				end if;
             -- 2) generate hits (w/ eop)
 			elsif (pop_pipeline_start = '1' and subheader_gen_done = '1') then -- at EVAL, 1 cycle after POPING, hits should be available
@@ -1194,7 +1226,7 @@ begin
 					aso_hit_type2_valid		<= '1';
 					-- assemble hit type 2
 					aso_hit_type2_data(35 downto 32)	<= (others => '0'); -- byte is k
-					aso_hit_type2_data(31 downto 28)	<= hit_pop_data_comb(TCC8N_LO+3 downto TCC8N_LO);
+					aso_hit_type2_data(31 downto 28)	<= hit_pop_data_comb(TCC8N_LO+3 downto TCC8N_LO); -- ts[3:0], check ts[12] below
 					aso_hit_type2_data(27 downto 22)	<= "00" & hit_pop_data_comb(ASIC_HI downto ASIC_LO);
 					aso_hit_type2_data(21 downto 17)	<= hit_pop_data_comb(CHANNEL_HI downto CHANNEL_LO);
 					aso_hit_type2_data(16 downto 9)		<= hit_pop_data_comb(TCC1n6_HI downto TFINE_LO); -- tcc1.6(1.6ns) & tfine(50ps) = ts50p
@@ -1203,30 +1235,16 @@ begin
 					aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length)); -- re-assemble the channel
 						-- equivalent alternative: hit_pop_data_comb(ASIC_HI downto ASIC_LO); 
 					-- packet 
-					aso_hit_type2_startofpacket			<= '0';
 					if (to_integer(unsigned(bank_combiner_total_count_comb)) <= 1) then -- gen eop for last hit 
 						aso_hit_type2_endofpacket			<= '1';
-					else
-						aso_hit_type2_endofpacket			<= '0';
 					end if;
-				else -- idle
-					aso_hit_type2_valid			<= '0';
-					aso_hit_type2_data			<= (others => '0');
-					aso_hit_type2_startofpacket	<= '0';
-					aso_hit_type2_endofpacket	<= '0';
+                    -- error {tsglitcherr}
+                    if (hit_pop_data_comb(TCC8N_LO+12) /= pop_current_sk(8)) then -- ts[12] from ram matches ts[12] from search key
+                        aso_hit_type2_error(0)              <= '1';
+                    end if;
 				end if;
 			elsif (pop_pipeline_start = '0') then 
 				subheader_gen_done			<= '0';
-				-- Streaming
-				aso_hit_type2_valid			<= '0';
-				aso_hit_type2_data			<= (others => '0');
-				aso_hit_type2_startofpacket	<= '0';
-				aso_hit_type2_endofpacket	<= '0';
-			else -- idle
-				aso_hit_type2_valid			<= '0';
-				aso_hit_type2_data			<= (others => '0');
-				aso_hit_type2_startofpacket	<= '0';
-				aso_hit_type2_endofpacket	<= '0';
 			end if;
 	
 		end if;
