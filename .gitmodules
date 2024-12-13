@@ -52,3 +52,6 @@
 [submodule "feb_frame_assembly"]
 	path = feb_frame_assembly
 	url = git@github.com:yifeng-ethz/feb_frame_assembly.git
+[submodule "advanced_lvds_controller"]
+	path = advanced_lvds_controller
+	url = git@github.com:yifeng-ethz/advanced_lvds_controller.git
