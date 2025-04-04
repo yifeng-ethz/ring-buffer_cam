@@ -7,6 +7,8 @@
 --		Date: Jul 16, 2024
 -- Revision: 2.1 (fix the max size)
 --		Date: Jul 19, 2024
+-- Revision: 2.2 (improve timing on flag)
+--      Date: Mar 25, 2025
 -- ================ synthsizer configuration =================== 		
 -- altera vhdl_input_version vhdl_2008
 -- ============================================================= 
@@ -15,6 +17,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.or_reduce;
 
 entity addr_enc_logic_small is
 generic(
@@ -111,11 +114,15 @@ architecture rtl of addr_enc_logic_small is
 		
 			
 			-- valid flag for binary code
-			if (to_integer(count) /= 0) then
-				cam_match_flag <= '1';
-			else
-				cam_match_flag <= '0';
-			end if;
+--			if (to_integer(count) /= 0) then
+--				cam_match_flag <= '1';
+--			else
+--				cam_match_flag <= '0';
+--			end if;
+            
+            
+            cam_match_flag  <= or_reduce(cam_address_onehot);
+            
 			
 			-- wire last stage to output
 			cam_match_count 		<= std_logic_vector(count) ;

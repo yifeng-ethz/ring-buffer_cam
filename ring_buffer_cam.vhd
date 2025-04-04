@@ -5,6 +5,10 @@
 --		Date: Jul 4, 2024
 -- Revision: 2.0 (functional verified)
 --		Date: Jul 29, 2024
+-- Revision: 2.1 (add profiling/debug interfaces)
+--      Date: Mar 21, 2025
+-- Revision: 2.2 (clean up csr)
+--      Date: Mar 24, 2025
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -87,7 +91,10 @@ port(
                                                                         --                          So, you need to check this is never asserted before dignosing the overwrite count of cam.
 	
 	
-	-- clock and reset interface
+	aso_filllevel_valid             : out std_logic;
+    aso_filllevel_data              : out std_logic_vector(15 downto 0);
+    
+    -- clock and reset interface
 	i_rst							: in  std_logic;
 	i_clk							: in  std_logic
 
@@ -294,6 +301,7 @@ architecture rtl of ring_buffer_cam is
 	-- pop descriptor generator
 	signal expected_latency_48b			: std_logic_vector(47 downto 0);
 	signal read_time_ptr				: unsigned(47 downto 0);
+    signal read_time_ptr_comb           : unsigned(47 downto 0);
 	
 	-- pop engine
 	type pop_engine_state_t is (IDLE, SEARCH, EVAL, POPING, RESET, FLUSHING, FLUSHING_RST);
@@ -342,11 +350,12 @@ architecture rtl of ring_buffer_cam is
 		overwrite_cnt				: unsigned(47 downto 0);
 		cam_clean					: std_logic;
 		cache_miss_cnt				: unsigned(47 downto 0);
+        inerr_cnt                   : unsigned(47 downto 0);
 	end record;
 	signal debug_msg				: debug_msg_t;
 	signal debug_msg2				: debug_msg_t;
 	signal fill_level_tmp					: unsigned (47 downto 0);
-	signal ow_cnt_tmp						: unsigned(31 downto 0);
+	--signal ow_cnt_tmp						: unsigned(31 downto 0);
 	
 	-- run control management 
 	type run_state_t is (IDLE, RUN_PREPARE, SYNC, RUNNING, TERMINATING, LINK_TEST, SYNC_TEST, RESET, OUT_OF_DAQ, ERROR);
@@ -499,9 +508,9 @@ begin
 						avs_csr_readdata(15 downto 0)		<= csr.expected_latency;
 					when 2 =>
 						avs_csr_readdata(31 downto 0)		<= csr.fill_level;
+                    -- below is for debug only (as the reading might overflow)
 					when 3 =>
-						avs_csr_readdata(31 downto 0)		<= csr.overwrite_cnt;
-					-- below is for debug only
+						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.inerr_cnt)(31 downto 0);
 					when 4 =>
 						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.push_cnt)(31 downto 0);
 					when 5 =>
@@ -525,7 +534,7 @@ begin
 					when 2 => 
 						-- do nothing
 					when 3 => -- write side effect: reset overwrite counter 
-						csr.overwrite_cnt_rst		<= avs_csr_writedata(0);
+						-- csr.overwrite_cnt_rst		<= avs_csr_writedata(0);
 					when others =>
 				end case;
 			else -- idle, update the csr registers
@@ -535,10 +544,16 @@ begin
 				-- fill level and ow cnt
 				fill_level_tmp				<= debug_msg2.push_cnt - debug_msg2.pop_cnt - debug_msg2.overwrite_cnt + debug_msg2.cache_miss_cnt;	
 				csr.fill_level				<= std_logic_vector(fill_level_tmp(31 downto 0)); -- direct mapped
-				csr.overwrite_cnt			<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0) - ow_cnt_tmp); -- this only shows the incremental amount after csr reset
-				if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
-					csr.overwrite_cnt_rst			<= '0';
-				end if;
+				--csr.overwrite_cnt			<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0) - ow_cnt_tmp); -- this only shows the incremental amount after csr reset
+				--if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
+				--	csr.overwrite_cnt_rst			<= '0';
+				--end if;
+                if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
+                    debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
+                end if;
+                if (decision_reg = 3) then -- flushing 
+                    debug_msg2.inerr_cnt            <= (others => '0');
+                end if;
 			end if;
 		end if;
 	end process;
@@ -683,7 +698,7 @@ begin
 					pop_cmd_fifo_wrreq		<= '1';
 					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 				end if;
-			elsif (run_state_cmd = TERMINATING) then -- end of run pop
+			elsif (run_state_cmd = TERMINATING) then -- end of run pop (continue to finish the last Mu3e frame)
 				if (read_time_ptr < gts_end_of_run) then -- continue to generate until read the end of run ts marker, at this point all hits should be popped out
 					if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
 						pop_cmd_fifo_wrreq		<= '1';
@@ -691,19 +706,25 @@ begin
 					end if;
 				end if;
 			end if;
+            
+            read_time_ptr       <= read_time_ptr_comb;
+            
 			
 		end if;
 	end process;
 	
 	proc_pop_descriptor_generator_comb : process (all)
 	begin
+    
+        -- derive read time pointer (-2000 of current gts time)
+        if (to_integer(gts_8n) > to_integer(unsigned(expected_latency_48b))) then 
+            read_time_ptr_comb		<= gts_8n - unsigned(expected_latency_48b);
+        else 
+            read_time_ptr_comb       <= (0 => '1', others => '0'); -- avoid generate descriptor when run has just started
+        end if;
 		expected_latency_48b(csr.expected_latency'high downto 0)								<= csr.expected_latency; 
 		expected_latency_48b(expected_latency_48b'high downto csr.expected_latency'length)		<= (others => '0'); -- pads 0 in msb
-        if (to_integer(gts_8n) > to_integer(unsigned(expected_latency_48b))) then 
-            read_time_ptr		<= gts_8n - unsigned(expected_latency_48b);
-        else 
-            read_time_ptr       <= (0 => '1', others => '0'); -- avoid generate descriptor when run has just started
-        end if;
+        
 	end process;
 	
 	
@@ -1261,20 +1282,20 @@ begin
 	-- 
 	begin
 		if (i_rst = '1') then 
-			ow_cnt_tmp					<= (others => '0');
+--			ow_cnt_tmp					<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
 			-- sclr the csr overwrite_cnt
-			if (csr.overwrite_cnt_rst = '1' and csr.overwrite_cnt_rst_done = '0') then -- latch the current value
-				ow_cnt_tmp					<= debug_msg2.overwrite_cnt(31 downto 0);
-				csr.overwrite_cnt_rst_done	<= '1';
-			elsif (csr.overwrite_cnt_rst = '1' and csr.overwrite_cnt_rst_done = '1') then
-				-- idle
-				ow_cnt_tmp					<= ow_cnt_tmp;
-			elsif (csr.overwrite_cnt_rst = '0' and csr.overwrite_cnt_rst_done = '1') then -- ack the host
-				csr.overwrite_cnt_rst_done	<= '0';
-			else
-				ow_cnt_tmp					<= ow_cnt_tmp;
-			end if;
+--			if (csr.overwrite_cnt_rst = '1' and csr.overwrite_cnt_rst_done = '0') then -- latch the current value
+--				ow_cnt_tmp					<= debug_msg2.overwrite_cnt(31 downto 0);
+--				csr.overwrite_cnt_rst_done	<= '1';
+--			elsif (csr.overwrite_cnt_rst = '1' and csr.overwrite_cnt_rst_done = '1') then
+--				-- idle
+--				ow_cnt_tmp					<= ow_cnt_tmp;
+--			elsif (csr.overwrite_cnt_rst = '0' and csr.overwrite_cnt_rst_done = '1') then -- ack the host
+--				csr.overwrite_cnt_rst_done	<= '0';
+--			else
+--				ow_cnt_tmp					<= ow_cnt_tmp;
+--			end if;
 			-- cam empty flag
 			if (to_integer(debug_msg2.push_cnt) = 0 and to_integer(debug_msg2.pop_cnt) = 0 and to_integer(debug_msg2.overwrite_cnt) = 0) then -- very clean, no underflow
 				debug_msg2.cam_clean				<= '1';
@@ -1347,7 +1368,7 @@ begin
 			
 			-- mgmt main state machine
 			case run_state_cmd is 
-				when IDLE => 
+				when IDLE => -- this is the default state, after cmd=stop reset, you should end up here.
 					if (asi_ctrl_valid = '1') then 
 						asi_ctrl_ready			<= '1';
 					else
@@ -1396,6 +1417,10 @@ begin
 						asi_ctrl_ready			<= '0';
 					end if;
 					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
+                when RESET => 
+                    -- this is similar to flush everything, TODO: add also register clear here
+                    asi_ctrl_ready          <= '1'; -- for now just ack it. otherwise the swb can be stuck.
+                    
 				when others =>
 					pop_cmd_fifo_sclr		<= '0';
 					deassembly_fifo_sclr	<= '0';
@@ -1406,11 +1431,27 @@ begin
 		
 	end process;
 	
-	
-
-
-
-
+	-- /////////////////////////////////////////////
+    -- @name            fillness interface
+    --
+    -- /////////////////////////////////////////////
+    proc_filllevel_interface : process (i_clk)
+    begin
+        if rising_edge(i_clk) then 
+            -- default
+            aso_filllevel_valid         <= '0'; 
+            -- main logic
+            aso_filllevel_data          <= csr.fill_level(15 downto 0);
+            if (i_rst = '0') then
+                aso_filllevel_valid         <= '1';
+            end if;
+        
+        end if;
+    
+    end process;
+    
+    
+    
 
 
 
