@@ -58,3 +58,6 @@
 [submodule "run-control_mgmt"]
 	path = run-control_mgmt
 	url = git@github.com:yifeng-ethz/run-control_mgmt.git
+[submodule "onewire_temp_sense"]
+	path = onewire_temp_sense
+	url = https://github.com/yifeng-ethz/onewire_temp_sense.git
