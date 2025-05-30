@@ -698,7 +698,9 @@ begin
 					pop_cmd_fifo_wrreq		<= '1';
 					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 				end if;
-			elsif (run_state_cmd = TERMINATING) then -- end of run pop (continue to finish the last Mu3e frame)
+			elsif (run_state_cmd = TERMINATING) then -- end of run pop 
+            -- The frame assembly should always generate, but ring cam stopped after eor tick. 
+            -- As the merger is frame based, the last frame will not be uploaded to SWB.
 				if (read_time_ptr < gts_end_of_run) then -- continue to generate until read the end of run ts marker, at this point all hits should be popped out
 					if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
 						pop_cmd_fifo_wrreq		<= '1';
