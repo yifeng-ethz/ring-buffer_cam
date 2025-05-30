@@ -46,9 +46,6 @@
 [submodule "ring-buffer_cam"]
 	path = ring-buffer_cam
 	url = git@github.com:yifeng-ethz/ring-buffer_cam.git
-[submodule "feb_frame_assembly"]
-	path = feb_frame_assembly
-	url = git@github.com:yifeng-ethz/feb_frame_assembly.git
 [submodule "advanced_lvds_controller"]
 	path = advanced_lvds_controller
 	url = git@github.com:yifeng-ethz/advanced_lvds_controller.git
@@ -61,3 +58,6 @@
 [submodule "onewire_temp_sense"]
 	path = onewire_temp_sense
 	url = https://github.com/yifeng-ethz/onewire_temp_sense.git
+[submodule "feb_frame_assembly"]
+	path = feb_frame_assembly
+	url = https://github.com/yifeng-ethz/feb_frame_assembly.git
