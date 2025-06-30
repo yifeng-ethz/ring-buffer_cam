@@ -61,3 +61,6 @@
 [submodule "feb_frame_assembly"]
 	path = feb_frame_assembly
 	url = https://github.com/yifeng-ethz/feb_frame_assembly.git
+[submodule "mupix_inbound"]
+	path = mupix_inbound
+	url = https://github.com/yifeng-ethz/mupix_inbound.git
