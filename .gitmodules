@@ -64,3 +64,6 @@
 [submodule "packet_scheduler"]
 	path = packet_scheduler
 	url = https://github.com/yifeng-ethz/packet_scheduler.git
+[submodule "board_test_system"]
+	path = board_test_system
+	url = https://github.com/yifeng-ethz/board_test_system.git
