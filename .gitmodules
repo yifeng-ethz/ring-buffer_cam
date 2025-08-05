@@ -61,3 +61,6 @@
 [submodule "mupix_inbound"]
 	path = mupix_inbound
 	url = https://github.com/yifeng-ethz/mupix_inbound.git
+[submodule "packet_scheduler"]
+	path = packet_scheduler
+	url = https://github.com/yifeng-ethz/packet_scheduler.git
