@@ -793,7 +793,7 @@ begin
 					if (pop_erase_grant = '1') then
 --						debug_msg.pop_cnt			<= debug_msg.pop_cnt + 1;	-- incr global counter
 						match_encoder_addr_raw		<= bank_combiner_addr_raw_comb; -- post the next raw 
-						if (to_integer(unsigned(bank_combiner_total_count_comb)) <= 1) then -- last hit in all ways, or no hit
+						if (to_integer(unsigned(bank_combiner_total_count_comb)) <= 1) then -- last hit in all ways
 							-- reset ...
 							pop_engine_state			<= RESET;
 							pop_cmd_fifo_rdack			<= '1'; -- ack the command is completed
