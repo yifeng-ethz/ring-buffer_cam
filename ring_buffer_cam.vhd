@@ -9,6 +9,8 @@
 --      Date: Mar 21, 2025
 -- Revision: 2.2 (clean up csr)
 --      Date: Mar 24, 2025
+-- Revision: 2.3 (fixed bug of gts overflow due to casted int32 type)
+--      Date: Aug 13, 2025
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -452,7 +454,7 @@ begin
 				gts_8n		<= (others => '0');
 			else
 				-- begin counter
-				gts_8n		<= gts_8n + to_unsigned(1,gts_8n'length);
+				gts_8n		<= gts_8n + 1;
 			end if;
 		end if;
 	end process;
@@ -719,7 +721,11 @@ begin
 	begin
     
         -- derive read time pointer (-2000 of current gts time)
-        if (to_integer(gts_8n) > to_integer(unsigned(expected_latency_48b))) then 
+    	-- if (to_integer(gts_8n) > to_integer(unsigned(expected_latency_48b))) then 	-- note : LINT_ERROR!!! very likely when comparing (int_48) with (int_16) only lower 32 bits are used, 
+																						--        so when int_48 overflowed at 32=1 [31:0]=0, the comparison is wrong.
+																						-- follow up : Integer range limits. Because to_integer() will convert into int_32, which is signed 32 bit,
+																						--             with range of -2_147_483_648 to +2_147_483_647. 
+		if (gts_8n > unsigned(expected_latency_48b)) then -- fixed : see above the reasons
             read_time_ptr_comb		<= gts_8n - unsigned(expected_latency_48b);
         else 
             read_time_ptr_comb       <= (0 => '1', others => '0'); -- avoid generate descriptor when run has just started

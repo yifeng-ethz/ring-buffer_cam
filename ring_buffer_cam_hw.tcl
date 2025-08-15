@@ -13,6 +13,7 @@
 # 25.0.0228 - add <filllevel> interface 
 # 25.0.0321 - add IP wrapping documentations
 # 25.0.0324 - clear up csr
+# 25.0.0813 - fixed bug of gts overflow due to casted to int32 type
 
 ################################################
 # request TCL package from ACDS 16.1
@@ -25,7 +26,7 @@ package require qsys
 ################################################
 set_module_property DESCRIPTION "This cam is implemented in a special shape of a ring-buffer, where write pointer (wr_ptr) is ever mono-increasing in address and the read pointer (rd_ptr) is in timestamp/rank. The look-up is supported by the CAM natively."
 set_module_property NAME ring_buffer_cam
-set_module_property VERSION 25.0.0324
+set_module_property VERSION 25.0.0813
 set_module_property INTERNAL false
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property GROUP "Mu3e Data Plane/Modules"
