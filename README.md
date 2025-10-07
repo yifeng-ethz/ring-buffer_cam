@@ -1,5 +1,4 @@
 
-
 # Mu3e IP Library
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)  
 [![Platform](https://img.shields.io/badge/platform-FPGA-blue.svg)](#)
@@ -20,29 +19,28 @@ Each Mu3e IP core resides in its own subdirectory of this repository or in an ex
 
 | IP Name | Description | Version / Status |
 |---|---|---|
-| **Slow‑Control Hub** | Converts Mu3e slow‑control packets into Avalon Memory‑Mapped transactions and handles burst count, address and response timing. | ![v25.0.0806](https://img.shields.io/badge/version-25.0.0806-blue) |
-| **Onewire Temperature Sensor Controller** | Periodically polls 1‑Wire temperature sensors; implements reset, presence detect and bit‑level timing. | ![v24.0.918](https://img.shields.io/badge/version-24.0.918-blue) |
-| **MuTRiG Frame Deassembly** | Parses MuTRiG frames into header and hit payloads and flags individual hit errors and frame CRC errors. | ![v24.0.1021](https://img.shields.io/badge/version-24.0.1021-blue) |
-| **CAM (Content Addressable Memory)** | Primitive content‑addressable memory core.  Use as a building block for caches, correlators and address decoders. | ![v17.0.2](https://img.shields.io/badge/version-17.0.2-blue) |
-| **MuTRiG Timestamp Processor** | Tracks MuTRiG timestamp overflow and maps MuTRiG‑local timestamps to global timestamps. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
-| **Histogram Statistics** | Builds histograms from a selected data stream using SAR bin calculation and DP‑RAM counters. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
-| **MuTRiG Controller** | SPI master for configuring MuTRiG ASICs.  Automatically scans T‑thresholds and stores results locally. | ![v24.0.1028](https://img.shields.io/badge/version-24.0.1028-blue) |
-| **Charge Injection (Analog Pulser)** | Generates calibration pulses with arbitrary frequency and duration for TDC injection tests. | ![v4.0.5](https://img.shields.io/badge/version-4.0.5-blue) |
-| **Charge Injection (MuTRiG Injector)** | Produces digital and analog pulses to verify MuTRiG operation when used with DAB boards. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
-| **Altera Temperature Sensor Controller** | Wraps the on‑chip `alt_temp_sense` IP on 28 nm devices and stores the last temperature result. | ![v1.0](https://img.shields.io/badge/version-1.0-blue) |
-| **High Performance Counter Array** | Parallel counters supporting concurrent inputs with Avalon‑MM readout.  Features synchronous clear and reset. | ![v1.4.1](https://img.shields.io/badge/version-1.4.1-blue) |
-| **MuTRiG Channel Counter Fabric** | Connects *hit type 0* from the frame deassembly IP to the counter array.  Decodes channel IDs into one‑hot update signals. | ![v1.0.12](https://img.shields.io-badge/version-1.0.12-blue) |
-| **LVDS Error Counter Fabric** | Accumulates parity and decode error counts from the LVDS receiver sideband. | ![v1.0.5](https://img.shields.io/badge/version-1.0.5-blue) |
-| **Firefly Transceiver I2C Master** | Interfaces with the Samtec Firefly optical transceiver module via I2C.  Periodically reads temperature and RX power and can be halted. | ![v1.9.6](https://img.shields.io/badge/version-1.9.6-blue) |
-| **IP 8b/10b Decoder** | Standard 8b/10b decoder for parallel LVDS `rxout` data.  Derives parity and decoding errors. | ![v1.3.1](https://img.shields.io/badge/version-1.3.1-blue) |
-| **MuTRiG Reset Controller** | Issues reset pulses for the MuTRiG based on run‑state changes.  Provides programmable phase shift via `alt_pll_reconfig`. | ![v1.0.8](https://img.shields.io/badge/version-1.0.8-blue) |
-| **Ring‑buffer CAM** | Circular buffer variant of CAM with push‑to‑stack write semantics and cache‑like read‑through.  Used to build the hit stack. | ![Protected](https://img.shields.io/badge/status-Prototype-lightgrey) |
-| **Frontend‑Board Frame Assembly** | Assembles time‑interleaved subframes from the ring‑buffer CAM into Mu3e‑standard data frames and schedules packet transmission. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
-| **Mu3e LVDS Controller** | Provides high‑speed LVDS links to the MuPix sensors using FPGA vendor IP.  Includes 28 nm LVDS RX and Pro variants. | ![v25.1.0630](https://img.shields.io/badge/version-25.1.0630-blue) |
-| **MuPix Inbound** | Deserializes data from MuPix chips, decodes and buffers hits.  Not a Qsys IP, thus no `VERSION` property. | ![N/A](https://img.shields.io/badge/status-N/A-lightgrey) |
-| **Packet Scheduler** | Orders packets via an interface adapter and an ordered priority queue to achieve deterministic throughput. | ![v25.0.0723](https://img.shields.io/badge/version-25.0.0723-blue) |
-| **Run‑Control Management** | Manages run‑state transitions for Mu3e subsystems and issues control signals. | ![v24.0.1125](https://img.shields.io/badge/version-24.0.1125-blue) |
-
+| [**Slow‑Control Hub**](https://github.com/yifeng-ethz/slow-control_hub) | Converts Mu3e slow‑control packets into Avalon Memory‑Mapped transactions and handles burst count, address and response timing. | ![v25.0.0806](https://img.shields.io/badge/version-25.0.0806-blue) |
+| [**Onewire Temperature Sensor Controller**](https://github.com/yifeng-ethz/onewire_temp_sense) | Periodically polls 1‑Wire temperature sensors; implements reset, presence detect and bit‑level timing. | ![v24.0.918](https://img.shields.io/badge/version-24.0.918-blue) |
+| [**MuTRiG Frame Deassembly**](https://github.com/yifeng-ethz/mutrig_frame_deassembly) | Parses MuTRiG frames into header and hit payloads and flags individual hit errors and frame CRC errors. | ![v24.0.1021](https://img.shields.io/badge/version-24.0.1021-blue) |
+| [**CAM (Content Addressable Memory)**](https://github.com/yifeng-ethz/CAM) | Primitive content‑addressable memory core.  Use as a building block for caches, correlators and address decoders. | ![v17.0.2](https://img.shields.io/badge/version-17.0.2-blue) |
+| [**MuTRiG Timestamp Processor**](https://github.com/yifeng-ethz/mutrig_timestamp_processor) | Tracks MuTRiG timestamp overflow and maps MuTRiG‑local timestamps to global timestamps. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
+| [**Histogram Statistics**](https://github.com/yifeng-ethz/histogram_statistics) | Builds histograms from a selected data stream using SAR bin calculation and DP‑RAM counters. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
+| [**MuTRiG Controller**](https://github.com/yifeng-ethz/mutrig_controller) | SPI master for configuring MuTRiG ASICs.  Automatically scans T‑thresholds and stores results locally. | ![v24.0.1028](https://img.shields.io/badge/version-24.0.1028-blue) |
+| [**Charge Injection (Analog Pulser)**](https://github.com/yifeng-ethz/charge_injection) | Generates calibration pulses with arbitrary frequency and duration for TDC injection tests. | ![v4.0.5](https://img.shields.io/badge/version-4.0.5-blue) |
+| [**Charge Injection (MuTRiG Injector)**](https://github.com/yifeng-ethz/charge_injection) | Produces digital and analog pulses to verify MuTRiG operation when used with DAB boards. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
+| [**Altera Temperature Sensor Controller**](https://github.com/yifeng-ethz/alt_temp_sense_controller) | Wraps the on‑chip `alt_temp_sense` IP on 28 nm devices and stores the last temperature result. | ![v1.0](https://img.shields.io/badge/version-1.0-blue) |
+| [**High Performance Counter Array**](https://github.com/yifeng-ethz/high_performance_counter_array) | Parallel counters supporting concurrent inputs with Avalon‑MM readout.  Features synchronous clear and reset. | ![v1.4.1](https://img.shields.io/badge/version-1.4.1-blue) |
+| [**MuTRiG Channel Counter Fabric**](https://github.com/yifeng-ethz/mutrig_channel_counter_fabric) | Connects *hit type 0* from the frame deassembly IP to the counter array.  Decodes channel IDs into one‑hot update signals. | ![v1.0.12](https://img.shields.io/badge/version-1.0.12-blue) |
+| [**LVDS Error Counter Fabric**](https://github.com/yifeng-ethz/lvds_error_counter_fabric) | Accumulates parity and decode error counts from the LVDS receiver sideband. | ![v1.0.5](https://img.shields.io/badge/version-1.0.5-blue) |
+| [**Firefly Transceiver I2C Master**](https://github.com/yifeng-ethz/firefly_xcvr_i2c_master) | Interfaces with the Samtec Firefly optical transceiver module via I2C.  Periodically reads temperature and RX power and can be halted. | ![v1.9.6](https://img.shields.io/badge/version-1.9.6-blue) |
+| [**IP 8b/10b Decoder**](https://github.com/yifeng-ethz/ip_8b10b_decoder) | Standard 8b/10b decoder for parallel LVDS `rxout` data.  Derives parity and decoding errors. | ![v1.3.1](https://img.shields.io/badge/version-1.3.1-blue) |
+| [**MuTRiG Reset Controller**](https://github.com/yifeng-ethz/mutrig_reset_controller) | Issues reset pulses for the MuTRiG based on run‑state changes.  Provides programmable phase shift via `alt_pll_reconfig`. | ![v1.0.8](https://img.shields.io/badge/version-1.0.8-blue) |
+| [**Ring‑buffer CAM**](https://github.com/yifeng-ethz/ring-buffer_cam) | Circular buffer variant of CAM with push‑to‑stack write semantics and cache‑like read‑through.  Used to build the hit stack. | ![Protected](https://img.shields.io/badge/status-Protected-red) |
+| [**Frontend‑Board Frame Assembly**](https://github.com/yifeng-ethz/feb_frame_assembly) | Assembles time‑interleaved subframes from the ring‑buffer CAM into Mu3e‑standard data frames and schedules packet transmission. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
+| [**Mu3e LVDS Controller**](https://github.com/yifeng-ethz/mu3e_lvds_controller) | Provides high‑speed LVDS links to the MuPix sensors using FPGA vendor IP.  Includes 28 nm LVDS RX and Pro variants. | ![v25.1.0630](https://img.shields.io/badge/version-25.1.0630-blue) |
+| [**MuPix Inbound**](https://github.com/yifeng-ethz/mupix_inbound) | Deserializes data from MuPix chips, decodes and buffers hits. | ![Prototype](https://img.shields.io/badge/status-Prototype-lightgrey) |
+| [**Packet Scheduler**](https://github.com/yifeng-ethz/packet_scheduler) | Orders packets via an interface adapter and an ordered priority queue to achieve deterministic throughput. | ![v25.0.0723](https://img.shields.io/badge/version-25.0.0723-blue) |
+| [**Run‑Control Management**](https://github.com/yifeng-ethz/run-control_mgmt) | Manages run‑state transitions for Mu3e subsystems and issues control signals. | ![v24.0.1125](https://img.shields.io/badge/version-24.0.1125-blue) |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -50,7 +48,7 @@ Each Mu3e IP core resides in its own subdirectory of this repository or in an ex
 
 ## About the Project
 
-The Mu3e experiment searches for the rare decay \(\mu \to eee\) with unprecedented sensitivity.  A high‑throughput, triggerless data acquisition (DAQ) system is required to read out the MuPix pixel sensors and MuTRiG tracking chips.  This repository houses reusable FPGA IP cores developed for Mu3e.  They cover front‑end interfacing, slow‑control, data processing and utilities.  Each subdirectory contains the source code, documentation and simulation testbenches for an individual core.
+The Mu3e experiment searches for the rare decay $\mu^{+} \rightarrow e^{+} e^{-} e^{+}$ with unprecedented sensitivity.  A high-throughput, triggerless data acquisition (DAQ) system is required to read out the MuPix pixel sensors and MuTRiG tracking chips.  This repository houses reusable FPGA IP cores developed for Mu3e.  They cover front-end interfacing, slow-control, data processing and utilities.  Each subdirectory contains the source code, documentation and simulation testbenches for an individual core.
 
 ---
 
@@ -153,6 +151,16 @@ Contributions to the Mu3e IP library are welcome.  To propose a change:
 
 - Mu3e Collaboration at PSI
 - ETH Zürich – Rainer Wallny Group
-
+- Univer ETH Zürich
+- Université de Genève
+- Universität Zürich
+- Paul Scherrer Institut
+- Universität Heidelberg
+- Karlsruhe Institut für Technologie
+- Johannes Gutenberg-Universität Mainz
+- University of Bristol
+- University of Liverpool
+- University of Oxford
+- University College London
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
