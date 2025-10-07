@@ -1,5 +1,6 @@
 
 # Mu3e IP Library
+[![License](https://img.shields.io/badge/license-Academic%20Evaluation-lightgrey.svg)](#license)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)  
 [![Platform](https://img.shields.io/badge/platform-FPGA-blue.svg)](#)
 
@@ -143,24 +144,48 @@ Contributions to the Mu3e IP library are welcome.  To propose a change:
 
 ## License
 
+Mu3e IP Cores — Academic Evaluation License
+Copyright (c) 2025 Yifeng Wang. All rights reserved.
 
+Permission is hereby granted, free of charge, to academic researchers,
+universities, and non-commercial institutions to use and evaluate this
+source code for research, teaching, and internal experimental purposes only.
+
+The following conditions apply:
+
+1. Redistribution of this source code, in whole or in part, is prohibited.
+2. Use, modification, or integration of this source code or any derivative
+   work in a commercial product, service, or hardware design is strictly
+   prohibited without prior written consent from the copyright holder.
+3. Any publication, report, or presentation using results obtained from
+   this code must include the acknowledgment:
+       “Mu3e IP Cores © 2025 Yifeng Wang, used under Academic Evaluation License.”
+4. No patent rights are granted, explicitly or implicitly. All patent rights
+   related to the algorithms, architectures, and designs implemented in this
+   repository are fully reserved by the author. Patent filings are ongoing.
+5. This software is provided “AS IS”, without warranty of any kind,
+   express or implied, including but not limited to the warranties of
+   merchantability, fitness for a particular purpose, and non-infringement.
+
+For commercial licensing, technology transfer, or collaboration inquiries,
+please contact:
+    yifenwan@phys.ethz.ch
 
 ---
 
 ## Acknowledgments
 
 - Mu3e Collaboration at PSI
-- ETH Zürich – Rainer Wallny Group
-- Univer ETH Zürich
-- Université de Genève
-- Universität Zürich
-- Paul Scherrer Institut
-- Universität Heidelberg
-- Karlsruhe Institut für Technologie
-- Johannes Gutenberg-Universität Mainz
-- University of Bristol
-- University of Liverpool
-- University of Oxford
-- University College London
+  - **ETH Zürich – Rainer Wallny Group**
+  - Université de Genève
+  - Universität Zürich
+  - Paul Scherrer Institut
+  - Universität Heidelberg
+  - Karlsruhe Institut für Technologie
+  - Johannes Gutenberg-Universität Mainz
+  - University of Bristol
+  - University of Liverpool
+  - University of Oxford
+  - University College London
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
