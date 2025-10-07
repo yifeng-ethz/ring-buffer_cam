@@ -4,7 +4,7 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)  
 [![Platform](https://img.shields.io/badge/platform-FPGA-blue.svg)](#)
 
-<p align="right">
+<p align="middle">
   <a href="https://github.com/yifeng-ethz/mu3e-ip-cores">
     <img src="./figures/Logo_drawing300.png" alt="Mu3e Logo" width="150" />
   </a>
