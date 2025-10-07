@@ -4,13 +4,18 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)  
 [![Platform](https://img.shields.io/badge/platform-FPGA-blue.svg)](#)
 
-<div align="center">
+<p align="right">
   <a href="https://github.com/yifeng-ethz/mu3e-ip-cores">
-    <img src="./figures/mu3e_logo.png" alt="Mu3e Logo" width="120" />
+    <img src="./figures/Logo_drawing300.png" alt="Mu3e Logo" width="150" />
   </a>
-  
-  <h3 align="center">Mu3e IP Library</h3>
-</div>
+</p>
+
+
+---
+
+## Mu3e Experiment
+
+The [Mu3e experiment](https://www.psi.ch/de/mu3e) at PSI searches for the charged lepton flavor violating decay $\mu^{+} \rightarrow e^{+} e^{-} e^{+}$ with unprecedented sensitivity. Achieving the required $10^{9}$ muon decays per second demands an ultra-light detector, fast electronics, and a triggerless, high-throughput readout system. Mu3e IP cores provide reusable FPGA building blocks for the on-detector data path, slow-control infrastructure, and real-time analysis that enable this ambitious physics program.
 
 ---
 
@@ -99,7 +104,7 @@ mu3e-ip-cores/
 
 ### Prerequisites
 
-- **Quartus Prime 18.1** or later (20.1 recommended)
+- **Quartus Prime 18.1** or later (18.1 recommended)
 - **Python 3.10+** (for testbenches)
 - **ModelSim / Questa** for simulation
 - **Tcl 8.5+** for integration scripts
@@ -123,9 +128,9 @@ mu3e-ip-cores/
 Detailed integration instructions are provided in each core’s subdirectory.  In general:
 
 1. Open Platform Designer (formerly Qsys) in Quartus.
-2. Select **New Custom IP Component** and run the corresponding `*_hw.tcl` script to instantiate the IP.
+2. Select **IP search path** to source the corresponding `*_hw.tcl` script to instantiate the IP.
 3. Configure parameters (e.g., burst widths, channel counts) as required for your design.
-4. Export interfaces and connect the IP into your top‑level design or testbench.
+4. Export generated system top RTL file and connect the IP into your top‑level design or testbench.
 
 For simulation, the subdirectories include VHDL testbenches and Python scripts demonstrating correct operation.
 
@@ -133,19 +138,34 @@ For simulation, the subdirectories include VHDL testbenches and Python scripts d
 
 ## Contributing
 
-Contributions to the Mu3e IP library are welcome.  To propose a change:
+Contributions to the Mu3e IP Library are welcome for academic and research purposes under the Academic Evaluation License.
 
-1. Fork this repository.
-2. Create a feature branch for your improvement.
-3. Commit your changes with clear messages.
-4. Open a pull request describing the improvement or bug fix.
+As several cores and algorithms are under active patent filing, contributions must follow the rules below:
 
+1.	Scope — Contributions are accepted for research, validation, and reproducibility. Commercial or derivative use is not permitted without written consent.
+2.	Fork and Branch — Fork this repository under your academic or institutional account. Create a feature branch (e.g., feature/my_lab_fix).
+3.	Document Clearly — Use descriptive commit messages. Include a concise technical summary of changes and your institutional affiliation.
+4.	Submit a Pull Request — Open a PR describing your improvement, test results, or bug fix. The maintainer will review for technical compatibility and possible overlap with ongoing patent filings.
+5.	Contributor Agreement — By submitting a contribution, you agree that:
+	- You retain copyright of your original code.
+	- You grant us a perpetual, non-exclusive right to incorporate, modify, or relicense your contribution under the same Academic Evaluation License.
+	- You acknowledge that no patent rights are transferred or implied and that underlying Mu3e IP patent rights remain solely with us.
+
+For commercial collaboration or technology-transfer discussions, please contact one of us:
+
+  yifenwan@phys.ethz.ch \
+  rwallny@phys.ethz.ch \
+  mkoepp@phys.ethz.ch \
+  schoning@physi.uni-heidelberg.de \
+  niberger@uni-mainz.de \
+    ...
+    
 ---
 
 ## License
 
 Mu3e IP Cores — Academic Evaluation License
-Copyright (c) 2025 Yifeng Wang. All rights reserved.
+Copyright (c) 2025 Mu3e Collaboration, Yifeng Wang, et al. All rights reserved.
 
 Permission is hereby granted, free of charge, to academic researchers,
 universities, and non-commercial institutions to use and evaluate this
@@ -159,7 +179,7 @@ The following conditions apply:
    prohibited without prior written consent from the copyright holder.
 3. Any publication, report, or presentation using results obtained from
    this code must include the acknowledgment:
-       “Mu3e IP Cores © 2025 Yifeng Wang, used under Academic Evaluation License.”
+       “Mu3e IP Cores © 2025 Mu3e Collaboration, used under Academic Evaluation License.”
 4. No patent rights are granted, explicitly or implicitly. All patent rights
    related to the algorithms, architectures, and designs implemented in this
    repository are fully reserved by the author. Patent filings are ongoing.
@@ -168,8 +188,7 @@ The following conditions apply:
    merchantability, fitness for a particular purpose, and non-infringement.
 
 For commercial licensing, technology transfer, or collaboration inquiries,
-please contact:
-    yifenwan@phys.ethz.ch
+please contact yifenwan@phys.ethz.ch or visit https://transfer.ethz.ch 
 
 ---
 
