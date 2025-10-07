@@ -1,24 +1,158 @@
+
+
 # Mu3e IP Library
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](#)  
+[![Platform](https://img.shields.io/badge/platform-FPGA-blue.svg)](#)
+
+<div align="center">
+  <a href="https://github.com/yifeng-ethz/mu3e-ip-cores">
+    <img src="./figures/mu3e_logo.png" alt="Mu3e Logo" width="120" />
+  </a>
+  
+  <h3 align="center">Mu3e IP Library</h3>
+</div>
+
+---
 
 ## IP List
 
-|IP Name|IP Description|Status|
-|:-----:|:------------:|:----:|
-|Slow-Control Hub|Translate the **Mu3e Slow-Control packet** into **Avalon Memory-Mapped** transations.|Release|
-|Onewire Temperature Sensor Controller|Periodically read the temperature sensor with **1-Wire** protocol.|Release| 
-|MuTRiG Frame Deassembly|Dismantle the MuTRiG frame into header and hits. Derive individual **hit error** and **frame CRC error**.|Release|
-|CAM (Content Addressable Memory)|Primitive of CAM. Use an template for user to construct their own complex system. *For example, build a CPU-cache, bookkeeping roster, correlator, IP-address to MAC address decoder, etc...*|Minor Debug|
-|MuTRiG Timestamp Processor|Process the timestamp of the MuTRiG (i.e. tracking overflow and mapping **MuTRiG timestamp to Global timestamp**)|Release|
-|Histogram Statistics|Build histogram with update/filter key from selected data segment. Snoop on the data stream. High-performace: SAR bin-calculation and DP-RAM counter.|Release|
-|MuTRiG Controller|Perform **SPI** configuration of the attached MuTRiG(s) and automatically scan the T-Threshold values (use their last configs). Scan results for all channels are stored locally.|Release|
-|Charge Injection|Generate digital pulse with **arbitary** frequency and duration. Use in pair with correct hardware (e.g. **DAB2.1** or older for TDC injection or **DAB2.2** or newer for TDC and analog injection). Targeted to functionally verify the MuTRiG given the test pulse.|Release|
-|Altera Temperature Sensor Controller|Interfacing with the official `alt_temp_sense` IP on **28 nm** device. Store the last result. Can be halted|Release|
-|High Performace Counter Array|Parallel counters allowing **concurrent inputs**. Read out with Avalon Memory-Mapped Interface. Feat. `sync clear` and `sync reset`|Release|
-|MuTRiG Channel Counter Fabric|Connect **hit type 0** from `MuTRiG Frame Deassembly` IP to the `High Performace Counter Array` IP. Decode binary channel ID into one-hot update signals to the counter array.|Release| 
-|LVDS Error Counter Fabric|Connect to **Streaming Error** sideband for collecting decoding and parity error counts.|Release|
-|Firefly Tranceiver I2C Master|Interfacing with the **Samtec Firefly Optical Tranceiver Module**, including the **I2C** master. Peridically readout the temperature and RX power. Can be Halted.|Release|
-|IP 8b10b Decoder|Standard **8b10b decoder** for parallel lvds `rxout` data. Derive parity and decoding error.|Release|
-|MuTRiG Reset Controller|Issue reset for the MuTRiG from **`run state`** signal of the `run control mgmt` interface. Arbitary phase shift of the reset pulse utilizing the `alt_pll_reconfig` module.|Debug|
-|Ring-buffer CAM|The **ring-buffer shaped CAM**. Write is similar to *push to stack*, read is similar to *cache write-through*. Used as an primitive to construct the `hit_stack` subsystem.|Release|
-|Frontend-Board Frame Assembly|Assembly the time-interleaved subframes from `ring-buffer cam` into **Mu3e standard data frame**. Frames are packet-scheduled for best throughput. Can transmit **SC packet** during link idle|Release| 
+Each Mu3e IP core resides in its own subdirectory of this repository or in an external submodule. Cores marked as **Prototype** have no `VERSION` property and are still under development.
 
+| IP Name | Description | Version / Status |
+|---|---|---|
+| **Slow‑Control Hub** | Converts Mu3e slow‑control packets into Avalon Memory‑Mapped transactions and handles burst count, address and response timing. | ![v25.0.0806](https://img.shields.io/badge/version-25.0.0806-blue) |
+| **Onewire Temperature Sensor Controller** | Periodically polls 1‑Wire temperature sensors; implements reset, presence detect and bit‑level timing. | ![v24.0.918](https://img.shields.io/badge/version-24.0.918-blue) |
+| **MuTRiG Frame Deassembly** | Parses MuTRiG frames into header and hit payloads and flags individual hit errors and frame CRC errors. | ![v24.0.1021](https://img.shields.io/badge/version-24.0.1021-blue) |
+| **CAM (Content Addressable Memory)** | Primitive content‑addressable memory core.  Use as a building block for caches, correlators and address decoders. | ![v17.0.2](https://img.shields.io/badge/version-17.0.2-blue) |
+| **MuTRiG Timestamp Processor** | Tracks MuTRiG timestamp overflow and maps MuTRiG‑local timestamps to global timestamps. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
+| **Histogram Statistics** | Builds histograms from a selected data stream using SAR bin calculation and DP‑RAM counters. | ![v25.0.0306](https://img.shields.io/badge/version-25.0.0306-blue) |
+| **MuTRiG Controller** | SPI master for configuring MuTRiG ASICs.  Automatically scans T‑thresholds and stores results locally. | ![v24.0.1028](https://img.shields.io/badge/version-24.0.1028-blue) |
+| **Charge Injection (Analog Pulser)** | Generates calibration pulses with arbitrary frequency and duration for TDC injection tests. | ![v4.0.5](https://img.shields.io/badge/version-4.0.5-blue) |
+| **Charge Injection (MuTRiG Injector)** | Produces digital and analog pulses to verify MuTRiG operation when used with DAB boards. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
+| **Altera Temperature Sensor Controller** | Wraps the on‑chip `alt_temp_sense` IP on 28 nm devices and stores the last temperature result. | ![v1.0](https://img.shields.io/badge/version-1.0-blue) |
+| **High Performance Counter Array** | Parallel counters supporting concurrent inputs with Avalon‑MM readout.  Features synchronous clear and reset. | ![v1.4.1](https://img.shields.io/badge/version-1.4.1-blue) |
+| **MuTRiG Channel Counter Fabric** | Connects *hit type 0* from the frame deassembly IP to the counter array.  Decodes channel IDs into one‑hot update signals. | ![v1.0.12](https://img.shields.io-badge/version-1.0.12-blue) |
+| **LVDS Error Counter Fabric** | Accumulates parity and decode error counts from the LVDS receiver sideband. | ![v1.0.5](https://img.shields.io/badge/version-1.0.5-blue) |
+| **Firefly Transceiver I2C Master** | Interfaces with the Samtec Firefly optical transceiver module via I2C.  Periodically reads temperature and RX power and can be halted. | ![v1.9.6](https://img.shields.io/badge/version-1.9.6-blue) |
+| **IP 8b/10b Decoder** | Standard 8b/10b decoder for parallel LVDS `rxout` data.  Derives parity and decoding errors. | ![v1.3.1](https://img.shields.io/badge/version-1.3.1-blue) |
+| **MuTRiG Reset Controller** | Issues reset pulses for the MuTRiG based on run‑state changes.  Provides programmable phase shift via `alt_pll_reconfig`. | ![v1.0.8](https://img.shields.io/badge/version-1.0.8-blue) |
+| **Ring‑buffer CAM** | Circular buffer variant of CAM with push‑to‑stack write semantics and cache‑like read‑through.  Used to build the hit stack. | ![Protected](https://img.shields.io/badge/status-Prototype-lightgrey) |
+| **Frontend‑Board Frame Assembly** | Assembles time‑interleaved subframes from the ring‑buffer CAM into Mu3e‑standard data frames and schedules packet transmission. | ![v25.0.0710](https://img.shields.io/badge/version-25.0.0710-blue) |
+| **Mu3e LVDS Controller** | Provides high‑speed LVDS links to the MuPix sensors using FPGA vendor IP.  Includes 28 nm LVDS RX and Pro variants. | ![v25.1.0630](https://img.shields.io/badge/version-25.1.0630-blue) |
+| **MuPix Inbound** | Deserializes data from MuPix chips, decodes and buffers hits.  Not a Qsys IP, thus no `VERSION` property. | ![N/A](https://img.shields.io/badge/status-N/A-lightgrey) |
+| **Packet Scheduler** | Orders packets via an interface adapter and an ordered priority queue to achieve deterministic throughput. | ![v25.0.0723](https://img.shields.io/badge/version-25.0.0723-blue) |
+| **Run‑Control Management** | Manages run‑state transitions for Mu3e subsystems and issues control signals. | ![v24.0.1125](https://img.shields.io/badge/version-24.0.1125-blue) |
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## About the Project
+
+The Mu3e experiment searches for the rare decay \(\mu \to eee\) with unprecedented sensitivity.  A high‑throughput, triggerless data acquisition (DAQ) system is required to read out the MuPix pixel sensors and MuTRiG tracking chips.  This repository houses reusable FPGA IP cores developed for Mu3e.  They cover front‑end interfacing, slow‑control, data processing and utilities.  Each subdirectory contains the source code, documentation and simulation testbenches for an individual core.
+
+---
+
+## Built With
+
+- **Intel Quartus Prime** – for FPGA synthesis and Platform Designer integration
+- **ModelSim / Questa** – for simulation and verification
+- **Python** – used in simulation testbenches and tooling
+- **Tcl** – for Platform Designer scripts and System Console debugging
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Directory Structure
+
+```text
+mu3e-ip-cores/
+├── CAM/                        # Content addressable memory core
+├── alt_temp_sense_controller/  # On‑chip temperature diode wrapper
+├── charge_injection/           # Analog pulser and MuTRiG injector
+├── feb_frame_assembly/         # Frontend-board frame assembly
+├── firefly_xcvr_i2c_master/    # I2C master for Samtec Firefly transceiver
+├── high_performance_counter_array/
+├── histogram_statistics/
+├── ip_8b10b_decoder/
+├── lvds_error_counter_fabric/
+├── mu3e_lvds_controller/
+├── mupix_inbound/
+├── mutrig_channel_counter_fabric/
+├── mutrig_controller/
+├── mutrig_frame_deassembly/
+├── mutrig_reset_controller/
+├── mutrig_timestamp_processor/
+├── onewire_temp_sense_controller/
+├── packet_scheduler/
+├── ring-buffer_cam/
+├── run-control_mgmt/
+└── slow-control_hub/
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Quartus Prime 18.1** or later (20.1 recommended)
+- **Python 3.10+** (for testbenches)
+- **ModelSim / Questa** for simulation
+- **Tcl 8.5+** for integration scripts
+
+### Installation
+
+1. Clone this repository and its submodules:
+   ```bash
+   git clone --recursive https://github.com/yifeng-ethz/mu3e-ip-cores.git
+   ```
+2. Add the desired IP cores to your Quartus project.
+3. For each core, run the provided Platform Designer script (the `*_hw.tcl` file) to generate the IP.
+4. Use the provided VHDL or system-level wrappers as integration examples.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+## Usage
+
+Detailed integration instructions are provided in each core’s subdirectory.  In general:
+
+1. Open Platform Designer (formerly Qsys) in Quartus.
+2. Select **New Custom IP Component** and run the corresponding `*_hw.tcl` script to instantiate the IP.
+3. Configure parameters (e.g., burst widths, channel counts) as required for your design.
+4. Export interfaces and connect the IP into your top‑level design or testbench.
+
+For simulation, the subdirectories include VHDL testbenches and Python scripts demonstrating correct operation.
+
+---
+
+## Contributing
+
+Contributions to the Mu3e IP library are welcome.  To propose a change:
+
+1. Fork this repository.
+2. Create a feature branch for your improvement.
+3. Commit your changes with clear messages.
+4. Open a pull request describing the improvement or bug fix.
+
+---
+
+## License
+
+
+
+---
+
+## Acknowledgments
+
+- Mu3e Collaboration at PSI
+- ETH Zürich – Rainer Wallny Group
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
