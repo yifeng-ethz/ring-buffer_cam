@@ -130,10 +130,16 @@ mu3e-ip-cores/
 1. Clone this repository and its submodules:
    ```bash
    git clone --recursive https://github.com/yifeng-ethz/mu3e-ip-cores.git
+   cd mu3e-ip-cores
    ```
-2. Add the desired IP cores to your Quartus project.
-3. For each core, run the provided Platform Designer script (the `*_hw.tcl` file) to generate the IP.
-4. Use the provided VHDL or system-level wrappers as integration examples.
+2. (optional) Generate the desired `IPX` file which will list search paths of all IP cores. Usually needed for Xilinx or other vendor tools.
+   ```bash
+   ip-make-ipx --source-directory=./ --output=mu3e_ip_cores.ipx --thorough-descent
+   ```
+3. Add environment variable to provided Platform Designer (mainly `*_hw.tcl` file) the IPs.
+   ```bash
+   export QSYS_IP_FILE_PATH=$QSYS_IP_FILE_PATH:$(pwd)
+   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -142,11 +148,22 @@ mu3e-ip-cores/
 ## Usage
 
 Detailed integration instructions are provided in each core’s subdirectory.  In general:
+- GUI:
+  1. Open Platform Designer (formerly Qsys) in Quartus.
+  2. Select **IP search path** to source the corresponding `*_hw.tcl` script to instantiate the IP.
+- CLI:
+  1. Configure parameters (e.g., burst widths, channel counts) as required for your design.
+    ```bash
+    qsys-edit <path_to_your_system>.qsys # or leave it empty
+    ```
+  2. Export generated system top RTL file and connect the IP into your top‑level design or testbench.
+    ```bash
+    qsys-generate <path_to_your_system>.qsys --synthesis=VHDL --output-directory=./generated
+    ```
 
-1. Open Platform Designer (formerly Qsys) in Quartus.
-2. Select **IP search path** to source the corresponding `*_hw.tcl` script to instantiate the IP.
-3. Configure parameters (e.g., burst widths, channel counts) as required for your design.
-4. Export generated system top RTL file and connect the IP into your top‑level design or testbench.
+    
+
+    
 
 For simulation, the subdirectories include VHDL testbenches and Python scripts demonstrating correct operation.
 
