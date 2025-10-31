@@ -228,7 +228,7 @@ please contact yifenwan@phys.ethz.ch or visit https://transfer.ethz.ch
 ## Acknowledgments
 
 - Mu3e Collaboration at PSI
-  - **ETH Zürich – Rainer Wallny Group**
+  - [**ETH Zürich – Rainer Wallny Group**](https://wallny-group.phys.ethz.ch)
   - Université de Genève
   - Universität Zürich
   - Paul Scherrer Institut
