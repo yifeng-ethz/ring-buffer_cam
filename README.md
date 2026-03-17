@@ -57,6 +57,7 @@ Each Mu3e IP core resides in its own subdirectory of this repository or in an ex
 | [**MuTRiG Reset Controller**](https://github.com/yifeng-ethz/mutrig_reset_controller) | Issues reset pulses for the MuTRiG based on run‑state changes.  Provides programmable phase shift via `alt_pll_reconfig`. | <img src="https://img.shields.io/badge/version-1.0.8-blue" alt="version 1.0.8 badge" width="200" /> |
 | [**Ring‑buffer CAM**](https://github.com/yifeng-ethz/ring-buffer_cam) | Circular buffer variant of CAM with push‑to‑stack write semantics and cache‑like read‑through.  Used to build the hit stack. | <img src="https://img.shields.io/badge/status-Protected-red" alt="Protected badge" width="200" /> |
 | [**Frontend‑Board Frame Assembly**](https://github.com/yifeng-ethz/feb_frame_assembly) | Assembles time‑interleaved subframes from the ring‑buffer CAM into Mu3e‑standard data frames and schedules packet transmission. | <img src="https://img.shields.io/badge/version-25.0.0710-blue" alt="version 25.0.0710 badge" width="200" /> |
+| [**FEB MAX10 Communication Bridge**](https://github.com/yifeng-ethz/feb_max10_comm) | FEB-side Arria V bridge that stages one flash page, crosses it into the MAX10 link domain, and preserves the downstream FEBSPI programming contract. | <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version 0.1.0 badge" width="200" /> |
 | [**Mu3e LVDS Controller**](https://github.com/yifeng-ethz/mu3e_lvds_controller) | Provides high‑speed LVDS links to the MuPix sensors using FPGA vendor IP.  Includes 28 nm LVDS RX and Pro variants. | <img src="https://img.shields.io/badge/version-25.1.0630-blue" alt="version 25.1.0630 badge" width="200" /> |
 | [**MuPix Inbound**](https://github.com/yifeng-ethz/mupix_inbound) | Deserializes data from MuPix chips, decodes and buffers hits. | <img src="https://img.shields.io/badge/status-Prototype-lightgrey" alt="Prototype badge" width="200" /> |
 | [**Packet Scheduler**](https://github.com/yifeng-ethz/packet_scheduler) | Orders packets via an interface adapter and an ordered priority queue to achieve deterministic throughput. | <img src="https://img.shields.io/badge/version-25.0.0723-blue" alt="version 25.0.0723 badge" width="200" /> |
@@ -93,6 +94,7 @@ mu3e-ip-cores/
 ├── alt_temp_sense_controller/  # On‑chip temperature diode wrapper
 ├── charge_injection/           # Analog pulser and MuTRiG injector
 ├── feb_frame_assembly/         # Frontend-board frame assembly
+├── feb_max10_comm/             # FEB-side MAX10 flash programming bridge
 ├── firefly_xcvr_i2c_master/    # I2C master for Samtec Firefly transceiver
 ├── high_performance_counter_array/
 ├── histogram_statistics/
