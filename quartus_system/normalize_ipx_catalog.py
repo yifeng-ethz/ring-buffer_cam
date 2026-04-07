@@ -19,17 +19,23 @@ def score_component(component):
     return (path.count("/"), len(path), path)
 
 
+def should_keep_component(component):
+    path = component.get("file", "")
+    return "/.git/" not in path
+
+
 def main():
     args = parse_args()
     tree = ET.parse(args.input)
     root = tree.getroot()
 
     components = [child for child in list(root) if child.tag == "component"]
+    kept_components = [component for component in components if should_keep_component(component)]
     best_by_key = {}
     order = []
     versions_by_name = defaultdict(set)
 
-    for component in components:
+    for component in kept_components:
         name = component.get("name", "")
         version = component.get("version", "")
         key = (name, version)
@@ -45,7 +51,8 @@ def main():
         if child.tag == "component":
             root.remove(child)
 
-    duplicates_removed = len(components) - len(order)
+    duplicates_removed = len(kept_components) - len(order)
+    filtered_removed = len(components) - len(kept_components)
     multi_version_names = {
         name for name, versions in versions_by_name.items() if len(versions) > 1
     }
@@ -65,6 +72,7 @@ def main():
     tree.write(args.output, encoding="UTF-8", xml_declaration=True)
     print(
         f"Normalized {args.input}: kept {len(order)} unique components, "
+        f"filtered {filtered_removed} .git-backed components, "
         f"removed {duplicates_removed} duplicate name/version entries, "
         f"version-tagged {len(multi_version_names)} multi-version component families."
     )

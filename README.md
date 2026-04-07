@@ -16,7 +16,7 @@
 
 <p align="middle">
   <a href="https://github.com/yifeng-ethz/mu3e-ip-cores">
-    <img src="./figures/Logo_drawing300.png" alt="Mu3e Logo" width="150" />
+    <img src="./quartus_system/logo/Logo_drawing300.png" alt="Mu3e Logo" width="150" />
   </a>
 </p>
 
