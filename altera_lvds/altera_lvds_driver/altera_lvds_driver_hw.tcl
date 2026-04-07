@@ -31,7 +31,7 @@ package require altera_lvds::driver::main
 
 
 set_module_property DESCRIPTION "Altera LVDS Driver"
-set_module_property NAME altera_lvds_driver
+set_module_property NAME altera_lvds_driver_mu3e
 set_module_property VERSION 18.1
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property GROUP "I/O"
@@ -39,9 +39,9 @@ set_module_property AUTHOR "Altera Corporation"
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 
-set_module_property HIDE_FROM_QSYS true
-set_module_property HIDE_FROM_SOPC true
-set_module_property INTERNAL true
+set_module_property HIDE_FROM_QSYS false
+set_module_property HIDE_FROM_SOPC false
+set_module_property INTERNAL false
 
 
 ::altera_lvds::driver::main::create_parameters 

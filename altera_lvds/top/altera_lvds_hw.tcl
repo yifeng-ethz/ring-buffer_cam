@@ -34,7 +34,7 @@ package require altera_lvds::top::ex_design
 load_strings gui.properties
 
 set_module_property DESCRIPTION [get_string HWTCL_MODULE_DESCRIPTION]
-set_module_property NAME altera_lvds
+set_module_property NAME altera_lvds_mu3e
 set_module_property VERSION 18.1
 set_module_property OPAQUE_ADDRESS_MAP true
 set_module_property DISPLAY_NAME [get_string HWTCL_MODULE_DISPLAY_NAME]
