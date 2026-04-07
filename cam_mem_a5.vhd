@@ -91,6 +91,21 @@ architecture rtl of cam_mem_a5 is
 	signal match_addr_unreg		: std_logic_vector(DEPTH_FACTOR*SUB_CAM_SIZE-1 downto 0); -- (128)
 	signal sub_cam_we			: std_logic_vector(DEPTH_FACTOR-1 downto 0); -- (4)
 	signal sub_cam_wrdata		: std_logic_vector(0 downto 0);
+	-- Intermediate natural signals for port maps (avoid to_integer of metavalues in port map expressions)
+	type nat_arr_t is array(WIDTH_FACTOR-1 downto 0) of natural;
+	signal raddr_nat			: nat_arr_t := (others => 0);
+	signal waddr_nat			: nat_arr_t := (others => 0);
+
+	-- Safe conversion: returns 0 if vector contains metavalues
+	function safe_to_nat(v : std_logic_vector) return natural is
+	begin
+		for i in v'range loop
+			if v(i) /= '0' and v(i) /= '1' then
+				return 0;
+			end if;
+		end loop;
+		return to_integer(unsigned(v));
+	end function;
 
 begin
 	
@@ -174,10 +189,16 @@ begin
 		end if;
 	end process;
 	
-	o_match_addr <= MATCH_ADDR; 
-	
+	o_match_addr <= MATCH_ADDR;
+
+	-- Safe address conversion (avoids to_integer of metavalues in port map)
+	gen_addr_conv: for i in 0 to WIDTH_FACTOR-1 generate
+		raddr_nat(i) <= safe_to_nat(CMP_DIN(i));
+		waddr_nat(i) <= safe_to_nat(waddr_to_ram(i));
+	end generate gen_addr_conv;
+
 	sub_cam: for i in 0 to WIDTH_FACTOR-1 generate
-		sub_cam2: for j in 0 to DEPTH_FACTOR-1 generate 
+		sub_cam2: for j in 0 to DEPTH_FACTOR-1 generate
 			ram_block : entity work.cam_mem_blk_a5(rtl_simple_dpram)
 			generic map(
 				WORDS => RAM_SIZE_WORDS, -- 256
@@ -185,12 +206,12 @@ begin
 				WW    => WR_PORT_DATA_BITS) -- 1
 			port map(
 				clk   				=> clk,
-				we   				=> sub_cam_we(j),	-- 1	
-				waddr 				=> to_integer(unsigned(waddr_to_ram(i))), -- 8+5	
+				we   				=> sub_cam_we(j),	-- 1
+				waddr 				=> waddr_nat(i), -- 8+5
 				wdata 				=> sub_cam_wrdata, -- 1
-				raddr 				=> to_integer(unsigned(CMP_DIN(i))), -- 8
+				raddr 				=> raddr_nat(i), -- 8
 				q   				=> une_addr(i)(j)); -- 32
-		end generate sub_cam2; 
+		end generate sub_cam2;
 	end generate sub_cam;
 
 	

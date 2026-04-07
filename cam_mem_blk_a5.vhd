@@ -27,8 +27,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.math_real.log2;
 use IEEE.math_real.ceil;
-library altera;
-use altera.altera_standard_functions.all;
+use work.cam_helper_pkg.all;
 
 entity cam_mem_blk_a5 is
     
@@ -40,17 +39,17 @@ entity cam_mem_blk_a5 is
 	port (
 		we    : in std_logic;
 		clk   : in std_logic;
-		waddr : in natural range 0 to (WORDS * maximum(RW, WW)) / WW - 1; -- 256x32=8k
+		waddr : in natural range 0 to (WORDS * cam_max(RW, WW)) / WW - 1; -- 256x32=8k
 		wdata : in std_logic_vector(WW - 1 downto 0); -- 1
-		raddr : in natural range 0 to (WORDS * maximum(RW, WW)) / RW - 1; -- 256
+		raddr : in natural range 0 to (WORDS * cam_max(RW, WW)) / RW - 1; -- 256
 		q     : out std_logic_vector(RW - 1 downto 0)); -- 32
 
 end cam_mem_blk_a5;
 
 architecture rtl_simple_dpram of cam_mem_blk_a5 is
 
-	constant B : natural := minimum(RW, WW); -- 1
-	constant R : natural := maximum(RW, WW)/B; -- 32
+	constant B : natural := cam_min(RW, WW); -- 1
+	constant R : natural := cam_max(RW, WW)/B; -- 32
 
 	-- Use a multidimensional array to model mixed-width 
 	type word_t is array(R - 1 downto 0) of std_logic_vector(B - 1 downto 0);
