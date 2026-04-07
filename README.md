@@ -93,8 +93,6 @@ mu3e-ip-cores/
 ├── CAM/                        # Content addressable memory core
 ├── alt_temp_sense_controller/  # On‑chip temperature diode wrapper
 ├── charge_injection/           # Analog pulser and MuTRiG injector variants
-├── components.ipx             # Normalized Platform Designer catalog manifest
-├── debug_sc_system_v2.qsys    # Reusable control-path subsystem wrapper
 ├── feb_frame_assembly/         # Frontend-board frame assembly
 ├── feb_max10_comm/             # FEB-side MAX10 flash programming bridge
 ├── firefly_xcvr_i2c_master/    # I2C master for Samtec Firefly transceiver
@@ -104,7 +102,6 @@ mu3e-ip-cores/
 ├── lvds_error_counter_fabric/
 ├── misc/                       # Local debug/helper IPs kept outside submodules
 ├── mu3e_lvds_controller/
-├── mu3e_ip_cores.ipx          # Alternate normalized Platform Designer catalog
 ├── mupix_inbound/
 ├── mutrig_channel_counter_fabric/
 ├── mutrig_controller/
@@ -112,13 +109,11 @@ mu3e-ip-cores/
 ├── mutrig_frame_deassembly/
 ├── mutrig_reset_controller/
 ├── mutrig_timestamp_processor/
-├── onewire_sense_vector_bridge_26p0p330_hw.tcl # FEB v1 helper bridge component
-├── onewire_temp_sense/
+├── onewire_temp_sense/         # 1-Wire controllers plus FEB v1 bridge helper
 ├── packet_scheduler/
+├── quartus_system/             # Qsys wrapper, IP catalogs, and catalog scripts
 ├── ring-buffer_cam/
-├── regenerate_ipx_catalog.sh   # Regenerate normalized IP catalogs
 ├── run-control_mgmt/
-├── normalize_ipx_catalog.py    # Post-process ip-make-ipx output
 └── slow-control_hub/
 ```
 
@@ -144,12 +139,12 @@ mu3e-ip-cores/
    ```
 2. (optional) Regenerate the normalized Platform Designer catalogs used by Quartus and downstream tooling.
    ```bash
-   ./regenerate_ipx_catalog.sh
+   ./quartus_system/regenerate_ipx_catalog.sh
    ```
-   This refreshes `components.ipx` and `mu3e_ip_cores.ipx`.
+   This refreshes `quartus_system/components.ipx` and `quartus_system/mu3e_ip_cores.ipx`.
 3. Add environment variable to provided Platform Designer (mainly `*_hw.tcl` file) the IPs.
    ```bash
-   export QSYS_IP_FILE_PATH=$QSYS_IP_FILE_PATH:$(pwd)
+   export QSYS_IP_FILE_PATH=$QSYS_IP_FILE_PATH:$(pwd)/quartus_system
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -169,7 +164,7 @@ Detailed integration instructions are provided in each core’s subdirectory.  I
     ```
   2. Export generated system top RTL file and connect the IP into your top‑level design or testbench.
     ```bash
-    qsys-generate <path_to_your_system>.qsys --synthesis=VHDL --output-directory=./generated
+    qsys-generate <path_to_your_system>.qsys --search-path="$(pwd)/quartus_system,$" --synthesis=VHDL --output-directory=./generated
     ```
 
     
