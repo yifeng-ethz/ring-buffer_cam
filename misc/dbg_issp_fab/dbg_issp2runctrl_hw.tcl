@@ -1,0 +1,64 @@
+package require -exact qsys 16.1
+
+set_module_property DESCRIPTION ""
+set_module_property NAME dbg_issp2runctrl
+set_module_property VERSION 1.0.1
+set_module_property INTERNAL false
+set_module_property OPAQUE_ADDRESS_MAP true
+set_module_property GROUP "Mu3e Data Plane/Debug"
+set_module_property AUTHOR "Yifeng Wang"
+set_module_property DISPLAY_NAME "(Debug) ISSP to RUN Control AVST Fabric"
+set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
+set_module_property EDITABLE true
+set_module_property REPORT_TO_TALKBACK false
+set_module_property ALLOW_GREYBOX_GENERATION false
+set_module_property REPORT_HIERARCHY false
+
+add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
+set_fileset_property QUARTUS_SYNTH TOP_LEVEL dbg_issp2runctrl
+set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
+set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
+add_fileset_file dbg_issp2runctrl.vhd VHDL PATH dbg_issp2runctrl.vhd TOP_LEVEL_FILE
+
+add_interface clock_interface clock end
+set_interface_property clock_interface clockRate 0
+set_interface_property clock_interface ENABLED true
+add_interface_port clock_interface i_clk clk Input 1
+
+add_interface reset_interface reset end
+set_interface_property reset_interface associatedClock clock_interface
+set_interface_property reset_interface synchronousEdges DEASSERT
+set_interface_property reset_interface ENABLED true
+add_interface_port reset_interface i_rst reset Input 1
+
+add_interface sources conduit end
+set_interface_property sources associatedClock clock_interface
+set_interface_property sources associatedReset ""
+set_interface_property sources ENABLED true
+add_interface_port sources i_source source Input 10
+
+add_interface ctrl0 avalon_streaming start
+set_interface_property ctrl0 associatedClock clock_interface
+set_interface_property ctrl0 associatedReset reset_interface
+set_interface_property ctrl0 dataBitsPerSymbol 9
+set_interface_property ctrl0 errorDescriptor ""
+set_interface_property ctrl0 firstSymbolInHighOrderBits true
+set_interface_property ctrl0 maxChannel 0
+set_interface_property ctrl0 readyLatency 0
+set_interface_property ctrl0 ENABLED true
+add_interface_port ctrl0 aso_ctrl0_data data Output 9
+add_interface_port ctrl0 aso_ctrl0_valid valid Output 1
+add_interface_port ctrl0 aso_ctrl0_ready ready Input 1
+
+add_interface ctrl1 avalon_streaming start
+set_interface_property ctrl1 associatedClock clock_interface
+set_interface_property ctrl1 associatedReset reset_interface
+set_interface_property ctrl1 dataBitsPerSymbol 9
+set_interface_property ctrl1 errorDescriptor ""
+set_interface_property ctrl1 firstSymbolInHighOrderBits true
+set_interface_property ctrl1 maxChannel 0
+set_interface_property ctrl1 readyLatency 0
+set_interface_property ctrl1 ENABLED true
+add_interface_port ctrl1 aso_ctrl1_data data Output 9
+add_interface_port ctrl1 aso_ctrl1_valid valid Output 1
+add_interface_port ctrl1 aso_ctrl1_ready ready Input 1
