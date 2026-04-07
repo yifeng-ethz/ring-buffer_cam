@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ip><presets version="18.1">
+	<preset name="Default P4" kind="ring_buffer_cam" version="All" description="Delivered default. Four physical match partitions paired with a four-stage internal encoder pipeline so the partition count matches the staged encoder depth.">
+		<parameter name="SEARCH_KEY_WIDTH" value="8" />
+		<parameter name="RING_BUFFER_N_ENTRY" value="512" />
+		<parameter name="SIDE_DATA_BITS" value="31" />
+		<parameter name="INTERLEAVING_FACTOR" value="4" />
+		<parameter name="INTERLEAVING_INDEX" value="0" />
+		<parameter name="N_PARTITIONS" value="4" />
+		<parameter name="ENCODER_LEAF_WIDTH" value="16" />
+		<parameter name="ENCODER_PIPE_STAGES" value="4" />
+		<parameter name="DEBUG" value="1" />
+	</preset>
+	<preset name="Reserved P3" kind="ring_buffer_cam" version="All" description="Two physical match partitions with a three-stage encoder pipeline. Use for latency/resource comparisons against the default P4 point.">
+		<parameter name="SEARCH_KEY_WIDTH" value="8" />
+		<parameter name="RING_BUFFER_N_ENTRY" value="512" />
+		<parameter name="SIDE_DATA_BITS" value="31" />
+		<parameter name="INTERLEAVING_FACTOR" value="4" />
+		<parameter name="INTERLEAVING_INDEX" value="0" />
+		<parameter name="N_PARTITIONS" value="2" />
+		<parameter name="ENCODER_LEAF_WIDTH" value="16" />
+		<parameter name="ENCODER_PIPE_STAGES" value="3" />
+		<parameter name="DEBUG" value="1" />
+	</preset>
+	<preset name="Reserved P2" kind="ring_buffer_cam" version="All" description="Two physical match partitions with a two-stage encoder pipeline. Use for minimum added internal latency within the current partitioned architecture.">
+		<parameter name="SEARCH_KEY_WIDTH" value="8" />
+		<parameter name="RING_BUFFER_N_ENTRY" value="512" />
+		<parameter name="SIDE_DATA_BITS" value="31" />
+		<parameter name="INTERLEAVING_FACTOR" value="4" />
+		<parameter name="INTERLEAVING_INDEX" value="0" />
+		<parameter name="N_PARTITIONS" value="2" />
+		<parameter name="ENCODER_LEAF_WIDTH" value="16" />
+		<parameter name="ENCODER_PIPE_STAGES" value="2" />
+		<parameter name="DEBUG" value="1" />
+	</preset>
+	<preset name="Regression P1" kind="ring_buffer_cam" version="All" description="Single-partition regression point used to compare runtime behavior against the legacy non-partitioned architecture.">
+		<parameter name="SEARCH_KEY_WIDTH" value="8" />
+		<parameter name="RING_BUFFER_N_ENTRY" value="512" />
+		<parameter name="SIDE_DATA_BITS" value="31" />
+		<parameter name="INTERLEAVING_FACTOR" value="4" />
+		<parameter name="INTERLEAVING_INDEX" value="0" />
+		<parameter name="N_PARTITIONS" value="1" />
+		<parameter name="ENCODER_LEAF_WIDTH" value="16" />
+		<parameter name="ENCODER_PIPE_STAGES" value="2" />
+		<parameter name="DEBUG" value="1" />
+	</preset>
+</presets></ip>

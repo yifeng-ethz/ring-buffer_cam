@@ -1,0 +1,25 @@
+set_global_assignment -name FAMILY "Arria V"
+set_global_assignment -name DEVICE 5AGXBA7D4F31C5
+set_global_assignment -name TOP_LEVEL_ENTITY ring_buffer_cam_syn_p2_top
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/ring_buffer_cam_syn_p2
+set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
+set_global_assignment -name SAFE_STATE_MACHINE ON
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 16
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Standard Edition"
+
+set_global_assignment -name VHDL_FILE ../../ring_buffer_cam.vhd
+set_global_assignment -name VHDL_FILE ../../alt_simple_dpram.vhd
+set_global_assignment -name VHDL_FILE ../../cam_mem_a5.vhd
+set_global_assignment -name VHDL_FILE ../../cam_mem_blk_a5.vhd
+set_global_assignment -name VHDL_FILE ../../alt_fifo/scfifo_w40d256.vhd
+set_global_assignment -name VHDL_FILE ../../alt_fifo/cmd_fifo/cmd_fifo.vhd
+set_global_assignment -name VHDL_FILE ../../addr_enc_logic_partitioned.vhd
+set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_harness.vhd
+set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_p2_top.vhd
+
+set_global_assignment -name SDC_FILE ring_buffer_cam_syn.sdc
