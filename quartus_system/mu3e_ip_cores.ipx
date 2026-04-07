@@ -81,6 +81,16 @@
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
+ <component name="avst2cntr_fab" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/lvds_error_counter_fabric/avst2cntr_fab_hw.tcl" displayName="Avalon-ST Error to Counter Interconnect" version="1.0.5" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon_streaming,clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="true" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
  <component name="avsthit0ch2cntr_ctrl" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/mutrig_channel_counter_fabric/avsthit0ch2cntr_ctrl_hw.tcl" displayName="Avalon-ST Data to Counter Interconnect (channel_id)" version="1.0.12" description="See top level file" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,avalon_streaming,clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="true" />
@@ -90,6 +100,17 @@
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
+ <component name="cam_arria5" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/CAM/cam_arria5_hw.tcl" displayName="Content Addressable Memory for Fast Searching (Arria V)" version="17.0.2" description="Output the address, with input of data, which is ideal for searching the data. Functionally inverserd as RAM." tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Control Plane/Algorithms" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="true" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ip_mu3e/drawings/20121123203030!Logo_drawing100.png" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH,SIM_VERILOG" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
  <component name="charge_injection_pulser" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/charge_injection/analog_pulser_hw.tcl" displayName="Charge Injection Pulser" version="4.0.5" description="Generate arbitary pulse for a set width and frequency" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Control Plane/Modules" factory="TclModuleFactory">
@@ -107,6 +128,17 @@
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="true" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
+ <component name="counter_avmm" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/high_performance_counter_array/counter_avmm_hw.tcl" displayName="Counter with Avalon Memory-Mapped Inerface" version="1.4.1" description="Counter with sclr to monitor a given time window. Use avmm-read to retrieve the last value before the current sclr. Upper bit is the overflow flag, which is only reset upon reset. The sclr can be issued from outside as 1) reset_req or 2) internal generated based on settings or 3) avalon master write value '0'. " tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="false" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ELABORATION_CALLBACK" value="elaborate" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -133,7 +165,7 @@
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
- <component name="debug_sc_system_v2" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/debug_sc_system_v2.qsys" displayName="debug_sc_system_v2" version="1.0" description="" tags="INTERNAL_COMPONENT=false" categories="System" factory="QsysFactory">
+ <component name="debug_sc_system_v2" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/debug_sc_system_v2.qsys" displayName="debug_sc_system_v2" version="1.0" description="" tags="INTERNAL_COMPONENT=false" categories="System" factory="QsysFactory">
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
  </component>
@@ -192,6 +224,29 @@
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
   <tag2 key="VALIDATION_CALLBACK" value="validate" />
+ </component>
+ <component name="intf_adapter" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/packet_scheduler/intf_adapter_hw.tcl" displayName="Interface Adapter" version="25.0.723" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="false" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
+ <component name="ip_8b10b_decoder" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ip_8b10b_decoder/ip_8b10b_decoder_hw.tcl" displayName="8b/10b Decoder (ip_mu3e)" version="1.3.1" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="false" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ELABORATION_CALLBACK" value="elaborate" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
  <component name="lvds_rx_controller_pro" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/mu3e_lvds_controller/lvds_rx_controller_pro_hw.tcl" displayName="LVDS RX Controller Pro" version="25.1.630" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
@@ -333,10 +388,34 @@
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
- <component name="onewire_sense_vector_bridge" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/onewire_sense_vector_bridge_26p0p330_hw.tcl" displayName="One-Wire Sense Vector Bridge" version="26.0.330" description="Bundle six split one-wire sensor conduits into the shared 6-bit sense_dq bus used at the FEB top level." tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Control Plane/Helpers" factory="TclModuleFactory">
+ <component name="onewire_sense_vector_bridge" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/onewire_temp_sense/onewire_sense_vector_bridge_26p0p330_hw.tcl" displayName="One-Wire Sense Vector Bridge" version="26.0.330" description="Bundle six split one-wire sensor conduits into the shared 6-bit sense_dq bus used at the FEB top level." tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=clock,conduit,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Control Plane/Helpers" factory="TclModuleFactory">
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="true" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
+ <component name="ordered_priority_queue" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/packet_scheduler/ordered_priority_queue_hw.tcl" displayName="Ordered Priority Queue" version="25.0.722" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="false" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
+  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
+  <tag2 key="REPORT_HIERARCHY" value="false" />
+  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
+  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
+ </component>
+ <component name="ordered_priority_queue_v2" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/packet_scheduler/ordered_priority_queue_v2_hw.tcl" displayName="Ordered Priority Queue (v2 split)" version="26.1.201" description="" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
+  <tag2 key="COMPONENT_EDITABLE" value="false" />
+  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
+  <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
   <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />

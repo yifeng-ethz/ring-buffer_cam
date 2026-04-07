@@ -6,10 +6,10 @@ usage() {
     cat <<'EOF'
 Usage: regenerate_ipx_catalog.sh [--root <dir>] [--relative-var <name>] [--output <file>]...
 
-Regenerate the root Platform Designer catalog for this repository.
+Regenerate the Platform Designer catalogs for this repository.
 
 Defaults:
-  --root         directory containing this script
+  --root         repository root (defaults to parent of this script)
   --relative-var <unset> (emit absolute file paths)
   --output       components.ipx
   --output       mu3e_ip_cores.ipx
@@ -22,7 +22,7 @@ EOF
 script_dir=$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd
 )
-root_dir="${script_dir}"
+root_dir="${script_dir}/.."
 relative_var=""
 declare -a outputs=(
     "components.ipx"
@@ -105,11 +105,17 @@ if ((component_count == 0)); then
 fi
 
 for output_name in "${outputs[@]}"; do
-    install -m 0644 "${norm_ipx}" "${root_dir}/${output_name}"
-    echo "Wrote ${root_dir}/${output_name}"
+    if [[ "${output_name}" = /* ]]; then
+        output_path="${output_name}"
+    else
+        output_path="${script_dir}/${output_name}"
+    fi
+    install -m 0644 "${norm_ipx}" "${output_path}"
+    echo "Wrote ${output_path}"
 done
 
 echo "Catalog root : ${root_dir}"
+echo "Catalog dir  : ${script_dir}"
 echo "Component cnt: ${component_count}"
 if [[ -n "${relative_var}" ]]; then
     echo "Relative var : ${relative_var}=${root_dir}"
