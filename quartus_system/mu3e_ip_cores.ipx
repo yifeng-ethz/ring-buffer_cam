@@ -64,7 +64,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -230,7 +230,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -253,7 +253,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -305,24 +305,12 @@
   <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
   <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
  </component>
- <component name="mutrig_frame_deassembly" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/mutrig_frame_deassembly/mutrig_frame_deassembly_hw.tcl" displayName="MuTRiG Frame Deassembly  (26.0.402)" version="26.0.402" description="Deassemble the MuTRiG frame from lvds receiver byte stream into header, data and trailer (with crc checks)" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
+ <component name="mutrig_frame_deassembly" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/mutrig_frame_deassembly/mutrig_frame_deassembly_hw.tcl" displayName="MuTRiG Frame Deassembly " version="26.0.402" description="Deassemble the MuTRiG frame from lvds receiver byte stream into header, data and trailer (with crc checks)" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="myelaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
-  <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
-  <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
-  <tag2 key="REPORT_HIERARCHY" value="false" />
-  <tag2 key="SUPPORTED_FILE_SETS" value="QUARTUS_SYNTH" />
-  <tag2 key="TCL_PACKAGE_VERSION" value="16.1" />
- </component>
- <component name="mutrig_frame_deassembly" file="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/.git/modules/mutrig_frame_deassembly.badclone/mutrig_frame_deassembly_hw.tcl" displayName="MuTRiG Frame Deassembly  (25.0.925)" version="25.0.925" description="Deassemble the MuTRiG frame from lvds receiver byte stream into header, data and trailer (with crc checks)" tags="AUTHORSHIP=Yifeng Wang /// CONNECTION_TYPES=avalon,avalon_streaming,clock,reset /// INTERNAL_COMPONENT=false" categories="Mu3e Data Plane/Modules" factory="TclModuleFactory">
-  <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
-  <tag2 key="COMPONENT_EDITABLE" value="false" />
-  <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
-  <tag2 key="ELABORATION_CALLBACK" value="myelaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/.git/modules/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -334,7 +322,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -346,7 +334,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -369,7 +357,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -381,7 +369,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="myelaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -392,7 +380,7 @@
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="true" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -404,7 +392,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -416,7 +404,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="my_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -450,7 +438,7 @@
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -462,7 +450,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="sc_hub_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -474,7 +462,7 @@
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -485,7 +473,7 @@
   <tag2 key="ALLOW_GREYBOX_GENERATION" value="false" />
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/slow-control_hub/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
@@ -527,7 +515,7 @@
   <tag2 key="COMPONENT_EDITABLE" value="false" />
   <tag2 key="COMPONENT_HIDE_FROM_SOPC" value="true" />
   <tag2 key="ELABORATION_CALLBACK" value="sc_hub_v2_elaborate" />
-  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/figures/mu3e_logo.png" />
+  <tag2 key="ICON_PATH" value="/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/quartus_system/logo/mu3e_logo.png" />
   <tag2 key="INSTANTIATE_IN_SYSTEM_MODULE" value="true" />
   <tag2 key="OPAQUE_ADDRESS_MAP" value="true" />
   <tag2 key="REPORT_HIERARCHY" value="false" />
