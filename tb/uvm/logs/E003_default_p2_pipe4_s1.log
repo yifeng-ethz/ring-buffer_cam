@@ -1,3 +1,3 @@
 E003 has no live log artifact.
 State: implemented but not yet rerun
-Scenario: push beyond depth to force overwrite pressure
+Scenario: same-ts hotspot burst that injects more than 512 hits into one sector before the `EXPECTED_LATENCY=2000` service window can retire them

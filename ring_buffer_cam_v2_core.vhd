@@ -24,9 +24,13 @@
 --      Date: Apr 2, 2026
 -- Revision: 2.9 (start dequeue sequencing at the exact expected-latency boundary so ts[11:4]=0 is emitted)
 --      Date: Apr 2, 2026
--- Version : 26.1.4
--- Date    : 20260402
--- Change  : include the first ts[11:4]=0 dequeue slot in the pop command generator
+-- Revision: 2.10 (use width-safe 48-bit zero compares in cam_clean / drain qualification)
+--      Date: Apr 16, 2026
+-- Revision: 2.11 (latch the just-written search key so same-key overwrite erase suppression is correct at burst tail)
+--      Date: Apr 17, 2026
+-- Version : 26.1.5
+-- Date    : 20260417
+-- Change  : fix long-run counter cleanup compares and the same-key overwrite tail erase bug
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -69,9 +73,9 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 4;
-	BUILD				: natural := 402;
-	VERSION_DATE		: natural := 20260402;
+	VERSION_PATCH		: natural := 5;
+	BUILD				: natural := 417;
+	VERSION_DATE		: natural := 20260417;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
 	DEBUG				: natural := 1
@@ -422,6 +426,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal push_erase_grant				: std_logic;
 	signal push_write_grant				: std_logic;
 	signal push_write_grant_reg			: std_logic;
+	signal push_write_sk_reg			: std_logic_vector(SK_WIDTH-1 downto 0);
 	signal pop_current_sk				: std_logic_vector(8 downto 0); -- ts[12:4] (9bit)
 	
 	-- pop descriptor generator
@@ -803,9 +808,13 @@ begin
 		if (i_rst = '1') then 
 --			debug_msg.push_cnt			<= (others => '0');
 --			debug_msg.overwrite_cnt		<= (others => '0');
+			push_write_sk_reg		<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
 			-- latch the grant comb for switching to erase
 			push_write_grant_reg	<= push_write_grant;
+			if (push_write_grant = '1') then
+				push_write_sk_reg	<= in_hit_sk;
+			end if;
 			case push_state is		
 				when ERASE => -- erase
 					if (push_erase_grant = '1') then -- this must be granted (highest priority after push_write)!
@@ -1337,9 +1346,16 @@ begin
 				push_erase_grant	<= '1';
 				pop_erase_grant		<= '0';
 				pop_flush_grant		<= '0';
-				-- put main cam into "Erase-Mode"
+				-- For same-key overwrites the CAM entry stays valid for the
+				-- resident written in the previous cycle. Compare against the
+				-- latched just-written key, not the current input beat, because
+				-- the burst may end before this erase phase is reached.
 				cam_wr_en		<= '0';
-				cam_erase_en	<= '1';
+				if (cam_erase_data /= push_write_sk_reg) then
+					cam_erase_en	<= '1';
+				else
+					cam_erase_en	<= '0';
+				end if;
 				cam_wr_addr		<= std_logic_vector(write_pointer-1); -- wr_ptr has been incr'd in write state, so we go back 1 step
 				cam_wr_data		<= cam_erase_data; -- erase the search key that is occupying this location 
 				-- do not write side-ram, since it has been written for new data in push_write
@@ -1573,7 +1589,9 @@ begin
 --				ow_cnt_tmp					<= ow_cnt_tmp;
 --			end if;
 			-- cam empty flag
-			if (to_integer(debug_msg2.push_cnt) = 0 and to_integer(debug_msg2.pop_cnt) = 0 and to_integer(debug_msg2.overwrite_cnt) = 0) then -- very clean, no underflow
+			if (debug_msg2.push_cnt = to_unsigned(0, debug_msg2.push_cnt'length) and
+				debug_msg2.pop_cnt = to_unsigned(0, debug_msg2.pop_cnt'length) and
+				debug_msg2.overwrite_cnt = to_unsigned(0, debug_msg2.overwrite_cnt'length)) then -- very clean, no underflow
 				debug_msg2.cam_clean				<= '1';
 			else 
 				debug_msg2.cam_clean				<= '0';

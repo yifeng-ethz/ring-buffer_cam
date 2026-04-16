@@ -83,3 +83,38 @@
     - `PUSH_COUNT` stays at zero
     - scoreboard accepts zero hits
 - Commit: pending
+
+### BUG-007: 48-bit counter cleanup logic truncated through `to_integer()`
+- First seen in: long soak / signoff review for super-long counter and toggle runs on 2026-04-16
+- Symptom:
+  - `cam_clean` and related drain qualification could become wrong once the 48-bit push/pop/overwrite counters exceeded the signed 32-bit range
+  - this silently undermines extensive-effort signoff runs, especially the counter-toggle and long-drain families
+- Root cause:
+  - `proc_fill_level_meter` compared 48-bit counters by converting them through `to_integer()`
+  - VHDL integer is 32-bit signed in this toolchain, so the comparison is not width-safe for long runs
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `cam_clean` now uses width-safe zero compares against `to_unsigned(0, counter'length)`
+  - this is a control/counter correctness fix, not a datapath-beat fix
+- Commit: pending
+
+### BUG-008: Same-key overwrite suppression compared against the next input beat instead of the just-written key
+- First seen in: `P111` and `P119` on 2026-04-17
+- Symptom:
+  - same-key overwrite pressure drained almost completely, but one or more residents stayed invisible in CAM
+  - pre-fix signatures:
+    - `P111`: `push=576 pop=511 overwrite=64 remaining=1`
+    - earlier before the first overwrite fix: `push=576 pop=448 overwrite=64 remaining=64`
+    - `P119`: earlier `push=768 pop=256 overwrite=256 remaining=256`
+- Root cause:
+  - the overwrite self-erase suppression in the push-erase phase compared `cam_erase_data` with live `in_hit_sk`
+  - during a same-key burst this works only while another same-key beat is still present on the input
+  - on the final overwrite of the burst, the next input beat is idle or unrelated, so the DUT erroneously erases the newly written same-key resident
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the RTL now latches the search key that was actually written on `push_write_grant` and uses that latched key in the following erase phase
+  - verified by reruns:
+    - `P111`: `push=576 pop=512 overwrite=64 remaining=0`
+    - `P119`: `push=768 pop=512 overwrite=256 remaining=0`
+    - `B005`: still passes with `push=128 pop=128 remaining=0`
+- Commit: pending

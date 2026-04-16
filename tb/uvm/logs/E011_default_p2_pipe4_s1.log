@@ -1,3 +1,1 @@
-E011 has no live log artifact.
-State: planned only
-Scenario: fill to RING_BUFFER_N_ENTRY+1 (513) same-key hits; first wrap-write lands on slot 0 which was already occupied
+/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/work_uvm/logs/test_case_engine_E011_s1.log

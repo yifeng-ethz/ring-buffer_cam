@@ -1,6 +1,6 @@
 # ring_buffer_cam — REPORT index
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-16` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-17` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 ## Legend
@@ -14,9 +14,9 @@
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
-| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
+| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 1 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
 | ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 3 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a |
 
 ## Cross / continuous-frame runs
 
@@ -291,10 +291,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `3`
+- evidenced_cases = `1`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a`
-- functional coverage: `0.58% (3/516)`
+- functional coverage: `0.19% (1/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

@@ -1,6 +1,6 @@
 # ⚠️ ERROR bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `3` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `0` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -33,13 +33,13 @@
 | ❓ | 4 | `X004` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X004.md) |
 | ❓ | 5 | `X005` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X005.md) |
 | ❓ | 6 | `X006` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X006.md) |
-| ✅ | 7 | `X007` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X007.md) |
-| ✅ | 8 | `X008` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X008.md) |
+| ⚠️ | 7 | `X007` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X007.md) |
+| ⚠️ | 8 | `X008` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X008.md) |
 | ❓ | 9 | `X009` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X009.md) |
 | ❓ | 10 | `X010` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X010.md) |
 | ❓ | 11 | `X011` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X011.md) |
 | ❓ | 12 | `X012` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X012.md) |
-| ✅ | 13 | `X013` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X013.md) |
+| ⚠️ | 13 | `X013` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X013.md) |
 | ❓ | 14 | `X014` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X014.md) |
 | ❓ | 15 | `X015` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X015.md) |
 | ❓ | 16 | `X016` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X016.md) |

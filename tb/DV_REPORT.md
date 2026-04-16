@@ -1,6 +1,6 @@
 # ⚠️ DV Report — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-16` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-17` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 This page is the chief-architect dashboard. All per-case evidence lives under [`REPORT/`](REPORT/README.md).
@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `463` |
+| ⚠️ | unimplemented_cases | `460` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bucket summary
@@ -25,16 +25,16 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 0.0% (0/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 0.0% (0/129) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 1 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 0.78% (1/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 0.0% (0/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 3 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 2.33% (3/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 0 | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | 0.0% (0/129) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
 
-- functional coverage: `0.58% (3/516)`
+- functional coverage: `0.19% (1/516)`
 
 ## Cross / continuous-frame signoff
 

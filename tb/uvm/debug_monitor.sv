@@ -145,10 +145,11 @@ class debug_monitor extends uvm_monitor;
       if (vif.pop_cache_miss_pulse === 1'b1)
         cache_miss_pulse_count++;
 
-      if (vif.push_write_grant === 1'b1) begin
+      if (vif.push_write_grant === 1'b1 &&
+          vif.side_ram_we === 1'b1) begin
         item = ring_buffer_cam_pkg::debug_push_item::type_id::create("push_evt");
-        item.slot_addr = vif.cam_wr_addr;
-        item.raw_hit = vif.in_hit_side;
+        item.slot_addr = vif.side_ram_waddr;
+        item.raw_hit = vif.side_ram_din[38:0];
         item.push_count = vif.dbg_push_cnt;
         item.overwrite_count = vif.dbg_overwrite_cnt;
         push_ap.write(item);

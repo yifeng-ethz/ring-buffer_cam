@@ -41,6 +41,8 @@ class scoreboard extends uvm_scoreboard;
   int unsigned total_zero_hit_subheaders;
   int unsigned total_subheader_mismatches;
   int unsigned current_remaining;
+  bit          allow_nonempty_end;
+  int unsigned allowed_remaining_at_end;
   int unsigned current_remaining_by_key[bit [7:0]];
   int unsigned max_remaining_seen;
   int unsigned max_remaining_seen_by_key[bit [7:0]];
@@ -64,6 +66,8 @@ class scoreboard extends uvm_scoreboard;
     total_zero_hit_subheaders = 0;
     total_subheader_mismatches = 0;
     current_remaining = 0;
+    allow_nonempty_end = 1'b0;
+    allowed_remaining_at_end = 0;
     max_remaining_seen = 0;
     epoch_active = 1'b0;
     active_search_key = '0;
@@ -163,6 +167,22 @@ class scoreboard extends uvm_scoreboard;
 
   function bit epoch_idle();
     return !epoch_active;
+  endfunction
+
+  function void note_flush_reset();
+    for (int i = 0; i < slot_model.size(); i++) begin
+      slot_model[i].valid = 1'b0;
+    end
+    current_remaining = 0;
+    allow_nonempty_end = 1'b0;
+    allowed_remaining_at_end = 0;
+    current_remaining_by_key.delete();
+    clear_epoch();
+  endfunction
+
+  function void note_intentional_nonempty_end(int unsigned expected_remaining);
+    allow_nonempty_end = 1'b1;
+    allowed_remaining_at_end = expected_remaining;
   endfunction
 
   function void clear_epoch();
@@ -332,10 +352,20 @@ class scoreboard extends uvm_scoreboard;
     end
 
     if (remaining > 0) begin
-      `uvm_error("SCB", $sformatf(
-        "Undrained residents remain at end of test: accepted=%0d written=%0d drained=%0d remaining=%0d expected_overwrites=%0d unexpected_outputs=%0d",
-        total_ingress_accepted, total_written, total_drained, remaining,
-        total_expected_overwrites, total_unexpected_outputs))
+      if (allow_nonempty_end) begin
+        if (remaining != allowed_remaining_at_end) begin
+          `uvm_error("SCB", $sformatf(
+            "Intentional non-empty end drifted: remaining=%0d expected=%0d accepted=%0d written=%0d drained=%0d expected_overwrites=%0d unexpected_outputs=%0d",
+            remaining, allowed_remaining_at_end,
+            total_ingress_accepted, total_written, total_drained,
+            total_expected_overwrites, total_unexpected_outputs))
+        end
+      end else begin
+        `uvm_error("SCB", $sformatf(
+          "Undrained residents remain at end of test: accepted=%0d written=%0d drained=%0d remaining=%0d expected_overwrites=%0d unexpected_outputs=%0d",
+          total_ingress_accepted, total_written, total_drained, remaining,
+          total_expected_overwrites, total_unexpected_outputs))
+      end
     end
   endfunction
 

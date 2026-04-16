@@ -1,6 +1,6 @@
 # ⚠️ EDGE bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `0` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `1` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -36,9 +36,9 @@
 | ❓ | 7 | `E007` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E007.md) |
 | ❓ | 8 | `E008` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E008.md) |
 | ❓ | 9 | `E009` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E009.md) |
-| ❓ | 10 | `E010` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E010.md) |
-| ❓ | 11 | `E011` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E011.md) |
-| ❓ | 12 | `E012` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E012.md) |
+| ⚠️ | 10 | `E010` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E010.md) |
+| ✅ | 11 | `E011` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E011.md) |
+| ⚠️ | 12 | `E012` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E012.md) |
 | ❓ | 13 | `E013` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E013.md) |
 | ❓ | 14 | `E014` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E014.md) |
 | ❓ | 15 | `E015` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E015.md) |

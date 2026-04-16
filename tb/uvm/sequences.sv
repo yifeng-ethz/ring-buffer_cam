@@ -341,6 +341,10 @@ class overwrite_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_
       if (burst_len > 0 && burst_idle_cycles > 0 && ((i + 1) % burst_len) == 0)
         #(burst_idle_cycles * 8ns);
     end
+
+    `uvm_info("SEQ", $sformatf(
+      "%s completed: sent=%0d/%0d",
+      (progress_tag == "") ? get_name() : progress_tag, num_hits, num_hits), UVM_LOW)
   endtask
 endclass
 

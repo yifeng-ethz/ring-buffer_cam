@@ -88,6 +88,16 @@ class base_test extends uvm_test;
     // fixed simulation delay.
     ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
     ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    m_env.m_scb.note_flush_reset();
+  endtask
+
+  task automatic configure_and_start_full(int unsigned latency = 128);
+    enter_run_prepare();
+    csr_write(CSR_EXPECTED_LAT_ADDR, latency);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+    wait_clocks(2);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+    wait_clocks(20);
   endtask
 
   task automatic csr_expect_mask(
@@ -107,12 +117,7 @@ class base_test extends uvm_test;
 
   // Common startup: configure CSR and send run-control commands
   task configure_and_start(int unsigned latency = 128);
-    enter_run_prepare();
-    csr_write(CSR_EXPECTED_LAT_ADDR, latency);
-    ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
-    wait_clocks(2);
-    ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
-    wait_clocks(20);
+    configure_and_start_full(latency);
   endtask
 
   task automatic send_endofrun_marker();
@@ -129,17 +134,23 @@ class base_test extends uvm_test;
     int unsigned cycles;
     cycles = 0;
     while (cycles < max_cycles) begin
-      if (m_env.m_scb.remaining_entries() == 0 && m_env.m_scb.epoch_idle()) begin
+      if (m_env.m_scb.remaining_entries() == 0 &&
+          m_env.m_scb.epoch_idle() &&
+          m_env.m_hit_drv.pending_source_items() == 0) begin
         return;
       end
       @(posedge m_env.m_csr_drv.vif.clk);
       cycles++;
     end
     `uvm_info("TIMEOUT", $sformatf(
-      "%s debug: remaining=%0d max_remaining=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
+      "%s debug: remaining=%0d max_remaining=%0d source_backlog=%0d source_backlog_max=%0d source_offered=%0d source_accepted=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
       what,
       m_env.m_scb.remaining_entries(),
       m_env.m_scb.max_remaining_entries(),
+      m_env.m_hit_drv.pending_source_items(),
+      m_env.m_hit_drv.max_source_backlog,
+      m_env.m_hit_drv.offered_payload_total,
+      m_env.m_hit_drv.accepted_payload_total,
       m_env.m_dbg_mon.current_live_fill,
       m_env.m_dbg_mon.max_live_fill,
       m_env.m_dbg_mon.dbg_push_cnt[31:0],
@@ -156,8 +167,9 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.first_pop_cycle,
       m_env.m_dbg_mon.first_overwrite_cycle), UVM_LOW)
     `uvm_error("TIMEOUT", $sformatf(
-      "Timed out waiting for %s after %0d cycles: remaining=%0d epoch_idle=%0d",
-      what, max_cycles, m_env.m_scb.remaining_entries(), m_env.m_scb.epoch_idle()))
+      "Timed out waiting for %s after %0d cycles: remaining=%0d epoch_idle=%0d source_backlog=%0d",
+      what, max_cycles, m_env.m_scb.remaining_entries(), m_env.m_scb.epoch_idle(),
+      m_env.m_hit_drv.pending_source_items()))
   endtask
 
   task automatic run_b003_activity_case();
@@ -264,13 +276,50 @@ class base_test extends uvm_test;
     int unsigned max_cycles = 250_000,
     string what = "terminate drain"
   );
+    int unsigned source_wait_cycles;
+    int unsigned term_wait_cycles;
+    source_wait_cycles = 0;
+    while (m_env.m_hit_drv.pending_source_items() != 0 && source_wait_cycles < max_cycles) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      source_wait_cycles++;
+    end
+    if (m_env.m_hit_drv.pending_source_items() != 0) begin
+      `uvm_error("TERM", $sformatf(
+        "%s: source backlog did not drain before TERMINATING: backlog=%0d after %0d cycles",
+        what, m_env.m_hit_drv.pending_source_items(), source_wait_cycles))
+    end else begin
+      `uvm_info("TERM", $sformatf(
+        "%s: source backlog drained before TERMINATING after %0d cycles (offered=%0d accepted=%0d)",
+        what, source_wait_cycles,
+        m_env.m_hit_drv.offered_payload_total, m_env.m_hit_drv.accepted_payload_total), UVM_LOW)
+    end
+    `uvm_info("TERM", $sformatf("%s: issue TERMINATING entry pulse", what), UVM_LOW)
     ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    `uvm_info("TERM", $sformatf("%s: send end-of-run marker", what), UVM_LOW)
     send_endofrun_marker();
-    // Re-issue TERMINATING so the driver waits on the DUT's explicit
-    // terminating_drain_done/ready handshake rather than relying on a fixed
-    // post-marker delay.
-    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    `uvm_info("TERM", $sformatf("%s: poll TERMINATING drain-done", what), UVM_LOW)
+    term_wait_cycles = 0;
+    while (m_env.m_dbg_mon.terminating_drain_done !== 1'b1 && term_wait_cycles < max_cycles) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      term_wait_cycles++;
+    end
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("TERM", $sformatf(
+        "%s: terminating_drain_done did not assert after %0d cycles: endofrun_seen=%0d deassm_empty=%0d pop_cmd_empty=%0d push=%0d pop=%0d overwrite=%0d",
+        what, term_wait_cycles,
+        m_env.m_dbg_mon.vif.endofrun_seen,
+        m_env.m_dbg_mon.vif.deassembly_fifo_empty,
+        m_env.m_dbg_mon.vif.pop_cmd_fifo_empty,
+        m_env.m_dbg_mon.dbg_push_cnt[31:0],
+        m_env.m_dbg_mon.dbg_pop_cnt[31:0],
+        m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
+    end else begin
+      `uvm_info("TERM", $sformatf(
+        "%s: terminating_drain_done asserted after %0d cycles",
+        what, term_wait_cycles), UVM_LOW)
+    end
     wait_clocks(4);
+    `uvm_info("TERM", $sformatf("%s: waiting for scoreboard/source idle", what), UVM_LOW)
     wait_for_scoreboard_idle(max_cycles, what);
   endtask
 
@@ -350,7 +399,10 @@ class base_test extends uvm_test;
     overwrite_profile_seq pressure_seq;
     int unsigned push_count;
     int unsigned overwrite_count;
+    int unsigned offered_before_first_pop;
+    int unsigned accepted_before_first_pop;
     int unsigned pre_service_pushes;
+    int unsigned backlog_before_first_pop;
     int unsigned min_window_overwrites;
     bit [7:0] focus_search_key;
 
@@ -363,14 +415,21 @@ class base_test extends uvm_test;
     pressure_seq.hits_per_key_switch = 1;
     pressure_seq.progress_stride = 64;
     pressure_seq.progress_tag = what;
+    `uvm_info("PRESSURE", $sformatf("%s: start pressure source num_hits=%0d", what, num_hits), UVM_LOW)
     pressure_seq.start(m_env.m_hit_seqr);
+    `uvm_info("PRESSURE", $sformatf("%s: pressure source completed offered=%0d accepted=%0d backlog=%0d",
+      what, m_env.m_hit_drv.offered_payload_total, m_env.m_hit_drv.accepted_payload_total,
+      m_env.m_hit_drv.pending_source_items()), UVM_LOW)
     terminate_and_drain(80_000, {what, " terminate drain"});
     expect_service_model_accounting({what, " post-terminate"}, 1, 1);
 
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
     read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
     focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    offered_before_first_pop = m_env.m_hit_drv.offered_payload_at_first_pop;
+    accepted_before_first_pop = m_env.m_hit_drv.accepted_payload_at_first_pop;
     pre_service_pushes = m_env.m_dbg_mon.push_count_at_first_pop;
+    backlog_before_first_pop = m_env.m_hit_drv.backlog_at_first_pop;
 
     if (push_count != num_hits) begin
       `uvm_error("PRESSURE", $sformatf(
@@ -395,6 +454,16 @@ class base_test extends uvm_test;
     if (m_env.m_dbg_mon.first_overwrite_cycle == 0) begin
       `uvm_error("PRESSURE", $sformatf("%s never observed an overwrite event", what))
     end
+    if (offered_before_first_pop <= m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s source did not offer more than the 512-entry sector depth before first pop: offered_before_first_pop=%0d ring_depth=%0d",
+        what, offered_before_first_pop, m_cfg.ring_buffer_n_entry))
+    end
+    if (accepted_before_first_pop <= m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s frontdoor did not admit more than the 512-entry sector depth before first pop: accepted_before_first_pop=%0d ring_depth=%0d backlog_before_first_pop=%0d",
+        what, accepted_before_first_pop, m_cfg.ring_buffer_n_entry, backlog_before_first_pop))
+    end
     if (m_env.m_dbg_mon.first_overwrite_cycle != 0 &&
         m_env.m_dbg_mon.first_pop_cycle != 0 &&
         m_env.m_dbg_mon.first_overwrite_cycle >= m_env.m_dbg_mon.first_pop_cycle) begin
@@ -415,10 +484,14 @@ class base_test extends uvm_test;
       end
     end
     `uvm_info("PRESSURE", $sformatf(
-      "%s network-calculus summary: push=%0d overwrite=%0d pushes_before_first_pop=%0d max_remaining=%0d max_hotspot=%0d first_push_cycle=%0d first_overwrite_cycle=%0d first_pop_cycle=%0d",
-      what, push_count, overwrite_count, pre_service_pushes,
+      "%s network-calculus summary: offered_before_first_pop=%0d accepted_before_first_pop=%0d pushes_before_first_pop=%0d backlog_before_first_pop=%0d push=%0d overwrite=%0d max_remaining=%0d max_hotspot=%0d max_source_backlog=%0d first_offer_cycle=%0d first_push_cycle=%0d first_overwrite_cycle=%0d first_pop_cycle=%0d",
+      what, offered_before_first_pop, accepted_before_first_pop,
+      pre_service_pushes, backlog_before_first_pop,
+      push_count, overwrite_count,
       m_env.m_scb.max_remaining_entries(),
       m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+      m_env.m_hit_drv.max_source_backlog,
+      m_env.m_hit_drv.first_offer_cycle,
       m_env.m_dbg_mon.first_push_cycle,
       m_env.m_dbg_mon.first_overwrite_cycle,
       m_env.m_dbg_mon.first_pop_cycle), UVM_LOW)
@@ -466,6 +539,26 @@ class base_test extends uvm_test;
       what, max_cycles, m_env.m_out_mon.total_subheaders_seen, target_count))
   endtask
 
+  task automatic wait_for_push_count(
+    int unsigned target_count,
+    int unsigned max_cycles = 50_000,
+    string what = "push-count target"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] >= target_count) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: push=%0d target=%0d overwrite=%0d fill=%0d",
+      what, max_cycles, m_env.m_dbg_mon.dbg_push_cnt[31:0], target_count,
+      m_env.m_dbg_mon.dbg_overwrite_cnt[31:0], m_env.m_dbg_mon.current_live_fill))
+  endtask
+
   task automatic run_case_by_id(string case_id);
     single_push_pop_seq   single_seq;
     same_key_burst_seq    burst_seq;
@@ -485,6 +578,10 @@ class base_test extends uvm_test;
     int unsigned          ow28;
     int unsigned          ow_min;
     int unsigned          ow_max;
+    int unsigned          push_count;
+    int unsigned          overwrite_count;
+    int unsigned          fill_level;
+    int unsigned          focus_search_key;
 
     if (case_id == "B001") begin
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
@@ -538,7 +635,7 @@ class base_test extends uvm_test;
       seq_keys.start(m_env.m_hit_seqr);
       wait_for_scoreboard_idle(80_000, "B007 sequential_keys");
     end else if (case_id == "B008") begin
-      configure_and_start();
+      configure_and_start_full();
       if (m_cfg.run_state != ring_buffer_cam_pkg::RUN_STATE_RUNNING) begin
         `uvm_error("B008", $sformatf("Run-control startup spine failed: state=%0d", m_cfg.run_state))
       end
@@ -811,6 +908,82 @@ class base_test extends uvm_test;
       end
     end else if (case_id == "E003") begin
       run_single_key_overwrite_window("E003 overwrite_stress same-ts hotspot", 520);
+    end else if (case_id == "E010") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e010_fill_512");
+      burst_seq.num_hits = 512;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(512, 20_000, "E010 fill to exact depth");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 512) begin
+        `uvm_error("E010", $sformatf("Exact-depth push count mismatch: observed=%0d expected=512", push_count))
+      end
+      if (overwrite_count != 0) begin
+        `uvm_error("E010", $sformatf("Exact-depth fill should not overwrite: observed=%0d", overwrite_count))
+      end
+      if (fill_level != m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("E010", $sformatf(
+          "Exact-depth fill level mismatch: observed=%0d expected=%0d",
+          fill_level, m_cfg.ring_buffer_n_entry))
+      end
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("E010", $sformatf(
+          "Exact-depth case never reached full hotspot occupancy: key=%0d max_for_key=%0d ring_depth=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          m_cfg.ring_buffer_n_entry))
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "E011") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e011_fill_513");
+      burst_seq.num_hits = 513;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(513, 25_000, "E011 first wrap overwrite");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 513) begin
+        `uvm_error("E011", $sformatf("Wrap-overwrite push count mismatch: observed=%0d expected=513", push_count))
+      end
+      if (overwrite_count != 1) begin
+        `uvm_error("E011", $sformatf("Wrap-overwrite count mismatch: observed=%0d expected=1", overwrite_count))
+      end
+      if (fill_level != m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("E011", $sformatf(
+          "Wrap-overwrite fill level mismatch: observed=%0d expected=%0d",
+          fill_level, m_cfg.ring_buffer_n_entry))
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "E012") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e012_fill_1024");
+      burst_seq.num_hits = 1024;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1024, 40_000, "E012 double wrap overwrite");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 1024) begin
+        `uvm_error("E012", $sformatf("Double-wrap push count mismatch: observed=%0d expected=1024", push_count))
+      end
+      if (overwrite_count != 512) begin
+        `uvm_error("E012", $sformatf("Double-wrap overwrite mismatch: observed=%0d expected=512", overwrite_count))
+      end
+      if (fill_level != m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("E012", $sformatf(
+          "Double-wrap fill level mismatch: observed=%0d expected=%0d",
+          fill_level, m_cfg.ring_buffer_n_entry))
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
     end else if (case_id == "P001") begin
       configure_and_start();
       rand_same = random_push_pop_seq::type_id::create("rand_same");

@@ -105,6 +105,7 @@ module tb_top;
     dbg_if.cam_wr_addr         = dut.v2_core.cam_wr_addr;
     dbg_if.side_ram_waddr      = dut.v2_core.side_ram_waddr;
     dbg_if.side_ram_we         = dut.v2_core.side_ram_we;
+    dbg_if.side_ram_din        = dut.v2_core.side_ram_din;
     dbg_if.in_hit_side         = dut.v2_core.in_hit_side;
     dbg_if.side_ram_dout       = dut.v2_core.side_ram_dout;
     dbg_if.pop_issue_addr      = dut.v2_core.pop_issue_addr;
@@ -150,6 +151,8 @@ module tb_top;
       null, "uvm_test_top.m_env.m_hit_mon", "vif", hit_if);
     uvm_config_db#(virtual avst_ctrl_if.drv)::set(
       null, "uvm_test_top.m_env.m_ctrl_drv", "vif", ctrl_if);
+    uvm_config_db#(virtual dut_debug_if.mon)::set(
+      null, "uvm_test_top.m_env.m_ctrl_drv", "debug_vif", dbg_if);
     uvm_config_db#(virtual avmm_csr_if.drv)::set(
       null, "uvm_test_top.m_env.m_csr_drv", "vif", csr_if);
     uvm_config_db#(virtual avst_out_if.mon)::set(

@@ -26,5 +26,8 @@ Active DV workflow root for the live `ring_buffer_cam` IP.
 ## Current Status
 
 - The active workflow is the split `DV_*` tree under `tb/`; the old monolithic narrative in [SIGNOFF.md](/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/SIGNOFF.md:1) is historical evidence only.
-- Live post-fix reruns on 2026-04-16 show that the CSR-map UVM cases are now aligned with RTL, several directed/random smoke cases pass, and several multi-key / overwrite / long-run cases still fail on undrained-reference scoreboard checks.
-- Continuous-frame `bucket_frame`, `all_buckets_frame`, checkpoint-UCDB growth curves, and real code-coverage UCDB capture are not closed yet. The generated dashboard surfaces those gaps explicitly instead of treating the legacy signoff prose as current closure.
+- Live reruns on 2026-04-17 show the overwrite-pressure tail bug is closed in RTL:
+  - `P111` now passes with `push=576 pop=512 overwrite=64 remaining=0`
+  - `P119` now passes with `push=768 pop=512 overwrite=256 remaining=0`
+  - baseline `B005` still passes with `push=128 pop=128 remaining=0`
+- The next closure gap is breadth, not this pressure bug: most planned cases and all continuous-frame signoff families are still unimplemented or not yet rerun. The generated dashboard surfaces that explicitly.

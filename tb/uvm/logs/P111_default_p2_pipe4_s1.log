@@ -1,3 +1,3 @@
 P111 has no live log artifact.
 State: implemented but not yet rerun
-Scenario: overwrite-pressure soak: pool=1, push rate 110% of drain rate (ratio 1.1), 10% expected overwrite, 50k txn
+Scenario: overwrite-pressure soak: one same-ts hotspot (pool=1), mildly bursty so the pre-service arrival window exceeds 512 by a small margin before first pop, 50k txn equivalent

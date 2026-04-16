@@ -1,1 +1,3 @@
-/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/work_uvm/logs/test_case_engine_X008_s1.log
+X008 has no live log artifact.
+State: implemented but not yet rerun
+Scenario: same single bad-hit injection but with `filter_inerr=0` (CTRL bit4=0) — the error path must pass through: deassembly_fifo_wrreq asserts, push occurs, and `inerr_cnt` must NOT increment

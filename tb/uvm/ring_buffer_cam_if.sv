@@ -89,6 +89,7 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [15:0]  cam_wr_addr;
   logic [15:0]  side_ram_waddr;
   logic         side_ram_we;
+  logic [39:0]  side_ram_din;
   logic [38:0]  in_hit_side;
   logic [39:0]  side_ram_dout;
   logic [15:0]  pop_issue_addr;
@@ -119,7 +120,8 @@ interface dut_debug_if (input logic clk, input logic rst);
 
   modport mon (
     input decision_reg, push_write_grant, push_erase_grant, pop_erase_grant,
-          cam_wr_addr, side_ram_waddr, side_ram_we, in_hit_side, side_ram_dout,
+          cam_wr_addr, side_ram_waddr, side_ram_we, side_ram_din,
+          in_hit_side, side_ram_dout,
           pop_issue_addr, pop_current_sk, pop_total_hits, pop_pipeline_start,
           pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
           pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack, pop_cmd_fifo_empty,
