@@ -144,6 +144,8 @@ module tb_top;
     uvm_config_db#(int unsigned)::set(null, "*", "encoder_pipe_stages", G_ENCODER_PIPE_STAGES);
     uvm_config_db#(virtual avst_hit_if.drv)::set(
       null, "uvm_test_top.m_env.m_hit_drv", "vif", hit_if);
+    uvm_config_db#(virtual dut_debug_if.mon)::set(
+      null, "uvm_test_top.m_env.m_hit_drv", "debug_vif", dbg_if);
     uvm_config_db#(virtual avst_hit_if.mon)::set(
       null, "uvm_test_top.m_env.m_hit_mon", "vif", hit_if);
     uvm_config_db#(virtual avst_ctrl_if.drv)::set(
