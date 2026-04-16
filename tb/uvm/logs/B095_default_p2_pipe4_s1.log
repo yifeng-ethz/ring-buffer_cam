@@ -1,0 +1,3 @@
+B095 has no live log artifact.
+State: planned only
+Scenario: partitioned encoder PIPE_STAGES=2 baseline: single-hit latency = 2 cycles

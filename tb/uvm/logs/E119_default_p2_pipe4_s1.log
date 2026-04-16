@@ -1,0 +1,3 @@
+E119 has no live log artifact.
+State: planned only
+Scenario: pop_search_wait_cnt fixed 5-cycle guard (line 993) interaction with latency

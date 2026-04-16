@@ -1,0 +1,3 @@
+B008 has no live log artifact.
+State: implemented but not yet rerun
+Scenario: explicit run-control startup spine as a standalone case

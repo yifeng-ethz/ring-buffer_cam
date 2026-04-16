@@ -1,0 +1,3 @@
+B124 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow where CTRL soft_reset is pulsed during active DRAIN; soft_reset latches then self-clears without affecting in-flight subheader (TODO comment acknowledges not yet implemented)

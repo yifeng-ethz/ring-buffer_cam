@@ -1,0 +1,3 @@
+E006 has no live log artifact.
+State: planned only
+Scenario: partition-balance spot checks across promoted configs

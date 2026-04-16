@@ -1,0 +1,3 @@
+P028 has no live log artifact.
+State: planned only
+Scenario: pool=8 concurrent, Zipfian weight (s=1.2), 100% ready, 40k txn

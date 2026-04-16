@@ -10,6 +10,7 @@ class csr_driver extends uvm_driver #(ring_buffer_cam_pkg::csr_seq_item);
   `uvm_component_utils(csr_driver)
 
   virtual avmm_csr_if.drv vif;
+  ring_buffer_cam_pkg::ring_buffer_cam_cfg m_cfg;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
@@ -19,6 +20,8 @@ class csr_driver extends uvm_driver #(ring_buffer_cam_pkg::csr_seq_item);
     super.build_phase(phase);
     if (!uvm_config_db#(virtual avmm_csr_if.drv)::get(this, "", "vif", vif))
       `uvm_fatal("CSR_DRV", "Failed to get avmm_csr_if.drv from config_db")
+    if (!uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal("CSR_DRV", "Failed to get cfg from config_db")
   endfunction
 
   task run_phase(uvm_phase phase);
@@ -45,6 +48,7 @@ class csr_driver extends uvm_driver #(ring_buffer_cam_pkg::csr_seq_item);
     do begin
       @(posedge vif.clk);
     end while (vif.waitrequest === 1'b1);
+    m_cfg.note_csr_write(item.address, item.writedata);
     vif.write     <= 1'b0;
     vif.address   <= '0;
     vif.writedata <= '0;

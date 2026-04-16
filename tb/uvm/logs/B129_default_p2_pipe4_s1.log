@@ -1,0 +1,3 @@
+B129 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow: decision_reg=4 (idle) occurs only when no engine is requesting, never between two back-to-back push_write grants

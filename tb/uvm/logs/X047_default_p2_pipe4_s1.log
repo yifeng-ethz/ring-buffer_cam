@@ -1,0 +1,3 @@
+X047 has no live log artifact.
+State: planned only
+Scenario: TERMINATE while a PUSH_COUNT CSR write is in flight — write to POP/PUSH counters is a no-op in `proc_csr_rw`; run-state transition completes unhindered

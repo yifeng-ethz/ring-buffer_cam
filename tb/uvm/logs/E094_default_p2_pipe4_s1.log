@@ -1,0 +1,3 @@
+E094 has no live log artifact.
+State: planned only
+Scenario: tie-break: partition 0 and partition 2 both have pending=1, partition 1 empty

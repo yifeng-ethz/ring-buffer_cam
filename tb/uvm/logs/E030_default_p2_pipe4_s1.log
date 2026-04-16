@@ -1,0 +1,3 @@
+E030 has no live log artifact.
+State: planned only
+Scenario: depth boundary with concurrent deassembly_fifo near-full (usedw ~ 255)

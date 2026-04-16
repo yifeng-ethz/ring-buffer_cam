@@ -40,6 +40,7 @@ SEED     ?= 1
 SEEDS    ?= 16
 VERBOSITY ?= UVM_MEDIUM
 LOG_TAG ?=
+PLUSARGS ?=
 RING_BUFFER_N_ENTRY ?= 512
 INTERLEAVING_FACTOR ?= 4
 INTERLEAVING_INDEX ?= 0
@@ -70,6 +71,7 @@ SV_SRCS = \
   $(UVM_DIR)/ctrl_driver.sv \
   $(UVM_DIR)/csr_driver.sv \
   $(UVM_DIR)/out_monitor.sv \
+  $(UVM_DIR)/debug_monitor.sv \
   $(UVM_DIR)/scoreboard.sv \
   $(UVM_DIR)/coverage.sv \
   $(UVM_DIR)/env.sv \
@@ -105,7 +107,7 @@ CFG_CASES = p1 p2 p3 p4
 # Targets
 # ═══════════════════════════════════════════════════════════════
 
-.PHONY: compile run regress cfg_matrix clean
+.PHONY: compile run run_case run_bucket_frame run_cross regress cfg_matrix clean
 
 compile: $(WORK_DIR)/.compiled
 
@@ -151,6 +153,7 @@ run: compile
 	  -sv_seed $(SEED) \
 	  +UVM_TESTNAME=$(TEST) \
 	  +UVM_VERBOSITY=$(VERBOSITY) \
+	  $(PLUSARGS) \
 	  -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" \
 	  work.tb_top \
 	  -do "run -all; quit -f" \
@@ -162,6 +165,18 @@ run: compile
 	else \
 	  echo "PASS: $(TEST) seed=$(SEED)"; \
 	fi
+
+run_case: compile
+	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(CASE_ID) \
+	  PLUSARGS="+DV_EXEC_MODE=isolated +DV_CASE_ID=$(CASE_ID)" SEED=$(SEED)
+
+run_bucket_frame: compile
+	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(BUCKET)_bucket_frame \
+	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET)" SEED=$(SEED)
+
+run_cross: compile
+	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
+	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID)" SEED=$(SEED)
 
 regress: compile
 	@echo "=== Ring Buffer CAM UVM Regression (directed=$(words $(DIRECTED_TESTS)), random=$(words $(RANDOM_TESTS))×$(SEEDS) seeds) ==="

@@ -1,0 +1,3 @@
+E027 has no live log artifact.
+State: planned only
+Scenario: push hits populating partition 2 only while search key matches partition 2's slots

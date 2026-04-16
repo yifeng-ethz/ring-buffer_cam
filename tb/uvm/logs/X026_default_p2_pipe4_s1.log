@@ -1,0 +1,3 @@
+X026 has no live log artifact.
+State: planned only
+Scenario: 8 bad hits in a 10-cycle window with `filter_inerr=0` followed by a pop drain of that sk — drained hits may carry aso_hit_type2_error due to ts[12] mismatch

@@ -1,0 +1,3 @@
+X059 has no live log artifact.
+State: planned only
+Scenario: FLUSH clearing stale epoch: first FLUSH then pushes on a new sk that existed before FLUSH — new pushes must use a clean CAM with no stale occupancy bit

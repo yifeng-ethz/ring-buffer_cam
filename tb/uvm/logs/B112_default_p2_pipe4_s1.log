@@ -1,0 +1,3 @@
+B112 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow with filter_inerr mid-run toggle: one half of run sees tserr hits, INERR_COUNT reflects only filtered-on half

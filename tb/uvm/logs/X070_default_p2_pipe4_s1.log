@@ -1,0 +1,3 @@
+X070 has no live log artifact.
+State: planned only
+Scenario: FLUSH with `DEBUG=0` parameterization — ensure flush path is not gated by DEBUG (DEBUG only controls optional diagnostics, not functional flush)

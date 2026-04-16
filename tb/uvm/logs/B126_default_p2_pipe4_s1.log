@@ -1,0 +1,3 @@
+B126 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow: aso_hit_type2_channel field on both subheader and hit egress beats equals INTERLEAVING_INDEX generic

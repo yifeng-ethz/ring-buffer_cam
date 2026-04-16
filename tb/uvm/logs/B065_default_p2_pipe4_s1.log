@@ -1,0 +1,3 @@
+B065 has no live log artifact.
+State: implemented but not yet rerun
+Scenario: subheader `data[35:32]` (byte_is_k) = "0001" on subheader, "0000" on hits

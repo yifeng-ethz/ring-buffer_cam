@@ -1,0 +1,3 @@
+X018 has no live log artifact.
+State: planned only
+Scenario: bad hit on the boundary cycle `run_state_cmd` transitions IDLE→RUN_PREPARE — deassembly gate is closed (csr.go off or run_state_cmd!=RUNNING); error must not bump inerr_cnt unless filter_inerr decision is still active in proc_csr_rw

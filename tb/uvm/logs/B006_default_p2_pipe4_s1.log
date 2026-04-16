@@ -1,0 +1,3 @@
+B006 has no live log artifact.
+State: implemented but not yet rerun
+Scenario: deeper same-key burst exercises pipeline depth and counters

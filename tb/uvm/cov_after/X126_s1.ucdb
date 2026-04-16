@@ -1,0 +1,3 @@
+X126 has no standalone UCDB artifact yet.
+The current ring_buffer_cam workflow captures functional-covergroup percentages in logs,
+but code-coverage UCDB save/merge is still pending promotion.

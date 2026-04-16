@@ -1,0 +1,3 @@
+P124 has no live log artifact.
+State: planned only
+Scenario: overwrite-pressure soak: pool=1, EXPECTED_LATENCY=min, push rate 110%, 50k txn

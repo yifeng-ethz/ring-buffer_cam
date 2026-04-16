@@ -1,0 +1,3 @@
+X113 has no live log artifact.
+State: planned only
+Scenario: inerr event coincident with soft-reset write — verify expected clear semantics (forward-looking) vs current retention

@@ -1,0 +1,3 @@
+X052 has no live log artifact.
+State: planned only
+Scenario: FLUSH with full ring (`FILL_LEVEL=RING_BUFFER_N_ENTRY`) — FLUSHING must zero every CAM cell and every side RAM cell before run_mgmt_flushed

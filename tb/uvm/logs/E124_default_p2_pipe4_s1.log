@@ -1,0 +1,3 @@
+E124 has no live log artifact.
+State: planned only
+Scenario: EXPECTED_LATENCY=2 (below POP_CMD_FIFO depth × 16 = 256 gts window)

@@ -10,6 +10,7 @@ class ctrl_driver extends uvm_driver #(ring_buffer_cam_pkg::ctrl_seq_item);
   `uvm_component_utils(ctrl_driver)
 
   virtual avst_ctrl_if.drv vif;
+  ring_buffer_cam_pkg::ring_buffer_cam_cfg m_cfg;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
@@ -19,6 +20,8 @@ class ctrl_driver extends uvm_driver #(ring_buffer_cam_pkg::ctrl_seq_item);
     super.build_phase(phase);
     if (!uvm_config_db#(virtual avst_ctrl_if.drv)::get(this, "", "vif", vif))
       `uvm_fatal("CTRL_DRV", "Failed to get avst_ctrl_if.drv from config_db")
+    if (!uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal("CTRL_DRV", "Failed to get cfg from config_db")
   endfunction
 
   task run_phase(uvm_phase phase);
@@ -39,6 +42,7 @@ class ctrl_driver extends uvm_driver #(ring_buffer_cam_pkg::ctrl_seq_item);
     do begin
       @(posedge vif.clk);
     end while (vif.ready !== 1'b1);
+    m_cfg.note_ctrl_cmd(item.cmd);
     vif.valid <= 1'b0;
     vif.data  <= '0;
     @(posedge vif.clk);

@@ -1,0 +1,3 @@
+P009 has no live log artifact.
+State: planned only
+Scenario: single-key pool=1, uniform push, sink-ready=100%, fill target ~90%, 20k txn; free axis = ingress gap in [0,1]

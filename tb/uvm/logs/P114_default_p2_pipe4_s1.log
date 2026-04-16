@@ -1,0 +1,3 @@
+P114 has no live log artifact.
+State: planned only
+Scenario: overwrite-pressure soak: pool=1, push=drain rate but sink-ready=50%, 30% expected overwrite, 50k txn

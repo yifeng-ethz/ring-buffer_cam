@@ -1,0 +1,3 @@
+B121 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow with channel-index empty-marker endofrun only on the matching INTERLEAVING_INDEX lane

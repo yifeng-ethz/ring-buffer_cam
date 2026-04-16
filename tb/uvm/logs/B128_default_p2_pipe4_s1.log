@@ -1,0 +1,3 @@
+B128 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow: pop_cmd_fifo depth=16 soak under RUNNING - descriptor rate matches consumption so fifo never exceeds 11 (per RTL comment for 960kHz case)

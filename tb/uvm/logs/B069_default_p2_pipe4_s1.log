@@ -1,0 +1,3 @@
+B069 has no live log artifact.
+State: planned only
+Scenario: pop descriptor cadence: in RUNNING, command fifo gets one write per `read_time_ptr[3:0]=0000` AND lane match

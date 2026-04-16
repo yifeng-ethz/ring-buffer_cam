@@ -1,0 +1,3 @@
+P021 has no live log artifact.
+State: planned only
+Scenario: pool=4, uniform push, 100% ready, EXPECTED_LATENCY swept randomly from {min, default, max} at run start, 20k txn

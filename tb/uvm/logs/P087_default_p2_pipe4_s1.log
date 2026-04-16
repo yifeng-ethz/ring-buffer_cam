@@ -1,0 +1,3 @@
+P087 has no live log artifact.
+State: planned only
+Scenario: long soak, pool=4 uniform, seed=0x2 (orthogonal to P086), 1M txn, same checkpoint schedule

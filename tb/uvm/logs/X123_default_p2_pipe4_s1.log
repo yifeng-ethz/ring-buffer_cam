@@ -1,0 +1,3 @@
+X123 has no live log artifact.
+State: planned only
+Scenario: recovery invariant: after recovery, the run-state observer sees a legal IDLE→RUN_PREPARE→SYNC→RUNNING→TERMINATING→IDLE sequence with ack timing matching a fresh IP

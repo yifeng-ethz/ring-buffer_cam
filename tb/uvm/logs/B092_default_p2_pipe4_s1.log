@@ -1,0 +1,3 @@
+B092 has no live log artifact.
+State: planned only
+Scenario: arbiter priority: simultaneous push_erase + pop_erase -> push_erase wins (req[1] > req[2] per comb branch)

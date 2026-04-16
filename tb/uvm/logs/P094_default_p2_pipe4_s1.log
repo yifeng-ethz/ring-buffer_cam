@@ -1,0 +1,3 @@
+P094 has no live log artifact.
+State: planned only
+Scenario: long soak, N_PARTITIONS=4 balanced, seed=0x9, 1M txn

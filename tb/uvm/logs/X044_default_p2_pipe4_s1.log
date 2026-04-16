@@ -1,0 +1,3 @@
+X044 has no live log artifact.
+State: planned only
+Scenario: TERMINATE immediately after a bad-hit burst (filter_inerr=1) — inerr_cnt survives TERMINATING (only flushing path clears it)

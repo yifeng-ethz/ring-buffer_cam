@@ -1,0 +1,3 @@
+X083 has no live log artifact.
+State: planned only
+Scenario: soft-reset with CTRL bit1 held at 1 across multiple writes — proc_csr_rw assigns 0 unconditionally in the idle branch; confirm no latch-up

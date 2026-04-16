@@ -1,0 +1,3 @@
+P081 has no live log artifact.
+State: planned only
+Scenario: pool=8 multi-key, TERM/FLUSH at partition boundary (during cross-partition drain), 20k cyc

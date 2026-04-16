@@ -1,0 +1,3 @@
+E044 has no live log artifact.
+State: planned only
+Scenario: subheader emitted while `pop_pipeline_start=1` and `subheader_gen_done=0` — exactly one cycle overlap

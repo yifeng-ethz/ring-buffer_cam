@@ -1,0 +1,3 @@
+X058 has no live log artifact.
+State: planned only
+Scenario: FLUSH without prior TERMINATE (RUN_PREPARE entered from RUNNING directly) — legal per RTL; `endofrun_seen` is cleared on RUN_PREPARE entry; residents are lost

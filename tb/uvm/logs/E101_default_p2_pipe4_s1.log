@@ -1,0 +1,3 @@
+E101 has no live log artifact.
+State: planned only
+Scenario: encoder stall: one partition has PIPE_STAGES=4 latency while others are PIPE_STAGES=1 ready

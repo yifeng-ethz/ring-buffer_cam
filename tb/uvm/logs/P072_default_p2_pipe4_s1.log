@@ -1,0 +1,3 @@
+P072 has no live log artifact.
+State: planned only
+Scenario: pool=4, TERM rate = 1 per 2k cyc (high injection), 30k cyc

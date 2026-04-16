@@ -1,0 +1,3 @@
+E087 has no live log artifact.
+State: planned only
+Scenario: overwrite where `pop_partition_snapshot` was already latched: overwrite must not change snapshot mid-drain

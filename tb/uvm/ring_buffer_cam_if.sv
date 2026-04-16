@@ -8,17 +8,18 @@ interface avst_hit_if (input logic clk, input logic rst);
   logic [3:0]  channel;
   logic        startofpacket;
   logic        endofpacket;
+  logic        empty;
   logic [38:0] data;
   logic        valid;
   logic        ready;
   logic [0:0]  error;
 
   modport drv (
-    output data, valid, channel, startofpacket, endofpacket, error,
+    output data, valid, channel, startofpacket, endofpacket, empty, error,
     input  ready, clk, rst
   );
   modport mon (
-    input data, valid, ready, channel, startofpacket, endofpacket, error, clk, rst
+    input data, valid, ready, channel, startofpacket, endofpacket, empty, error, clk, rst
   );
 endinterface
 
@@ -76,6 +77,57 @@ interface avmm_csr_if (input logic clk, input logic rst);
   );
   modport mon (
     input address, read, readdata, write, writedata, waitrequest, clk, rst
+  );
+endinterface
+
+// ── Internal DUT debug tap ───────────────────────────────────────
+interface dut_debug_if (input logic clk, input logic rst);
+  logic [2:0]   decision_reg;
+  logic         push_write_grant;
+  logic         push_erase_grant;
+  logic         pop_erase_grant;
+  logic [15:0]  cam_wr_addr;
+  logic [15:0]  side_ram_waddr;
+  logic         side_ram_we;
+  logic [38:0]  in_hit_side;
+  logic [39:0]  side_ram_dout;
+  logic [15:0]  pop_issue_addr;
+  logic [8:0]   pop_current_sk;
+  logic [15:0]  pop_total_hits;
+  logic         pop_pipeline_start;
+  logic         pop_hit_valid;
+  logic         pop_cache_miss_pulse;
+  logic         subheader_gen_done;
+  logic         pop_cmd_fifo_wrreq;
+  logic         pop_cmd_fifo_rdack;
+  logic         pop_cmd_fifo_empty;
+  logic [3:0]   pop_cmd_fifo_usedw;
+  logic         deassembly_fifo_empty;
+  logic         deassembly_fifo_full;
+  logic [7:0]   deassembly_fifo_usedw;
+  logic         endofrun_seen;
+  logic         terminating_drain_done;
+  logic         run_mgmt_flushed;
+  logic         gts_counter_rst;
+  logic [47:0]  gts_8n;
+  logic [47:0]  gts_end_of_run;
+  logic [47:0]  dbg_inerr_cnt;
+  logic [47:0]  dbg_push_cnt;
+  logic [47:0]  dbg_pop_cnt;
+  logic [47:0]  dbg_overwrite_cnt;
+  logic [47:0]  dbg_cache_miss_cnt;
+
+  modport mon (
+    input decision_reg, push_write_grant, push_erase_grant, pop_erase_grant,
+          cam_wr_addr, side_ram_waddr, side_ram_we, in_hit_side, side_ram_dout,
+          pop_issue_addr, pop_current_sk, pop_total_hits, pop_pipeline_start,
+          pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
+          pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack, pop_cmd_fifo_empty,
+          pop_cmd_fifo_usedw, deassembly_fifo_empty, deassembly_fifo_full,
+          deassembly_fifo_usedw, endofrun_seen, terminating_drain_done,
+          run_mgmt_flushed, gts_counter_rst, gts_8n, gts_end_of_run,
+          dbg_inerr_cnt, dbg_push_cnt, dbg_pop_cnt, dbg_overwrite_cnt,
+          dbg_cache_miss_cnt, clk, rst
   );
 endinterface
 

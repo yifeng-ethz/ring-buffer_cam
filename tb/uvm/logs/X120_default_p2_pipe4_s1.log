@@ -1,0 +1,3 @@
+X120 has no live log artifact.
+State: planned only
+Scenario: GOOD → cache-miss heavy window → recovery — drain on an empty CAM slot (side_ram occupancy=0) bumps `CACHE_MISS_COUNT`; recovery run sees 0

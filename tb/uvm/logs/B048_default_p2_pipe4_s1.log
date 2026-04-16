@@ -1,0 +1,3 @@
+B048 has no live log artifact.
+State: planned only
+Scenario: run-control illegal edge: PREP -> RUNNING (skipping SYNC) leaves gts_8n uninitialized

@@ -1,0 +1,3 @@
+P076 has no live log artifact.
+State: planned only
+Scenario: pool=4, FLUSH injected mid-subheader emit, 20k cyc

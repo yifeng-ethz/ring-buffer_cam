@@ -17,6 +17,7 @@ class ring_buffer_cam_env extends uvm_env;
   ctrl_driver                 m_ctrl_drv;
   csr_driver                  m_csr_drv;
   out_monitor                 m_out_mon;
+  debug_monitor               m_dbg_mon;
   scoreboard                  m_scb;
   ring_buffer_cam_coverage    m_cov;
 
@@ -35,6 +36,7 @@ class ring_buffer_cam_env extends uvm_env;
       m_cfg = ring_buffer_cam_pkg::ring_buffer_cam_cfg::type_id::create("cfg");
       `uvm_info("ENV", "Using default configuration", UVM_MEDIUM)
     end
+    uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::set(this, "*", "cfg", m_cfg);
 
     m_hit_seqr = uvm_sequencer#(ring_buffer_cam_pkg::hit_seq_item)::type_id::create("m_hit_seqr", this);
     m_ctrl_seqr = uvm_sequencer#(ring_buffer_cam_pkg::ctrl_seq_item)::type_id::create("m_ctrl_seqr", this);
@@ -44,6 +46,7 @@ class ring_buffer_cam_env extends uvm_env;
     m_ctrl_drv = ctrl_driver::type_id::create("m_ctrl_drv", this);
     m_csr_drv  = csr_driver::type_id::create("m_csr_drv", this);
     m_out_mon  = out_monitor::type_id::create("m_out_mon", this);
+    m_dbg_mon  = debug_monitor::type_id::create("m_dbg_mon", this);
     m_scb      = scoreboard::type_id::create("m_scb", this);
     m_cov      = ring_buffer_cam_coverage::type_id::create("m_cov", this);
   endfunction
@@ -53,7 +56,8 @@ class ring_buffer_cam_env extends uvm_env;
     m_hit_drv.seq_item_port.connect(m_hit_seqr.seq_item_export);
     m_ctrl_drv.seq_item_port.connect(m_ctrl_seqr.seq_item_export);
     m_csr_drv.seq_item_port.connect(m_csr_seqr.seq_item_export);
-    m_hit_mon.ap.connect(m_scb.in_imp);
+    m_hit_mon.ap.connect(m_scb.accept_imp);
+    m_dbg_mon.push_ap.connect(m_scb.push_imp);
     m_out_mon.ap.connect(m_scb.out_imp);
     m_out_mon.ap.connect(m_cov.analysis_export);
   endfunction

@@ -1,0 +1,3 @@
+X062 has no live log artifact.
+State: planned only
+Scenario: FLUSH sequence where `run_mgmt_flush_memory_start` is already high from a previous RUN_PREPARE still being ack'd — latch prevents double trigger

@@ -1,0 +1,3 @@
+X019 has no live log artifact.
+State: planned only
+Scenario: bad hit on the cycle `run_state_cmd` enters RUNNING — confirm the first cycle after RUNNING accepts neither the stale bad hit nor a stray push

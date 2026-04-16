@@ -1,0 +1,3 @@
+B036 has no live log artifact.
+State: planned only
+Scenario: run-control edge: PREP flush path asserts `run_mgmt_flush_memory_start` for one pop_engine FLUSHING round, then latches `run_mgmt_flushed='1'`

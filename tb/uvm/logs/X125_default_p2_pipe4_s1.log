@@ -1,0 +1,3 @@
+X125 has no live log artifact.
+State: planned only
+Scenario: recovery invariant: after any ERROR scenario, `aso_filllevel_data` streaming output (16-bit fill-level side band) tracks `FILL_LEVEL(15:0)` exactly

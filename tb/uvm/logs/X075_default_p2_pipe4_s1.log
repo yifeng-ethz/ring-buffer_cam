@@ -1,0 +1,3 @@
+X075 has no live log artifact.
+State: planned only
+Scenario: soft-reset concurrent with a CSR write of EXPECTED_LATENCY — CSR write arbitration: the write acknowledgement path is mutually exclusive per `proc_csr_rw`; both writes complete in order

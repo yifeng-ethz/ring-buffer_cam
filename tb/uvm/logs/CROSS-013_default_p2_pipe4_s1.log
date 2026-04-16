@@ -1,0 +1,3 @@
+CROSS-013 has no live log artifact.
+State: planned only
+Scenario: `counter-delay` pattern: frontdoor command vs backdoor counter

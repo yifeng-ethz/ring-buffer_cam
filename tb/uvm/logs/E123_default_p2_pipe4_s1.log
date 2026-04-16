@@ -1,0 +1,3 @@
+E123 has no live log artifact.
+State: planned only
+Scenario: latency change while `pop_engine_state=DRAIN`: new latency takes effect only on next descriptor gen, not current drain

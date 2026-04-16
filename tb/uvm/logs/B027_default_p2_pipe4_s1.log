@@ -1,0 +1,3 @@
+B027 has no live log artifact.
+State: planned only
+Scenario: CSR[8] OVERWRITE_COUNT increments on `decision_reg=1` (push_erase) triggered by `addr_occupied=1` on the write pointer

@@ -1,0 +1,3 @@
+X038 has no live log artifact.
+State: planned only
+Scenario: two consecutive TERMINATE valids (redundant run-control command) — second TERMINATE must idempotently re-ack without double-draining

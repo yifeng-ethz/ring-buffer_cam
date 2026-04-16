@@ -10,6 +10,7 @@ class hit_monitor extends uvm_monitor;
   `uvm_component_utils(hit_monitor)
 
   virtual avst_hit_if.mon vif;
+  ring_buffer_cam_pkg::ring_buffer_cam_cfg m_cfg;
   uvm_analysis_port #(ring_buffer_cam_pkg::hit_seq_item) ap;
 
   function new(string name, uvm_component parent);
@@ -21,21 +22,38 @@ class hit_monitor extends uvm_monitor;
     ap = new("ap", this);
     if (!uvm_config_db#(virtual avst_hit_if.mon)::get(this, "", "vif", vif))
       `uvm_fatal("HIT_MON", "Failed to get avst_hit_if.mon from config_db")
+    if (!uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal("HIT_MON", "Failed to get cfg from config_db")
   endfunction
 
   task run_phase(uvm_phase phase);
     ring_buffer_cam_pkg::hit_seq_item item;
     forever begin
       @(posedge vif.clk);
-      if (vif.valid === 1'b1 && vif.ready === 1'b1) begin
+      m_cfg.note_ingress_beat(
+        vif.data,
+        vif.channel,
+        (vif.empty === 1'b1),
+        (vif.valid === 1'b1)
+      );
+      if (m_cfg.accepts_ingress(
+            vif.data,
+            vif.channel,
+            (vif.empty === 1'b1),
+            (vif.valid === 1'b1),
+            (vif.ready === 1'b1),
+            vif.error[0]
+          )) begin
         item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("hit_item");
         item.asic    = vif.data[38:35];
+        item.ingress_channel = vif.channel;
         item.channel = vif.data[34:30];
         item.tcc8n   = vif.data[29:17];
         item.tcc1n6  = vif.data[16:14];
         item.tfine   = vif.data[13:9];
         item.et1n6   = vif.data[8:0];
         item.has_error = vif.error[0];
+        item.is_empty_marker = 1'b0;
         ap.write(item);
       end
     end

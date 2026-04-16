@@ -1,0 +1,3 @@
+B117 has no live log artifact.
+State: planned only
+Scenario: end-to-end flow subheader phase boundary: run for exactly one latency window, verify exactly one subheader generated and it carries the correct ts byte

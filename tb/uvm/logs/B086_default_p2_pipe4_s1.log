@@ -1,0 +1,3 @@
+B086 has no live log artifact.
+State: planned only
+Scenario: pop DRAIN round-robin: one partition with 2 hits, next partition idle, verify pop_rr_idx increments past the idle partition without stall

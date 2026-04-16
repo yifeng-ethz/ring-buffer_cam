@@ -24,6 +24,7 @@ module tb_top;
   // ── Clock and reset ───────────────────────────────────────────
   logic clk = 0;
   logic rst = 1;
+  int unsigned tb_timeout_cycles = 5_000_000;
 
   always #4 clk = ~clk;  // 8 ns period = 125 MHz
 
@@ -38,6 +39,7 @@ module tb_top;
   avst_out_if  out_if  (.clk(clk), .rst(rst));
   avst_ctrl_if ctrl_if (.clk(clk), .rst(rst));
   avmm_csr_if  csr_if  (.clk(clk), .rst(rst));
+  dut_debug_if dbg_if  (.clk(clk), .rst(rst));
 
   // ── DUT (VHDL entity via mixed-language instantiation) ────────
   ring_buffer_cam #(
@@ -95,8 +97,48 @@ module tb_top;
   assign hit_if.endofpacket   = 1'b0;
   assign hit_if.empty         = 1'b0;
 
+  always_comb begin
+    dbg_if.decision_reg        = dut.v2_core.decision_reg;
+    dbg_if.push_write_grant    = dut.v2_core.push_write_grant;
+    dbg_if.push_erase_grant    = dut.v2_core.push_erase_grant;
+    dbg_if.pop_erase_grant     = dut.v2_core.pop_erase_grant;
+    dbg_if.cam_wr_addr         = dut.v2_core.cam_wr_addr;
+    dbg_if.side_ram_waddr      = dut.v2_core.side_ram_waddr;
+    dbg_if.side_ram_we         = dut.v2_core.side_ram_we;
+    dbg_if.in_hit_side         = dut.v2_core.in_hit_side;
+    dbg_if.side_ram_dout       = dut.v2_core.side_ram_dout;
+    dbg_if.pop_issue_addr      = dut.v2_core.pop_issue_addr;
+    dbg_if.pop_current_sk      = dut.v2_core.pop_current_sk;
+    dbg_if.pop_total_hits      = dut.v2_core.pop_total_hits;
+    dbg_if.pop_pipeline_start  = dut.v2_core.pop_pipeline_start;
+    dbg_if.pop_hit_valid       = dut.v2_core.pop_hit_valid;
+    dbg_if.pop_cache_miss_pulse = dut.v2_core.pop_cache_miss_pulse;
+    dbg_if.subheader_gen_done  = dut.v2_core.subheader_gen_done;
+    dbg_if.pop_cmd_fifo_wrreq  = dut.v2_core.pop_cmd_fifo_wrreq;
+    dbg_if.pop_cmd_fifo_rdack  = dut.v2_core.pop_cmd_fifo_rdack;
+    dbg_if.pop_cmd_fifo_empty  = dut.v2_core.pop_cmd_fifo_empty;
+    dbg_if.pop_cmd_fifo_usedw  = dut.v2_core.pop_cmd_fifo_usedw;
+    dbg_if.deassembly_fifo_empty = dut.v2_core.deassembly_fifo_empty;
+    dbg_if.deassembly_fifo_full  = dut.v2_core.deassembly_fifo_full;
+    dbg_if.deassembly_fifo_usedw = dut.v2_core.deassembly_fifo_usedw;
+    dbg_if.endofrun_seen       = dut.v2_core.endofrun_seen;
+    dbg_if.terminating_drain_done = dut.v2_core.terminating_drain_done;
+    dbg_if.run_mgmt_flushed    = dut.v2_core.run_mgmt_flushed;
+    dbg_if.gts_counter_rst     = dut.v2_core.gts_counter_rst;
+    dbg_if.gts_8n              = dut.v2_core.gts_8n;
+    dbg_if.gts_end_of_run      = dut.v2_core.gts_end_of_run;
+    dbg_if.dbg_inerr_cnt       = dut.v2_core.debug_msg2.inerr_cnt;
+    dbg_if.dbg_push_cnt        = dut.v2_core.debug_msg2.push_cnt;
+    dbg_if.dbg_pop_cnt         = dut.v2_core.debug_msg2.pop_cnt;
+    dbg_if.dbg_overwrite_cnt   = dut.v2_core.debug_msg2.overwrite_cnt;
+    dbg_if.dbg_cache_miss_cnt  = dut.v2_core.debug_msg2.cache_miss_cnt;
+  end
+
   // ── UVM config_db wiring ──────────────────────────────────────
   initial begin
+    uvm_config_db#(int unsigned)::set(null, "*", "ring_buffer_n_entry", G_RING_BUFFER_N_ENTRY);
+    uvm_config_db#(int unsigned)::set(null, "*", "interleaving_factor", G_INTERLEAVING_FACTOR);
+    uvm_config_db#(int unsigned)::set(null, "*", "interleaving_index", G_INTERLEAVING_INDEX);
     uvm_config_db#(int unsigned)::set(null, "*", "n_partitions", G_N_PARTITIONS);
     uvm_config_db#(int unsigned)::set(null, "*", "encoder_leaf_width", G_ENCODER_LEAF_WIDTH);
     uvm_config_db#(int unsigned)::set(null, "*", "encoder_pipe_stages", G_ENCODER_PIPE_STAGES);
@@ -110,13 +152,18 @@ module tb_top;
       null, "uvm_test_top.m_env.m_csr_drv", "vif", csr_if);
     uvm_config_db#(virtual avst_out_if.mon)::set(
       null, "uvm_test_top.m_env.m_out_mon", "vif", out_if);
+    uvm_config_db#(virtual dut_debug_if.mon)::set(
+      null, "uvm_test_top.m_env.m_out_mon", "debug_vif", dbg_if);
+    uvm_config_db#(virtual dut_debug_if.mon)::set(
+      null, "uvm_test_top.m_env.m_dbg_mon", "vif", dbg_if);
 
     run_test();
   end
 
   // ── Timeout watchdog ──────────────────────────────────────────
   initial begin
-    #(500_000 * 8);  // 4 ms simulation time
+    void'($value$plusargs("TB_TIMEOUT_CYCLES=%d", tb_timeout_cycles));
+    repeat (tb_timeout_cycles) @(posedge clk);
     `uvm_fatal("TB_TOP", "Global simulation timeout reached")
   end
 

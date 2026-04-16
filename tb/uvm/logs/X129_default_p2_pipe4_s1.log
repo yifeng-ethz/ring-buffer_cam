@@ -1,0 +1,3 @@
+X129 has no live log artifact.
+State: planned only
+Scenario: recovery invariant, full signoff: after GOOD → mixed ERROR (bad-hit + overwrite + cache-miss) → FLUSH → GOOD, the scoreboard reports: zero unexpected drops, zero unexpected duplicates, all error-window events isolated to their window, all good references drained with expected latency

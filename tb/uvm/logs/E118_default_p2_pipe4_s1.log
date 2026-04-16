@@ -1,0 +1,3 @@
+E118 has no live log artifact.
+State: planned only
+Scenario: EXPECTED_LATENCY vs terminate race: `run_state_cmd→TERMINATING` with gts_end_of_run latched, then latency bumped down
