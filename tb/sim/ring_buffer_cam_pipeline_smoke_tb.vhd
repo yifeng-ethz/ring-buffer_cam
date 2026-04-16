@@ -35,6 +35,7 @@ architecture tb of ring_buffer_cam_pipeline_smoke_tb is
   signal asi_hit_type1_channel       : std_logic_vector(3 downto 0) := (others => '0');
   signal asi_hit_type1_startofpacket : std_logic := '0';
   signal asi_hit_type1_endofpacket   : std_logic := '0';
+  signal asi_hit_type1_empty         : std_logic := '0';
   signal asi_hit_type1_data          : std_logic_vector(38 downto 0) := (others => '0');
   signal asi_hit_type1_valid         : std_logic := '0';
   signal asi_hit_type1_ready         : std_logic;
@@ -79,17 +80,18 @@ begin
       asi_hit_type1_channel       => asi_hit_type1_channel,
       asi_hit_type1_startofpacket => asi_hit_type1_startofpacket,
       asi_hit_type1_endofpacket   => asi_hit_type1_endofpacket,
+      asi_hit_type1_empty         => asi_hit_type1_empty,
       asi_hit_type1_data          => asi_hit_type1_data,
       asi_hit_type1_valid         => asi_hit_type1_valid,
       asi_hit_type1_ready         => asi_hit_type1_ready,
-      asi_hit_type1_error         => asi_hit_type1_error,
+      asi_hit_type1_error         => asi_hit_type1_error(0),
       aso_hit_type2_channel       => aso_hit_type2_channel,
       aso_hit_type2_startofpacket => aso_hit_type2_startofpacket,
       aso_hit_type2_endofpacket   => aso_hit_type2_endofpacket,
       aso_hit_type2_data          => aso_hit_type2_data,
       aso_hit_type2_valid         => aso_hit_type2_valid,
       aso_hit_type2_ready         => aso_hit_type2_ready,
-      aso_hit_type2_error         => aso_hit_type2_error,
+      aso_hit_type2_error         => aso_hit_type2_error(0),
       aso_filllevel_valid         => aso_filllevel_valid,
       aso_filllevel_data          => aso_filllevel_data,
       i_rst                       => rst,

@@ -66,6 +66,7 @@ module tb_top;
     .asi_hit_type1_channel       (hit_if.channel),
     .asi_hit_type1_startofpacket (hit_if.startofpacket),
     .asi_hit_type1_endofpacket   (hit_if.endofpacket),
+    .asi_hit_type1_empty         (hit_if.empty),
     .asi_hit_type1_data          (hit_if.data),
     .asi_hit_type1_valid         (hit_if.valid),
     .asi_hit_type1_ready         (hit_if.ready),
@@ -89,9 +90,10 @@ module tb_top;
   // Egress always ready (can add backpressure driver later)
   assign out_if.ready = 1'b1;
 
-  // Ingress sop/eop not used by DUT for data, tie off
+  // UVM ingress keeps the optional framing sidebands at zero for the existing payload tests.
   assign hit_if.startofpacket = 1'b0;
   assign hit_if.endofpacket   = 1'b0;
+  assign hit_if.empty         = 1'b0;
 
   // ── UVM config_db wiring ──────────────────────────────────────
   initial begin

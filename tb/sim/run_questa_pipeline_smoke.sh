@@ -74,6 +74,7 @@ modelsim_ini="${work_dir}/modelsim.ini"
 "${vcom_cmd}" -2008 -modelsimini "${modelsim_ini}" -work altera_mf -quiet "${compat_dir}/scfifo.vhd"
 
 vhdl_files=(
+  "${ip_dir}/cam_helper_pkg.vhd"
   "${compat_dir}/cam_mem_blk_a5.vhd"
   "${ip_dir}/cam_mem_a5.vhd"
   "${ip_dir}/alt_simple_dpram.vhd"
@@ -82,6 +83,7 @@ vhdl_files=(
   "${ip_dir}/tb/common/ring_buffer_cam_tb_pkg.vhd"
   "${ip_dir}/addr_enc_logic_small.vhd"
   "${ip_dir}/addr_enc_logic_partitioned.vhd"
+  "${ip_dir}/ring_buffer_cam_v2_core.vhd"
   "${ip_dir}/ring_buffer_cam.vhd"
   "${ip_dir}/tb/sim/ring_buffer_cam_pipeline_smoke_tb.vhd"
 )

@@ -66,6 +66,7 @@ architecture tb of ring_buffer_cam_partitioned_tb is
   signal asi_hit_type1_channel       : std_logic_vector(3 downto 0)  := (others => '0');
   signal asi_hit_type1_startofpacket : std_logic := '0';
   signal asi_hit_type1_endofpacket   : std_logic := '0';
+  signal asi_hit_type1_empty         : std_logic := '0';
   signal asi_hit_type1_data          : std_logic_vector(38 downto 0) := (others => '0');
   signal asi_hit_type1_valid         : std_logic := '0';
   signal asi_hit_type1_ready         : std_logic;
@@ -127,6 +128,7 @@ begin
       asi_hit_type1_channel       => asi_hit_type1_channel,
       asi_hit_type1_startofpacket => asi_hit_type1_startofpacket,
       asi_hit_type1_endofpacket   => asi_hit_type1_endofpacket,
+      asi_hit_type1_empty         => asi_hit_type1_empty,
       asi_hit_type1_data          => asi_hit_type1_data,
       asi_hit_type1_valid         => asi_hit_type1_valid,
       asi_hit_type1_ready         => asi_hit_type1_ready,

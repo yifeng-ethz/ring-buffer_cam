@@ -95,6 +95,7 @@ port(
 	asi_hit_type1_channel			: in  std_logic_vector(3 downto 0); -- max_channel=15 (same as asic index, span from 0 to 15)
 	asi_hit_type1_startofpacket		: in  std_logic; -- packet is supported by upstream
 	asi_hit_type1_endofpacket		: in  std_logic; -- processor use this to mark the start and end of run (sor/eor)
+	asi_hit_type1_empty             : in  std_logic; -- lane-targeted close marker, must not be written into the deassembly fifo
 	asi_hit_type1_data				: in  std_logic_vector(38 downto 0);
 	asi_hit_type1_valid				: in  std_logic;
 	asi_hit_type1_ready				: out std_logic; -- itself has fifo, so no backpressure is required for upstream, just check for fifo full. 
@@ -493,6 +494,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal gts_end_of_run					: unsigned(47 downto 0);
 	signal run_mgmt_flush_memory_start		: std_logic;
 	signal run_mgmt_flush_memory_done		: std_logic;
+	signal terminating_drain_done				: std_logic;
 	signal run_mgmt_flushed					: std_logic;
 	
 begin
@@ -730,25 +732,34 @@ begin
 	-- Functional Description:
 	--		Ignore other channels and only take in (write to deassembly_fifo) selected channel.
 	--		(interlacer enabled) In this mode, further restriction on the input hit timestamp ts8n(11:4) is made. ts modulo <# interleaving ways> has remainder equal to this IP's index will be accepted.
+        variable lane_match_v : boolean;
 	begin		
+        lane_match_v := false;
 		-- fifo write port
 		-- triming input stream 
 		deassembly_fifo_din(asi_hit_type1_data'high downto 0)		<= asi_hit_type1_data;
-		deassembly_fifo_din(39)										<= '0';
+		deassembly_fifo_din(39)									<= '0';
 		-- write with validation 
 		-- default
 		deassembly_fifo_wrreq				<= '0';
 		if ( (run_state_cmd = RUNNING or (run_state_cmd = TERMINATING and endofrun_seen = '0')) and csr.go = '1') then -- only in running, input are fully allowed. in TERMINATING, take in new hits, which remains in the processor fifo 
-			if (asi_hit_type1_valid = '1' and to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX) then 
-			-- only takes the ts modulo interleaving_factor = interleaving_index
-			-- (deprecated) since the data streams are merged in mts_processor, ignore data from other non-selected channel
-                if (csr.filter_inerr = '1') then 
-                    -- filter the tserr from the processor 
-                    if (asi_hit_type1_error(0) = '0') then 
+			if (asi_hit_type1_valid = '1') then 
+                if (asi_hit_type1_empty = '1') then
+                    lane_match_v := (to_integer(unsigned(asi_hit_type1_channel(1 downto 0))) = INTERLEAVING_INDEX);
+                else
+                    lane_match_v := (to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX);
+                end if;
+				if (lane_match_v and asi_hit_type1_empty = '0') then 
+				-- only takes the ts modulo interleaving_factor = interleaving_index
+				-- (deprecated) since the data streams are merged in mts_processor, ignore data from other non-selected channel
+                    if (csr.filter_inerr = '1') then 
+                        -- filter the tserr from the processor 
+                        if (asi_hit_type1_error(0) = '0') then 
+                            deassembly_fifo_wrreq			<= '1';
+                        end if;
+                    else 
                         deassembly_fifo_wrreq			<= '1';
                     end if;
-                else 
-                    deassembly_fifo_wrreq			<= '1';
                 end if;
 			end if;
 		end if;
@@ -863,9 +874,7 @@ begin
 					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 				end if;
 			elsif (run_state_cmd = TERMINATING) then -- end of run pop 
-            -- The frame assembly should always generate, but ring cam stopped after eor tick. 
-            -- As the merger is frame based, the last frame will not be uploaded to SWB.
-				if (read_time_ptr < gts_end_of_run) then -- continue to generate until read the end of run ts marker, at this point all hits should be popped out
+				if (terminating_drain_done = '0') then -- keep walking descriptor time until every locally buffered hit has drained
 					if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
 						pop_cmd_fifo_wrreq		<= '1';
 						pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
@@ -1572,6 +1581,14 @@ begin
 		end if;
 	end process;
 	
+	terminating_drain_done <= '1' when (
+		endofrun_seen = '1' and
+		deassembly_fifo_empty = '1' and
+		pop_cmd_fifo_empty = '1' and
+		pop_engine_state = IDLE and
+		debug_msg2.push_cnt = (debug_msg2.pop_cnt + debug_msg2.overwrite_cnt)
+	) else '0';
+	
 
 	
 	proc_run_control_mgmt : process (i_clk,i_rst)
@@ -1625,9 +1642,15 @@ begin
 			end if;
 			
 			-- packet support (hit type 1: mu3e run)
-			if (asi_hit_type1_endofpacket = '1') then 
+			if (asi_hit_type1_valid = '1' and asi_hit_type1_endofpacket = '1') then 
+                if (asi_hit_type1_empty = '1') then
+                    if (to_integer(unsigned(asi_hit_type1_channel(1 downto 0))) = INTERLEAVING_INDEX) then
+					endofrun_seen 		<= '1';
+                    end if;
+                elsif (to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX) then
 				endofrun_seen 		<= '1';
-			elsif (run_state_cmd_next_v = IDLE) then -- reset it here
+                end if;
+			elsif (run_state_cmd_next_v = IDLE or run_state_cmd_next_v = RUN_PREPARE) then -- reset it here
 				endofrun_seen		<= '0';
 			end if;
 			
@@ -1692,7 +1715,7 @@ begin
 					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
 				when TERMINATING => 
 					run_mgmt_flush_memory_start	<= '0';
-					if (read_time_ptr >= gts_end_of_run) then -- TODO: change it to output fifo empty
+					if (terminating_drain_done = '1') then
 						asi_ctrl_ready			<= '1';
 					else
 						asi_ctrl_ready			<= '0';

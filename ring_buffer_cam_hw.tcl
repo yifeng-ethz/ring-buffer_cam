@@ -463,6 +463,7 @@ set_interface_property hit_type1 ENABLED true
 add_interface_port hit_type1 asi_hit_type1_channel channel Input 4
 add_interface_port hit_type1 asi_hit_type1_startofpacket startofpacket Input 1
 add_interface_port hit_type1 asi_hit_type1_endofpacket endofpacket Input 1
+add_interface_port hit_type1 asi_hit_type1_empty empty Input 1
 add_interface_port hit_type1 asi_hit_type1_data data Input $HIT_TYPE1_WIDTH_CONST
 add_interface_port hit_type1 asi_hit_type1_valid valid Input 1
 add_interface_port hit_type1 asi_hit_type1_ready ready Output 1

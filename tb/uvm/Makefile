@@ -11,6 +11,11 @@
 QUESTA_DIR   ?= /data1/intelFPGA_pro/23.1/questa_fse/bin
 ASE_DIR      ?= /data1/intelFPGA/18.1/modelsim_ase/linuxaloem
 SIM_DIR      ?= $(if $(wildcard $(QUESTA_DIR)/vsim),$(QUESTA_DIR),$(ASE_DIR))
+QUESTA_HOME  ?= /data1/intelFPGA_pro/23.1/questa_fse
+QUESTA_LICENSE ?= $(QUESTA_HOME)/LR-287689_License.dat
+ETH_MENTOR_SERVER ?= 8161@lic-mentor.ethz.ch
+export LM_LICENSE_FILE   := $(ETH_MENTOR_SERVER):$(QUESTA_LICENSE)
+export MGLS_LICENSE_FILE := $(LM_LICENSE_FILE)
 
 VLIB  = $(SIM_DIR)/vlib
 VMAP  = $(SIM_DIR)/vmap
@@ -45,12 +50,15 @@ DEBUG ?= 1
 
 # ── VHDL sources ─────────────────────────────────────────────────
 VHDL_SRCS = \
+  $(IP_DIR)/cam_helper_pkg.vhd \
   $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
   $(IP_DIR)/cam_mem_a5.vhd \
   $(IP_DIR)/alt_simple_dpram.vhd \
   $(IP_DIR)/alt_fifo/cmd_fifo/cmd_fifo.vhd \
   $(IP_DIR)/alt_fifo/scfifo_w40d256.vhd \
+  $(IP_DIR)/addr_enc_logic_small.vhd \
   $(IP_DIR)/addr_enc_logic_partitioned.vhd \
+  $(IP_DIR)/ring_buffer_cam_v2_core.vhd \
   $(IP_DIR)/ring_buffer_cam.vhd
 
 # ── SystemVerilog sources ────────────────────────────────────────

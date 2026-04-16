@@ -37,6 +37,7 @@ entity ring_buffer_cam is
         asi_hit_type1_channel       : in  std_logic_vector(3 downto 0);
         asi_hit_type1_startofpacket : in  std_logic;
         asi_hit_type1_endofpacket   : in  std_logic;
+        asi_hit_type1_empty         : in  std_logic;
         asi_hit_type1_data          : in  std_logic_vector(38 downto 0);
         asi_hit_type1_valid         : in  std_logic;
         asi_hit_type1_ready         : out std_logic;
@@ -98,6 +99,7 @@ begin
             asi_hit_type1_channel       => asi_hit_type1_channel,
             asi_hit_type1_startofpacket => asi_hit_type1_startofpacket,
             asi_hit_type1_endofpacket   => asi_hit_type1_endofpacket,
+            asi_hit_type1_empty         => asi_hit_type1_empty,
             asi_hit_type1_data          => asi_hit_type1_data,
             asi_hit_type1_valid         => asi_hit_type1_valid,
             asi_hit_type1_ready         => asi_hit_type1_ready,
