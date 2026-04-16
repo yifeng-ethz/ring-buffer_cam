@@ -4,3 +4,4 @@ greybox_tmp/
 .qsys_edit/
 syn/quartus/db/
 tb/uvm/work_uvm/
+tb/sim/work_terminate_marker/
