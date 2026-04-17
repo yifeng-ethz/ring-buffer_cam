@@ -11,7 +11,7 @@
       "date": "2026-04-16",
       "title": "Search-key decode and interleaving model in UVM harness were wrong",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-002-H",
@@ -19,7 +19,7 @@
       "date": "2026-04-16",
       "title": "Scoreboard modeled accepted ingress order, not actual push-write grant order",
       "fix_status": "fixed in working tree via the new internal `dut_debug_if` tap and `debug_monitor`, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-003-H",
@@ -27,7 +27,7 @@
       "date": "2026-04-16",
       "title": "Stale-snapshot / cache-miss output branch was unmodeled in the harness",
       "fix_status": "fixed in working tree by tagging cache-miss hit beats in the monitor and counting them separately in the scoreboard, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-004-H",
@@ -35,7 +35,7 @@
       "date": "2026-04-16",
       "title": "Pressure-case expectation ignored the resequencing-buffer service model",
       "fix_status": "in progress",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-005-H",
@@ -43,7 +43,7 @@
       "date": "2026-04-16",
       "title": "Run-control startup/terminate sequencing used fixed waits instead of the DUT handshake",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-006-H",
@@ -51,7 +51,7 @@
       "date": "2026-04-16",
       "title": "Error-counter assumptions were too narrow for lane-mismatched bad hits",
       "fix_status": "fixed in working tree by aligning the testcase to the live RTL contract, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-007-R",
@@ -59,7 +59,7 @@
       "date": "2026-04-16",
       "title": "48-bit counter cleanup logic truncated through `to_integer()`",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-008-R",
@@ -67,7 +67,7 @@
       "date": "2026-04-17",
       "title": "Same-key overwrite suppression compared against the next input beat instead of the just-written key",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-009-H",
@@ -75,7 +75,7 @@
       "date": "2026-04-17",
       "title": "`wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-010-H",
@@ -83,7 +83,7 @@
       "date": "2026-04-17",
       "title": "Framing checks sampled \u201clatest subheader\u201d instead of the case-target epoch",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-011-H",
@@ -91,7 +91,7 @@
       "date": "2026-04-17",
       "title": "META VERSION/DATE checks drifted behind the packaged build metadata",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-012-H",
@@ -99,7 +99,7 @@
       "date": "2026-04-17",
       "title": "Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     },
     {
       "bug_id": "BUG-013-H",
@@ -107,7 +107,7 @@
       "date": "2026-04-17",
       "title": "Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "d412d7a"
     }
   ],
   "buckets": {

@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `pending` |
-| ⚠️ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `pending` |
-| ⚠️ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `pending` |
-| ⚠️ | `BUG-010-H` | Harness | `2026-04-17` | Framing checks sampled “latest subheader” instead of the case-target epoch | `pending` |
-| ⚠️ | `BUG-009-H` | Harness | `2026-04-17` | `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written | `pending` |
-| ⚠️ | `BUG-008-R` | RTL | `2026-04-17` | Same-key overwrite suppression compared against the next input beat instead of the just-written key | `pending` |
-| ⚠️ | `BUG-007-R` | RTL | `2026-04-16` | 48-bit counter cleanup logic truncated through `to_integer()` | `pending` |
-| ⚠️ | `BUG-006-H` | Harness | `2026-04-16` | Error-counter assumptions were too narrow for lane-mismatched bad hits | `pending` |
+| ✅ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `d412d7a` |
+| ✅ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `d412d7a` |
+| ✅ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `d412d7a` |
+| ✅ | `BUG-010-H` | Harness | `2026-04-17` | Framing checks sampled “latest subheader” instead of the case-target epoch | `d412d7a` |
+| ✅ | `BUG-009-H` | Harness | `2026-04-17` | `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written | `d412d7a` |
+| ✅ | `BUG-008-R` | RTL | `2026-04-17` | Same-key overwrite suppression compared against the next input beat instead of the just-written key | `d412d7a` |
+| ✅ | `BUG-007-R` | RTL | `2026-04-16` | 48-bit counter cleanup logic truncated through `to_integer()` | `d412d7a` |
+| ✅ | `BUG-006-H` | Harness | `2026-04-16` | Error-counter assumptions were too narrow for lane-mismatched bad hits | `d412d7a` |
 
 ## Bucket summary
 
