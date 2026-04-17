@@ -115,7 +115,7 @@
       "date": "2026-04-17",
       "title": "Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "e8c18fe"
     },
     {
       "bug_id": "BUG-015-H",
@@ -123,7 +123,7 @@
       "date": "2026-04-17",
       "title": "Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "e8c18fe"
     },
     {
       "bug_id": "BUG-016-H",
@@ -131,7 +131,7 @@
       "date": "2026-04-17",
       "title": "Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "e8c18fe"
     }
   ],
   "buckets": {

@@ -205,7 +205,7 @@
 - Runtime / coverage context:
   - the scoreboard now recovers the pending drain from the raw pop-side payload when the slot model is already clear, instead of dropping the event
   - verified by rerunning `E023` cleanly after the fix; the testcase now passes with bounded backlog (`max_remaining=71`) and zero UVM errors
-- Commit: pending
+- Commit: e8c18fe
 
 ### BUG-015-H: Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident
 - First seen in: `P004` on 2026-04-17 during the first post-`E023` full nightly rerun
@@ -219,7 +219,7 @@
 - Runtime / coverage context:
   - the scoreboard now uses separate `pending_match_idx`, `live_match_idx`, and `overlap_match_idx` variables
   - verified by rerunning `E023`, `P004`, `P111`, `P112`, `P113`, `P116`, `P119`, then the full `130/130` implemented isolated nightly matrix with zero failures
-- Commit: pending
+- Commit: e8c18fe
 
 ### BUG-016-H: Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits
 - First seen in: `P004` debug on 2026-04-17 while tracing the remaining long-pressure mismatch after `BUG-015-H`
@@ -233,4 +233,4 @@
 - Runtime / coverage context:
   - `overwrite_profile_seq` now varies the full stored fingerprint tuple across long runs instead of only a partial subset
   - verified together with `BUG-015-H` by the targeted pressure slice and the full `130/130` implemented isolated nightly matrix
-- Commit: pending
+- Commit: e8c18fe

@@ -24,9 +24,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `pending` |
-| ⚠️ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `pending` |
-| ⚠️ | `BUG-014-H` | Harness | `2026-04-17` | Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it | `pending` |
+| ✅ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `e8c18fe` |
+| ✅ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `e8c18fe` |
+| ✅ | `BUG-014-H` | Harness | `2026-04-17` | Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it | `e8c18fe` |
 | ✅ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `d412d7a` |
 | ✅ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `d412d7a` |
 | ✅ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `d412d7a` |
