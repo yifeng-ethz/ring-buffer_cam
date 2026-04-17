@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Build ring_buffer_cam/tb/DV_REPORT.json from the plan docs and live logs."""
+"""Build ring_buffer_cam/tb/DV_REPORT.json from the plan docs and real evidence."""
 
 from __future__ import annotations
 
 import argparse
 import functools
 import json
+import os
 import re
+import shutil
 import subprocess
+import tempfile
+from collections import OrderedDict
 from datetime import date
 from pathlib import Path
 
@@ -15,20 +19,45 @@ TB = Path(__file__).resolve().parents[1]
 WORK_LOGS = TB / "uvm" / "work_uvm" / "logs"
 PUB_LOGS = TB / "uvm" / "logs"
 PUB_COV = TB / "uvm" / "cov_after"
+REPORT_ROOT = TB / "REPORT"
 REPORT_JSON = TB / "DV_REPORT.json"
 SKILL_REPORT_GEN = Path.home() / ".codex" / "skills" / "dv-workflow" / "scripts" / "dv_report_gen.py"
 
 RTL_VARIANT = "default_p2_pipe4"
 SEED = 1
+PLACEHOLDER_LOG_MARKER = "has no live log artifact."
+PLACEHOLDER_UCDB_MARKER = "has no standalone UCDB artifact yet."
 
-BUCKET_FILES = {
-    "BASIC": TB / "DV_BASIC.md",
-    "EDGE": TB / "DV_EDGE.md",
-    "PROF": TB / "DV_PROF.md",
-    "ERROR": TB / "DV_ERROR.md",
-}
+VCOVER_CANDIDATES = [
+    Path("/data1/intelFPGA_pro/23.1/questa_fse/bin/vcover"),
+]
+VCOVER_BIN = next((path for path in VCOVER_CANDIDATES if path.exists()), None)
+if VCOVER_BIN is None:
+    vcover_from_path = shutil.which("vcover")
+    VCOVER_BIN = Path(vcover_from_path) if vcover_from_path else None
+
+BUCKET_FILES = OrderedDict(
+    {
+        "BASIC": TB / "DV_BASIC.md",
+        "EDGE": TB / "DV_EDGE.md",
+        "PROF": TB / "DV_PROF.md",
+        "ERROR": TB / "DV_ERROR.md",
+    }
+)
 CROSS_FILE = TB / "DV_CROSS.md"
 BASE_TEST_SV = TB / "uvm" / "base_test.sv"
+
+METRIC_ROWS = OrderedDict(
+    [
+        ("Statements", "stmt"),
+        ("Branches", "branch"),
+        ("Conditions", "cond"),
+        ("Expressions", "expr"),
+        ("FSM States", "fsm_state"),
+        ("FSM Transitions", "fsm_trans"),
+        ("Toggles", "toggle"),
+    ]
+)
 
 
 def normalize_alias(cell: str) -> str | None:
@@ -104,13 +133,16 @@ def parse_cross_rows(path: Path) -> list[dict]:
         run_id = cols[0]
         if not run_id.startswith("CROSS-"):
             continue
+        kind = cols[1] if len(cols) > 1 else "cross"
+        sequence_name = cols[2] if len(cols) > 2 else ""
+        primary_checks = cols[3] if len(cols) > 3 else ""
         runs.append(
             {
                 "run_id": run_id,
-                "kind": cols[1],
-                "implementation_decl": cols[2],
-                "sequence_name": cols[3],
-                "primary_checks": cols[4],
+                "kind": kind.strip("`"),
+                "implementation_decl": "",
+                "sequence_name": sequence_name,
+                "primary_checks": primary_checks,
                 "build_tag": RTL_VARIANT,
             }
         )
@@ -123,11 +155,165 @@ def parse_implemented_engine_cases(path: Path) -> set[str]:
     return set(re.findall(r'case_id == "([BEPX]\d{3})"', text))
 
 
-def parse_log(log_path: Path) -> dict | None:
-    if not log_path.is_file():
+def read_text_lossy(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def unique_paths(paths: list[Path]) -> list[Path]:
+    out: list[Path] = []
+    seen: set[Path] = set()
+    for path in paths:
+        if path in seen:
+            continue
+        seen.add(path)
+        out.append(path)
+    return out
+
+
+def is_placeholder_log(path: Path) -> bool:
+    return path.is_file() and PLACEHOLDER_LOG_MARKER in read_text_lossy(path)
+
+
+def is_real_log(path: Path) -> bool:
+    return path.is_file() and not is_placeholder_log(path)
+
+
+def parse_cov_summary(text: str) -> dict[str, tuple[int, int]]:
+    active_instance = None
+    totals = {key: [0, 0] for key in METRIC_ROWS.values()}
+    instance_match = re.compile(r"^=== Instance:\s+(.+)$")
+    metric_match = re.compile(
+        r"^\s+(Branches|Conditions|Expressions|FSM States|FSM Transitions|Statements|Toggles)\s+(\d+)\s+(\d+)\s+\d+"
+    )
+
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        match_instance = instance_match.match(line)
+        if match_instance:
+            active_instance = match_instance.group(1).strip()
+            continue
+        if not active_instance or not active_instance.startswith("/tb_top/dut"):
+            continue
+        match_metric = metric_match.match(line)
+        if not match_metric:
+            continue
+        label = match_metric.group(1)
+        bins = int(match_metric.group(2))
+        hits = int(match_metric.group(3))
+        key = METRIC_ROWS[label]
+        totals[key][0] += hits
+        totals[key][1] += bins
+    return {key: (value[0], value[1]) for key, value in totals.items()}
+
+
+def diff_cov(curr: dict[str, tuple[int, int]], prev: dict[str, tuple[int, int]]) -> dict[str, tuple[int, int]]:
+    delta: dict[str, tuple[int, int]] = {}
+    for key in METRIC_ROWS.values():
+        curr_hits, curr_bins = curr.get(key, (0, 0))
+        prev_hits, prev_bins = prev.get(key, (0, 0))
+        bins = curr_bins or prev_bins
+        if bins == 0:
+            delta[key] = (0, 0)
+            continue
+        delta[key] = (max(curr_hits - prev_hits, 0), bins)
+    return delta
+
+
+def scale_cov(metrics: dict[str, tuple[int | float, int]], divisor: int) -> dict[str, tuple[float, int]]:
+    scaled: dict[str, tuple[float, int]] = {}
+    for key in METRIC_ROWS.values():
+        hits, bins = metrics.get(key, (0, 0))
+        if bins == 0:
+            scaled[key] = (0.0, 0)
+        else:
+            scaled[key] = (float(hits) / divisor, bins)
+    return scaled
+
+
+def metrics_to_raw(metrics: dict[str, tuple[int | float, int]] | None) -> dict[str, dict[str, int | float | None]]:
+    if not metrics:
+        return {}
+    payload: dict[str, dict[str, int | float | None]] = {}
+    for key in METRIC_ROWS.values():
+        hits, bins = metrics.get(key, (0, 0))
+        payload[key] = {
+            "hits": hits,
+            "bins": bins,
+            "pct": None if bins == 0 else round(float(hits) * 100.0 / bins, 2),
+        }
+    return payload
+
+
+@functools.lru_cache(maxsize=None)
+def summarize_ucdb(ucdb_path: str) -> dict[str, tuple[int, int]] | None:
+    path = Path(ucdb_path)
+    if not path.is_file() or VCOVER_BIN is None:
         return None
 
-    text = log_path.read_text(encoding="utf-8", errors="replace")
+    header = path.read_bytes()[:256]
+    header_text = header.decode("utf-8", errors="ignore")
+    if PLACEHOLDER_UCDB_MARKER in header_text:
+        return None
+
+    try:
+        result = subprocess.run(
+            [str(VCOVER_BIN), "report", "-code", "bcesft", str(path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return None
+    return parse_cov_summary(result.stdout)
+
+
+def merge_cov(vcover: Path, ucdbs: list[Path], temp_root: Path) -> dict[str, tuple[int, int]]:
+    if not ucdbs:
+        return {}
+    temp_root.mkdir(parents=True, exist_ok=True)
+    if len(ucdbs) == 1:
+        summary = summarize_ucdb(str(ucdbs[0]))
+        return summary or {}
+
+    merged = temp_root / "merged.ucdb"
+    if merged.exists():
+        merged.unlink()
+    subprocess.run(
+        [str(vcover), "merge", str(merged), *[str(path) for path in ucdbs]],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return summarize_ucdb(str(merged)) or {}
+
+
+def merge_cov_incremental(
+    vcover: Path,
+    prev_merged_ucdb: Path | None,
+    next_ucdb: Path,
+    temp_root: Path,
+) -> tuple[Path, dict[str, tuple[int, int]]]:
+    if prev_merged_ucdb is None:
+        return next_ucdb, summarize_ucdb(str(next_ucdb)) or {}
+
+    temp_root.mkdir(parents=True, exist_ok=True)
+    merged = temp_root / "merged.ucdb"
+    if merged.exists():
+        merged.unlink()
+    subprocess.run(
+        [str(vcover), "merge", str(merged), str(prev_merged_ucdb), str(next_ucdb)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return merged, summarize_ucdb(str(merged)) or {}
+
+
+def parse_log(log_path: Path) -> dict | None:
+    if not is_real_log(log_path):
+        return None
+
+    text = read_text_lossy(log_path)
     cov_match = re.search(r"cg_output=([0-9.]+)% cg_hit_data=([0-9.]+)%", text)
     scb_match = re.search(
         r"Summary: pushed=(\d+) popped=(\d+) remaining=(\d+) overwrites=(\d+)(?: unexpected=(\d+))?",
@@ -182,26 +368,66 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def symlink_relative(target: Path, src: Path) -> None:
+    ensure_parent(target)
+    rel = os.path.relpath(src.resolve(), start=target.parent.resolve())
+    target.symlink_to(rel)
+
+
 def case_log_candidates(case_data: dict) -> list[Path]:
     case_id = case_data["case_id"]
     alias = case_data.get("alias")
-    candidates = [WORK_LOGS / f"test_case_engine_{case_id}_s{SEED}.log"]
+    candidates = [
+        WORK_LOGS / f"test_case_engine_{case_id}_s{SEED}.log",
+        PUB_LOGS / f"{case_id}_{RTL_VARIANT}_s{SEED}.log",
+    ]
     if alias:
-        candidates.append(WORK_LOGS / f"{alias}_s{SEED}.log")
-    return candidates
+        candidates.extend(
+            [
+                WORK_LOGS / f"{alias}_s{SEED}.log",
+                PUB_LOGS / f"{alias}_{RTL_VARIANT}_s{SEED}.log",
+            ]
+        )
+    return unique_paths(candidates)
+
+
+def case_ucdb_candidates(case_data: dict) -> list[Path]:
+    case_id = case_data["case_id"]
+    return unique_paths(
+        [
+            TB / "uvm" / f"cov_{RTL_VARIANT}" / f"{case_id}_s{SEED}.ucdb",
+            PUB_COV / f"{case_id}_s{SEED}.ucdb",
+        ]
+    )
 
 
 def cross_log_candidates(run_data: dict) -> list[Path]:
     run_id = run_data["run_id"]
+    work_names = []
     if run_id == "CROSS-001":
-        return [WORK_LOGS / f"test_case_engine_BASIC_bucket_frame_s{SEED}.log"]
-    if run_id == "CROSS-002":
-        return [WORK_LOGS / f"test_case_engine_EDGE_bucket_frame_s{SEED}.log"]
-    if run_id == "CROSS-003":
-        return [WORK_LOGS / f"test_case_engine_PROF_bucket_frame_s{SEED}.log"]
-    if run_id == "CROSS-004":
-        return [WORK_LOGS / f"test_case_engine_ERROR_bucket_frame_s{SEED}.log"]
-    return [WORK_LOGS / f"test_case_engine_{run_id}_s{SEED}.log"]
+        work_names.append("test_case_engine_BASIC_bucket_frame_s1.log")
+    elif run_id == "CROSS-002":
+        work_names.append("test_case_engine_EDGE_bucket_frame_s1.log")
+    elif run_id == "CROSS-003":
+        work_names.append("test_case_engine_PROF_bucket_frame_s1.log")
+    elif run_id == "CROSS-004":
+        work_names.append("test_case_engine_ERROR_bucket_frame_s1.log")
+    else:
+        work_names.append(f"test_case_engine_{run_id}_s{SEED}.log")
+
+    candidates = [WORK_LOGS / name for name in work_names]
+    candidates.append(PUB_LOGS / f"{run_id}_{RTL_VARIANT}_s{SEED}.log")
+    return unique_paths(candidates)
+
+
+def cross_ucdb_candidates(run_data: dict) -> list[Path]:
+    run_id = run_data["run_id"]
+    return unique_paths(
+        [
+            TB / "uvm" / f"cov_{RTL_VARIANT}" / f"{run_id}_s{SEED}.ucdb",
+            PUB_COV / f"{run_id}_s{SEED}.ucdb",
+        ]
+    )
 
 
 def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented: bool) -> None:
@@ -210,8 +436,7 @@ def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented
         target.unlink()
 
     if src and src.is_file():
-        ensure_parent(target)
-        target.symlink_to(src.resolve())
+        symlink_relative(target, src)
         return
 
     state = "implemented but not yet rerun" if implemented else "planned only"
@@ -223,20 +448,30 @@ def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented
     )
 
 
-def publish_cov_placeholder(name: str) -> None:
-    path = PUB_COV / f"{name}_s{SEED}.ucdb"
+def publish_cov_artifact(name: str, src: Path | None) -> None:
+    target = PUB_COV / f"{name}_s{SEED}.ucdb"
+    if target.exists() or target.is_symlink():
+        target.unlink()
+
+    if src and src.is_file():
+        symlink_relative(target, src)
+        return
+
     write_text(
-        path,
+        target,
         f"{name} has no standalone UCDB artifact yet.\n"
-        "The current ring_buffer_cam workflow captures functional-covergroup percentages in logs,\n"
-        "but code-coverage UCDB save/merge is still pending promotion.\n",
+        "The current ring_buffer_cam workflow has isolated case pages per the dv-workflow skill,\n"
+        "but this testcase has not yet produced a real standalone code-coverage UCDB.\n",
     )
 
 
 def build_case(case_data: dict) -> dict:
     entry = dict(case_data)
     implemented_cases = parse_implemented_engine_cases(BASE_TEST_SV)
-    implemented = entry["case_id"] in implemented_cases or entry.get("alias") is not None
+    # A case counts as implemented only when the isolated case engine has a
+    # real branch for it. Historical aliases are documentation hints, not
+    # standalone evidence.
+    implemented = entry["case_id"] in implemented_cases
     entry["implemented"] = implemented
 
     chosen_log: Path | None = None
@@ -244,8 +479,16 @@ def build_case(case_data: dict) -> dict:
     for candidate in case_log_candidates(entry):
         log_info = parse_log(candidate)
         if log_info:
-          chosen_log = candidate
-          break
+            chosen_log = candidate
+            break
+
+    chosen_ucdb: Path | None = None
+    standalone_metrics: dict[str, tuple[int, int]] | None = None
+    for candidate in case_ucdb_candidates(entry):
+        standalone_metrics = summarize_ucdb(str(candidate))
+        if standalone_metrics:
+            chosen_ucdb = candidate
+            break
 
     if log_info:
         entry["passed"] = log_info["passed"]
@@ -253,15 +496,24 @@ def build_case(case_data: dict) -> dict:
         entry["log_summary"] = log_info["summary"]
         entry["implementation_mode"] = (
             "case_engine_log" if chosen_log and chosen_log.name.startswith("test_case_engine_")
-            else "legacy_alias_log"
+            else "published_case_log"
         )
     else:
         entry["observed_txn"] = 0
         entry["log_summary"] = {}
-        entry["implementation_mode"] = "planned_only"
+        entry["implementation_mode"] = "implemented_no_live_log" if implemented else "planned_only"
+
+    if standalone_metrics:
+        entry["standalone_coverage"] = metrics_to_raw(standalone_metrics)
+        if entry["observed_txn"] > 0:
+            entry["isolated_cov_per_txn"] = metrics_to_raw(
+                scale_cov(standalone_metrics, entry["observed_txn"])
+            )
 
     publish_log_artifact(entry["case_id"], chosen_log, entry["scenario"], implemented)
-    publish_cov_placeholder(entry["case_id"])
+    publish_cov_artifact(entry["case_id"], chosen_ucdb)
+    entry["_ucdb_src"] = chosen_ucdb
+    entry["_standalone_metrics"] = standalone_metrics or {}
     return entry
 
 
@@ -271,12 +523,46 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
     evidenced = sum(1 for item in built_cases if item.get("passed") in (True, False))
     passed = sum(1 for item in built_cases if item.get("passed") is True)
 
-    bucket_data = {
-        "planned_cases": planned,
-        "evidenced_cases": evidenced,
-        "merged_bucket_total": {},
-        "cases": built_cases,
-        "merge_trace": [
+    merge_trace: list[dict] = []
+    final_merged_summary: dict[str, tuple[int, int]] = {}
+    prev_merged_summary: dict[str, tuple[int, int]] = {}
+    prev_merged_ucdb: Path | None = None
+
+    if VCOVER_BIN is not None:
+        with tempfile.TemporaryDirectory(prefix=f"{bucket_name.lower()}_cov_") as temp_dir:
+            temp_root = Path(temp_dir)
+            for idx, item in enumerate(built_cases, start=1):
+                merged_total_after_case = {}
+                standalone_metrics = item.get("_standalone_metrics") or {}
+                ucdb_src = item.get("_ucdb_src")
+                if item.get("passed") is True and standalone_metrics and isinstance(ucdb_src, Path):
+                    prev_merged_ucdb, merged_summary = merge_cov_incremental(
+                        VCOVER_BIN,
+                        prev_merged_ucdb,
+                        ucdb_src,
+                        temp_root / f"step_{idx:03d}",
+                    )
+                    increment_summary = diff_cov(merged_summary, prev_merged_summary)
+                    item["bucket_gain_by_case"] = metrics_to_raw(increment_summary)
+                    item["bucket_merged_total_after_case"] = metrics_to_raw(merged_summary)
+                    if item["observed_txn"] > 0:
+                        item["bucket_gain_per_txn"] = metrics_to_raw(
+                            scale_cov(increment_summary, item["observed_txn"])
+                        )
+                    merged_total_after_case = item["bucket_merged_total_after_case"]
+                    prev_merged_summary = merged_summary
+                    final_merged_summary = merged_summary
+
+                merge_trace.append(
+                    {
+                        "step": idx,
+                        "case_id": item["case_id"],
+                        "full_case_id": item["full_case_id"],
+                        "merged_total_after_case": merged_total_after_case,
+                    }
+                )
+    else:
+        merge_trace = [
             {
                 "step": idx,
                 "case_id": item["case_id"],
@@ -284,13 +570,25 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
                 "merged_total_after_case": {},
             }
             for idx, item in enumerate(built_cases, start=1)
-        ],
+        ]
+
+    for item in built_cases:
+        item.pop("_ucdb_src", None)
+        item.pop("_standalone_metrics", None)
+
+    merged_bucket_total = metrics_to_raw(final_merged_summary)
+    bucket_data = {
+        "planned_cases": planned,
+        "evidenced_cases": evidenced,
+        "merged_bucket_total": merged_bucket_total,
+        "cases": built_cases,
+        "merge_trace": merge_trace,
     }
     bucket_summary = {
         "bucket": bucket_name,
         "planned_cases": planned,
         "evidenced_cases": evidenced,
-        "merged_bucket_total": {},
+        "merged_bucket_total": merged_bucket_total,
         "functional_coverage": {
             "pct": round((100.0 * passed / planned), 2) if planned else 0.0,
             "evidenced": passed,
@@ -300,7 +598,7 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
     return bucket_data, bucket_summary
 
 
-def build_signoff_run(run_data: dict) -> dict:
+def build_signoff_run(run_data: dict) -> dict | None:
     entry = dict(run_data)
     chosen_log: Path | None = None
     log_info = None
@@ -310,39 +608,45 @@ def build_signoff_run(run_data: dict) -> dict:
             chosen_log = candidate
             break
 
-    publish_log_artifact(entry["run_id"], chosen_log, entry["sequence_name"], chosen_log is not None)
-    publish_cov_placeholder(entry["run_id"])
+    if not log_info:
+        return None
 
-    if log_info:
-        summary = log_info["summary"]
-        entry["case_count"] = max(1, summary.get("case_markers", 0) // 2)
-        entry["effort"] = "smoke"
-        entry["iter_cap"] = "n/a"
-        entry["payload_cap"] = "n/a"
-        entry["code_coverage"] = {}
-        entry["cross_summary"] = {
-            "pct": summary.get("cg_output_pct", 0.0),
-            "txns": log_info["observed_txn"],
-            "queued_overlap": 0,
-            "counter_checks_failed": 0 if log_info["passed"] else summary.get("uvm_error_count", 0),
-            "unexpected_outputs": summary.get("unexpected_outputs", 0),
-            "curve": "",
-        }
-    else:
-        entry["case_count"] = 0
-        entry["effort"] = "planned"
-        entry["iter_cap"] = "pending"
-        entry["payload_cap"] = "pending"
-        entry["code_coverage"] = {}
-        entry["cross_summary"] = {
-            "pct": 0.0,
-            "txns": 0,
-            "queued_overlap": 0,
-            "counter_checks_failed": 0,
-            "unexpected_outputs": 0,
-            "curve": "",
-        }
+    chosen_ucdb: Path | None = None
+    code_coverage = {}
+    for candidate in cross_ucdb_candidates(entry):
+        summary = summarize_ucdb(str(candidate))
+        if summary:
+            chosen_ucdb = candidate
+            code_coverage = metrics_to_raw(summary)
+            break
+
+    publish_log_artifact(entry["run_id"], chosen_log, entry["sequence_name"], True)
+    publish_cov_artifact(entry["run_id"], chosen_ucdb)
+
+    summary = log_info["summary"]
+    entry["case_count"] = max(1, summary.get("case_markers", 0) // 2)
+    entry["effort"] = "smoke"
+    entry["iter_cap"] = "n/a"
+    entry["payload_cap"] = "n/a"
+    entry["code_coverage"] = code_coverage
+    entry["cross_summary"] = {
+        "pct": summary.get("cg_output_pct", 0.0),
+        "txns": log_info["observed_txn"],
+        "queued_overlap": 0,
+        "counter_checks_failed": 0 if log_info["passed"] else summary.get("uvm_error_count", 0),
+        "unexpected_outputs": summary.get("unexpected_outputs", 0),
+        "curve": "",
+    }
     return entry
+
+
+def cleanup_generated_report_tree() -> None:
+    for subdir in ("buckets", "cases", "cross", "txn_growth"):
+        path = REPORT_ROOT / subdir
+        if not path.is_dir():
+            continue
+        for child in path.glob("*.md"):
+            child.unlink()
 
 
 def build_report() -> dict:
@@ -357,12 +661,35 @@ def build_report() -> dict:
         bucket_summary.append(bucket_sum)
         all_cases.extend(bucket_data["cases"])
 
-    signoff_runs = [build_signoff_run(run) for run in parse_cross_rows(CROSS_FILE)]
+    signoff_runs = []
+    for run in parse_cross_rows(CROSS_FILE):
+        built = build_signoff_run(run)
+        if built is not None:
+            signoff_runs.append(built)
 
     implemented_count = sum(1 for item in all_cases if item.get("implemented"))
     failed_cases = [item["case_id"] for item in all_cases if item.get("passed") is False]
     passed_cases = sum(1 for item in all_cases if item.get("passed") is True)
     evidenced_cases = sum(1 for item in all_cases if item.get("passed") in (True, False))
+
+    all_ucdbs: list[Path] = []
+    if VCOVER_BIN is not None:
+        for bucket in buckets.values():
+            for item in bucket["cases"]:
+                if item.get("passed") is not True:
+                    continue
+                case_id = item["case_id"]
+                for candidate in case_ucdb_candidates({"case_id": case_id}):
+                    if summarize_ucdb(str(candidate)):
+                        all_ucdbs.append(candidate)
+                        break
+
+    merged_total_code_coverage = {}
+    if VCOVER_BIN is not None and all_ucdbs:
+        with tempfile.TemporaryDirectory(prefix="all_cov_") as temp_dir:
+            merged_total_code_coverage = metrics_to_raw(
+                merge_cov(VCOVER_BIN, all_ucdbs, Path(temp_dir))
+            )
 
     return {
         "report_title": "ring_buffer_cam",
@@ -384,7 +711,7 @@ def build_report() -> dict:
             "planned_cases": len(all_cases),
             "evidenced_cases": evidenced_cases,
             "excluded_cases": 0,
-            "merged_total_code_coverage": {},
+            "merged_total_code_coverage": merged_total_code_coverage,
             "functional_coverage": {
                 "pct": round((100.0 * passed_cases / len(all_cases)), 2) if all_cases else 0.0,
                 "evidenced": passed_cases,
@@ -402,6 +729,7 @@ def main() -> int:
     PUB_LOGS.mkdir(parents=True, exist_ok=True)
     PUB_COV.mkdir(parents=True, exist_ok=True)
     (PUB_COV / "txn_growth").mkdir(parents=True, exist_ok=True)
+    cleanup_generated_report_tree()
 
     report = build_report()
     REPORT_JSON.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

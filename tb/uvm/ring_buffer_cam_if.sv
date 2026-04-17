@@ -83,9 +83,17 @@ endinterface
 // ── Internal DUT debug tap ───────────────────────────────────────
 interface dut_debug_if (input logic clk, input logic rst);
   logic [2:0]   decision_reg;
+  logic [3:0]   run_state_code;
+  logic [2:0]   pop_engine_state_code;
+  logic         push_state_code;
   logic         push_write_grant;
   logic         push_erase_grant;
   logic         pop_erase_grant;
+  logic         pop_flush_grant;
+  logic         run_mgmt_flush_memory_start;
+  logic         run_mgmt_flush_memory_done;
+  logic         pop_flush_ram_done;
+  logic         pop_flush_cam_done;
   logic [15:0]  cam_wr_addr;
   logic [15:0]  side_ram_waddr;
   logic         side_ram_we;
@@ -95,10 +103,24 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [15:0]  pop_issue_addr;
   logic [8:0]   pop_current_sk;
   logic [15:0]  pop_total_hits;
+  logic [15:0]  pop_hits_count;
+  logic [1:0]   pop_rr_idx;
+  logic [1:0]   pop_issue_partition_idx;
+  logic [1:0]   pop_count_partition_idx;
+  logic [2:0]   pop_search_wait_cnt;
+  logic [3:0]   pop_partition_pending;
+  logic [3:0]   pop_partition_load;
+  logic [3:0]   pop_partition_advance;
+  logic [3:0]   pop_partition_result_valid;
+  logic [3:0]   pop_partition_flag;
+  logic [3:0]   pop_partition_has_more;
+  logic         pop_last_hit_pending;
   logic         pop_pipeline_start;
   logic         pop_hit_valid;
   logic         pop_cache_miss_pulse;
   logic         subheader_gen_done;
+  logic         pop_cmd_fifo_sclr;
+  logic         deassembly_fifo_sclr;
   logic         pop_cmd_fifo_wrreq;
   logic         pop_cmd_fifo_rdack;
   logic         pop_cmd_fifo_empty;
@@ -109,7 +131,10 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic         endofrun_seen;
   logic         terminating_drain_done;
   logic         run_mgmt_flushed;
+  logic         cam_clean;
   logic         gts_counter_rst;
+  logic [47:0]  expected_latency_48b;
+  logic [47:0]  read_time_ptr;
   logic [47:0]  gts_8n;
   logic [47:0]  gts_end_of_run;
   logic [47:0]  dbg_inerr_cnt;
@@ -119,15 +144,24 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [47:0]  dbg_cache_miss_cnt;
 
   modport mon (
-    input decision_reg, push_write_grant, push_erase_grant, pop_erase_grant,
+    input decision_reg, run_state_code, pop_engine_state_code, push_state_code,
+          push_write_grant, push_erase_grant, pop_erase_grant, pop_flush_grant,
+          run_mgmt_flush_memory_start, run_mgmt_flush_memory_done,
+          pop_flush_ram_done, pop_flush_cam_done,
           cam_wr_addr, side_ram_waddr, side_ram_we, side_ram_din,
           in_hit_side, side_ram_dout,
-          pop_issue_addr, pop_current_sk, pop_total_hits, pop_pipeline_start,
-          pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
+          pop_issue_addr, pop_current_sk, pop_total_hits, pop_hits_count,
+          pop_rr_idx, pop_issue_partition_idx, pop_count_partition_idx,
+          pop_search_wait_cnt, pop_partition_pending, pop_partition_load,
+          pop_partition_advance, pop_partition_result_valid,
+          pop_partition_flag, pop_partition_has_more, pop_last_hit_pending,
+          pop_pipeline_start, pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
+          pop_cmd_fifo_sclr, deassembly_fifo_sclr,
           pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack, pop_cmd_fifo_empty,
           pop_cmd_fifo_usedw, deassembly_fifo_empty, deassembly_fifo_full,
           deassembly_fifo_usedw, endofrun_seen, terminating_drain_done,
-          run_mgmt_flushed, gts_counter_rst, gts_8n, gts_end_of_run,
+          run_mgmt_flushed, cam_clean, gts_counter_rst,
+          expected_latency_48b, read_time_ptr, gts_8n, gts_end_of_run,
           dbg_inerr_cnt, dbg_push_cnt, dbg_pop_cnt, dbg_overwrite_cnt,
           dbg_cache_miss_cnt, clk, rst
   );

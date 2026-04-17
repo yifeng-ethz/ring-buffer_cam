@@ -1,6 +1,8 @@
 # ring_buffer_cam TB
 
 Active DV workflow root for the live `ring_buffer_cam` IP.
+For the IP-level overview, Platform Designer contract, and preset summary, see
+[../README.md](/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/README.md:1).
 
 ## Structure
 

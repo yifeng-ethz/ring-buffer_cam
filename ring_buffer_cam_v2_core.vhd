@@ -501,8 +501,33 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal run_mgmt_flush_memory_done		: std_logic;
 	signal terminating_drain_done				: std_logic;
 	signal run_mgmt_flushed					: std_logic;
+	signal dbg_run_state_code				: unsigned(3 downto 0);
+	signal dbg_pop_engine_state_code		: unsigned(2 downto 0);
+	signal dbg_push_state_code				: std_logic;
+	signal dbg_pop_rr_idx					: unsigned(1 downto 0);
+	signal dbg_pop_issue_partition_idx		: unsigned(1 downto 0);
+	signal dbg_pop_count_partition_idx		: unsigned(1 downto 0);
+	signal dbg_pop_partition_pending		: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_load			: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_advance		: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_result_valid	: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_flag			: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_has_more		: std_logic_vector(3 downto 0);
 	
 begin
+
+	dbg_run_state_code <= to_unsigned(run_state_t'pos(run_state_cmd), dbg_run_state_code'length);
+	dbg_pop_engine_state_code <= to_unsigned(pop_engine_state_t'pos(pop_engine_state), dbg_pop_engine_state_code'length);
+	dbg_push_state_code <= '1' when push_state = ERASE else '0';
+	dbg_pop_rr_idx <= to_unsigned(pop_rr_idx, dbg_pop_rr_idx'length);
+	dbg_pop_issue_partition_idx <= to_unsigned(pop_issue_partition_idx, dbg_pop_issue_partition_idx'length);
+	dbg_pop_count_partition_idx <= to_unsigned(pop_count_partition_idx, dbg_pop_count_partition_idx'length);
+	dbg_pop_partition_pending <= std_logic_vector(resize(unsigned(pop_partition_pending), dbg_pop_partition_pending'length));
+	dbg_pop_partition_load <= std_logic_vector(resize(unsigned(pop_partition_load), dbg_pop_partition_load'length));
+	dbg_pop_partition_advance <= std_logic_vector(resize(unsigned(pop_partition_advance), dbg_pop_partition_advance'length));
+	dbg_pop_partition_result_valid <= std_logic_vector(resize(unsigned(pop_partition_result_valid), dbg_pop_partition_result_valid'length));
+	dbg_pop_partition_flag <= std_logic_vector(resize(unsigned(pop_partition_flag), dbg_pop_partition_flag'length));
+	dbg_pop_partition_has_more <= std_logic_vector(resize(unsigned(pop_partition_has_more), dbg_pop_partition_has_more'length));
 
 	main_cam : entity work.cam_mem_a5 -- TODO: 1) improve timing of output <lut> address 2) add true-dp variant
 	-- primitive cam construction

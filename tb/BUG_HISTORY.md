@@ -118,3 +118,31 @@
     - `P119`: `push=768 pop=512 overwrite=256 remaining=0`
     - `B005`: still passes with `push=128 pop=128 remaining=0`
 - Commit: pending
+
+### BUG-009: `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written
+- First seen in: `B061` and `B062` on 2026-04-17 during the standalone-UCDB refresh
+- Symptom:
+  - single-beat framing cases ended with `accepted=1` but `pushed=0`, no subheader/hit history, and therefore no trustworthy isolated evidence for the case body
+  - the old harness could save a UCDB for a run that had not actually exercised the intended datapath/output checks yet
+- Root cause:
+  - the quiescence predicate only checked modeled residents, active epoch state, source backlog, and FIFO empty flags
+  - it did **not** require the scoreboard's accepted-ingress count to converge with the observed push-write count, so a short test could finish while an accepted beat was still in the acceptance-to-write gap
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `wait_for_scoreboard_idle()` now also requires `total_written == total_ingress_accepted`
+  - after the fix, the full implemented isolated sweep completed with `55/55` passes and real standalone UCDBs for every implemented case
+- Commit: pending
+
+### BUG-010: Framing checks sampled “latest subheader” instead of the case-target epoch
+- First seen in: `B062` and `B063` on 2026-04-17 during the standalone-UCDB refresh
+- Symptom:
+  - subheader search-key and hit-count checks failed even though the DUT was legally draining the directed burst
+  - the failing runs showed many zero-hit subheaders from normal time advancement, which polluted `recent_subheaders[$]`
+- Root cause:
+  - the testcase checks assumed the most recent observed subheader belonged to the directed burst under test
+  - in reality the DUT can emit zero-hit subheaders for later empty epochs, so positional sampling from `recent_subheaders[$]` was not stable evidence for `B061-B065`
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the harness now waits for a subheader matching the target `search_key`, then performs the framing-field checks against that matched epoch
+  - verified by rerunning `B061-B065` standalone and then the full `55`-case implemented isolated matrix with zero failures
+- Commit: pending

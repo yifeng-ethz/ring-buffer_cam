@@ -43,11 +43,26 @@ class out_monitor extends uvm_monitor;
   function void remember_item(ring_buffer_cam_pkg::out_seq_item item);
     ring_buffer_cam_pkg::out_seq_item clone;
     clone = ring_buffer_cam_pkg::out_seq_item::type_id::create("out_hist_item");
-    clone.copy(item);
+    clone.is_subheader       = item.is_subheader;
+    clone.search_key         = item.search_key;
+    clone.hit_count          = item.hit_count;
+    clone.active_search_key  = item.active_search_key;
+    clone.hit_index_in_epoch = item.hit_index_in_epoch;
+    clone.hit_count_expected = item.hit_count_expected;
+    clone.raw_data           = item.raw_data;
+    clone.sop                = item.sop;
+    clone.eop                = item.eop;
+    clone.error              = item.error;
+    clone.cache_miss         = item.cache_miss;
+    clone.ts_3_0            = item.ts_3_0;
+    clone.asic              = item.asic;
+    clone.channel           = item.channel;
+    clone.ts50p             = item.ts50p;
+    clone.et1n6             = item.et1n6;
     recent_items.push_back(clone);
     if (recent_items.size() > 128)
       void'(recent_items.pop_front());
-    if (clone.is_subheader) begin
+    if (item.is_subheader) begin
       recent_subheaders.push_back(clone);
       if (recent_subheaders.size() > 64)
         void'(recent_subheaders.pop_front());

@@ -1,6 +1,6 @@
 # ⚠️ BASIC bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `0` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `63` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ❓ | stmt | n/a | 95.0 |
-| ❓ | branch | n/a | 90.0 |
-| ❓ | cond | n/a | - |
-| ❓ | expr | n/a | - |
-| ❓ | fsm_state | n/a | 95.0 |
-| ❓ | fsm_trans | n/a | 90.0 |
-| ❓ | toggle | n/a | 80.0 |
+| ✅ | stmt | 95.56 | 95.0 |
+| ⚠️ | branch | 84.63 | 90.0 |
+| ℹ️ | cond | 67.74 | - |
+| ℹ️ | expr | 30.00 | - |
+| ✅ | fsm_state | 100.00 | 95.0 |
+| ⚠️ | fsm_trans | 66.67 | 90.0 |
+| ⚠️ | toggle | 54.53 | 80.0 |
 
 ## Ordered merge trace
 
@@ -27,75 +27,75 @@
 
 | status | step | case_id | merged_total (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | detail |
 |:---:|---:|---|---|---|
-| ⚠️ | 1 | `B001` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B001.md) |
-| ⚠️ | 2 | `B002` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B002.md) |
-| ⚠️ | 3 | `B003` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B003.md) |
-| ⚠️ | 4 | `B004` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B004.md) |
-| ⚠️ | 5 | `B005` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B005.md) |
-| ⚠️ | 6 | `B006` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B006.md) |
-| ⚠️ | 7 | `B007` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B007.md) |
-| ⚠️ | 8 | `B008` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B008.md) |
-| ⚠️ | 9 | `B009` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B009.md) |
-| ⚠️ | 10 | `B010` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B010.md) |
-| ⚠️ | 11 | `B011` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B011.md) |
-| ⚠️ | 12 | `B012` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B012.md) |
-| ⚠️ | 13 | `B013` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B013.md) |
-| ⚠️ | 14 | `B014` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B014.md) |
-| ⚠️ | 15 | `B015` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B015.md) |
-| ⚠️ | 16 | `B016` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B016.md) |
-| ⚠️ | 17 | `B017` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B017.md) |
-| ⚠️ | 18 | `B018` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B018.md) |
-| ⚠️ | 19 | `B019` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B019.md) |
-| ❓ | 20 | `B020` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B020.md) |
-| ⚠️ | 21 | `B021` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B021.md) |
-| ⚠️ | 22 | `B022` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B022.md) |
-| ⚠️ | 23 | `B023` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B023.md) |
-| ⚠️ | 24 | `B024` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B024.md) |
-| ⚠️ | 25 | `B025` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B025.md) |
-| ❓ | 26 | `B026` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B026.md) |
-| ❓ | 27 | `B027` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B027.md) |
-| ❓ | 28 | `B028` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B028.md) |
+| ✅ | 1 | `B001` | stmt=78.00, branch=41.23, cond=26.61, expr=0.00, fsm_state=12.50, fsm_trans=0.00, toggle=2.56 | [case](../cases/B001.md) |
+| ✅ | 2 | `B002` | stmt=78.25, branch=41.77, cond=26.61, expr=0.00, fsm_state=12.50, fsm_trans=0.00, toggle=3.35 | [case](../cases/B002.md) |
+| ✅ | 3 | `B003` | stmt=93.29, branch=76.67, cond=53.23, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=32.36 | [case](../cases/B003.md) |
+| ✅ | 4 | `B004` | stmt=93.29, branch=76.67, cond=53.23, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=32.96 | [case](../cases/B004.md) |
+| ✅ | 5 | `B005` | stmt=93.39, branch=77.03, cond=53.23, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=39.41 | [case](../cases/B005.md) |
+| ✅ | 6 | `B006` | stmt=93.64, branch=77.76, cond=54.03, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=45.76 | [case](../cases/B006.md) |
+| ✅ | 7 | `B007` | stmt=93.64, branch=77.76, cond=54.03, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=47.73 | [case](../cases/B007.md) |
+| ✅ | 8 | `B008` | stmt=93.64, branch=77.76, cond=54.03, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=47.73 | [case](../cases/B008.md) |
+| ✅ | 9 | `B009` | stmt=94.05, branch=80.47, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.06 | [case](../cases/B009.md) |
+| ✅ | 10 | `B010` | stmt=94.45, branch=81.01, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.13 | [case](../cases/B010.md) |
+| ✅ | 11 | `B011` | stmt=94.50, branch=81.19, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.30 | [case](../cases/B011.md) |
+| ✅ | 12 | `B012` | stmt=94.55, branch=81.37, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.32 | [case](../cases/B012.md) |
+| ✅ | 13 | `B013` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.32 | [case](../cases/B013.md) |
+| ✅ | 14 | `B014` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.32 | [case](../cases/B014.md) |
+| ✅ | 15 | `B015` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.32 | [case](../cases/B015.md) |
+| ✅ | 16 | `B016` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.32 | [case](../cases/B016.md) |
+| ✅ | 17 | `B017` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=49.96 | [case](../cases/B017.md) |
+| ✅ | 18 | `B018` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=49.96 | [case](../cases/B018.md) |
+| ✅ | 19 | `B019` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=50.47 | [case](../cases/B019.md) |
+| ✅ | 20 | `B020` | stmt=94.60, branch=81.56, cond=60.48, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.02 | [case](../cases/B020.md) |
+| ✅ | 21 | `B021` | stmt=94.70, branch=81.74, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.02 | [case](../cases/B021.md) |
+| ✅ | 22 | `B022` | stmt=94.70, branch=81.92, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.10 | [case](../cases/B022.md) |
+| ✅ | 23 | `B023` | stmt=94.75, branch=82.10, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.10 | [case](../cases/B023.md) |
+| ✅ | 24 | `B024` | stmt=94.75, branch=82.10, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.37 | [case](../cases/B024.md) |
+| ✅ | 25 | `B025` | stmt=94.75, branch=82.10, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.37 | [case](../cases/B025.md) |
+| ✅ | 26 | `B026` | stmt=94.75, branch=82.10, cond=63.71, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.37 | [case](../cases/B026.md) |
+| ✅ | 27 | `B027` | stmt=94.90, branch=83.00, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.00 | [case](../cases/B027.md) |
+| ✅ | 28 | `B028` | stmt=94.90, branch=83.18, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.00 | [case](../cases/B028.md) |
 | ❓ | 29 | `B029` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B029.md) |
 | ❓ | 30 | `B030` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B030.md) |
-| ⚠️ | 31 | `B031` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B031.md) |
-| ❓ | 32 | `B032` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B032.md) |
-| ❓ | 33 | `B033` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B033.md) |
-| ❓ | 34 | `B034` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B034.md) |
-| ❓ | 35 | `B035` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B035.md) |
-| ❓ | 36 | `B036` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B036.md) |
-| ❓ | 37 | `B037` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B037.md) |
-| ❓ | 38 | `B038` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B038.md) |
-| ❓ | 39 | `B039` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B039.md) |
-| ❓ | 40 | `B040` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B040.md) |
-| ❓ | 41 | `B041` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B041.md) |
-| ❓ | 42 | `B042` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B042.md) |
-| ❓ | 43 | `B043` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B043.md) |
-| ❓ | 44 | `B044` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B044.md) |
-| ❓ | 45 | `B045` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B045.md) |
-| ❓ | 46 | `B046` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B046.md) |
+| ✅ | 31 | `B031` | stmt=94.90, branch=83.18, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.22 | [case](../cases/B031.md) |
+| ✅ | 32 | `B032` | stmt=94.90, branch=83.18, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.22 | [case](../cases/B032.md) |
+| ✅ | 33 | `B033` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B033.md) |
+| ✅ | 34 | `B034` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B034.md) |
+| ✅ | 35 | `B035` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B035.md) |
+| ✅ | 36 | `B036` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B036.md) |
+| ✅ | 37 | `B037` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B037.md) |
+| ✅ | 38 | `B038` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B038.md) |
+| ✅ | 39 | `B039` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B039.md) |
+| ✅ | 40 | `B040` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.28 | [case](../cases/B040.md) |
+| ✅ | 41 | `B041` | stmt=95.01, branch=83.54, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.33 | [case](../cases/B041.md) |
+| ✅ | 42 | `B042` | stmt=95.16, branch=83.91, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.41 | [case](../cases/B042.md) |
+| ✅ | 43 | `B043` | stmt=95.46, branch=84.27, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.44 | [case](../cases/B043.md) |
+| ✅ | 44 | `B044` | stmt=95.46, branch=84.27, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.44 | [case](../cases/B044.md) |
+| ✅ | 45 | `B045` | stmt=95.46, branch=84.27, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.44 | [case](../cases/B045.md) |
+| ✅ | 46 | `B046` | stmt=95.46, branch=84.27, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.44 | [case](../cases/B046.md) |
 | ❓ | 47 | `B047` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B047.md) |
 | ❓ | 48 | `B048` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B048.md) |
-| ❓ | 49 | `B049` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B049.md) |
-| ❓ | 50 | `B050` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B050.md) |
-| ⚠️ | 51 | `B051` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B051.md) |
-| ⚠️ | 52 | `B052` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B052.md) |
-| ⚠️ | 53 | `B053` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B053.md) |
-| ⚠️ | 54 | `B054` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B054.md) |
-| ❓ | 55 | `B055` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B055.md) |
-| ❓ | 56 | `B056` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B056.md) |
-| ❓ | 57 | `B057` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B057.md) |
-| ❓ | 58 | `B058` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B058.md) |
-| ❓ | 59 | `B059` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B059.md) |
-| ⚠️ | 60 | `B060` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B060.md) |
-| ⚠️ | 61 | `B061` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B061.md) |
-| ⚠️ | 62 | `B062` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B062.md) |
-| ⚠️ | 63 | `B063` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B063.md) |
-| ⚠️ | 64 | `B064` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B064.md) |
-| ⚠️ | 65 | `B065` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B065.md) |
-| ⚠️ | 66 | `B066` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B066.md) |
+| ✅ | 49 | `B049` | stmt=95.51, branch=84.45, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.52 | [case](../cases/B049.md) |
+| ✅ | 50 | `B050` | stmt=95.56, branch=84.63, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.60 | [case](../cases/B050.md) |
+| ✅ | 51 | `B051` | stmt=95.56, branch=84.63, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.60 | [case](../cases/B051.md) |
+| ✅ | 52 | `B052` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B052.md) |
+| ✅ | 53 | `B053` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B053.md) |
+| ✅ | 54 | `B054` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B054.md) |
+| ✅ | 55 | `B055` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B055.md) |
+| ✅ | 56 | `B056` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B056.md) |
+| ✅ | 57 | `B057` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.76 | [case](../cases/B057.md) |
+| ✅ | 58 | `B058` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B058.md) |
+| ✅ | 59 | `B059` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B059.md) |
+| ✅ | 60 | `B060` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B060.md) |
+| ✅ | 61 | `B061` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B061.md) |
+| ✅ | 62 | `B062` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B062.md) |
+| ✅ | 63 | `B063` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.79 | [case](../cases/B063.md) |
+| ✅ | 64 | `B064` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.85 | [case](../cases/B064.md) |
+| ✅ | 65 | `B065` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=52.85 | [case](../cases/B065.md) |
+| ✅ | 66 | `B066` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=54.53 | [case](../cases/B066.md) |
 | ❓ | 67 | `B067` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B067.md) |
 | ❓ | 68 | `B068` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B068.md) |
-| ❓ | 69 | `B069` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B069.md) |
+| ✅ | 69 | `B069` | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=54.53 | [case](../cases/B069.md) |
 | ❓ | 70 | `B070` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B070.md) |
 | ❓ | 71 | `B071` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B071.md) |
 | ❓ | 72 | `B072` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B072.md) |

@@ -48,6 +48,16 @@ N_PARTITIONS ?= 2
 ENCODER_LEAF_WIDTH ?= 16
 ENCODER_PIPE_STAGES ?= 4
 DEBUG ?= 1
+RTL_VARIANT ?= default_p2_pipe4
+COV_ENABLE ?= 1
+COV_DIR ?= $(UVM_DIR)/cov_$(RTL_VARIANT)
+COV_STEM ?= $(TEST)$(LOG_TAG)
+
+COV_ENABLED_BOOL := $(filter 1 yes YES true TRUE,$(COV_ENABLE))
+VCOM_COVER = $(if $(COV_ENABLED_BOOL),-cover bcesft,)
+VLOG_COVER = $(if $(COV_ENABLED_BOOL),+cover=bcesft,)
+VSIM_COVER = $(if $(COV_ENABLED_BOOL),-coverage,)
+RUN_DO = $(if $(COV_ENABLED_BOOL),coverage save -onexit $(abspath $(COV_DIR))/$(COV_STEM)_s$(SEED).ucdb; run -all; quit -f,run -all; quit -f)
 
 # ── VHDL sources ─────────────────────────────────────────────────
 VHDL_SRCS = \
@@ -111,7 +121,7 @@ CFG_CASES = p1 p2 p3 p4
 
 compile: $(WORK_DIR)/.compiled
 
-$(WORK_DIR)/.compiled: $(VHDL_SRCS) $(SV_SRCS)
+$(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS)
 	@rm -rf $(WORK_DIR)
 	@mkdir -p $(WORK_DIR)
 	@cd $(WORK_DIR) && $(VLIB) work
@@ -122,27 +132,29 @@ $(WORK_DIR)/.compiled: $(VHDL_SRCS) $(SV_SRCS)
 	@cd $(WORK_DIR) && $(VMAP) -modelsimini modelsim.ini altera altera > /dev/null
 	@cd $(WORK_DIR) && $(VMAP) -modelsimini modelsim.ini altera_mf altera_mf > /dev/null
 	@cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work altera -quiet \
-	  $(LEGACY_SIM)/altera_standard_functions.vhd
+	  $(VCOM_COVER) $(LEGACY_SIM)/altera_standard_functions.vhd
 	@cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work altera_mf -quiet \
-	  $(SIM_COMPAT)/altera_mf_components.vhd
+	  $(VCOM_COVER) $(SIM_COMPAT)/altera_mf_components.vhd
 	@cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work altera_mf -quiet \
-	  $(SIM_COMPAT)/scfifo.vhd
+	  $(VCOM_COVER) $(SIM_COMPAT)/scfifo.vhd
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -sv -quiet \
-	  $(UVM_DEFINES) +incdir+$(UVM_SRC) $(UVM_SRC)/uvm_pkg.sv
+	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) $(UVM_SRC)/uvm_pkg.sv
 	@for f in $(VHDL_SRCS); do \
-	  cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work work -quiet "$$f"; \
+	  cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work work -quiet $(VCOM_COVER) "$$f"; \
 	done
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet \
-	  $(IP_DIR)/b2o_encoder.v
+	  $(VLOG_COVER) $(IP_DIR)/b2o_encoder.v
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet -mfcu \
-	  $(UVM_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
+	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
 	  $(SV_SRCS)
 	@touch $@
 
 run: compile
 	@echo "=== Running $(TEST) seed=$(SEED) ==="
-	@mkdir -p $(WORK_DIR)/logs
+	@mkdir -p $(WORK_DIR)/logs $(COV_DIR)
+	@rm -f $(COV_DIR)/$(COV_STEM)_s$(SEED).ucdb
 	@cd $(WORK_DIR) && $(VSIM) -modelsimini modelsim.ini -c -quiet \
+	  $(VSIM_COVER) \
 	  -gG_RING_BUFFER_N_ENTRY=$(RING_BUFFER_N_ENTRY) \
 	  -gG_INTERLEAVING_FACTOR=$(INTERLEAVING_FACTOR) \
 	  -gG_INTERLEAVING_INDEX=$(INTERLEAVING_INDEX) \
@@ -156,7 +168,7 @@ run: compile
 	  $(PLUSARGS) \
 	  -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" \
 	  work.tb_top \
-	  -do "run -all; quit -f" \
+	  -do "$(RUN_DO)" \
 	  | tee logs/$(TEST)$(LOG_TAG)_s$(SEED).log
 	@if grep -qE '\*\* Fatal:|\*\* Error:' $(WORK_DIR)/logs/$(TEST)$(LOG_TAG)_s$(SEED).log; then \
 	  echo "FAIL: $(TEST) seed=$(SEED)"; exit 1; \
@@ -168,15 +180,27 @@ run: compile
 
 run_case: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(CASE_ID) \
+	  COV_STEM=$(CASE_ID) \
 	  PLUSARGS="+DV_EXEC_MODE=isolated +DV_CASE_ID=$(CASE_ID)" SEED=$(SEED)
 
 run_bucket_frame: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(BUCKET)_bucket_frame \
+	  COV_STEM=$(BUCKET)_bucket_frame \
 	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET)" SEED=$(SEED)
 
 run_cross: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
+	  COV_STEM=$(RUN_ID) \
 	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID)" SEED=$(SEED)
+
+run_sim: compile
+	@if [ -n "$(CASE_ID)" ]; then \
+	  $(MAKE) -s run_case CASE_ID=$(CASE_ID) SEED=$(SEED) RTL_VARIANT=$(RTL_VARIANT) COV_ENABLE=$(COV_ENABLE) PLUSARGS="$(EXTRA_PLUSARGS)"; \
+	elif [ -n "$(RUN_ID)" ]; then \
+	  $(MAKE) -s run_cross RUN_ID=$(RUN_ID) SEED=$(SEED) RTL_VARIANT=$(RTL_VARIANT) COV_ENABLE=$(COV_ENABLE) PLUSARGS="$(EXTRA_PLUSARGS)"; \
+	else \
+	  $(MAKE) -s run TEST=$(TEST) SEED=$(SEED) RTL_VARIANT=$(RTL_VARIANT) COV_ENABLE=$(COV_ENABLE) PLUSARGS="$(EXTRA_PLUSARGS)"; \
+	fi
 
 regress: compile
 	@echo "=== Ring Buffer CAM UVM Regression (directed=$(words $(DIRECTED_TESTS)), random=$(words $(RANDOM_TESTS))×$(SEEDS) seeds) ==="

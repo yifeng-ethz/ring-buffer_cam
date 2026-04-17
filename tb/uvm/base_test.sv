@@ -22,6 +22,7 @@ class base_test extends uvm_test;
 
   ring_buffer_cam_env                       m_env;
   ring_buffer_cam_pkg::ring_buffer_cam_cfg  m_cfg;
+  virtual avst_out_if.drv                   m_out_vif;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
@@ -36,6 +37,7 @@ class base_test extends uvm_test;
     void'(uvm_config_db#(int unsigned)::get(this, "", "n_partitions", m_cfg.n_partitions));
     void'(uvm_config_db#(int unsigned)::get(this, "", "encoder_leaf_width", m_cfg.encoder_leaf_width));
     void'(uvm_config_db#(int unsigned)::get(this, "", "encoder_pipe_stages", m_cfg.encoder_pipe_stages));
+    void'(uvm_config_db#(virtual avst_out_if.drv)::get(this, "", "out_vif", m_out_vif));
     uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::set(
       this, "m_env", "cfg", m_cfg);
     m_env = ring_buffer_cam_env::type_id::create("m_env", this);
@@ -45,12 +47,76 @@ class base_test extends uvm_test;
     repeat (cycles) @(posedge m_env.m_csr_drv.vif.clk);
   endtask
 
+  task automatic set_sink_ready(bit ready);
+    if (m_out_vif != null) begin
+      m_out_vif.ready <= ready;
+    end
+  endtask
+
   task automatic wait_for_reset_release();
     do begin
       @(posedge m_env.m_csr_drv.vif.clk);
     end while (m_env.m_csr_drv.vif.rst === 1'b1);
     m_cfg.note_reset_defaults();
     wait_clocks(2);
+    set_sink_ready(1'b1);
+  endtask
+
+  task automatic wait_for_run_state(
+    logic [3:0] target_state,
+    int unsigned max_cycles = 20_000,
+    string what = "run_state"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.run_state_code == target_state) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: observed=%0d expected=%0d",
+      what, max_cycles, m_env.m_dbg_mon.run_state_code, target_state))
+  endtask
+
+  task automatic wait_for_pop_engine_state(
+    logic [2:0] target_state,
+    int unsigned max_cycles = 20_000,
+    string what = "pop_engine_state"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.pop_engine_state_code == target_state) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: observed=%0d expected=%0d",
+      what, max_cycles, m_env.m_dbg_mon.pop_engine_state_code, target_state))
+  endtask
+
+  task automatic wait_for_ctrl_ready(
+    bit expected_ready,
+    int unsigned max_cycles = 20_000,
+    string what = "ctrl ready"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_ctrl_drv.vif.ready === expected_ready) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: observed=%0d expected=%0d",
+      what, max_cycles, m_env.m_ctrl_drv.vif.ready, expected_ready))
   endtask
 
   task automatic csr_write(int unsigned addr, logic [31:0] data);
@@ -80,6 +146,16 @@ class base_test extends uvm_test;
     ctrl_seq = ctrl_cmd_seq::type_id::create($sformatf("ctrl_%0h", cmd));
     ctrl_seq.cmd = cmd;
     ctrl_seq.start(m_env.m_ctrl_seqr);
+  endtask
+
+  task automatic ctrl_pulse_raw(logic [8:0] cmd, int unsigned hold_cycles = 1);
+    m_env.m_ctrl_drv.vif.data <= cmd;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    repeat (hold_cycles) @(posedge m_env.m_ctrl_drv.vif.clk);
+    m_cfg.note_ctrl_cmd(cmd);
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
   endtask
 
   task automatic enter_run_prepare();
@@ -136,7 +212,10 @@ class base_test extends uvm_test;
     while (cycles < max_cycles) begin
       if (m_env.m_scb.remaining_entries() == 0 &&
           m_env.m_scb.epoch_idle() &&
-          m_env.m_hit_drv.pending_source_items() == 0) begin
+          m_env.m_scb.total_written == m_env.m_scb.total_ingress_accepted &&
+          m_env.m_hit_drv.pending_source_items() == 0 &&
+          m_env.m_dbg_mon.vif.deassembly_fifo_empty === 1'b1 &&
+          m_env.m_dbg_mon.vif.pop_cmd_fifo_empty === 1'b1) begin
         return;
       end
       @(posedge m_env.m_csr_drv.vif.clk);
@@ -167,8 +246,9 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.first_pop_cycle,
       m_env.m_dbg_mon.first_overwrite_cycle), UVM_LOW)
     `uvm_error("TIMEOUT", $sformatf(
-      "Timed out waiting for %s after %0d cycles: remaining=%0d epoch_idle=%0d source_backlog=%0d",
+      "Timed out waiting for %s after %0d cycles: remaining=%0d epoch_idle=%0d accepted=%0d written=%0d source_backlog=%0d",
       what, max_cycles, m_env.m_scb.remaining_entries(), m_env.m_scb.epoch_idle(),
+      m_env.m_scb.total_ingress_accepted, m_env.m_scb.total_written,
       m_env.m_hit_drv.pending_source_items()))
   endtask
 
@@ -539,6 +619,53 @@ class base_test extends uvm_test;
       what, max_cycles, m_env.m_out_mon.total_subheaders_seen, target_count))
   endtask
 
+  task automatic wait_for_hit_output_count(
+    int unsigned target_count,
+    int unsigned max_cycles = 50_000,
+    string what = "hit emission"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_out_mon.total_hits_seen >= target_count) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: seen=%0d target=%0d",
+      what, max_cycles, m_env.m_out_mon.total_hits_seen, target_count))
+  endtask
+
+  task automatic wait_for_subheader_search_key(
+    bit [7:0] expected_search_key,
+    int unsigned max_cycles = 50_000,
+    string what = "matching subheader",
+    output ring_buffer_cam_pkg::out_seq_item matched_subheader
+  );
+    int unsigned cycles;
+    int unsigned seen_before;
+    matched_subheader = null;
+    cycles = 0;
+    seen_before = m_env.m_out_mon.total_subheaders_seen;
+    while (cycles < max_cycles) begin
+      if (m_env.m_out_mon.total_subheaders_seen > seen_before &&
+          m_env.m_out_mon.recent_subheaders.size() > 0) begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        seen_before = m_env.m_out_mon.total_subheaders_seen;
+        if (matched_subheader.search_key == expected_search_key) begin
+          return;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: expected_search_key=0x%02x total_seen=%0d",
+      what, max_cycles, expected_search_key, m_env.m_out_mon.total_subheaders_seen))
+  endtask
+
   task automatic wait_for_push_count(
     int unsigned target_count,
     int unsigned max_cycles = 50_000,
@@ -569,9 +696,13 @@ class base_test extends uvm_test;
     random_multi_key_seq  rand_multi;
     random_throughput_seq rand_tp;
     single_error_hit_seq  err_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
     logic [31:0]          data_a;
     logic [31:0]          data_b;
+    logic [47:0]          dbg48_a;
+    logic [47:0]          dbg48_b;
     int unsigned          subhdr_before;
+    int unsigned          hit_before;
     int unsigned          ow16;
     int unsigned          ow20;
     int unsigned          ow24;
@@ -579,9 +710,22 @@ class base_test extends uvm_test;
     int unsigned          ow_min;
     int unsigned          ow_max;
     int unsigned          push_count;
+    int unsigned          pop_count;
     int unsigned          overwrite_count;
+    int unsigned          cache_miss_count;
     int unsigned          fill_level;
     int unsigned          focus_search_key;
+    int unsigned          cmd_before;
+    int unsigned          cmd_after;
+    int unsigned          expected_cmds;
+    int unsigned          observed_cmds;
+    int unsigned          load_pulses;
+    int unsigned          expected_mask;
+    int unsigned          search_cycles;
+    int unsigned          wait_min;
+    int unsigned          wait_max;
+    logic [3:0]           load_mask;
+    bit                   saw_load;
 
     if (case_id == "B001") begin
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
@@ -680,6 +824,28 @@ class base_test extends uvm_test;
       csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF);
       wait_clocks(2);
       csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'h0000_FFFF, "EXPECTED_LATENCY max write");
+    end else if (case_id == "B020") begin
+      configure_and_start(2000);
+      wait_clocks(17_000);
+      dbg48_a = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if ((dbg48_a < 48'd1999) || (dbg48_a > 48'd2001)) begin
+        `uvm_error("B020", $sformatf(
+          "read_time_ptr delta before latency rewrite mismatch: observed=%0d expected~=2000",
+          dbg48_a))
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_4000);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'h4000) begin
+        `uvm_error("B020", $sformatf(
+          "expected_latency_48b did not reflect 0x4000 write: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      dbg48_b = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if ((dbg48_b < 48'd16383) || (dbg48_b > 48'd16385)) begin
+        `uvm_error("B020", $sformatf(
+          "read_time_ptr delta after latency rewrite mismatch: observed=%0d expected~=16384",
+          dbg48_b))
+      end
     end else if (case_id == "B021") begin
       configure_and_start(2000);
       burst_seq = same_key_burst_seq::type_id::create("b021_burst");
@@ -688,6 +854,7 @@ class base_test extends uvm_test;
       burst_seq.start(m_env.m_hit_seqr);
       wait_clocks(64);
       csr_expect_mask(CSR_FILL_LEVEL_ADDR, 32'hFFFF_FFFF, 32'd8, "FILL_LEVEL push-pop-overwrite identity");
+      terminate_and_drain(80_000, "B021 post-check drain");
     end else if (case_id == "B022") begin
       configure_and_start(2000);
       burst_seq = same_key_burst_seq::type_id::create("b022_burst");
@@ -704,6 +871,7 @@ class base_test extends uvm_test;
           "FILL_LEVEL write-ignore violated: before=0x%08x after=0x%08x",
           data_a, data_b))
       end
+      terminate_and_drain(80_000, "B022 post-check drain");
     end else if (case_id == "B023") begin
       configure_and_start(2000);
       err_seq = single_error_hit_seq::type_id::create("b023_err_filter_on");
@@ -720,6 +888,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "INERR_COUNT stays stable when filter_inerr=0");
       expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
         "INERR frontdoor/backdoor match");
+      terminate_and_drain(80_000, "B023 post-check drain");
     end else if (case_id == "B024") begin
       configure_and_start(2000);
       err_seq = single_error_hit_seq::type_id::create("b024_err");
@@ -738,11 +907,300 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd8, "PUSH_COUNT matches push grants");
       expect_backdoor_counter_matches(CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
         "PUSH_COUNT frontdoor/backdoor match");
+      terminate_and_drain(80_000, "B025 post-check drain");
+    end else if (case_id == "B026") begin
+      configure_and_start(2000);
+      single_seq = single_push_pop_seq::type_id::create("b026_single");
+      single_seq.search_key = 8;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(80_000, "B026 real hit plus zero-hit windows");
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (pop_count != 1) begin
+        `uvm_error("B026", $sformatf(
+          "POP_COUNT should only reflect the real drained hit: observed=%0d expected=1",
+          pop_count))
+      end
+      if (cache_miss_count != 0) begin
+        `uvm_error("B026", $sformatf(
+          "CACHE_MISS_COUNT should remain 0 for zero-hit searches: observed=%0d",
+          cache_miss_count))
+      end
+    end else if (case_id == "B027") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b027_wrap");
+      burst_seq.num_hits = 513;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(513, 25_000, "B027 overwrite event");
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (overwrite_count != 1) begin
+        `uvm_error("B027", $sformatf(
+          "OVERWRITE_COUNT did not increment on decision_reg=1 wrap: observed=%0d expected=1",
+          overwrite_count))
+      end
+      if (m_env.m_dbg_mon.first_overwrite_cycle == 0) begin
+        `uvm_error("B027", "No overwrite event was observed in the debug monitor")
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "B028") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b028_wrap");
+      burst_seq.num_hits = 513;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(513, 25_000, "B028 overwrite event");
+      csr_read(CSR_OVERWRITE_ADDR, data_a);
+      csr_write(CSR_OVERWRITE_ADDR, 32'hFFFF_FFFF);
+      wait_clocks(2);
+      csr_read(CSR_OVERWRITE_ADDR, data_b);
+      if (data_b !== data_a) begin
+        `uvm_error("B028", $sformatf(
+          "OVERWRITE_COUNT write-ignore violated: before=0x%08x after=0x%08x",
+          data_a, data_b))
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260402, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
+    end else if (case_id == "B032") begin
+      m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
+      m_env.m_csr_drv.vif.writedata <= '0;
+      m_env.m_csr_drv.vif.write <= 1'b0;
+      m_env.m_csr_drv.vif.read <= 1'b0;
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_csr_drv.vif.waitrequest !== 1'b1) begin
+        `uvm_error("B032", $sformatf(
+          "CSR waitrequest should be high in idle, observed=%0d",
+          m_env.m_csr_drv.vif.waitrequest))
+      end
+      m_env.m_csr_drv.vif.read <= 1'b1;
+      @(posedge m_env.m_csr_drv.vif.clk);
+      m_env.m_csr_drv.vif.read <= 1'b0;
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_csr_drv.vif.waitrequest !== 1'b0) begin
+        `uvm_error("B032", $sformatf(
+          "CSR waitrequest did not drop after read: observed=%0d",
+          m_env.m_csr_drv.vif.waitrequest))
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_csr_drv.vif.waitrequest !== 1'b1) begin
+        `uvm_error("B032", $sformatf(
+          "CSR waitrequest did not return high in idle: observed=%0d",
+          m_env.m_csr_drv.vif.waitrequest))
+      end
+    end else if (case_id == "B033") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_IDLE;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+          data_a = 1;
+        end
+      end
+      if (data_a == 0) begin
+        `uvm_error("B033", "IDLE command was not acknowledged immediately from IDLE")
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.run_state_code != 4'd0) begin
+        `uvm_error("B033", $sformatf(
+          "IDLE command did not leave DUT in IDLE: observed=%0d",
+          m_env.m_dbg_mon.run_state_code))
+      end
+    end else if (case_id == "B034") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B034 RUN_PREPARE entry");
+      if (m_env.m_dbg_mon.pop_cmd_fifo_sclr !== 1'b1 ||
+          m_env.m_dbg_mon.deassembly_fifo_sclr !== 1'b1) begin
+        `uvm_error("B034", "RUN_PREPARE entry did not assert both FIFO sclr signals")
+      end
+    end else if (case_id == "B035") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B035 RUN_PREPARE entry");
+      if (m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+        `uvm_error("B035", "RUN_PREPARE acknowledged before flush prerequisites completed")
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+        `uvm_error("B035", "run_mgmt_flushed did not latch before PREP ready")
+      end
+    end else if (case_id == "B036") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B036 RUN_PREPARE entry");
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.run_mgmt_flush_memory_start !== 1'b1 &&
+          m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+        `uvm_error("B036", "run_mgmt_flush_memory_start never asserted on PREP entry")
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      if (m_env.m_dbg_mon.run_mgmt_flush_memory_start !== 1'b0 ||
+          m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+        `uvm_error("B036", "Flush handshake did not settle to flushed=1/start=0")
+      end
+    end else if (case_id == "B037") begin
+      enter_run_prepare();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      wait_for_run_state(4'd2, 2_000, "B037 SYNC entry");
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b1 || m_env.m_dbg_mon.gts_8n != 0) begin
+        `uvm_error("B037", $sformatf(
+          "SYNC did not assert gts_counter_rst / hold gts_8n at 0: rst=%0d gts=%0d",
+          m_env.m_dbg_mon.gts_counter_rst, m_env.m_dbg_mon.gts_8n))
+      end
+    end else if (case_id == "B038") begin
+      enter_run_prepare();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_for_run_state(4'd3, 2_000, "B038 RUNNING entry");
+      wait_clocks(8);
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b0 || m_env.m_dbg_mon.gts_8n == 0) begin
+        `uvm_error("B038", $sformatf(
+          "RUNNING did not release gts counter reset: rst=%0d gts=%0d",
+          m_env.m_dbg_mon.gts_counter_rst, m_env.m_dbg_mon.gts_8n))
+      end
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
+        `uvm_error("B038", "RUNNING did not clear run_mgmt_flushed")
+      end
+    end else if (case_id == "B039") begin
+      configure_and_start(2000);
+      wait_clocks(32);
+      dbg48_a = m_env.m_dbg_mon.gts_8n;
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      wait_for_run_state(4'd4, 2_000, "B039 TERMINATING entry");
+      dbg48_b = m_env.m_dbg_mon.gts_end_of_run;
+      if ((dbg48_b < dbg48_a - 2) || (dbg48_b > dbg48_a + 2)) begin
+        `uvm_error("B039", $sformatf(
+          "gts_end_of_run snapshot mismatch: gts_before=%0d captured=%0d",
+          dbg48_a, dbg48_b))
+      end
+    end else if (case_id == "B040") begin
+      configure_and_start(2000);
+      single_seq = single_push_pop_seq::type_id::create("b040_single");
+      single_seq.search_key = 8;
+      single_seq.start(m_env.m_hit_seqr);
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      wait_for_run_state(4'd4, 2_000, "B040 TERMINATING entry");
+      wait_clocks(8);
+      if (m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+        `uvm_error("B040", "TERMINATING ready asserted before endofrun/drain completion")
+      end
+      send_endofrun_marker();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      wait_for_scoreboard_idle(60_000, "B040 terminate drain");
+    end else if (case_id == "B041") begin
+      configure_and_start(2000);
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      send_endofrun_marker();
+      wait_clocks(8);
+      if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+        `uvm_error("B041", "endofrun_seen did not latch before IDLE clear")
+      end
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_IDLE);
+      wait_clocks(2);
+      if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+        `uvm_error("B041", "IDLE transition did not clear endofrun_seen")
+      end
+    end else if (case_id == "B042") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= 9'b010000000;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+          data_a = 1;
+        end
+      end
+      if (data_a == 0) begin
+        `uvm_error("B042", "RESET command was not acknowledged immediately")
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.run_state_code != 4'd7) begin
+        `uvm_error("B042", $sformatf(
+          "RESET command did not move DUT into RESET: observed=%0d",
+          m_env.m_dbg_mon.run_state_code))
+      end
+    end else if (case_id == "B043") begin
+      m_env.m_ctrl_drv.vif.data <= 9'b000000011;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.run_state_code != 4'd9) begin
+        `uvm_error("B043", $sformatf(
+          "Illegal multi-hot run-control payload did not enter ERROR: observed=%0d",
+          m_env.m_dbg_mon.run_state_code))
+      end
+      if (m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+        `uvm_error("B043", "Illegal multi-hot run-control payload should not ack")
+      end
+    end else if (case_id == "B044") begin
+      enter_run_prepare();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_clocks(2);
+      if (m_env.m_dbg_mon.run_mgmt_flush_memory_start !== 1'b0 ||
+          m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+        `uvm_error("B044", "Duplicate RUN_PREPARE retriggered flush after flush completion")
+      end
+    end else if (case_id == "B045") begin
+      enter_run_prepare();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      wait_clocks(2);
+      dbg48_a = m_env.m_dbg_mon.gts_8n;
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b1 || dbg48_a != 0) begin
+        `uvm_error("B045", "First SYNC did not hold gts reset active")
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      wait_clocks(2);
+      dbg48_b = m_env.m_dbg_mon.gts_8n;
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b1 || dbg48_b != 0) begin
+        `uvm_error("B045", "Duplicate SYNC glitched gts_counter_rst")
+      end
+    end else if (case_id == "B046") begin
+      enter_run_prepare();
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
+        `uvm_error("B046", "RUNNING did not clear run_mgmt_flushed on first transition")
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
+        `uvm_error("B046", "Duplicate RUNNING glitched run_mgmt_flushed")
+      end
+    end else if (case_id == "B049") begin
+      m_env.m_ctrl_drv.vif.data <= 9'b000100000;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.run_state_code != 4'd5 || m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+        `uvm_error("B049", $sformatf(
+          "LINK_TEST should transition to unsupported state with ready low: state=%0d ready=%0d",
+          m_env.m_dbg_mon.run_state_code, m_env.m_ctrl_drv.vif.ready))
+      end
+    end else if (case_id == "B050") begin
+      m_env.m_ctrl_drv.vif.data <= 9'b100000000;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.run_state_code != 4'd8 || m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+        `uvm_error("B050", $sformatf(
+          "OUT_OF_DAQ should transition to unsupported state with ready low: state=%0d ready=%0d",
+          m_env.m_dbg_mon.run_state_code, m_env.m_ctrl_drv.vif.ready))
+      end
     end else if (case_id == "B051") begin
       configure_and_start(2000);
       csr_write(CSR_CTRL_ADDR, 32'h0000_0010);
@@ -770,6 +1228,7 @@ class base_test extends uvm_test;
       burst_seq.start(m_env.m_hit_seqr);
       wait_clocks(96);
       csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd4, "interleaving filter accepts only matching lane");
+      terminate_and_drain(80_000, "B052 post-check drain");
     end else if (case_id == "B053") begin
       configure_and_start(2000);
       ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
@@ -790,6 +1249,119 @@ class base_test extends uvm_test;
         `uvm_error("B054", $sformatf(
           "Unexpected overwrite during single-hit push: %0d",
           m_env.m_dbg_mon.dbg_overwrite_cnt))
+      end
+      terminate_and_drain(80_000, "B054 post-check drain");
+    end else if (case_id == "B055") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b055_wrap");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry + 1, 30_000, "B055 first overwrite");
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (overwrite_count != 1) begin
+        `uvm_error("B055", $sformatf(
+          "Expected exactly one overwrite at depth+1, observed=%0d",
+          overwrite_count))
+      end
+      if (m_env.m_dbg_mon.push_erase_grant_count == 0 ||
+          m_env.m_dbg_mon.first_overwrite_cycle == 0) begin
+        `uvm_error("B055", $sformatf(
+          "Did not observe the push ERASE path: erase_grants=%0d first_overwrite_cycle=%0d",
+          m_env.m_dbg_mon.push_erase_grant_count,
+          m_env.m_dbg_mon.first_overwrite_cycle))
+      end
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "B056") begin
+      configure_and_start();
+      single_seq = single_push_pop_seq::type_id::create("b056_single");
+      single_seq.search_key = 8;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd1, 40_000, "B056 SEARCH entry");
+      search_cycles = 0;
+      wait_min = 32'hffff_ffff;
+      wait_max = 0;
+      saw_load = 1'b0;
+      while (search_cycles < 32 && !saw_load) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1) begin
+          search_cycles++;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt < wait_min)
+            wait_min = m_env.m_dbg_mon.pop_search_wait_cnt;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt > wait_max)
+            wait_max = m_env.m_dbg_mon.pop_search_wait_cnt;
+        end
+        if (m_env.m_dbg_mon.pop_partition_load != 0)
+          saw_load = 1'b1;
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      if (!saw_load || search_cycles != 6 || wait_min != 0 || wait_max != 5) begin
+        `uvm_error("B056", $sformatf(
+          "SEARCH latency mismatch: saw_load=%0d search_cycles=%0d wait_min=%0d wait_max=%0d",
+          saw_load, search_cycles, wait_min, wait_max))
+      end
+      wait_for_scoreboard_idle(40_000, "B056 pop search latency drain");
+    end else if (case_id == "B057") begin
+      configure_and_start();
+      single_seq = single_push_pop_seq::type_id::create("b057_single");
+      single_seq.search_key = 12;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd2, 40_000, "B057 LOAD entry");
+      load_mask = '0;
+      load_pulses = 0;
+      while (load_pulses < 16) begin
+        if (m_env.m_dbg_mon.pop_partition_load != 0) begin
+          load_mask |= m_env.m_dbg_mon.pop_partition_load;
+          load_pulses += $countones(m_env.m_dbg_mon.pop_partition_load);
+        end else if (m_env.m_dbg_mon.pop_engine_state_code != 3'd2 && load_mask != 0) begin
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      expected_mask = (1 << m_cfg.n_partitions) - 1;
+      if (load_mask !== expected_mask[3:0]) begin
+        `uvm_error("B057", $sformatf(
+          "Partition load walk mismatch: load_mask=0x%0h expected=0x%0h pulses=%0d",
+          load_mask, expected_mask, load_pulses))
+      end
+      wait_for_scoreboard_idle(40_000, "B057 LOAD walk drain");
+    end else if (case_id == "B058") begin
+      configure_and_start();
+      burst_seq = same_key_burst_seq::type_id::create("b058_partition_count");
+      burst_seq.num_hits = 17;
+      burst_seq.search_key = 16;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B058 target subheader", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 17) begin
+        `uvm_error("B058", $sformatf(
+          "Partition count mismatch: expected 17 observed=%s",
+          (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
+      end
+      wait_for_scoreboard_idle(60_000, "B058 17-hit partition drain");
+    end else if (case_id == "B059") begin
+      configure_and_start();
+      cmd_before = m_env.m_dbg_mon.pop_cmd_rdack_count;
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      observed_cmds = 0;
+      while (observed_cmds < 1) begin
+        if (m_env.m_dbg_mon.pop_cmd_rdack_count > cmd_before) begin
+          observed_cmds = m_env.m_dbg_mon.pop_cmd_rdack_count - cmd_before;
+        end
+        if (observed_cmds >= 1)
+          break;
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      wait_clocks(4);
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("B059", $sformatf(
+          "Zero-hit fast path emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+      if (m_env.m_out_mon.total_subheaders_seen <= subhdr_before ||
+          m_env.m_out_mon.recent_subheaders.size() == 0 ||
+          m_env.m_out_mon.recent_subheaders[$].hit_count != 0) begin
+        `uvm_error("B059", "Zero-hit fast path did not emit a zero-hit subheader before rdack")
       end
     end else if (case_id == "B060") begin
       subhdr_before = m_env.m_out_mon.total_subheaders_seen;
@@ -812,71 +1384,85 @@ class base_test extends uvm_test;
       end
     end else if (case_id == "B061") begin
       configure_and_start();
+      hit_before = m_env.m_out_mon.total_hits_seen;
       burst_seq = same_key_burst_seq::type_id::create("b061_burst");
       burst_seq.num_hits = 1;
       burst_seq.search_key = 8;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_scoreboard_idle(30_000, "B061 single-hit drain");
-      if (m_env.m_out_mon.recent_subheaders.size() == 0 || m_env.m_out_mon.recent_hits.size() == 0) begin
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B061 target subheader", matched_subheader);
+      wait_for_hit_output_count(hit_before + 1, 40_000, "B061 first hit");
+      if (matched_subheader == null || m_env.m_out_mon.recent_hits.size() == 0) begin
         `uvm_error("B061", "Did not capture both subheader and hit beats")
       end else begin
-        if (!(m_env.m_out_mon.recent_subheaders[$].sop && !m_env.m_out_mon.recent_subheaders[$].eop)) begin
+        if (!(matched_subheader.sop && !matched_subheader.eop)) begin
           `uvm_error("B061", "1-hit subheader framing was not SOP-only")
         end
         if (!m_env.m_out_mon.recent_hits[$].eop) begin
           `uvm_error("B061", "1-hit data beat did not assert EOP")
         end
       end
+      wait_for_scoreboard_idle(40_000, "B061 single-hit drain");
     end else if (case_id == "B062") begin
       configure_and_start();
       burst_seq = same_key_burst_seq::type_id::create("b062_burst");
       burst_seq.num_hits = 1;
-      burst_seq.search_key = 8'h2A;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(11);
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_scoreboard_idle(30_000, "B062 search-key framing");
-      if (m_env.m_out_mon.recent_subheaders.size() == 0 ||
-          m_env.m_out_mon.recent_subheaders[$].search_key != 8'h2A) begin
-        `uvm_error("B062", "Subheader search_key did not mirror ts[11:4]")
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B062 target subheader", matched_subheader);
+      if (matched_subheader == null ||
+          matched_subheader.search_key != burst_seq.search_key[7:0]) begin
+        `uvm_error("B062", $sformatf(
+          "Subheader search_key did not mirror ts[11:4]: expected=0x%02x observed=%s",
+          burst_seq.search_key[7:0],
+          (matched_subheader == null) ? "none" : $sformatf("0x%02x", matched_subheader.search_key)))
       end
+      wait_for_scoreboard_idle(40_000, "B062 search-key framing");
     end else if (case_id == "B063") begin
       configure_and_start();
       burst_seq = same_key_burst_seq::type_id::create("b063_burst");
       burst_seq.num_hits = 5;
       burst_seq.search_key = 12;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_scoreboard_idle(40_000, "B063 hit_count framing");
-      if (m_env.m_out_mon.recent_subheaders.size() == 0 ||
-          m_env.m_out_mon.recent_subheaders[$].hit_count != 5) begin
-        `uvm_error("B063", "Subheader hit_count field did not report 5")
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B063 target subheader", matched_subheader);
+      if (matched_subheader == null ||
+          matched_subheader.hit_count != 5) begin
+        `uvm_error("B063", $sformatf(
+          "Subheader hit_count field did not report 5: expected=5 observed=%s",
+          (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
       end
+      wait_for_scoreboard_idle(40_000, "B063 hit_count framing");
     end else if (case_id == "B064") begin
       configure_and_start();
       burst_seq = same_key_burst_seq::type_id::create("b064_burst");
       burst_seq.num_hits = 2;
       burst_seq.search_key = 16;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_scoreboard_idle(40_000, "B064 K237 framing");
-      if (m_env.m_out_mon.recent_subheaders.size() == 0 ||
-          m_env.m_out_mon.recent_subheaders[$].raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B064 target subheader", matched_subheader);
+      if (matched_subheader == null ||
+          matched_subheader.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
         `uvm_error("B064", "Subheader K237 identifier mismatch")
       end
+      wait_for_scoreboard_idle(40_000, "B064 K237 framing");
     end else if (case_id == "B065") begin
       configure_and_start();
+      hit_before = m_env.m_out_mon.total_hits_seen;
       burst_seq = same_key_burst_seq::type_id::create("b065_burst");
       burst_seq.num_hits = 2;
       burst_seq.search_key = 20;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_scoreboard_idle(40_000, "B065 byte_is_k framing");
-      if (m_env.m_out_mon.recent_subheaders.size() == 0 || m_env.m_out_mon.recent_hits.size() == 0) begin
+      wait_for_subheader_search_key(burst_seq.search_key[7:0], 40_000, "B065 target subheader", matched_subheader);
+      wait_for_hit_output_count(hit_before + 1, 40_000, "B065 first hit");
+      if (matched_subheader == null || m_env.m_out_mon.recent_hits.size() == 0) begin
         `uvm_error("B065", "Missing subheader/hit history for byte_is_k check")
       end else begin
-        if (m_env.m_out_mon.recent_subheaders[$].raw_data[35:32] != 4'b0001) begin
+        if (matched_subheader.raw_data[35:32] != 4'b0001) begin
           `uvm_error("B065", "Subheader byte_is_k field was not 0001")
         end
         if (m_env.m_out_mon.recent_hits[$].raw_data[35:32] != 4'b0000) begin
           `uvm_error("B065", "Hit byte_is_k field was not 0000")
         end
       end
+      wait_for_scoreboard_idle(40_000, "B065 byte_is_k framing");
     end else if (case_id == "B066") begin
       configure_and_start();
       single_seq = single_push_pop_seq::type_id::create("b066_single");
@@ -900,14 +1486,86 @@ class base_test extends uvm_test;
           `uvm_error("B066", "Hit egress bit slices did not match the injected payload")
         end
       end
+    end else if (case_id == "B069") begin
+      configure_and_start();
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      wait_clocks(256);
+      cmd_after = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      observed_cmds = cmd_after - cmd_before;
+      expected_cmds = 256 / (16 * m_cfg.interleaving_factor);
+      if (observed_cmds < (expected_cmds - 1) || observed_cmds > (expected_cmds + 1)) begin
+        `uvm_error("B069", $sformatf(
+          "Pop descriptor cadence mismatch: observed=%0d expected=%0d interleaving_factor=%0d",
+          observed_cmds, expected_cmds, m_cfg.interleaving_factor))
+      end
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);
       if (m_env.m_scb.total_zero_hit_subheaders == 0) begin
         `uvm_error("E001", "No zero-hit subheader was observed")
       end
+    end else if (case_id == "E002") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e002_fill_512");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 25_000, "E002 boundary fill");
+      terminate_and_drain(120_000, "E002 boundary drain");
+      expect_service_model_accounting("E002 boundary drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != m_cfg.ring_buffer_n_entry ||
+          pop_count != m_cfg.ring_buffer_n_entry ||
+          overwrite_count != 0) begin
+        `uvm_error("E002", $sformatf(
+          "Boundary drain mismatch: push=%0d pop=%0d overwrite=%0d depth=%0d",
+          push_count, pop_count, overwrite_count, m_cfg.ring_buffer_n_entry))
+      end
     end else if (case_id == "E003") begin
       run_single_key_overwrite_window("E003 overwrite_stress same-ts hotspot", 520);
+    end else if (case_id == "E004") begin
+      configure_and_start();
+      burst_seq = same_key_burst_seq::type_id::create("e004_push_a");
+      burst_seq.num_hits = 64;
+      burst_seq.search_key = 8;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(8, 40_000, "E004 first drain epoch", matched_subheader);
+      burst_seq = same_key_burst_seq::type_id::create("e004_push_b");
+      burst_seq.num_hits = 32;
+      burst_seq.search_key = 12;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(120_000, "E004 concurrent push/pop arbitration");
+      expect_service_model_accounting("E004 concurrent push/pop arbitration", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      if (push_count != 96 || pop_count != 96) begin
+        `uvm_error("E004", $sformatf(
+          "Concurrent push/pop accounting mismatch: push=%0d pop=%0d",
+          push_count, pop_count))
+      end
+    end else if (case_id == "E009") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e009_fill_511");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 1, 25_000, "E009 fill to depth-1");
+      terminate_and_drain(120_000, "E009 boundary-1 drain");
+      expect_service_model_accounting("E009 boundary-1 drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != (m_cfg.ring_buffer_n_entry - 1) ||
+          pop_count != (m_cfg.ring_buffer_n_entry - 1) ||
+          overwrite_count != 0) begin
+        `uvm_error("E009", $sformatf(
+          "Boundary-1 drain mismatch: push=%0d pop=%0d overwrite=%0d depth=%0d",
+          push_count, pop_count, overwrite_count, m_cfg.ring_buffer_n_entry))
+      end
     end else if (case_id == "E010") begin
       configure_and_start(2000);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -984,6 +1642,34 @@ class base_test extends uvm_test;
           fill_level, m_cfg.ring_buffer_n_entry))
       end
       m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "E013") begin
+      configure_and_start();
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e013_boundary_127");
+      burst_seq.num_hits = 127;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(focus_search_key[7:0], 60_000, "E013 127-hit subheader", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 127) begin
+        `uvm_error("E013", $sformatf(
+          "127-hit partition boundary mismatch: observed=%s",
+          (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
+      end
+      wait_for_scoreboard_idle(120_000, "E013 127-hit drain");
+    end else if (case_id == "E014") begin
+      configure_and_start();
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e014_boundary_128");
+      burst_seq.num_hits = 128;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(focus_search_key[7:0], 60_000, "E014 128-hit subheader", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 128) begin
+        `uvm_error("E014", $sformatf(
+          "128-hit partition boundary mismatch: observed=%s",
+          (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
+      end
+      wait_for_scoreboard_idle(120_000, "E014 128-hit drain");
     end else if (case_id == "P001") begin
       configure_and_start();
       rand_same = random_push_pop_seq::type_id::create("rand_same");
@@ -1100,6 +1786,141 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "X008 PUSH_COUNT increments");
       wait_for_scoreboard_idle(40_000, "X008 bad-hit pass-through drain");
       expect_service_model_accounting("X008 bad-hit pass-through", 1, 0);
+    end else if (case_id == "X004") begin
+      configure_and_start();
+      burst_seq = same_key_burst_seq::type_id::create("x004_preflush");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = 8;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(16, 10_000, "X004 preflush activity");
+      enter_run_prepare();
+      configure_and_start();
+      single_seq = single_push_pop_seq::type_id::create("x004_postrestart");
+      single_seq.search_key = 12;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(60_000, "X004 flush and restart");
+      expect_service_model_accounting("X004 flush and restart", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      if (push_count != 1) begin
+        `uvm_error("X004", $sformatf(
+          "Restart should only retain post-flush traffic, observed push_count=%0d",
+          push_count))
+      end
+    end else if (case_id == "X006") begin
+      configure_and_start(2000);
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= (ring_buffer_cam_pkg::CTRL_RUNNING | ring_buffer_cam_pkg::CTRL_SYNC);
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1)
+          data_a = 1;
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (data_a != 0 || m_env.m_dbg_mon.run_state_code != 4'd9) begin
+        `uvm_error("X006", $sformatf(
+          "Illegal active command was not contained: ack=%0d state=%0d",
+          data_a, m_env.m_dbg_mon.run_state_code))
+      end
+    end else if (case_id == "X009") begin
+      configure_and_start(2000);
+      err_seq = single_error_hit_seq::type_id::create("x009_bad");
+      err_seq.search_key = 8;
+      err_seq.start(m_env.m_hit_seqr);
+      single_seq = single_push_pop_seq::type_id::create("x009_good");
+      single_seq.search_key = 8;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_clocks(64);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "X009 INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "X009 PUSH_COUNT");
+      wait_for_subheader_search_key(8, 40_000, "X009 one-good drain", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 1) begin
+        `uvm_error("X009", "Bad+good same-key case did not drain exactly one good hit")
+      end
+      wait_for_scoreboard_idle(60_000, "X009 good after bad drain");
+    end else if (case_id == "X010") begin
+      configure_and_start(2000);
+      err_seq = single_error_hit_seq::type_id::create("x010_bad_a");
+      err_seq.search_key = 8;
+      err_seq.start(m_env.m_hit_seqr);
+      err_seq = single_error_hit_seq::type_id::create("x010_bad_b");
+      err_seq.search_key = 8;
+      err_seq.start(m_env.m_hit_seqr);
+      wait_clocks(32);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd2, "X010 INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X010 PUSH_COUNT");
+      if (m_env.m_scb.total_ingress_accepted != 0) begin
+        `uvm_error("X010", $sformatf(
+          "Back-to-back filtered bad hits should not be accepted, observed=%0d",
+          m_env.m_scb.total_ingress_accepted))
+      end
+    end else if (case_id == "X011") begin
+      configure_and_start(2000);
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0001);
+      wait_clocks(2);
+      err_seq = single_error_hit_seq::type_id::create("x011_bad_a");
+      err_seq.search_key = 8;
+      err_seq.start(m_env.m_hit_seqr);
+      err_seq = single_error_hit_seq::type_id::create("x011_bad_b");
+      err_seq.search_key = 8;
+      err_seq.start(m_env.m_hit_seqr);
+      wait_clocks(64);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X011 INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd2, "X011 PUSH_COUNT");
+      wait_for_subheader_search_key(8, 40_000, "X011 two bad hits forwarded", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 2) begin
+        `uvm_error("X011", "Filter-disabled bad hits did not both reach the CAM/drain")
+      end
+      wait_for_scoreboard_idle(60_000, "X011 bad-hit pass-through drain");
+    end else if (case_id == "X012") begin
+      configure_and_start(2000);
+      for (int i = 0; i < 3; i++) begin
+        single_seq = single_push_pop_seq::type_id::create($sformatf("x012_good_%0d", i));
+        single_seq.search_key = 12;
+        single_seq.start(m_env.m_hit_seqr);
+        err_seq = single_error_hit_seq::type_id::create($sformatf("x012_bad_%0d", i));
+        err_seq.search_key = 12;
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      wait_clocks(64);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd3, "X012 INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd3, "X012 PUSH_COUNT");
+      wait_for_subheader_search_key(12, 40_000, "X012 alternating drain", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 3) begin
+        `uvm_error("X012", "Alternating good/bad case did not drain exactly the 3 good hits")
+      end
+      wait_for_scoreboard_idle(80_000, "X012 alternating good/bad drain");
+    end else if (case_id == "X014") begin
+      configure_and_start(2000);
+      err_seq = single_error_hit_seq::type_id::create("x014_empty_bad");
+      err_seq.hit_is_empty_marker = 1'b1;
+      err_seq.hit_has_error = 1'b1;
+      err_seq.start(m_env.m_hit_seqr);
+      wait_clocks(8);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X014 empty marker should not bump INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X014 empty marker should not push");
+      if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+        `uvm_error("X014", "Errored empty marker did not still latch endofrun_seen")
+      end
+    end else if (case_id == "X015") begin
+      configure_and_start(2000);
+      single_seq = single_push_pop_seq::type_id::create("x015_good");
+      single_seq.search_key = 16;
+      single_seq.start(m_env.m_hit_seqr);
+      err_seq = single_error_hit_seq::type_id::create("x015_bad");
+      err_seq.search_key = 16;
+      err_seq.start(m_env.m_hit_seqr);
+      wait_clocks(64);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "X015 INERR_COUNT");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd1, "X015 PUSH_COUNT");
+      csr_expect_mask(CSR_OVERWRITE_ADDR, 32'hFFFF_FFFF, 32'd0, "X015 OVERWRITE_COUNT");
+      wait_for_subheader_search_key(16, 40_000, "X015 good then filtered bad", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 1) begin
+        `uvm_error("X015", "Good hit was corrupted by adjacent filtered bad hit")
+      end
+      wait_for_scoreboard_idle(60_000, "X015 adjacent good/bad drain");
     end else if (case_id == "X013") begin
       configure_and_start(2000);
       err_seq = single_error_hit_seq::type_id::create("x013_lane_miss");

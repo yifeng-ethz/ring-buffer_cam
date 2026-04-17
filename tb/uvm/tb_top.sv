@@ -24,6 +24,7 @@ module tb_top;
   // ── Clock and reset ───────────────────────────────────────────
   logic clk = 0;
   logic rst = 1;
+  logic out_ready_drv = 1'b1;
   int unsigned tb_timeout_cycles = 5_000_000;
 
   always #4 clk = ~clk;  // 8 ns period = 125 MHz
@@ -89,8 +90,7 @@ module tb_top;
     .i_clk                       (clk)
   );
 
-  // Egress always ready (can add backpressure driver later)
-  assign out_if.ready = 1'b1;
+  assign out_if.ready = out_ready_drv;
 
   // UVM ingress keeps the optional framing sidebands at zero for the existing payload tests.
   assign hit_if.startofpacket = 1'b0;
@@ -99,9 +99,17 @@ module tb_top;
 
   always_comb begin
     dbg_if.decision_reg        = dut.v2_core.decision_reg;
+    dbg_if.run_state_code      = dut.v2_core.dbg_run_state_code;
+    dbg_if.pop_engine_state_code = dut.v2_core.dbg_pop_engine_state_code;
+    dbg_if.push_state_code     = dut.v2_core.dbg_push_state_code;
     dbg_if.push_write_grant    = dut.v2_core.push_write_grant;
     dbg_if.push_erase_grant    = dut.v2_core.push_erase_grant;
     dbg_if.pop_erase_grant     = dut.v2_core.pop_erase_grant;
+    dbg_if.pop_flush_grant     = dut.v2_core.pop_flush_grant;
+    dbg_if.run_mgmt_flush_memory_start = dut.v2_core.run_mgmt_flush_memory_start;
+    dbg_if.run_mgmt_flush_memory_done = dut.v2_core.run_mgmt_flush_memory_done;
+    dbg_if.pop_flush_ram_done  = dut.v2_core.pop_flush_ram_done;
+    dbg_if.pop_flush_cam_done  = dut.v2_core.pop_flush_cam_done;
     dbg_if.cam_wr_addr         = dut.v2_core.cam_wr_addr;
     dbg_if.side_ram_waddr      = dut.v2_core.side_ram_waddr;
     dbg_if.side_ram_we         = dut.v2_core.side_ram_we;
@@ -111,10 +119,24 @@ module tb_top;
     dbg_if.pop_issue_addr      = dut.v2_core.pop_issue_addr;
     dbg_if.pop_current_sk      = dut.v2_core.pop_current_sk;
     dbg_if.pop_total_hits      = dut.v2_core.pop_total_hits;
+    dbg_if.pop_hits_count      = dut.v2_core.pop_hits_count;
+    dbg_if.pop_rr_idx          = dut.v2_core.dbg_pop_rr_idx;
+    dbg_if.pop_issue_partition_idx = dut.v2_core.dbg_pop_issue_partition_idx;
+    dbg_if.pop_count_partition_idx = dut.v2_core.dbg_pop_count_partition_idx;
+    dbg_if.pop_search_wait_cnt = dut.v2_core.pop_search_wait_cnt;
+    dbg_if.pop_partition_pending = dut.v2_core.dbg_pop_partition_pending;
+    dbg_if.pop_partition_load  = dut.v2_core.dbg_pop_partition_load;
+    dbg_if.pop_partition_advance = dut.v2_core.dbg_pop_partition_advance;
+    dbg_if.pop_partition_result_valid = dut.v2_core.dbg_pop_partition_result_valid;
+    dbg_if.pop_partition_flag  = dut.v2_core.dbg_pop_partition_flag;
+    dbg_if.pop_partition_has_more = dut.v2_core.dbg_pop_partition_has_more;
+    dbg_if.pop_last_hit_pending = dut.v2_core.pop_last_hit_pending;
     dbg_if.pop_pipeline_start  = dut.v2_core.pop_pipeline_start;
     dbg_if.pop_hit_valid       = dut.v2_core.pop_hit_valid;
     dbg_if.pop_cache_miss_pulse = dut.v2_core.pop_cache_miss_pulse;
     dbg_if.subheader_gen_done  = dut.v2_core.subheader_gen_done;
+    dbg_if.pop_cmd_fifo_sclr   = dut.v2_core.pop_cmd_fifo_sclr;
+    dbg_if.deassembly_fifo_sclr = dut.v2_core.deassembly_fifo_sclr;
     dbg_if.pop_cmd_fifo_wrreq  = dut.v2_core.pop_cmd_fifo_wrreq;
     dbg_if.pop_cmd_fifo_rdack  = dut.v2_core.pop_cmd_fifo_rdack;
     dbg_if.pop_cmd_fifo_empty  = dut.v2_core.pop_cmd_fifo_empty;
@@ -125,7 +147,10 @@ module tb_top;
     dbg_if.endofrun_seen       = dut.v2_core.endofrun_seen;
     dbg_if.terminating_drain_done = dut.v2_core.terminating_drain_done;
     dbg_if.run_mgmt_flushed    = dut.v2_core.run_mgmt_flushed;
+    dbg_if.cam_clean           = dut.v2_core.debug_msg2.cam_clean;
     dbg_if.gts_counter_rst     = dut.v2_core.gts_counter_rst;
+    dbg_if.expected_latency_48b = dut.v2_core.expected_latency_48b;
+    dbg_if.read_time_ptr       = dut.v2_core.read_time_ptr;
     dbg_if.gts_8n              = dut.v2_core.gts_8n;
     dbg_if.gts_end_of_run      = dut.v2_core.gts_end_of_run;
     dbg_if.dbg_inerr_cnt       = dut.v2_core.debug_msg2.inerr_cnt;
@@ -157,6 +182,8 @@ module tb_top;
       null, "uvm_test_top.m_env.m_csr_drv", "vif", csr_if);
     uvm_config_db#(virtual avst_out_if.mon)::set(
       null, "uvm_test_top.m_env.m_out_mon", "vif", out_if);
+    uvm_config_db#(virtual avst_out_if.drv)::set(
+      null, "uvm_test_top", "out_vif", out_if);
     uvm_config_db#(virtual dut_debug_if.mon)::set(
       null, "uvm_test_top.m_env.m_out_mon", "debug_vif", dbg_if);
     uvm_config_db#(virtual dut_debug_if.mon)::set(
