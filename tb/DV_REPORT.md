@@ -1,6 +1,6 @@
 # ⚠️ DV Report — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-17` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-18` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 This page is the chief-architect dashboard. All per-case evidence lives under [`REPORT/`](REPORT/README.md).
@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `393` |
+| ⚠️ | unimplemented_cases | `386` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,14 +24,30 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `pending` |
+| ⚠️ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `pending` |
+| ⚠️ | `BUG-014-H` | Harness | `2026-04-17` | Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it | `pending` |
 | ✅ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `d412d7a` |
 | ✅ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `d412d7a` |
 | ✅ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `d412d7a` |
 | ✅ | `BUG-010-H` | Harness | `2026-04-17` | Framing checks sampled “latest subheader” instead of the case-target epoch | `d412d7a` |
 | ✅ | `BUG-009-H` | Harness | `2026-04-17` | `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written | `d412d7a` |
-| ✅ | `BUG-008-R` | RTL | `2026-04-17` | Same-key overwrite suppression compared against the next input beat instead of the just-written key | `d412d7a` |
-| ✅ | `BUG-007-R` | RTL | `2026-04-16` | 48-bit counter cleanup logic truncated through `to_integer()` | `d412d7a` |
-| ✅ | `BUG-006-H` | Harness | `2026-04-16` | Error-counter assumptions were too narrow for lane-mismatched bad hits | `d412d7a` |
+
+## Formal / contract cases
+
+<!-- scope = bucket or TOTAL aggregation of contract-style testcase execution -->
+<!-- executed = cases with real isolated log evidence; executed_ratio = executed/planned cases -->
+<!-- observed_txn = sum of scoreboard-observed transactions across executed cases -->
+<!-- asserted_failures = summed UVM_ERROR/assert failures from those case logs -->
+<!-- unexpected_outputs = summed scoreboard unexpected-output count from those case logs -->
+
+| status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
+|:---:|---|---:|---:|---:|---:|---:|---:|---:|
+| ⚠️ | `BASIC` | 129 | 83 | 64.34% | 4092 | 0 | 0 | 0 |
+| ⚠️ | `EDGE` | 129 | 20 | 15.50% | 8765 | 0 | 0 | 0 |
+| ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
+| ⚠️ | `ERROR` | 129 | 18 | 13.95% | 331 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 130 | 25.19% | 21362 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -39,8 +55,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 80 | stmt=97.28, branch=88.97, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.81 | 62.02% (80/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 16 | stmt=95.51, branch=84.63, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=64.48 | 12.4% (16/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 83 | stmt=97.28, branch=88.97, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.42 | 64.34% (83/129) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 20 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 15.5% (20/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 18 | stmt=94.20, branch=80.65, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=40.10 | 13.95% (18/129) |
 
@@ -54,9 +70,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 72.07 | 80.0 |
+| ⚠️ | toggle | 72.86 | 80.0 |
 
-- functional coverage: `23.84% (123/516)`
+- functional coverage: `25.19% (130/516)`
 
 ## Cross / continuous-frame signoff
 

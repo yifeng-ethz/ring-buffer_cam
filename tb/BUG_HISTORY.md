@@ -192,3 +192,45 @@
   - `E015` and `E016` now check the real contract: full lossless drain plus multi-subheader packetization with the correct search key
   - verified in the full `123/123` implemented isolated nightly matrix with zero failures
 - Commit: d412d7a
+
+### BUG-014-H: Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it
+- First seen in: `E023` on 2026-04-17 during the first steady-state EDGE long-run bring-up
+- Symptom:
+  - the long-run cadence testcase produced `Unexpected drained hit` scoreboard errors even though CSR accounting closed at `push=2000`, `pop=2000`, `overwrite=0`, and the DUT drained the traffic losslessly
+  - the failure clustered on recycled slot `0`, where a later `pop_erase` arrived after the scoreboard had already cleared that slot from its resident model
+- Root cause:
+  - `write_pop()` assumed every occupied `pop_erase` must still correspond to a live slot-model entry
+  - in the long-run slot-reuse corner case, the model could already have cleared that slot while the DUT still exposed the raw side-RAM payload for the consumed resident, so the scoreboard dropped the pending-drain trace and later flagged the emitted hit as unexpected
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the scoreboard now recovers the pending drain from the raw pop-side payload when the slot model is already clear, instead of dropping the event
+  - verified by rerunning `E023` cleanly after the fix; the testcase now passes with bounded backlog (`max_remaining=71`) and zero UVM errors
+- Commit: pending
+
+### BUG-015-H: Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident
+- First seen in: `P004` on 2026-04-17 during the first post-`E023` full nightly rerun
+- Symptom:
+  - the long overwrite-profile testcase still produced residual residents and late `Unexpected drained hit` failures after the earlier slot-reuse recovery fix
+  - failures appeared only under deeper pressure runs where pending-drain matches and live-slot matches diverged
+- Root cause:
+  - `scoreboard.write_out()` reused one match-index variable across the pending-drain queue, the live slot model, and the overlap-evicted queue
+  - when a pending-drain match was found first, the later cleanup path could clear an unrelated live resident at the same numeric index
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the scoreboard now uses separate `pending_match_idx`, `live_match_idx`, and `overlap_match_idx` variables
+  - verified by rerunning `E023`, `P004`, `P111`, `P112`, `P113`, `P116`, `P119`, then the full `130/130` implemented isolated nightly matrix with zero failures
+- Commit: pending
+
+### BUG-016-H: Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits
+- First seen in: `P004` debug on 2026-04-17 while tracing the remaining long-pressure mismatch after `BUG-015-H`
+- Symptom:
+  - deep overwrite-profile runs became hard to attribute because distinct late hits could alias to the same scoreboard fingerprint tuple
+  - the ambiguity did not always fail the case directly, but it obscured root-cause isolation and weakened deep-pressure traceability
+- Root cause:
+  - `overwrite_profile_seq` only varied a subset of the hit fields, so the complete `(search_key, ts_low, asic, channel, ts50p, et1n6)` identity repeated every 2048 hits
+  - the pressure testcase therefore lost deterministic uniqueness exactly where the nightly overwrite runs needed it most
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `overwrite_profile_seq` now varies the full stored fingerprint tuple across long runs instead of only a partial subset
+  - verified together with `BUG-015-H` by the targeted pressure slice and the full `130/130` implemented isolated nightly matrix
+- Commit: pending

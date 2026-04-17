@@ -1,3 +1,1 @@
-E021 has no standalone UCDB artifact yet.
-The current ring_buffer_cam workflow has isolated case pages per the dv-workflow skill,
-but this testcase has not yet produced a real standalone code-coverage UCDB.
+../cov_default_p2_pipe4/E021_s1.ucdb

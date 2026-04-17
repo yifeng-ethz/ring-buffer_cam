@@ -1,3 +1,1 @@
-B048 has no live log artifact.
-State: planned only
-Scenario: run-control illegal edge: PREP -> RUNNING (skipping SYNC) leaves gts_8n uninitialized
+../work_uvm/logs/test_case_engine_B048_s1.log

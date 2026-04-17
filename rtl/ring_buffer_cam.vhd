@@ -2,7 +2,7 @@
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
 -- Version : 26.1.5
 -- Date    : 20260417
--- Change  : align wrapper metadata with the active V2 core bug-fix release
+-- Change  : align wrapper metadata with the active V2 core plus long-run DV harness recovery / fingerprint refresh
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -21,7 +21,7 @@ entity ring_buffer_cam is
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
         VERSION_PATCH       : natural := 5;
-        BUILD               : natural := 419;
+        BUILD               : natural := 421;
         VERSION_DATE        : natural := 20260417;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;

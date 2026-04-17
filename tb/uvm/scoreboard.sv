@@ -226,6 +226,16 @@ class scoreboard extends uvm_scoreboard;
     return fp;
   endfunction
 
+  function hit_fingerprint_t debug_pop_item_to_fp(ring_buffer_cam_pkg::debug_pop_item item);
+    hit_fingerprint_t fp;
+    fp.search_key = item.raw_hit[ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO] >> 4;
+    fp.et1n6      = item.raw_hit[ring_buffer_cam_pkg::ET1N6_HI:ring_buffer_cam_pkg::ET1N6_LO];
+    fp.ts50p      = item.raw_hit[ring_buffer_cam_pkg::TCC1N6_HI:ring_buffer_cam_pkg::TFINE_LO];
+    fp.asic       = item.raw_hit[ring_buffer_cam_pkg::ASIC_HI:ring_buffer_cam_pkg::ASIC_LO];
+    fp.channel    = item.raw_hit[ring_buffer_cam_pkg::CHANNEL_HI:ring_buffer_cam_pkg::CHANNEL_LO];
+    return fp;
+  endfunction
+
   function void write_push(ring_buffer_cam_pkg::debug_push_item item);
     int unsigned slot_addr;
     hit_fingerprint_t fp;
@@ -301,6 +311,7 @@ class scoreboard extends uvm_scoreboard;
   function void write_pop(ring_buffer_cam_pkg::debug_pop_item item);
     int unsigned slot_addr;
     bit [7:0] key;
+    hit_fingerprint_t pop_fp;
 
     slot_addr = item.slot_addr;
     if (slot_addr >= slot_model.size()) begin
@@ -314,10 +325,13 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
+    pop_fp = debug_pop_item_to_fp(item);
+
     if (!slot_model[slot_addr].valid) begin
-      `uvm_warning("SCB", $sformatf(
-        "Observed pop_erase from slot %0d with no live modeled entry",
-        slot_addr))
+      pending_drain_q.push_back(pop_fp);
+      `uvm_info("SCB", $sformatf(
+        "Recovered pop_erase from slot %0d using raw side-ram payload after the slot model was already clear",
+        slot_addr), UVM_LOW)
       return;
     end
 
@@ -336,7 +350,9 @@ class scoreboard extends uvm_scoreboard;
   endfunction
 
   function void write_out(ring_buffer_cam_pkg::out_seq_item item);
-    int match_idx;
+    int pending_match_idx;
+    int live_match_idx;
+    int overlap_match_idx;
 
     if (item.is_subheader) begin
       if (epoch_active && active_seen_hits != active_expected_hits) begin
@@ -385,37 +401,40 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
-    match_idx = find_pending_match_index(item);
-    if (match_idx >= 0) begin
-      pending_drain_q.delete(match_idx);
+    pending_match_idx = find_pending_match_index(item);
+    live_match_idx = -1;
+    overlap_match_idx = -1;
+
+    if (pending_match_idx >= 0) begin
+      pending_drain_q.delete(pending_match_idx);
     end else begin
-      match_idx = find_match_index(item);
-      if (match_idx < 0) begin
-        match_idx = find_overlap_match_index(item);
-        if (match_idx >= 0) begin
-          overlap_evicted_q.delete(match_idx);
+      live_match_idx = find_match_index(item);
+      if (live_match_idx < 0) begin
+        overlap_match_idx = find_overlap_match_index(item);
+        if (overlap_match_idx >= 0) begin
+          overlap_evicted_q.delete(overlap_match_idx);
           total_overlap_fallback_hits++;
         end
       end
     end
 
-    if (match_idx < 0) begin
+    if (pending_match_idx < 0 && live_match_idx < 0 && overlap_match_idx < 0) begin
       total_unexpected_outputs++;
       `uvm_error("SCB", $sformatf(
         "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h",
         item.active_search_key, item.asic, item.channel, item.ts50p, item.et1n6))
-    end else begin
-      if (slot_model[match_idx].valid) begin
+    end else if (live_match_idx >= 0) begin
+      if (slot_model[live_match_idx].valid) begin
         if (current_remaining > 0) begin
           current_remaining--;
         end
-        if (!current_remaining_by_key.exists(slot_model[match_idx].fp.search_key)) begin
-          current_remaining_by_key[slot_model[match_idx].fp.search_key] = 0;
+        if (!current_remaining_by_key.exists(slot_model[live_match_idx].fp.search_key)) begin
+          current_remaining_by_key[slot_model[live_match_idx].fp.search_key] = 0;
         end
-        if (current_remaining_by_key[slot_model[match_idx].fp.search_key] > 0) begin
-          current_remaining_by_key[slot_model[match_idx].fp.search_key]--;
+        if (current_remaining_by_key[slot_model[live_match_idx].fp.search_key] > 0) begin
+          current_remaining_by_key[slot_model[live_match_idx].fp.search_key]--;
         end
-        slot_model[match_idx].valid = 1'b0;
+        slot_model[live_match_idx].valid = 1'b0;
       end
     end
 

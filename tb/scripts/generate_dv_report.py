@@ -360,20 +360,22 @@ def parse_log(log_path: Path) -> dict | None:
 
     text = read_text_lossy(log_path)
     cov_match = re.search(r"cg_output=([0-9.]+)% cg_hit_data=([0-9.]+)%", text)
-    scb_match = re.search(
-        r"Summary: pushed=(\d+) popped=(\d+) remaining=(\d+) overwrites=(\d+)(?: unexpected=(\d+))?",
-        text,
-    )
+    summary_match = re.search(r"Summary:\s+([^\n\r]+)", text)
     err_count_match = re.search(r"# UVM_ERROR :\s+(\d+)", text)
     throughput = re.findall(r"Throughput: (\d+) hits in (\d+) cycles \(([0-9.]+)%\)", text)
     case_markers = re.findall(r"\[CASE\] (CASE_(?:BEGIN|END) .*?)$", text, flags=re.MULTILINE)
     error_lines = re.findall(r"UVM_ERROR .*?\[[^\]]+\] (.*)", text)
 
-    pushed = int(scb_match.group(1)) if scb_match else 0
-    popped = int(scb_match.group(2)) if scb_match else 0
-    remaining = int(scb_match.group(3)) if scb_match else 0
-    overwrites = int(scb_match.group(4)) if scb_match else 0
-    unexpected = int(scb_match.group(5)) if scb_match and scb_match.group(5) else 0
+    summary_fields: dict[str, int] = {}
+    if summary_match:
+        for key, value in re.findall(r"([a-z_]+)=([0-9]+)", summary_match.group(1)):
+            summary_fields[key] = int(value)
+
+    pushed = summary_fields.get("pushed", 0)
+    popped = summary_fields.get("popped", 0)
+    remaining = summary_fields.get("remaining", 0)
+    overwrites = summary_fields.get("overwrites", 0)
+    unexpected = summary_fields.get("unexpected", 0)
     uvm_errors = int(err_count_match.group(1)) if err_count_match else 0
     passed = "*** TEST PASSED ***" in text and uvm_errors == 0
 
@@ -386,6 +388,10 @@ def parse_log(log_path: Path) -> dict | None:
         "uvm_error_count": uvm_errors,
         "case_markers": len(case_markers),
     }
+    for key in ("pending_drain", "overlap_evicted", "overlap_fallback", "subheaders",
+                "zero_hit_subheaders", "accepted", "cache_miss_outputs"):
+        if key in summary_fields:
+            summary[key] = summary_fields[key]
     if cov_match:
         summary["cg_output_pct"] = float(cov_match.group(1))
         summary["cg_hit_data_pct"] = float(cov_match.group(2))
@@ -479,12 +485,18 @@ def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented
     target = PUB_LOGS / f"{name}_{RTL_VARIANT}_s{SEED}.log"
     if src and src.is_file() and src.resolve() == target.resolve():
         return
-    if target.exists() or target.is_symlink():
-        target.unlink()
 
     if src and src.is_file():
+        if target.exists() or target.is_symlink():
+            target.unlink()
         symlink_relative(target, src)
         return
+
+    if is_real_log(target):
+        return
+
+    if target.exists() or target.is_symlink():
+        target.unlink()
 
     state = "implemented but not yet rerun" if implemented else "planned only"
     write_text(
@@ -499,12 +511,18 @@ def publish_cov_artifact(name: str, src: Path | None) -> None:
     target = PUB_COV / f"{name}_s{SEED}.ucdb"
     if src and src.is_file() and src.resolve() == target.resolve():
         return
-    if target.exists() or target.is_symlink():
-        target.unlink()
 
     if src and src.is_file():
+        if target.exists() or target.is_symlink():
+            target.unlink()
         symlink_relative(target, src)
         return
+
+    if summarize_ucdb(str(target)):
+        return
+
+    if target.exists() or target.is_symlink():
+        target.unlink()
 
     write_text(
         target,
@@ -720,6 +738,55 @@ def build_report() -> dict:
     failed_cases = [item["case_id"] for item in all_cases if item.get("passed") is False]
     passed_cases = sum(1 for item in all_cases if item.get("passed") is True)
     evidenced_cases = sum(1 for item in all_cases if item.get("passed") in (True, False))
+    formal_rows: list[dict] = []
+
+    for bucket_name, bucket_data in buckets.items():
+        cases = bucket_data["cases"]
+        executed_cases = sum(1 for item in cases if item.get("passed") in (True, False))
+        failing_cases = sum(1 for item in cases if item.get("passed") is False)
+        observed_txn = sum(int(item.get("observed_txn", 0) or 0) for item in cases)
+        asserted_failures = sum(
+            int((item.get("log_summary") or {}).get("uvm_error_count", 0) or 0) for item in cases
+        )
+        unexpected_outputs = sum(
+            int((item.get("log_summary") or {}).get("unexpected_outputs", 0) or 0) for item in cases
+        )
+        planned_cases = len(cases)
+        formal_rows.append(
+            {
+                "scope": bucket_name,
+                "planned_cases": planned_cases,
+                "executed_cases": executed_cases,
+                "executed_ratio_pct": round((100.0 * executed_cases / planned_cases), 2)
+                if planned_cases
+                else 0.0,
+                "observed_txn": observed_txn,
+                "failing_cases": failing_cases,
+                "asserted_failures": asserted_failures,
+                "unexpected_outputs": unexpected_outputs,
+            }
+        )
+
+    formal_rows.append(
+        {
+            "scope": "TOTAL",
+            "planned_cases": len(all_cases),
+            "executed_cases": evidenced_cases,
+            "executed_ratio_pct": round((100.0 * evidenced_cases / len(all_cases)), 2)
+            if all_cases
+            else 0.0,
+            "observed_txn": sum(int(item.get("observed_txn", 0) or 0) for item in all_cases),
+            "failing_cases": len(failed_cases),
+            "asserted_failures": sum(
+                int((item.get("log_summary") or {}).get("uvm_error_count", 0) or 0)
+                for item in all_cases
+            ),
+            "unexpected_outputs": sum(
+                int((item.get("log_summary") or {}).get("unexpected_outputs", 0) or 0)
+                for item in all_cases
+            ),
+        }
+    )
 
     all_ucdbs: list[Path] = []
     if VCOVER_BIN is not None:
@@ -749,6 +816,7 @@ def build_report() -> dict:
         "bugs": parse_bug_history(BUG_HISTORY_FILE),
         "buckets": buckets,
         "bucket_summary": bucket_summary,
+        "formal_summary": formal_rows,
         "implementation_summary": {
             "implemented_count": implemented_count,
             "unimplemented_count": len(all_cases) - implemented_count,

@@ -1,3 +1,1 @@
-E019 has no live log artifact.
-State: planned only
-Scenario: depth-1 (511 hits) same-key while EXPECTED_LATENCY=min (1)
+../work_uvm/logs/test_case_engine_E019_s1.log

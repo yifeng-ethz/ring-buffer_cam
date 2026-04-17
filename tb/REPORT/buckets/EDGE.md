@@ -1,6 +1,6 @@
 # ⚠️ EDGE bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `16` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `20` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 95.51 | 95.0 |
-| ⚠️ | branch | 84.63 | 90.0 |
+| ✅ | stmt | 95.56 | 95.0 |
+| ⚠️ | branch | 84.81 | 90.0 |
 | ℹ️ | cond | 69.35 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 64.48 | 80.0 |
+| ⚠️ | toggle | 67.10 | 80.0 |
 
 ## Ordered merge trace
 
@@ -45,11 +45,11 @@
 | ✅ | 16 | `E016` | stmt=95.51, branch=84.63, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=64.48 | [case](../cases/E016.md) |
 | ❓ | 17 | `E017` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E017.md) |
 | ❓ | 18 | `E018` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E018.md) |
-| ❓ | 19 | `E019` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E019.md) |
-| ❓ | 20 | `E020` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E020.md) |
-| ❓ | 21 | `E021` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E021.md) |
+| ✅ | 19 | `E019` | stmt=95.51, branch=84.63, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=64.50 | [case](../cases/E019.md) |
+| ✅ | 20 | `E020` | stmt=95.51, branch=84.63, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=64.50 | [case](../cases/E020.md) |
+| ✅ | 21 | `E021` | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.04 | [case](../cases/E021.md) |
 | ❓ | 22 | `E022` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E022.md) |
-| ❓ | 23 | `E023` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E023.md) |
+| ✅ | 23 | `E023` | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | [case](../cases/E023.md) |
 | ❓ | 24 | `E024` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E024.md) |
 | ❓ | 25 | `E025` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E025.md) |
 | ❓ | 26 | `E026` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E026.md) |

@@ -1,3 +1,1 @@
-E023 has no live log artifact.
-State: planned only
-Scenario: push 2000-hit burst at nominal latency 2000 to confirm steady-state drain
+../work_uvm/logs/test_case_engine_E023_s1.log

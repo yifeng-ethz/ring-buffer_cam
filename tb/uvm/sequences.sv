@@ -359,12 +359,15 @@ class overwrite_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_
 
       hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("pressure_hit");
       start_item(hit);
-      hit.asic      = i[3:0];
-      hit.ingress_channel = i[3:0];
-      hit.channel   = i[4:0];
+      // Keep long-running pressure traffic uniquely identifiable to the scoreboard.
+      // The older mapping repeated the full fingerprint tuple every 2048 hits,
+      // which made deep overwrite soaks ambiguous under pop/drain reordering.
+      hit.asic      = i & 4'hf;
+      hit.ingress_channel = (i >> 1) & 4'hf;
+      hit.channel   = (i >> 4) & 5'h1f;
       hit.tcc8n     = 13'(actual_key * 16);
-      hit.tcc1n6    = i[2:0];
-      hit.tfine     = i[4:0];
+      hit.tcc1n6    = (i >> 9) & 3'h7;
+      hit.tfine     = (i >> 4) & 5'h1f;
       hit.et1n6     = i[8:0];
       hit.has_error = 0;
       hit.is_empty_marker = 1'b0;

@@ -1,3 +1,1 @@
-B047 has no live log artifact.
-State: planned only
-Scenario: run-control illegal edge: IDLE -> RUNNING (skipping PREP/SYNC) produces no accepted pushes because csr.go/flush handshake gate never opened
+../work_uvm/logs/test_case_engine_B047_s1.log

@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-17` &nbsp;
-**Release under check:** `26.1.5.0419` &nbsp; **Git base:** `d412d7a`
+**Release under check:** `26.1.5.0421` &nbsp; **Git base:** `d412d7a`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -15,7 +15,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
 | ✅ | standalone_syn_p4_512 | `pass` |
-| ⚠️ | dv_closure | `95/516` planned cases evidenced |
+| ⚠️ | dv_closure | `130/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `18.41% (95/516)` functional proxy, `0` active failed implemented cases | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `421` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `25.19% (130/516)` functional proxy, `0` active failed implemented cases | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `386` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -52,7 +52,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-008` same-key overwrite tail suppression verified in the signoff build |
 | ✅ | Harness | standalone Quartus source list repaired to compile the live `rtl/` tree and active V2 core |
 | ✅ | Harness | synthesis harness updated to the live wrapper contract and normalized to the delivered `512`-entry depth |
-| ✅ | Metadata | wrapper defaults aligned to `26.1.5.0419` so runtime identity matches the packaged IP |
+| ✅ | Metadata | wrapper defaults aligned to `26.1.5.0421` so runtime identity matches the packaged IP |
 
 ## Evidence Index
 

@@ -897,7 +897,7 @@ class base_test extends uvm_test;
   endtask
 
   function automatic logic [31:0] expected_meta_version();
-    return 32'h1A01_51A2;
+    return 32'h1A01_51A5;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
@@ -1085,6 +1085,25 @@ class base_test extends uvm_test;
       what, max_cycles, observed_mask, expected_mask))
   endtask
 
+  task automatic wait_for_pop_cmd_fifo_usedw_at_least(
+    input int unsigned target_usedw,
+    input int unsigned max_cycles = 50_000,
+    input string what = "pop_cmd_fifo_usedw threshold"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.pop_cmd_fifo_usedw >= target_usedw[3:0]) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: observed_usedw=%0d target_usedw=%0d",
+      what, max_cycles, m_env.m_dbg_mon.pop_cmd_fifo_usedw, target_usedw))
+  endtask
+
   task automatic run_case_by_id(string case_id);
     single_push_pop_seq   single_seq;
     same_key_burst_seq    burst_seq;
@@ -1124,6 +1143,7 @@ class base_test extends uvm_test;
     int unsigned          search_cycles;
     int unsigned          wait_min;
     int unsigned          wait_max;
+    int unsigned          error_hit_count;
     logic [3:0]           load_mask;
     logic [1:0]           rr_before;
     bit                   saw_load;
@@ -1584,6 +1604,81 @@ class base_test extends uvm_test;
       if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
         `uvm_error("B046", "Duplicate RUNNING glitched run_mgmt_flushed")
       end
+    end else if (case_id == "B047") begin
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd16);
+      wait_clocks(2);
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_for_run_state(4'd3, 2_000, "B047 direct RUNNING entry");
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
+        `uvm_error("B047", "Direct IDLE->RUNNING unexpectedly left run_mgmt_flushed asserted")
+      end
+      burst_seq = same_key_burst_seq::type_id::create("b047_direct_running");
+      burst_seq.num_hits = 4;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(4, 20_000, "B047 direct RUNNING accepts ingress");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      if (push_count != 4) begin
+        `uvm_error("B047", $sformatf(
+          "Direct RUNNING did not accept the 4-hit burst: push_count=%0d",
+          push_count))
+      end
+      enter_run_prepare();
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "B047 PREP flush clears PUSH_COUNT");
+      csr_expect_mask(CSR_POP_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "B047 PREP flush clears POP_COUNT");
+      csr_expect_mask(CSR_OVERWRITE_ADDR, 32'hFFFF_FFFF, 32'd0, "B047 PREP flush clears OVERWRITE_COUNT");
+      csr_expect_mask(CSR_FILL_LEVEL_ADDR, 32'hFFFF_FFFF, 32'd0, "B047 PREP flush clears FILL_LEVEL");
+      if (m_env.m_scb.remaining_entries() != 0 || m_env.m_scb.pending_drain_entries() != 0) begin
+        `uvm_error("B047", $sformatf(
+          "PREP flush did not clear the scoreboard model after direct RUNNING: remaining=%0d pending_drain=%0d",
+          m_env.m_scb.remaining_entries(), m_env.m_scb.pending_drain_entries()))
+      end
+    end else if (case_id == "B048") begin
+      enter_run_prepare();
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd16);
+      wait_clocks(2);
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_for_run_state(4'd3, 2_000, "B048 PREP->RUNNING entry");
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b0) begin
+        `uvm_error("B048", "Skipping SYNC should leave gts_counter_rst deasserted in RUNNING")
+      end
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b0) begin
+        `uvm_error("B048", "PREP->RUNNING did not clear run_mgmt_flushed")
+      end
+      burst_seq = same_key_burst_seq::type_id::create("b048_presync_hits");
+      burst_seq.num_hits = 4;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(4, 20_000, "B048 PREP->RUNNING accepts ingress");
+      ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+      wait_clocks(2);
+      wait_for_run_state(4'd2, 2_000, "B048 late SYNC entry");
+      if (m_env.m_dbg_mon.gts_counter_rst !== 1'b1 || m_env.m_dbg_mon.gts_8n != 0) begin
+        `uvm_error("B048", $sformatf(
+          "Late SYNC did not reset gts_8n cleanly: rst=%0d gts=%0d",
+          m_env.m_dbg_mon.gts_counter_rst, m_env.m_dbg_mon.gts_8n))
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+      wait_clocks(4);
+      wait_for_run_state(4'd3, 2_000, "B048 post-SYNC RUNNING re-entry");
+      wait_for_scoreboard_idle(80_000, "B048 late SYNC recovery drain");
+      expect_service_model_accounting("B048 late SYNC recovery drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      if (push_count != 4 || pop_count != 4) begin
+        `uvm_error("B048", $sformatf(
+          "Late-SYNC recovery did not drain the preserved backlog: push=%0d pop=%0d",
+          push_count, pop_count))
+      end
+      if (m_env.m_out_mon.total_subheaders_seen <= subhdr_before ||
+          m_env.m_out_mon.total_hits_seen < (hit_before + 4)) begin
+        `uvm_error("B048", $sformatf(
+          "Late-SYNC recovery did not emit the expected output: subheaders_before=%0d subheaders_after=%0d hits_before=%0d hits_after=%0d",
+          subhdr_before, m_env.m_out_mon.total_subheaders_seen,
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
     end else if (case_id == "B049") begin
       m_env.m_ctrl_drv.vif.data <= 9'b000100000;
       m_env.m_ctrl_drv.vif.valid <= 1'b1;
@@ -1893,6 +1988,48 @@ class base_test extends uvm_test;
           `uvm_error("B066", "Hit egress bit slices did not match the injected payload")
         end
       end
+    end else if (case_id == "B068") begin
+      configure_and_start(64);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      single_seq = single_push_pop_seq::type_id::create("b068_good_a");
+      single_seq.search_key = focus_search_key;
+      single_seq.ts_low = 4'h0;
+      single_seq.start(m_env.m_hit_seqr);
+      single_seq = single_push_pop_seq::type_id::create("b068_glitch");
+      single_seq.use_raw_tcc8n = 1'b1;
+      single_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h1, 1'b1);
+      single_seq.hit_has_error = 1'b0;
+      single_seq.start(m_env.m_hit_seqr);
+      single_seq = single_push_pop_seq::type_id::create("b068_good_b");
+      single_seq.search_key = focus_search_key;
+      single_seq.ts_low = 4'h2;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(focus_search_key[7:0], 80_000, "B068 target subheader", matched_subheader);
+      wait_for_hit_output_count(hit_before + 3, 80_000, "B068 good-glitch-good drain");
+      if (m_env.m_out_mon.recent_hits.size() < 3) begin
+        `uvm_error("B068", "Did not capture three output hits for the good-glitch-good check")
+      end else begin
+        error_hit_count = 0;
+        for (int idx = m_env.m_out_mon.recent_hits.size() - 3;
+             idx < m_env.m_out_mon.recent_hits.size();
+             idx++) begin
+          if (m_env.m_out_mon.recent_hits[idx].active_search_key != focus_search_key[7:0]) begin
+            `uvm_error("B068", $sformatf(
+              "Observed hit from the wrong search key in the glitch window: expected=0x%02x observed=0x%02x",
+              focus_search_key[7:0], m_env.m_out_mon.recent_hits[idx].active_search_key))
+          end
+          if (m_env.m_out_mon.recent_hits[idx].error)
+            error_hit_count++;
+        end
+        if (error_hit_count != 1) begin
+          `uvm_error("B068", $sformatf(
+            "Expected exactly one tsglitcherr-marked hit in the three-hit window, observed=%0d",
+            error_hit_count))
+        end
+      end
+      wait_for_scoreboard_idle(80_000, "B068 good-glitch-good drain");
+      expect_service_model_accounting("B068 good-glitch-good drain", 1, 0);
     end else if (case_id == "B069") begin
       configure_and_start();
       cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
@@ -2530,6 +2667,157 @@ class base_test extends uvm_test;
             m_env.m_out_mon.recent_data_subheaders[$].search_key,
             focus_search_key[7:0]))
         end
+      end
+    end else if (case_id == "E019") begin
+      configure_and_start(1);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      burst_seq = same_key_burst_seq::type_id::create("e019_depthm1_latency1");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 1, 40_000, "E019 depth-1 fill");
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'h0001) begin
+        `uvm_error("E019", $sformatf(
+          "EXPECTED_LATENCY=1 did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      search_cycles = 0;
+      while (search_cycles < 256 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E019", "EXPECTED_LATENCY=1 did not trigger an early pop descriptor")
+      end
+      wait_for_subheader_match(
+        focus_search_key[7:0], '0, 1'b0, 1'b1, 500_000,
+        "E019 latency-1 data-bearing subheader", matched_subheader);
+      wait_for_hit_output_count(m_cfg.ring_buffer_n_entry - 1, 3_000_000, "E019 full depth-1 drain");
+      wait_for_scoreboard_idle(500_000, "E019 latency-1 full drain");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != (m_cfg.ring_buffer_n_entry - 1) ||
+          pop_count != (m_cfg.ring_buffer_n_entry - 1) ||
+          overwrite_count != 0 ||
+          fill_level != 0) begin
+        `uvm_error("E019", $sformatf(
+          "Latency-1 depth-1 accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_pop=%0d",
+          push_count, pop_count, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry - 1))
+      end
+    end else if (case_id == "E020") begin
+      configure_and_start(16'hFFFF);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("e020_depth_latency_max");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 40_000, "E020 exact-depth fill");
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'hFFFF) begin
+        `uvm_error("E020", $sformatf(
+          "EXPECTED_LATENCY=max did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      wait_clocks(4_096);
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before ||
+          m_env.m_out_mon.total_subheaders_seen != subhdr_before) begin
+        `uvm_error("E020", $sformatf(
+          "Maximum-latency run started draining too early: cmd_before=%0d cmd_after=%0d subhdr_before=%0d subhdr_after=%0d",
+          cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count,
+          subhdr_before, m_env.m_out_mon.total_subheaders_seen))
+      end
+      search_cycles = 0;
+      while (search_cycles < 120_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E020", "Maximum-latency run never emitted a delayed pop descriptor")
+      end
+      wait_for_hit_output_count(m_cfg.ring_buffer_n_entry, 6_000_000, "E020 delayed full-depth drain");
+      wait_for_scoreboard_idle(1_000_000, "E020 delayed full-depth drain");
+      if (m_env.m_dbg_mon.first_push_cycle == 0 || m_env.m_dbg_mon.first_pop_cycle == 0) begin
+        `uvm_error("E020", "Maximum-latency run did not observe both first push and first pop")
+      end else begin
+        cycle_a = m_env.m_dbg_mon.first_pop_cycle - m_env.m_dbg_mon.first_push_cycle;
+        if (cycle_a < 60_000) begin
+          `uvm_error("E020", $sformatf(
+            "Maximum-latency drain started too early: first_pop_minus_first_push=%0d cycles",
+            cycle_a))
+        end
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != m_cfg.ring_buffer_n_entry ||
+          pop_count != m_cfg.ring_buffer_n_entry ||
+          overwrite_count != 0 ||
+          fill_level != 0) begin
+        `uvm_error("E020", $sformatf(
+          "Maximum-latency accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_pop=%0d",
+          push_count, pop_count, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry))
+      end
+    end else if (case_id == "E021") begin
+      configure_and_start(2000);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      seq_keys = sequential_keys_seq::type_id::create("e021_lane_local_key_sweep");
+      seq_keys.num_keys = 64;
+      seq_keys.hits_per_key = 8;
+      seq_keys.start_key = 0;
+      seq_keys.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 40_000, "E021 lane-local key sweep");
+      wait_for_hit_output_count(m_cfg.ring_buffer_n_entry, 4_000_000, "E021 lane-local full drain");
+      wait_for_scoreboard_idle(600_000, "E021 lane-local key sweep drain");
+      if (m_env.m_out_mon.total_data_subheaders_seen != subhdr_before + 64) begin
+        `uvm_error("E021", $sformatf(
+          "Lane-local key sweep emitted the wrong number of data-bearing subheaders: observed_delta=%0d expected=64",
+          m_env.m_out_mon.total_data_subheaders_seen - subhdr_before))
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != m_cfg.ring_buffer_n_entry ||
+          pop_count != m_cfg.ring_buffer_n_entry ||
+          overwrite_count != 0 ||
+          fill_level != 0) begin
+        `uvm_error("E021", $sformatf(
+          "Lane-local key sweep accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_pop=%0d",
+          push_count, pop_count, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry))
+      end
+    end else if (case_id == "E023") begin
+      configure_and_start(2000);
+      pressure_seq = overwrite_profile_seq::type_id::create("e023_steady_state");
+      pressure_seq.num_hits = 2000;
+      pressure_seq.lane_key_start_ord = 0;
+      pressure_seq.pool_keys = 64;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.inter_hit_gap_cycles = 31;
+      pressure_seq.progress_stride = 500;
+      pressure_seq.progress_tag = "E023";
+      pressure_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(1_500_000, "E023 steady-state drain");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 2000 || pop_count != 2000 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E023", $sformatf(
+          "Steady-state drain accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_pop=2000",
+          push_count, pop_count, overwrite_count, fill_level))
+      end
+      if (m_env.m_scb.max_remaining_entries() < 32 ||
+          m_env.m_scb.max_remaining_entries() > 128) begin
+        `uvm_error("E023", $sformatf(
+          "Steady-state backlog escaped the expected bounded window: max_remaining=%0d expected_range=[32,128]",
+          m_env.m_scb.max_remaining_entries()))
       end
     end else if (case_id == "P001") begin
       configure_and_start();

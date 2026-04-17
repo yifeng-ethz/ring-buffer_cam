@@ -1,3 +1,1 @@
-E020 has no live log artifact.
-State: planned only
-Scenario: depth (512 hits) same-key with EXPECTED_LATENCY=max (0xFFFF=65535)
+../work_uvm/logs/test_case_engine_E020_s1.log
