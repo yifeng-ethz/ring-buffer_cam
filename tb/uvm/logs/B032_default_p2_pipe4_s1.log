@@ -1,3 +1,1 @@
-B032 has no live log artifact.
-State: planned only
-Scenario: CSR waitrequest protocol: `avs_csr_waitrequest` drops to 0 the cycle after any read or write, returns to 1 in idle
+../work_uvm/logs/test_case_engine_B032_s1.log

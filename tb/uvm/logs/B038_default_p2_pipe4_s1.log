@@ -1,3 +1,1 @@
-B038 has no live log artifact.
-State: planned only
-Scenario: run-control edge: SYNC -> RUNNING on payload `000001000` deasserts `gts_counter_rst` and clears `run_mgmt_flushed`
+../work_uvm/logs/test_case_engine_B038_s1.log

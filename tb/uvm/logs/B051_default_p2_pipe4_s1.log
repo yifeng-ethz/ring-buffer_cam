@@ -1,3 +1,1 @@
-B051 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: ingress gate: `csr.go=0` blocks `deassembly_fifo_wrreq` even in RUNNING
+../work_uvm/logs/test_case_engine_B051_s1.log

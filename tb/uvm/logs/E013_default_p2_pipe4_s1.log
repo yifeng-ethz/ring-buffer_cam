@@ -1,3 +1,1 @@
-E013 has no live log artifact.
-State: planned only
-Scenario: fill exactly to partition boundary MATCH_PARTITION_SIZE_CONST-1 (127) on partition 0 only
+../work_uvm/logs/test_case_engine_E013_s1.log

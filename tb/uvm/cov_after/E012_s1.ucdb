@@ -1,3 +1,1 @@
-E012 has no standalone UCDB artifact yet.
-The current ring_buffer_cam workflow captures functional-covergroup percentages in logs,
-but code-coverage UCDB save/merge is still pending promotion.
+../cov_default_p2_pipe4/E012_s1.ucdb

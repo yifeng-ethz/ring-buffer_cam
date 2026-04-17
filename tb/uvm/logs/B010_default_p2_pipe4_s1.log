@@ -1,3 +1,1 @@
-B010 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,4,402) bit layout
+../work_uvm/logs/test_case_engine_B010_s1.log

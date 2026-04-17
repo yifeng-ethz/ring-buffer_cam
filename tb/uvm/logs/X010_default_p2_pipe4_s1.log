@@ -1,3 +1,1 @@
-X010 has no live log artifact.
-State: planned only
-Scenario: back-to-back bad hits (2 consecutive cycles), `filter_inerr=1`, during RUNNING — confirm `inerr_cnt` accumulates without double-pumping or skipping
+../work_uvm/logs/test_case_engine_X010_s1.log

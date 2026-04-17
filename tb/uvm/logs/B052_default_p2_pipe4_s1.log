@@ -1,3 +1,1 @@
-B052 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: ingress interleaving: only beats with `ts[TCC8N_INTERLEAVING_HI:LO] = INTERLEAVING_INDEX` reach the fifo
+../work_uvm/logs/test_case_engine_B052_s1.log

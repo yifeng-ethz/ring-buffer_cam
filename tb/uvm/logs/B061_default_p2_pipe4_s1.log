@@ -1,3 +1,1 @@
-B061 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: subheader framing for 1-hit drain: SOP on subheader beat, EOP on hit beat, hit_count field = 0x01
+../work_uvm/logs/test_case_engine_B061_s1.log

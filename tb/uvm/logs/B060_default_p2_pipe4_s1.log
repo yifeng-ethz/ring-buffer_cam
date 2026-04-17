@@ -1,3 +1,1 @@
-B060 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: subheader framing for empty drain: SOP+EOP same beat, hit_count field = 0x00, K237 lane = 0xF7
+../work_uvm/logs/test_case_engine_B060_s1.log

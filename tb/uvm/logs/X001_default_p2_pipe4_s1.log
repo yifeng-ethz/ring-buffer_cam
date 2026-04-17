@@ -1,3 +1,1 @@
-X001 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: filter_inerr on/off behavior under injected bad-hit patterns
+../work_uvm/logs/test_case_engine_X001_s1.log

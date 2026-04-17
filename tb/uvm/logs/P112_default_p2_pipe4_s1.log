@@ -1,3 +1,1 @@
-P112 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: overwrite-pressure soak: one same-ts hotspot (pool=1), stronger burst so the pre-service arrival window exceeds 512 by a medium margin, 50k txn equivalent
+../work_uvm/logs/test_case_engine_P112_s1.log

@@ -1,3 +1,1 @@
-B055 has no live log artifact.
-State: planned only
-Scenario: push pipeline depth 2: one hit followed by pointer wrap onto an occupied slot, state enters ERASE for one cycle
+../work_uvm/logs/test_case_engine_B055_s1.log

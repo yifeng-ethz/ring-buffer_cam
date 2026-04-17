@@ -1,3 +1,1 @@
-B049 has no live log artifact.
-State: planned only
-Scenario: run-control: `LINK_TEST` (`000100000`) and `SYNC_TEST` (`001000000`) fall into the `others=>` branch, leaving ctrl_ready=0
+../work_uvm/logs/test_case_engine_B049_s1.log

@@ -1,3 +1,1 @@
-X007 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: single `asi_hit_type1_error(0)=1` pulse during RUNNING with `filter_inerr=1`, DUT idle (no in-flight push/drain) — expect filter in `proc_avst_input_deassembly_comb` to suppress `deassembly_fifo_wrreq` and `proc_csr_rw` to bump `inerr_cnt`
+../work_uvm/logs/test_case_engine_X007_s1.log

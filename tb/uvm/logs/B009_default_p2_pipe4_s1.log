@@ -1,3 +1,1 @@
-B009 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity
+../work_uvm/logs/test_case_engine_B009_s1.log

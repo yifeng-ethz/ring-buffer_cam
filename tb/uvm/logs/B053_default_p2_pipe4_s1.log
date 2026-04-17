@@ -1,3 +1,1 @@
-B053 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: ingress empty-marker: `asi_hit_type1_empty=1` with matching `channel[1:0]` bypasses the data-based lane match and sets `endofrun_seen` on EOP
+../work_uvm/logs/test_case_engine_B053_s1.log

@@ -1,3 +1,1 @@
-B054 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: push pipeline depth 1: single hit, verify one-cycle push_write, no ERASE state entered (`addr_occupied=0` at write_pointer)
+../work_uvm/logs/test_case_engine_B054_s1.log

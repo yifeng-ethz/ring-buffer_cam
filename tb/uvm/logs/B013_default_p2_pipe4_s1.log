@@ -1,3 +1,1 @@
-B013 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic
+../work_uvm/logs/test_case_engine_B013_s1.log

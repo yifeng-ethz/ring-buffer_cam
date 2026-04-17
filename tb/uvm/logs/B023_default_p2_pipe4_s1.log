@@ -1,3 +1,1 @@
-B023 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[5] INERR_COUNT increments only when `filter_inerr=1` AND `asi_hit_type1_error(0)=1` is seen
+../work_uvm/logs/test_case_engine_B023_s1.log

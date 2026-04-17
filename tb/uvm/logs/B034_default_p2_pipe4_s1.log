@@ -1,3 +1,1 @@
-B034 has no live log artifact.
-State: planned only
-Scenario: run-control edge: IDLE -> RUN_PREPARE on payload `000000010` asserts both `pop_cmd_fifo_sclr` and `deassembly_fifo_sclr`
+../work_uvm/logs/test_case_engine_B034_s1.log

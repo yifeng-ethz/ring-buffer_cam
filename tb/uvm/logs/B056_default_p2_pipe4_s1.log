@@ -1,3 +1,1 @@
-B056 has no live log artifact.
-State: planned only
-Scenario: pop search latency baseline: `SEARCH` state counts `pop_search_wait_cnt` 0..5 before snapshotting match vector
+../work_uvm/logs/test_case_engine_B056_s1.log

@@ -1,3 +1,1 @@
-B016 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[2] CTRL bit[4] `filter_inerr` reset default = 1
+../work_uvm/logs/test_case_engine_B016_s1.log

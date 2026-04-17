@@ -1,3 +1,1 @@
-B014 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[2] CTRL bit[0] `go` reset default = 1 verified before any write
+../work_uvm/logs/test_case_engine_B014_s1.log

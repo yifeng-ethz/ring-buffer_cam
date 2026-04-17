@@ -1,3 +1,1 @@
-B033 has no live log artifact.
-State: planned only
-Scenario: run-control: payload `000000001` (IDLE) at reset produces immediate `asi_ctrl_ready` ack
+../work_uvm/logs/test_case_engine_B033_s1.log

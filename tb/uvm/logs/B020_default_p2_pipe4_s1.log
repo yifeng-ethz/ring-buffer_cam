@@ -1,3 +1,1 @@
-B020 has no live log artifact.
-State: planned only
-Scenario: CSR[3] EXPECTED_LATENCY mid-range write 0x4000 while RUNNING and verify `read_time_ptr` shifts by the same delta
+../work_uvm/logs/test_case_engine_B020_s1.log

@@ -1,3 +1,1 @@
-B042 has no live log artifact.
-State: planned only
-Scenario: run-control edge: IDLE -> RESET on payload `010000000` drops `asi_ctrl_ready` immediately (per RESET branch)
+../work_uvm/logs/test_case_engine_B042_s1.log

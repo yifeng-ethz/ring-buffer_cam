@@ -1,3 +1,1 @@
-B024 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[5] INERR_COUNT is cleared when run-control enters RUN_PREPARE (flush, `decision_reg=3`)
+../work_uvm/logs/test_case_engine_B024_s1.log

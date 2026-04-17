@@ -1,3 +1,1 @@
-B004 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: One accepted hit drains correctly through full protocol path
+../work_uvm/logs/test_case_engine_B004_s1.log

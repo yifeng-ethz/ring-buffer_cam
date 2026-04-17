@@ -1,3 +1,1 @@
-B064 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: subheader `data[7:0]` = K237 (0xF7) constant
+../work_uvm/logs/test_case_engine_B064_s1.log

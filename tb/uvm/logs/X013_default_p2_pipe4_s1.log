@@ -1,3 +1,1 @@
-X013 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: bad hit with `asi_hit_type1_channel` NOT matching `INTERLEAVING_INDEX` — the lane_match_v guard should drop the hit before the error-filter ever sees it
+../work_uvm/logs/test_case_engine_X013_s1.log

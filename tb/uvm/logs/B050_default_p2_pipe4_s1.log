@@ -1,3 +1,1 @@
-B050 has no live log artifact.
-State: planned only
-Scenario: run-control: `OUT_OF_DAQ` (`100000000`) falls into `others=>` branch, no ingress accepted
+../work_uvm/logs/test_case_engine_B050_s1.log

@@ -1,3 +1,1 @@
-B011 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260402)
+../work_uvm/logs/test_case_engine_B011_s1.log

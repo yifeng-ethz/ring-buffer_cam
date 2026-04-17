@@ -1,3 +1,1 @@
-B037 has no live log artifact.
-State: planned only
-Scenario: run-control edge: RUN_PREPARE -> SYNC on payload `000000100` asserts `gts_counter_rst='1'`
+../work_uvm/logs/test_case_engine_B037_s1.log

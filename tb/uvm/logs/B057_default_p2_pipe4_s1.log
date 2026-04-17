@@ -1,3 +1,1 @@
-B057 has no live log artifact.
-State: planned only
-Scenario: pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per partition
+../work_uvm/logs/test_case_engine_B057_s1.log

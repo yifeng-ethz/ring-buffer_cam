@@ -1,3 +1,1 @@
-E004 has no live log artifact.
-State: planned only
-Scenario: push traffic arrives while pop drain is active
+../work_uvm/logs/test_case_engine_E004_s1.log

@@ -1,3 +1,1 @@
-B031 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[0] UID and CSR[1] META correlated readback in the same transaction pair: UID stable across a concurrent META selector write
+../work_uvm/logs/test_case_engine_B031_s1.log

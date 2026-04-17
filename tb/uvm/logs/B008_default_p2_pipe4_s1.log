@@ -1,3 +1,1 @@
-B008 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: explicit run-control startup spine as a standalone case
+../work_uvm/logs/test_case_engine_B008_s1.log

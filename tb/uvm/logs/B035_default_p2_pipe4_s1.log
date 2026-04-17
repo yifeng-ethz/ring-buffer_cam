@@ -1,3 +1,1 @@
-B035 has no live log artifact.
-State: planned only
-Scenario: run-control edge: PREP -> PREP-ready requires all of `pop_cmd_fifo_empty`, `deassembly_fifo_empty`, `debug_msg2.cam_clean`, `run_mgmt_flushed`
+../work_uvm/logs/test_case_engine_B035_s1.log

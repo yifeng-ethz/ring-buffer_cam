@@ -1,3 +1,1 @@
-B040 has no live log artifact.
-State: planned only
-Scenario: run-control edge: TERMINATING ready deferred until `terminating_drain_done=1` (endofrun_seen & fifos empty & pop IDLE & push=pop+ow)
+../work_uvm/logs/test_case_engine_B040_s1.log

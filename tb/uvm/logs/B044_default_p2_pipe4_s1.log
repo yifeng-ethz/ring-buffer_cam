@@ -1,3 +1,1 @@
-B044 has no live log artifact.
-State: planned only
-Scenario: run-control idempotency: duplicate `RUN_PREPARE` commands do not retrigger `run_mgmt_flush_memory_start` once `run_mgmt_flushed=1`
+../work_uvm/logs/test_case_engine_B044_s1.log

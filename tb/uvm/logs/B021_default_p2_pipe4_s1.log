@@ -1,3 +1,1 @@
-B021 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[4] FILL_LEVEL tracks `push_cnt - pop_cnt - overwrite_cnt` after N pushes with no pops
+../work_uvm/logs/test_case_engine_B021_s1.log

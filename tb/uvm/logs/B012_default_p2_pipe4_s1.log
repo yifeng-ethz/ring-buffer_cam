@@ -1,3 +1,1 @@
-B012 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic
+../work_uvm/logs/test_case_engine_B012_s1.log

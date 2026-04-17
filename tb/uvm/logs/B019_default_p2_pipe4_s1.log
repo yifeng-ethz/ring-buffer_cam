@@ -1,3 +1,1 @@
-B019 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[3] EXPECTED_LATENCY full 16-bit writable range (no RTL clamp) using 0x0000 and 0xFFFF
+../work_uvm/logs/test_case_engine_B019_s1.log

@@ -1,3 +1,1 @@
-E009 has no live log artifact.
-State: planned only
-Scenario: fill to exactly RING_BUFFER_N_ENTRY-1 (511) same-key hits, then drain
+../work_uvm/logs/test_case_engine_E009_s1.log

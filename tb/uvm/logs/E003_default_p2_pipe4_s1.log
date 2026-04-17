@@ -1,3 +1,1 @@
-E003 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: same-ts hotspot burst that injects more than 512 hits into one sector before the `EXPECTED_LATENCY=2000` service window can retire them
+../work_uvm/logs/test_case_engine_E003_s1.log

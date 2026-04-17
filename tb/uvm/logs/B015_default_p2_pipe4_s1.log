@@ -1,3 +1,1 @@
-B015 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[2] CTRL bit[1] `soft_reset` self-clears within one idle cycle after host write-1
+../work_uvm/logs/test_case_engine_B015_s1.log

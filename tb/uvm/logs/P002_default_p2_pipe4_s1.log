@@ -1,3 +1,1 @@
-P002 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: randomized multi-key traffic over several key groups
+../work_uvm/logs/test_case_engine_P002_s1.log

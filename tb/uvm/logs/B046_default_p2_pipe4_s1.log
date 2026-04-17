@@ -1,3 +1,1 @@
-B046 has no live log artifact.
-State: planned only
-Scenario: run-control idempotency: duplicate `RUNNING` commands do not reset run_mgmt_flushed twice (only one clear per transition)
+../work_uvm/logs/test_case_engine_B046_s1.log

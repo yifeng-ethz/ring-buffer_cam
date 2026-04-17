@@ -1,3 +1,1 @@
-B059 has no live log artifact.
-State: planned only
-Scenario: pop COUNT zero-hit fast path: if `pop_count_total_acc=0` engine transitions COUNT -> RESET and asserts `pop_cmd_fifo_rdack`
+../work_uvm/logs/test_case_engine_B059_s1.log

@@ -1,3 +1,3 @@
 P121 has no standalone UCDB artifact yet.
-The current ring_buffer_cam workflow captures functional-covergroup percentages in logs,
-but code-coverage UCDB save/merge is still pending promotion.
+The current ring_buffer_cam workflow has isolated case pages per the dv-workflow skill,
+but this testcase has not yet produced a real standalone code-coverage UCDB.

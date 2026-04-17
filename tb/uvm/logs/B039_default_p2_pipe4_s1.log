@@ -1,3 +1,1 @@
-B039 has no live log artifact.
-State: planned only
-Scenario: run-control edge: RUNNING -> TERMINATING on payload `000010000` captures `gts_end_of_run <= gts_8n` on entry cycle
+../work_uvm/logs/test_case_engine_B039_s1.log

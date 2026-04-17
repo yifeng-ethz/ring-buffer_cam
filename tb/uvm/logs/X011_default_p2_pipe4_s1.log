@@ -1,3 +1,1 @@
-X011 has no live log artifact.
-State: planned only
-Scenario: back-to-back bad hits with `filter_inerr=0` — both must reach the CAM via deassembly_fifo
+../work_uvm/logs/test_case_engine_X011_s1.log

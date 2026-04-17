@@ -5,3 +5,5 @@ greybox_tmp/
 syn/quartus/db/
 tb/uvm/work_uvm/
 tb/sim/work_terminate_marker/
+tb/uvm/cov_default_*/
+tb/scripts/__pycache__/

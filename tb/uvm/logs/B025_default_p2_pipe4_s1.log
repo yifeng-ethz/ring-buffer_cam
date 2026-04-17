@@ -1,3 +1,1 @@
-B025 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[6] PUSH_COUNT increments only when arbiter grants `decision_reg=0` (push_write), never on accepted-but-not-granted cycles
+../work_uvm/logs/test_case_engine_B025_s1.log

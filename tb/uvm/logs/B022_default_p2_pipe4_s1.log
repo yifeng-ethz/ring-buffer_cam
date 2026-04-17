@@ -1,3 +1,1 @@
-B022 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[4] FILL_LEVEL is write-ignored (WI) per proc_avmm_csr case branch
+../work_uvm/logs/test_case_engine_B022_s1.log

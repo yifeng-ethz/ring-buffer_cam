@@ -1,3 +1,1 @@
-B017 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: CSR[2] CTRL bits[3:2] and bits[31:5] unused inertness check
+../work_uvm/logs/test_case_engine_B017_s1.log

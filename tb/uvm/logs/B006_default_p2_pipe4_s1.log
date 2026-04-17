@@ -1,3 +1,1 @@
-B006 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: deeper same-key burst exercises pipeline depth and counters
+../work_uvm/logs/test_case_engine_B006_s1.log

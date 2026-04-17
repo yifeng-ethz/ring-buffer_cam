@@ -1,3 +1,1 @@
-X012 has no live log artifact.
-State: planned only
-Scenario: alternating good/bad pattern (G,B,G,B,G,B) 6 cycles, `filter_inerr=1` — interleave must not corrupt fifo write strobes
+../work_uvm/logs/test_case_engine_X012_s1.log

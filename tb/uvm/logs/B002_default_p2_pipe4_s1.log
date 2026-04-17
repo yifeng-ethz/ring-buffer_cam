@@ -1,3 +1,1 @@
-B002 has no live log artifact.
-State: implemented but not yet rerun
-Scenario: Frontdoor CSR write/read semantics on writable and RO words
+../work_uvm/logs/test_case_engine_B002_s1.log

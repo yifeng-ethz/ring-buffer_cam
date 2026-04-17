@@ -1,3 +1,1 @@
-X014 has no live log artifact.
-State: planned only
-Scenario: bad hit with `asi_hit_type1_empty=1` (end-of-run marker beat) and error=1 — confirm endofrun_seen decode path is not spoofed into bumping inerr_cnt on the empty beat
+../work_uvm/logs/test_case_engine_X014_s1.log
