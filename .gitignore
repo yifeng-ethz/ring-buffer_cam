@@ -3,6 +3,9 @@
 greybox_tmp/
 .qsys_edit/
 syn/quartus/db/
+syn/quartus/output_files/
+syn/quartus/incremental_db/
+syn/quartus/a5_pin_model_dump.txt
 tb/uvm/work_uvm/
 tb/sim/work_terminate_marker/
 tb/uvm/cov_default_*/

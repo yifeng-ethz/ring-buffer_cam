@@ -1,7 +1,7 @@
 # DV Plan: ring_buffer_cam
 
 **DUT:** `ring_buffer_cam`  
-**Primary RTL:** `ring_buffer_cam.vhd`, `ring_buffer_cam_v2_core.vhd`, `addr_enc_logic_partitioned.vhd`  
+**Primary RTL:** `rtl/ring_buffer_cam.vhd`, `rtl/ring_buffer_cam_v2_core.vhd`, `rtl/addr_enc_logic_partitioned.vhd`  
 **Workflow:** local `dv-workflow` report-tree flow  
 **Date:** 2026-04-16  
 **Status:** migrated from legacy monolithic signoff into split-plan current tree
@@ -17,7 +17,7 @@ This plan covers standalone verification of the live `ring_buffer_cam` IP, inclu
 - overwrite, cache-miss, and fill-level accounting
 - sustained drain behavior, multi-key ordering, and stress conditions
 
-The historical signoff record in [../SIGNOFF.md](../SIGNOFF.md) is retained as a dated baseline. It is not the active signoff source for this workflow.
+The historical signoff record in [../doc/SIGNOFF.md](../doc/SIGNOFF.md) is retained as a dated baseline. It is not the active signoff source for this workflow.
 
 ## 2. Current Truth After 2026-04-16 Reruns
 

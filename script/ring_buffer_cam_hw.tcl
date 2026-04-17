@@ -234,17 +234,17 @@ add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file ring_buffer_cam.vhd VHDL PATH ring_buffer_cam.vhd TOP_LEVEL_FILE
-add_fileset_file ring_buffer_cam_v2_core.vhd VHDL PATH ring_buffer_cam_v2_core.vhd
-add_fileset_file cam_helper_pkg.vhd VHDL PATH cam_helper_pkg.vhd
-add_fileset_file alt_simple_dpram.vhd VHDL PATH alt_simple_dpram.vhd
-add_fileset_file cam_mem_a5.vhd VHDL PATH cam_mem_a5.vhd
-add_fileset_file cam_mem_blk_a5.vhd VHDL PATH cam_mem_blk_a5.vhd
-add_fileset_file alt_fifo/scfifo_w40d256.vhd VHDL PATH alt_fifo/scfifo_w40d256.vhd
-add_fileset_file alt_fifo/cmd_fifo/cmd_fifo.vhd VHDL PATH alt_fifo/cmd_fifo/cmd_fifo.vhd
-add_fileset_file b2o_encoder.v VERILOG PATH b2o_encoder.v
-add_fileset_file addr_enc_logic_small.vhd VHDL PATH addr_enc_logic_small.vhd
-add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH addr_enc_logic_partitioned.vhd
+add_fileset_file ring_buffer_cam.vhd VHDL PATH rtl/ring_buffer_cam.vhd TOP_LEVEL_FILE
+add_fileset_file ring_buffer_cam_v2_core.vhd VHDL PATH rtl/ring_buffer_cam_v2_core.vhd
+add_fileset_file cam_helper_pkg.vhd VHDL PATH rtl/cam_helper_pkg.vhd
+add_fileset_file alt_simple_dpram.vhd VHDL PATH rtl/alt_simple_dpram.vhd
+add_fileset_file cam_mem_a5.vhd VHDL PATH rtl/cam_mem_a5.vhd
+add_fileset_file cam_mem_blk_a5.vhd VHDL PATH rtl/cam_mem_blk_a5.vhd
+add_fileset_file alt_fifo/scfifo_w40d256.vhd VHDL PATH rtl/alt_fifo/scfifo_w40d256.vhd
+add_fileset_file alt_fifo/cmd_fifo/cmd_fifo.vhd VHDL PATH rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd
+add_fileset_file b2o_encoder.v VERILOG PATH rtl/b2o_encoder.v
+add_fileset_file addr_enc_logic_small.vhd VHDL PATH rtl/addr_enc_logic_small.vhd
+add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH rtl/addr_enc_logic_partitioned.vhd
 
 add_parameter SEARCH_KEY_WIDTH NATURAL 8
 set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"

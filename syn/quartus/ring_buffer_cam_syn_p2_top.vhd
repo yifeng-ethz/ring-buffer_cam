@@ -13,7 +13,7 @@ architecture rtl of ring_buffer_cam_syn_p2_top is
 begin
     u_harness : entity work.ring_buffer_cam_syn_harness
         generic map (
-            G_RING_BUFFER_N_ENTRY => 1024,
+            G_RING_BUFFER_N_ENTRY => 512,
             G_N_PARTITIONS        => 2,
             G_ENCODER_LEAF_WIDTH  => 16,
             G_ENCODER_PIPE_STAGES => 2

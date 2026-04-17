@@ -13,7 +13,7 @@ architecture rtl of ring_buffer_cam_syn_v23_top is
 begin
     u_harness : entity work.ring_buffer_cam_v23_syn_harness
         generic map (
-            G_RING_BUFFER_N_ENTRY => 1024
+            G_RING_BUFFER_N_ENTRY => 512
         )
         port map (
             clk125    => clk125,

@@ -1,5 +1,5 @@
 -- File name: ring_buffer_cam_partitioned_tb.vhd
--- Author: Architect (auto-generated from upgrade_plan.md)
+-- Author: Architect (auto-generated from doc/upgrade_plan.md)
 -- =======================================
 -- Date: Mar 19, 2026
 -- Description:
@@ -7,7 +7,7 @@
 --      upgrade of ring_buffer_cam.  Exercises push/pop throughput, partition
 --      balance, overwrite handling, flush, and regression (P=1 mode).
 --
---      Test cases map to upgrade_plan.md §6.1:
+--      Test cases map to doc/upgrade_plan.md §6.1:
 --        TC1  single_hit
 --        TC2  same_key_burst         (128 hits, same search key)
 --        TC3  multi_key              (4 different search keys)

@@ -85,13 +85,13 @@ modelsim_ini="${work_dir}/modelsim.ini"
 # ── compile RTL + TB ────────────────────────────────────────────
 vhdl_files=(
   "${compat_dir}/cam_mem_blk_a5.vhd"
-  "${ip_dir}/cam_mem_a5.vhd"
-  "${ip_dir}/alt_simple_dpram.vhd"
-  "${ip_dir}/alt_fifo/cmd_fifo/cmd_fifo.vhd"
-  "${ip_dir}/alt_fifo/scfifo_w40d256.vhd"
+  "${ip_dir}/rtl/cam_mem_a5.vhd"
+  "${ip_dir}/rtl/alt_simple_dpram.vhd"
+  "${ip_dir}/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd"
+  "${ip_dir}/rtl/alt_fifo/scfifo_w40d256.vhd"
   "${ip_dir}/tb/common/ring_buffer_cam_tb_pkg.vhd"
-  "${ip_dir}/addr_enc_logic_partitioned.vhd"
-  "${ip_dir}/ring_buffer_cam.vhd"
+  "${ip_dir}/rtl/addr_enc_logic_partitioned.vhd"
+  "${ip_dir}/rtl/ring_buffer_cam.vhd"
   "${ip_dir}/tb/sim/ring_buffer_cam_partitioned_tb.vhd"
 )
 

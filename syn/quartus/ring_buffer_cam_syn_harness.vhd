@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity ring_buffer_cam_syn_harness is
     generic (
-        G_RING_BUFFER_N_ENTRY : natural := 1024;
+        G_RING_BUFFER_N_ENTRY : natural := 512;
         G_N_PARTITIONS        : natural := 4;
         G_ENCODER_LEAF_WIDTH  : natural := 16;
         G_ENCODER_PIPE_STAGES : natural := 4
@@ -54,10 +54,11 @@ architecture rtl of ring_buffer_cam_syn_harness is
     signal asi_hit_type1_channel     : std_logic_vector(3 downto 0);
     signal asi_hit_type1_sop         : std_logic;
     signal asi_hit_type1_eop         : std_logic;
+    signal asi_hit_type1_empty       : std_logic;
     signal asi_hit_type1_data        : std_logic_vector(38 downto 0);
     signal asi_hit_type1_valid       : std_logic;
     signal asi_hit_type1_ready       : std_logic;
-    signal asi_hit_type1_error       : std_logic_vector(0 downto 0);
+    signal asi_hit_type1_error       : std_logic;
 
     signal aso_hit_type2_channel     : std_logic_vector(3 downto 0);
     signal aso_hit_type2_sop         : std_logic;
@@ -65,7 +66,7 @@ architecture rtl of ring_buffer_cam_syn_harness is
     signal aso_hit_type2_data        : std_logic_vector(35 downto 0);
     signal aso_hit_type2_valid       : std_logic;
     signal aso_hit_type2_ready       : std_logic;
-    signal aso_hit_type2_error       : std_logic_vector(0 downto 0);
+    signal aso_hit_type2_error       : std_logic;
 
     signal aso_filllevel_valid       : std_logic;
     signal aso_filllevel_data        : std_logic_vector(15 downto 0);
@@ -93,9 +94,10 @@ begin
             asi_hit_type1_channel    <= (others => '0');
             asi_hit_type1_sop        <= '0';
             asi_hit_type1_eop        <= '0';
+            asi_hit_type1_empty      <= '0';
             asi_hit_type1_data       <= (others => '0');
             asi_hit_type1_valid      <= '0';
-            asi_hit_type1_error      <= (others => '0');
+            asi_hit_type1_error      <= '0';
         elsif rising_edge(clk125) then
             avs_csr_read             <= '0';
             avs_csr_address          <= (others => '0');
@@ -106,9 +108,10 @@ begin
             asi_hit_type1_channel    <= (others => '0');
             asi_hit_type1_sop        <= '0';
             asi_hit_type1_eop        <= '0';
+            asi_hit_type1_empty      <= '0';
             asi_hit_type1_data       <= (others => '0');
             asi_hit_type1_valid      <= '0';
-            asi_hit_type1_error      <= (others => '0');
+            asi_hit_type1_error      <= '0';
 
             case stim_state is
                 when ISSUE_PREPARE =>
@@ -187,7 +190,7 @@ begin
             signature_v(19 downto 16) := signature_v(19 downto 16) xor aso_hit_type2_channel;
             signature_v(20)           := signature_v(20) xor aso_hit_type2_sop;
             signature_v(21)           := signature_v(21) xor aso_hit_type2_eop;
-            signature_v(22)           := signature_v(22) xor aso_hit_type2_error(0);
+            signature_v(22)           := signature_v(22) xor aso_hit_type2_error;
             signature_v(30 downto 23) := signature_v(30 downto 23) xor std_logic_vector(hit_counter(7 downto 0));
             signature_v(31)           := signature_v(31) xor asi_hit_type1_ready;
 
@@ -220,6 +223,7 @@ begin
             asi_hit_type1_channel       => asi_hit_type1_channel,
             asi_hit_type1_startofpacket => asi_hit_type1_sop,
             asi_hit_type1_endofpacket   => asi_hit_type1_eop,
+            asi_hit_type1_empty         => asi_hit_type1_empty,
             asi_hit_type1_data          => asi_hit_type1_data,
             asi_hit_type1_valid         => asi_hit_type1_valid,
             asi_hit_type1_ready         => asi_hit_type1_ready,

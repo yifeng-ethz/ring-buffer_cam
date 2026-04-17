@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.4
--- Date    : 20260402
--- Change  : include the first ts[11:4]=0 dequeue slot in the pop command generator
+-- Version : 26.1.5
+-- Date    : 20260417
+-- Change  : align wrapper metadata with the active V2 core bug-fix release
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,9 +20,9 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 4;
-        BUILD               : natural := 402;
-        VERSION_DATE        : natural := 20260402;
+        VERSION_PATCH       : natural := 5;
+        BUILD               : natural := 417;
+        VERSION_DATE        : natural := 20260417;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;
         DEBUG               : natural := 1

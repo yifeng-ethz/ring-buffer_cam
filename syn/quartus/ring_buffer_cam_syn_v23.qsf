@@ -16,8 +16,8 @@ set_global_assignment -name VHDL_FILE baseline/ring_buffer_cam_v23.vhd
 set_global_assignment -name VHDL_FILE ../../alt_simple_dpram.vhd
 set_global_assignment -name VHDL_FILE ../../cam_mem_a5.vhd
 set_global_assignment -name VHDL_FILE ../../cam_mem_blk_a5.vhd
-set_global_assignment -name VHDL_FILE ../../alt_fifo/scfifo_w40d256.vhd
-set_global_assignment -name VHDL_FILE ../../alt_fifo/cmd_fifo/cmd_fifo.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/alt_fifo/scfifo_w40d256.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd
 set_global_assignment -name VHDL_FILE baseline/addr_enc_logic_v23.vhd
 set_global_assignment -name VHDL_FILE ../../addr_enc_logic_small.vhd
 set_global_assignment -name VERILOG_FILE ../../b2o_encoder.v

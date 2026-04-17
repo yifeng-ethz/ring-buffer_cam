@@ -27,7 +27,7 @@ For the IP-level overview, Platform Designer contract, and preset summary, see
 
 ## Current Status
 
-- The active workflow is the split `DV_*` tree under `tb/`; the old monolithic narrative in [SIGNOFF.md](/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/SIGNOFF.md:1) is historical evidence only.
+- The active workflow is the split `DV_*` tree under `tb/`; the old monolithic narrative in [SIGNOFF.md](/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/doc/SIGNOFF.md:1) is historical evidence only.
 - Live reruns on 2026-04-17 show the overwrite-pressure tail bug is closed in RTL:
   - `P111` now passes with `push=576 pop=512 overwrite=64 remaining=0`
   - `P119` now passes with `push=768 pop=512 overwrite=256 remaining=0`

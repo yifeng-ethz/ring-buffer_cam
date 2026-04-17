@@ -74,17 +74,17 @@ modelsim_ini="${work_dir}/modelsim.ini"
 "${vcom_cmd}" -2008 -modelsimini "${modelsim_ini}" -work altera_mf -quiet "${compat_dir}/scfifo.vhd"
 
 vhdl_files=(
-  "${ip_dir}/cam_helper_pkg.vhd"
+  "${ip_dir}/rtl/cam_helper_pkg.vhd"
   "${compat_dir}/cam_mem_blk_a5.vhd"
-  "${ip_dir}/cam_mem_a5.vhd"
-  "${ip_dir}/alt_simple_dpram.vhd"
-  "${ip_dir}/alt_fifo/cmd_fifo/cmd_fifo.vhd"
-  "${ip_dir}/alt_fifo/scfifo_w40d256.vhd"
+  "${ip_dir}/rtl/cam_mem_a5.vhd"
+  "${ip_dir}/rtl/alt_simple_dpram.vhd"
+  "${ip_dir}/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd"
+  "${ip_dir}/rtl/alt_fifo/scfifo_w40d256.vhd"
   "${ip_dir}/tb/common/ring_buffer_cam_tb_pkg.vhd"
-  "${ip_dir}/addr_enc_logic_small.vhd"
-  "${ip_dir}/addr_enc_logic_partitioned.vhd"
-  "${ip_dir}/ring_buffer_cam_v2_core.vhd"
-  "${ip_dir}/ring_buffer_cam.vhd"
+  "${ip_dir}/rtl/addr_enc_logic_small.vhd"
+  "${ip_dir}/rtl/addr_enc_logic_partitioned.vhd"
+  "${ip_dir}/rtl/ring_buffer_cam_v2_core.vhd"
+  "${ip_dir}/rtl/ring_buffer_cam.vhd"
   "${ip_dir}/tb/sim/ring_buffer_cam_pipeline_smoke_tb.vhd"
 )
 
@@ -92,7 +92,7 @@ for vhdl_file in "${vhdl_files[@]}"; do
   "${vcom_cmd}" -2008 -modelsimini "${modelsim_ini}" -work work -quiet "${vhdl_file}"
 done
 
-"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/b2o_encoder.v"
+"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/rtl/b2o_encoder.v"
 
 log_file="${work_dir}/pipeline_smoke.log"
 "${vsim_cmd}" -modelsimini "${modelsim_ini}" -c -quiet "work.ring_buffer_cam_pipeline_smoke_tb" -do "run -all; quit -f" | tee "${log_file}"

@@ -8,9 +8,9 @@ Author: Codex
 - Scope: implement the partitioned encoder / partitioned pop-flow upgrade from `upgrade_plan.md`, package it into the IP, and add a standalone Quartus comparison flow under `syn/quartus/`.
 - Sign-off status: RTL simulation and UVM configuration-space validation pass, but timing/resource sign-off is still open.
 - Key deltas:
-  - added `addr_enc_logic_partitioned.vhd`
+  - added `rtl/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
-  - modernized `ring_buffer_cam_hw.tcl`, added `ring_buffer_cam_presets.qprs`, and made `P4` the packaged default
+  - modernized `script/ring_buffer_cam_hw.tcl`, added `script/ring_buffer_cam_presets.qprs`, and made `P4` the packaged default
   - added standalone Quartus revisions for legacy baseline (`v23`), partitioned full-IP modes (`p2`, `p3`, `p4`), and standalone encoder modes (`addr_enc_logic_syn_p2`, `addr_enc_logic_syn_p3`, `addr_enc_logic_syn_p4`)
 - Current evidence:
   - full IP `p2`: `3821` ALMs, slow-85C setup slack `+0.240 ns`
@@ -18,7 +18,7 @@ Author: Codex
   - standalone encoder `p2`: `1320` ALMs summary / `1072` placed ALMs, slow-85C setup slack `+1.915 ns`
   - standalone encoder `p4`: `657` ALMs summary / `537` placed ALMs, slow-85C setup slack `+4.417 ns`
   - UVM configuration-space matrix: `12/12` pass across `P1/P2/P3/P4`
-  - `ring_buffer_cam_hw.tcl` lint: pass (`27` interface ports matched to HDL)
+  - `script/ring_buffer_cam_hw.tcl` lint: pass (`27` interface ports matched to HDL)
 - Main conclusion:
   - increasing `P` improves encoder timing strongly
   - encoder area scales almost linearly with encoded width, so total encoder ALMs stay nearly flat across partitions
@@ -26,7 +26,7 @@ Author: Codex
 
 ## 1. Targets
 
-- `doc/RTL_PLAN.md` and `doc/DV_PLAN.md` are not present in this IP. This note uses `upgrade_plan.md` plus the user-specified sign-off gates from the implementation request.
+- `doc/RTL_PLAN.md` and `doc/DV_PLAN.md` are not present in this IP. This note uses `doc/upgrade_plan.md` plus the user-specified sign-off gates from the implementation request.
 - Device: `5AGXBA7D4F31C5` (Arria V), matching the standalone Quartus project in `syn/quartus/`
 - Sign-off clock: `clk125`
 - Target frequency: `125 MHz` (`Tclk = 8.0 ns`)
@@ -64,7 +64,7 @@ Author: Codex
   - The UVM control startup now mirrors the working VHDL TB flow: `RUN_PREPARE`, wait the flush window, program `EXPECTED_LATENCY`, then `SYNC` and `RUNNING`.
   - This was required because the DUT expects a long `RUN_PREPARE` dwell before the ring-buffer state is usable.
 - Coverage note:
-  - The current partitioned TB run covers TC1, TC2, TC3, TC5, and TC8 from `upgrade_plan.md`.
+  - The current partitioned TB run covers TC1, TC2, TC3, TC5, and TC8 from `doc/upgrade_plan.md`.
   - TC4, TC6, TC7, and TC9 were not exercised in this turn.
   - The UVM matrix covers CSR reset defaults, RW semantics, and activity counters for all packaged `P1/P2/P3/P4` bins.
 
@@ -157,21 +157,21 @@ Author: Codex
 
 ## 7. RTL Changes (iteration history)
 
-- Added `addr_enc_logic_partitioned.vhd` as the new encoder block with partition-aware one-hot feedback.
+- Added `rtl/addr_enc_logic_partitioned.vhd` as the new encoder block with partition-aware one-hot feedback.
 - Replaced the old pop-search flow with `SEARCH -> LOAD -> DRAIN`, including staggered partition loading and round-robin drain/reload.
 - Moved one-hot consume ownership into the partitioned encoder via `i_advance`, so the top entity no longer rewrites full partition vectors while draining.
 - Added a registered issue stage between pop decision/address reconstruction and CAM/side-RAM operations.
 - Reworked exact hit counting to use chunked low-slice counting plus snapshot shifting, which preserved throughput and removed the previous `COUNT` critical path from `P4`.
 - Added standalone synthesis harnesses and Quartus revisions under `syn/quartus/`, including full-IP `p2/p3/p4` and encoder-only `p2/p3/p4` builds.
-- Updated `ring_buffer_cam_hw.tcl` to package the new encoder source, expose `ENCODER_PIPE_STAGES`, and default the packaged IP to `P4`.
-- Added `ring_buffer_cam_presets.qprs` with `Default P4`, `Reserved P3`, `Reserved P2`, and `Regression P1`.
+- Updated `script/ring_buffer_cam_hw.tcl` to package the new encoder source, expose `ENCODER_PIPE_STAGES`, and default the packaged IP to `P4`.
+- Added `script/ring_buffer_cam_presets.qprs` with `Default P4`, `Reserved P3`, `Reserved P2`, and `Regression P1`.
 - Rebuilt the UVM environment so CSR/config-space testing compiles and runs cleanly with mixed VHDL/SV sources.
 - Fixed reset determinism for CSR-visible counters and fill-level bookkeeping so the configuration space is software-usable immediately after reset.
 
-## 8. Plan Mapping (`upgrade_plan.md`)
+## 8. Plan Mapping (`doc/upgrade_plan.md`)
 
 - Phase 1: encoder module
-  - Implemented: `addr_enc_logic_partitioned.vhd`
+  - Implemented: `rtl/addr_enc_logic_partitioned.vhd`
   - Open: no separate encoder-only randomized TB was added; verification is currently end-to-end through the ring-buffer TBs
 - Phase 2: memory partitioning
   - Implemented for the current standalone `P=2/P=3/P=4` pipe-depth builds with `N_PARTITIONS=2`
@@ -190,11 +190,11 @@ Author: Codex
 
 ## 9. Packaging and Local Platform Designer Environment
 
-- `ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
+- `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
   - version `26.0.0320`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
-  - lint check passed against `ring_buffer_cam.vhd`
+  - lint check passed against `rtl/ring_buffer_cam.vhd`
 - Packaged defaults:
   - default delivered configuration: `ENCODER_PIPE_STAGES = 4`
   - reserved higher-compatibility bins remain available through presets: `P3`, `P2`, and `P1`

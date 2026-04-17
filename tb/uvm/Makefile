@@ -61,16 +61,16 @@ RUN_DO = $(if $(COV_ENABLED_BOOL),coverage save -onexit $(abspath $(COV_DIR))/$(
 
 # ── VHDL sources ─────────────────────────────────────────────────
 VHDL_SRCS = \
-  $(IP_DIR)/cam_helper_pkg.vhd \
+  $(IP_DIR)/rtl/cam_helper_pkg.vhd \
   $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
-  $(IP_DIR)/cam_mem_a5.vhd \
-  $(IP_DIR)/alt_simple_dpram.vhd \
-  $(IP_DIR)/alt_fifo/cmd_fifo/cmd_fifo.vhd \
-  $(IP_DIR)/alt_fifo/scfifo_w40d256.vhd \
-  $(IP_DIR)/addr_enc_logic_small.vhd \
-  $(IP_DIR)/addr_enc_logic_partitioned.vhd \
-  $(IP_DIR)/ring_buffer_cam_v2_core.vhd \
-  $(IP_DIR)/ring_buffer_cam.vhd
+  $(IP_DIR)/rtl/cam_mem_a5.vhd \
+  $(IP_DIR)/rtl/alt_simple_dpram.vhd \
+  $(IP_DIR)/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd \
+  $(IP_DIR)/rtl/alt_fifo/scfifo_w40d256.vhd \
+  $(IP_DIR)/rtl/addr_enc_logic_small.vhd \
+  $(IP_DIR)/rtl/addr_enc_logic_partitioned.vhd \
+  $(IP_DIR)/rtl/ring_buffer_cam_v2_core.vhd \
+  $(IP_DIR)/rtl/ring_buffer_cam.vhd
 
 # ── SystemVerilog sources ────────────────────────────────────────
 SV_SRCS = \

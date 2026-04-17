@@ -196,7 +196,7 @@ Interactive HTML table of the 10-word CSR window and the common identity header.
 
 ## Presets
 
-Four presets are shipped in `ring_buffer_cam_presets.qprs`:
+Four presets are shipped in `script/ring_buffer_cam_presets.qprs`:
 
 | Preset | Partitions | Pipe | Depth | Use Case |
 |--------|------------|------|-------|----------|
@@ -219,19 +219,20 @@ monolithic signoff note.
 - [`tb/REPORT/README.md`](tb/REPORT/README.md) — per-case and per-cross-run evidence tree
 - [`tb/DV_PLAN.md`](tb/DV_PLAN.md) — frozen bucket plan and signoff rules
 - [`tb/BUG_HISTORY.md`](tb/BUG_HISTORY.md) — live bug ledger
+- [`doc/SIGNOFF.md`](doc/SIGNOFF.md) — master signoff dashboard linking DV and synthesis status
+- [`syn/SYN_REPORT.md`](syn/SYN_REPORT.md) — detailed standalone synthesis / timing evidence
 
-Historical standalone evidence is still kept in [`SIGNOFF.md`](SIGNOFF.md), but current
-closure status is generated from the `tb/` workflow artifacts.
+Current closure status is summarized in [`doc/SIGNOFF.md`](doc/SIGNOFF.md), with detailed DV
+evidence under `tb/` and detailed synthesis evidence in [`syn/SYN_REPORT.md`](syn/SYN_REPORT.md).
 
 ---
 
 ## Repository Layout
 
-- [`ring_buffer_cam.vhd`](ring_buffer_cam.vhd) — packaged top-level wrapper
-- [`ring_buffer_cam_v2_core.vhd`](ring_buffer_cam_v2_core.vhd) — active RTL core
-- [`addr_enc_logic_partitioned.vhd`](addr_enc_logic_partitioned.vhd) — partitioned staged encoder
-- [`ring_buffer_cam_hw.tcl`](ring_buffer_cam_hw.tcl) — Platform Designer packaging
-- [`ring_buffer_cam_presets.qprs`](ring_buffer_cam_presets.qprs) — packaged presets
+- [`rtl/ring_buffer_cam.vhd`](rtl/ring_buffer_cam.vhd) — packaged top-level wrapper
+- [`rtl/ring_buffer_cam_v2_core.vhd`](rtl/ring_buffer_cam_v2_core.vhd) — active RTL core
+- [`rtl/addr_enc_logic_partitioned.vhd`](rtl/addr_enc_logic_partitioned.vhd) — partitioned staged encoder
+- [`script/ring_buffer_cam_hw.tcl`](script/ring_buffer_cam_hw.tcl) — Platform Designer packaging
+- [`script/ring_buffer_cam_presets.qprs`](script/ring_buffer_cam_presets.qprs) — packaged presets
 - [`tb/`](tb/README.md) — active DV workflow, UVM harness, reports, and bug history
 - [`syn/`](syn) — standalone synthesis / timing work area
-

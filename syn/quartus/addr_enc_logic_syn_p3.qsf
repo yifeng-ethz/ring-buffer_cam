@@ -11,7 +11,7 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 16
 set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Standard Edition"
 
-set_global_assignment -name VHDL_FILE ../../addr_enc_logic_partitioned.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/addr_enc_logic_partitioned.vhd
 set_global_assignment -name VHDL_FILE addr_enc_logic_syn_p3_top.vhd
 
 set_global_assignment -name SDC_FILE ring_buffer_cam_syn.sdc
