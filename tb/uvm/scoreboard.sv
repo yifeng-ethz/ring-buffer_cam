@@ -7,6 +7,7 @@ import uvm_pkg::*;
 `include "uvm_macros.svh"
 `uvm_analysis_imp_decl(_out)
 `uvm_analysis_imp_decl(_push)
+`uvm_analysis_imp_decl(_pop)
 
 class scoreboard extends uvm_scoreboard;
   `uvm_component_utils(scoreboard)
@@ -26,6 +27,7 @@ class scoreboard extends uvm_scoreboard;
 
   uvm_analysis_imp #(ring_buffer_cam_pkg::hit_seq_item, scoreboard) accept_imp;
   uvm_analysis_imp_push #(ring_buffer_cam_pkg::debug_push_item, scoreboard) push_imp;
+  uvm_analysis_imp_pop #(ring_buffer_cam_pkg::debug_pop_item, scoreboard) pop_imp;
   uvm_analysis_imp_out #(ring_buffer_cam_pkg::out_seq_item, scoreboard) out_imp;
 
   ring_buffer_cam_pkg::ring_buffer_cam_cfg m_cfg;
@@ -48,6 +50,9 @@ class scoreboard extends uvm_scoreboard;
   int unsigned max_remaining_seen_by_key[bit [7:0]];
   int unsigned overwrite_new_key_count[bit [7:0]];
   int unsigned overwrite_old_key_count[bit [7:0]];
+  hit_fingerprint_t pending_drain_q[$];
+  hit_fingerprint_t overlap_evicted_q[$];
+  int unsigned total_overlap_fallback_hits;
 
   bit          epoch_active;
   bit [7:0]    active_search_key;
@@ -69,6 +74,7 @@ class scoreboard extends uvm_scoreboard;
     allow_nonempty_end = 1'b0;
     allowed_remaining_at_end = 0;
     max_remaining_seen = 0;
+    total_overlap_fallback_hits = 0;
     epoch_active = 1'b0;
     active_search_key = '0;
     active_expected_hits = 0;
@@ -79,6 +85,7 @@ class scoreboard extends uvm_scoreboard;
     super.build_phase(phase);
     accept_imp = new("accept_imp", this);
     push_imp = new("push_imp", this);
+    pop_imp = new("pop_imp", this);
     out_imp = new("out_imp", this);
     if (!uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::get(this, "", "cfg", m_cfg))
       `uvm_fatal("SCB", "Failed to get cfg from config_db")
@@ -165,6 +172,14 @@ class scoreboard extends uvm_scoreboard;
     return overwrite_old_key_count[search_key];
   endfunction
 
+  function int unsigned pending_drain_entries();
+    return pending_drain_q.size();
+  endfunction
+
+  function int unsigned overlap_evicted_entries();
+    return overlap_evicted_q.size();
+  endfunction
+
   function bit epoch_idle();
     return !epoch_active;
   endfunction
@@ -177,6 +192,8 @@ class scoreboard extends uvm_scoreboard;
     allow_nonempty_end = 1'b0;
     allowed_remaining_at_end = 0;
     current_remaining_by_key.delete();
+    pending_drain_q.delete();
+    overlap_evicted_q.delete();
     clear_epoch();
   endfunction
 
@@ -228,6 +245,7 @@ class scoreboard extends uvm_scoreboard;
 
     if (old_valid) begin
       old_key = slot_model[slot_addr].fp.search_key;
+      overlap_evicted_q.push_back(slot_model[slot_addr].fp);
       total_expected_overwrites++;
       if (!overwrite_old_key_count.exists(old_key)) begin
         overwrite_old_key_count[old_key] = 0;
@@ -260,6 +278,61 @@ class scoreboard extends uvm_scoreboard;
     end
     total_written++;
     update_peak_residency();
+  endfunction
+
+  function int find_pending_match_index(ring_buffer_cam_pkg::out_seq_item item);
+    foreach (pending_drain_q[idx]) begin
+      if (output_matches_fp(item, pending_drain_q[idx])) begin
+        return idx;
+      end
+    end
+    return -1;
+  endfunction
+
+  function int find_overlap_match_index(ring_buffer_cam_pkg::out_seq_item item);
+    foreach (overlap_evicted_q[idx]) begin
+      if (output_matches_fp(item, overlap_evicted_q[idx])) begin
+        return idx;
+      end
+    end
+    return -1;
+  endfunction
+
+  function void write_pop(ring_buffer_cam_pkg::debug_pop_item item);
+    int unsigned slot_addr;
+    bit [7:0] key;
+
+    slot_addr = item.slot_addr;
+    if (slot_addr >= slot_model.size()) begin
+      `uvm_error("SCB", $sformatf(
+        "Observed pop_erase from slot %0d outside modeled ring size %0d",
+        slot_addr, slot_model.size()))
+      return;
+    end
+
+    if (!item.occupied) begin
+      return;
+    end
+
+    if (!slot_model[slot_addr].valid) begin
+      `uvm_warning("SCB", $sformatf(
+        "Observed pop_erase from slot %0d with no live modeled entry",
+        slot_addr))
+      return;
+    end
+
+    pending_drain_q.push_back(slot_model[slot_addr].fp);
+    key = slot_model[slot_addr].fp.search_key;
+    if (!current_remaining_by_key.exists(key)) begin
+      current_remaining_by_key[key] = 0;
+    end
+    if (current_remaining > 0) begin
+      current_remaining--;
+    end
+    if (current_remaining_by_key[key] > 0) begin
+      current_remaining_by_key[key]--;
+    end
+    slot_model[slot_addr].valid = 1'b0;
   endfunction
 
   function void write_out(ring_buffer_cam_pkg::out_seq_item item);
@@ -312,19 +385,38 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
-    match_idx = find_match_index(item);
+    match_idx = find_pending_match_index(item);
+    if (match_idx >= 0) begin
+      pending_drain_q.delete(match_idx);
+    end else begin
+      match_idx = find_match_index(item);
+      if (match_idx < 0) begin
+        match_idx = find_overlap_match_index(item);
+        if (match_idx >= 0) begin
+          overlap_evicted_q.delete(match_idx);
+          total_overlap_fallback_hits++;
+        end
+      end
+    end
+
     if (match_idx < 0) begin
       total_unexpected_outputs++;
       `uvm_error("SCB", $sformatf(
         "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h",
         item.active_search_key, item.asic, item.channel, item.ts50p, item.et1n6))
     end else begin
-      current_remaining--;
-      if (!current_remaining_by_key.exists(slot_model[match_idx].fp.search_key)) begin
-        current_remaining_by_key[slot_model[match_idx].fp.search_key] = 0;
+      if (slot_model[match_idx].valid) begin
+        if (current_remaining > 0) begin
+          current_remaining--;
+        end
+        if (!current_remaining_by_key.exists(slot_model[match_idx].fp.search_key)) begin
+          current_remaining_by_key[slot_model[match_idx].fp.search_key] = 0;
+        end
+        if (current_remaining_by_key[slot_model[match_idx].fp.search_key] > 0) begin
+          current_remaining_by_key[slot_model[match_idx].fp.search_key]--;
+        end
+        slot_model[match_idx].valid = 1'b0;
       end
-      current_remaining_by_key[slot_model[match_idx].fp.search_key]--;
-      slot_model[match_idx].valid = 1'b0;
     end
 
     if (item.eop) begin
@@ -367,12 +459,21 @@ class scoreboard extends uvm_scoreboard;
           total_expected_overwrites, total_unexpected_outputs))
       end
     end
+
+    if (pending_drain_entries() > 0) begin
+      `uvm_error("SCB", $sformatf(
+        "Pending drain queue not empty at end of test: pending=%0d accepted=%0d written=%0d drained=%0d unexpected_outputs=%0d",
+        pending_drain_entries(), total_ingress_accepted, total_written,
+        total_drained, total_unexpected_outputs))
+    end
   endfunction
 
   function void report_phase(uvm_phase phase);
-    `uvm_info("SCB", $sformatf(
-      "Summary: pushed=%0d popped=%0d remaining=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d accepted=%0d cache_miss_outputs=%0d",
+      `uvm_info("SCB", $sformatf(
+      "Summary: pushed=%0d popped=%0d remaining=%0d pending_drain=%0d overlap_evicted=%0d overlap_fallback=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d accepted=%0d cache_miss_outputs=%0d",
       total_written, total_drained, remaining_entries(),
+      pending_drain_entries(), overlap_evicted_entries(),
+      total_overlap_fallback_hits,
       total_expected_overwrites, total_unexpected_outputs,
       total_subheaders, total_zero_hit_subheaders, total_ingress_accepted,
       total_cache_miss_outputs), UVM_LOW)

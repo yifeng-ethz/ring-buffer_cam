@@ -58,6 +58,7 @@ class ring_buffer_cam_env extends uvm_env;
     m_csr_drv.seq_item_port.connect(m_csr_seqr.seq_item_export);
     m_hit_mon.ap.connect(m_scb.accept_imp);
     m_dbg_mon.push_ap.connect(m_scb.push_imp);
+    m_dbg_mon.pop_ap.connect(m_scb.pop_imp);
     m_out_mon.ap.connect(m_scb.out_imp);
     m_out_mon.ap.connect(m_cov.analysis_export);
   endfunction

@@ -1,3 +1,1 @@
-B088 has no live log artifact.
-State: planned only
-Scenario: pop DRAIN last-hit: `pop_last_hit_pending=1` on the cycle that `pop_hits_count=1`, drives EOP on next cycle
+../work_uvm/logs/test_case_engine_B088_s1.log

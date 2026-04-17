@@ -1,3 +1,1 @@
-B084 has no live log artifact.
-State: planned only
-Scenario: same-key with EXPECTED_LATENCY mid-run change: write new latency while hits pending, verify cadence shifts by the delta on next descriptor
+../work_uvm/logs/test_case_engine_B084_s1.log

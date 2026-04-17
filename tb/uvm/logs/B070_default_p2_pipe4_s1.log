@@ -1,3 +1,1 @@
-B070 has no live log artifact.
-State: planned only
-Scenario: pop descriptor boundary: first pop fires at `read_time_ptr=0` exactly (ts[11:4]=0 bin not skipped) per revision 2.9
+../work_uvm/logs/test_case_engine_B070_s1.log

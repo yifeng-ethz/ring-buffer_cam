@@ -1,3 +1,1 @@
-E016 has no live log artifact.
-State: planned only
-Scenario: fill 4*MATCH_PARTITION_SIZE_CONST (512 = all partitions full) same-key
+../work_uvm/logs/test_case_engine_E016_s1.log

@@ -1,3 +1,1 @@
-B091 has no live log artifact.
-State: planned only
-Scenario: push-pop exclusivity: push_write blocked exactly when pop_erase holds grant in DRAIN
+../work_uvm/logs/test_case_engine_B091_s1.log

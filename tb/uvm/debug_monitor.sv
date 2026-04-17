@@ -11,6 +11,7 @@ class debug_monitor extends uvm_monitor;
 
   virtual dut_debug_if.mon vif;
   uvm_analysis_port #(ring_buffer_cam_pkg::debug_push_item) push_ap;
+  uvm_analysis_port #(ring_buffer_cam_pkg::debug_pop_item)  pop_ap;
 
   int unsigned pop_cmd_wrreq_count;
   int unsigned pop_cmd_rdack_count;
@@ -134,12 +135,14 @@ class debug_monitor extends uvm_monitor;
   function void build_phase(uvm_phase phase);
     super.build_phase(phase);
     push_ap = new("push_ap", this);
+    pop_ap = new("pop_ap", this);
     if (!uvm_config_db#(virtual dut_debug_if.mon)::get(this, "", "vif", vif))
       `uvm_fatal("DBG_MON", "Failed to get dut_debug_if.mon from config_db")
   endfunction
 
   task run_phase(uvm_phase phase);
     ring_buffer_cam_pkg::debug_push_item item;
+    ring_buffer_cam_pkg::debug_pop_item  pop_item;
     logic [47:0] prev_push_cnt;
     logic [47:0] prev_pop_cnt;
     logic [47:0] prev_overwrite_cnt;
@@ -238,6 +241,15 @@ class debug_monitor extends uvm_monitor;
         item.push_count = vif.dbg_push_cnt;
         item.overwrite_count = vif.dbg_overwrite_cnt;
         push_ap.write(item);
+      end
+
+      if (vif.pop_erase_grant === 1'b1) begin
+        pop_item = ring_buffer_cam_pkg::debug_pop_item::type_id::create("pop_evt");
+        pop_item.slot_addr = vif.pop_issue_addr;
+        pop_item.raw_hit = vif.side_ram_dout[38:0];
+        pop_item.occupied = vif.side_ram_dout[39];
+        pop_item.pop_count = vif.dbg_pop_cnt;
+        pop_ap.write(pop_item);
       end
 
       prev_push_cnt = dbg_push_cnt;

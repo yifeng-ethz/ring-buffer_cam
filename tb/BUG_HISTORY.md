@@ -2,7 +2,7 @@
 
 ## 2026-04-16
 
-### BUG-001: Search-key decode and interleaving model in UVM harness were wrong
+### BUG-001-H: Search-key decode and interleaving model in UVM harness were wrong
 - First seen in: `test_sequential_keys`, `test_random_multi_key`, `test_random_throughput`
 - Symptom:
   - multi-key and random cases reported undrained residents and inconsistent lane acceptance
@@ -15,7 +15,7 @@
   - restored passing behavior for the promoted multi-key/random smoke cases and enabled the new case engine to reuse those sequences safely
 - Commit: pending
 
-### BUG-002: Scoreboard modeled accepted ingress order, not actual push-write grant order
+### BUG-002-H: Scoreboard modeled accepted ingress order, not actual push-write grant order
 - First seen in: `test_overwrite_stress`, `E003`
 - Symptom:
   - overwrite-pressure cases reported impossible “unexpected drained hit” errors or false overwrite attribution
@@ -28,7 +28,7 @@
   - reduced false overwrite drift under pressure and made scoreboard accounting traceable to actual CAM/RAM writes instead of front-end acceptance
 - Commit: pending
 
-### BUG-003: Stale-snapshot / cache-miss output branch was unmodeled in the harness
+### BUG-003-H: Stale-snapshot / cache-miss output branch was unmodeled in the harness
 - First seen in: `test_overwrite_stress`, `E003`
 - Symptom:
   - high-pressure runs emitted late hit beats that the scoreboard classified as impossible
@@ -41,7 +41,7 @@
   - this is a harness-modeling issue unless the product contract is changed to suppress stale hit-body forwarding in RTL
 - Commit: pending
 
-### BUG-004: Pressure-case expectation ignored the resequencing-buffer service model
+### BUG-004-H: Pressure-case expectation ignored the resequencing-buffer service model
 - First seen in: `E003` planning review and user clarification on 2026-04-16
 - Symptom:
   - pressure cases implicitly treated any surviving residents after a fixed wait as a bug
@@ -54,7 +54,7 @@
   - `E003` and the profile-pressure family are being reframed around burst pattern, admissible service, legal overwrite loss, and terminate-and-drain accounting rather than a fixed generic drain timeout
 - Commit: pending
 
-### BUG-005: Run-control startup/terminate sequencing used fixed waits instead of the DUT handshake
+### BUG-005-H: Run-control startup/terminate sequencing used fixed waits instead of the DUT handshake
 - First seen in: `E003`, `P111`, general `test_case_engine` runtime review on 2026-04-16
 - Symptom:
   - every isolated case burned 150k cycles in `RUN_PREPARE` even when the DUT had already acknowledged the flush
@@ -69,7 +69,7 @@
   - this removed the artificial 1.2 ms startup tax from every case and made the added `X007`/`X008`/`X013` error cases reproducible
 - Commit: pending
 
-### BUG-006: Error-counter assumptions were too narrow for lane-mismatched bad hits
+### BUG-006-H: Error-counter assumptions were too narrow for lane-mismatched bad hits
 - First seen in: `X013` on 2026-04-16
 - Symptom:
   - the new lane-mismatch bad-hit case initially expected `INERR_COUNT` to stay at zero because the hit never entered the selected lane/CAM path
@@ -84,7 +84,7 @@
     - scoreboard accepts zero hits
 - Commit: pending
 
-### BUG-007: 48-bit counter cleanup logic truncated through `to_integer()`
+### BUG-007-R: 48-bit counter cleanup logic truncated through `to_integer()`
 - First seen in: long soak / signoff review for super-long counter and toggle runs on 2026-04-16
 - Symptom:
   - `cam_clean` and related drain qualification could become wrong once the 48-bit push/pop/overwrite counters exceeded the signed 32-bit range
@@ -98,7 +98,9 @@
   - this is a control/counter correctness fix, not a datapath-beat fix
 - Commit: pending
 
-### BUG-008: Same-key overwrite suppression compared against the next input beat instead of the just-written key
+## 2026-04-17
+
+### BUG-008-R: Same-key overwrite suppression compared against the next input beat instead of the just-written key
 - First seen in: `P111` and `P119` on 2026-04-17
 - Symptom:
   - same-key overwrite pressure drained almost completely, but one or more residents stayed invisible in CAM
@@ -119,7 +121,7 @@
     - `B005`: still passes with `push=128 pop=128 remaining=0`
 - Commit: pending
 
-### BUG-009: `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written
+### BUG-009-H: `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written
 - First seen in: `B061` and `B062` on 2026-04-17 during the standalone-UCDB refresh
 - Symptom:
   - single-beat framing cases ended with `accepted=1` but `pushed=0`, no subheader/hit history, and therefore no trustworthy isolated evidence for the case body
@@ -130,19 +132,63 @@
 - Fix status: fixed in working tree, not yet committed
 - Runtime / coverage context:
   - `wait_for_scoreboard_idle()` now also requires `total_written == total_ingress_accepted`
-  - after the fix, the full implemented isolated sweep completed with `55/55` passes and real standalone UCDBs for every implemented case
+  - the later full implemented isolated nightly sweep completed with `123/123` passes and real standalone UCDBs for every implemented case currently wired in the case engine
 - Commit: pending
 
-### BUG-010: Framing checks sampled “latest subheader” instead of the case-target epoch
-- First seen in: `B062` and `B063` on 2026-04-17 during the standalone-UCDB refresh
+### BUG-010-H: Framing checks sampled “latest subheader” instead of the case-target epoch
+- First seen in: `B062`, `B063`, and later `E005` on 2026-04-17 during isolated standalone-UCDB refresh
 - Symptom:
   - subheader search-key and hit-count checks failed even though the DUT was legally draining the directed burst
   - the failing runs showed many zero-hit subheaders from normal time advancement, which polluted `recent_subheaders[$]`
 - Root cause:
   - the testcase checks assumed the most recent observed subheader belonged to the directed burst under test
-  - in reality the DUT can emit zero-hit subheaders for later empty epochs, so positional sampling from `recent_subheaders[$]` was not stable evidence for `B061-B065`
+  - in reality the DUT can emit zero-hit subheaders for later empty epochs, so positional sampling from `recent_subheaders[$]` was not stable evidence
 - Fix status: fixed in working tree, not yet committed
 - Runtime / coverage context:
-  - the harness now waits for a subheader matching the target `search_key`, then performs the framing-field checks against that matched epoch
-  - verified by rerunning `B061-B065` standalone and then the full `55`-case implemented isolated matrix with zero failures
+  - the harness now waits for a subheader matching the target `search_key`, and the monitor tracks data-bearing subheaders separately from zero-hit background traffic
+  - verified by rerunning the framing/basic slice and then the full `123/123` implemented isolated nightly matrix with zero failures
+- Commit: pending
+
+### BUG-011-H: META VERSION/DATE checks drifted behind the packaged build metadata
+- First seen in: full isolated nightly rerun on 2026-04-17, `B010`, `B011`
+- Symptom:
+  - `B010` failed with `META VERSION readback mismatch` (`0x1a0151a1` observed vs old `0x1a014192`)
+  - `B011` failed with `META DATE readback mismatch` (`20260417` observed vs old `20260402`)
+- Root cause:
+  - the UVM harness and DV plan still expected the older packaged build/date constants
+  - the live wrapper/core metadata had already moved forward with the packaged IP release
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - aligned `expected_meta_version()`, the DATE checks, and the BASIC-plan text with the live package metadata
+  - this also triggered the build-number bump to `26.1.5.0418` for the current nightly DV checkpoint
+- Commit: pending
+
+### BUG-012-H: Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath
+- First seen in: `B093` on 2026-04-17 during the new BASIC nightly slice
+- Symptom:
+  - `B093` initially failed with many `Observed hit with no active subheader context` scoreboard errors
+  - the DUT-side preemption condition itself was reached, but the testcase destroyed the scoreboard epoch context too early
+- Root cause:
+  - the testcase called `note_flush_reset()` before the RUN_PREPARE / FLUSHING path had actually preempted the active DRAIN
+  - residual hit beats from the in-flight epoch were therefore judged against an already-reset scoreboard context
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the testcase now waits for `decision_reg=3` / FLUSHING preemption, verifies `pop_erase_grant` drops, and only then resets the scoreboard model
+  - after the fix, the full targeted slice and the full `123/123` implemented nightly rerun passed with `B093` green
+- Commit: pending
+
+### BUG-013-H: Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch
+- First seen in: `E015` and `E016` on 2026-04-17 during the refreshed EDGE nightly slice
+- Symptom:
+  - `E015` expected a wrapped hit-count of `1` but observed `240`
+  - `E016` expected a wrapped hit-count of `0` but observed `16`
+  - both runs still drained all hits losslessly according to the scoreboard and counters
+- Root cause:
+  - the DUT packetizes long same-key drains into multiple data-bearing subheaders
+  - the testcase incorrectly assumed one subheader encoded the total epoch cardinality instead of a packetized chunk count
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `out_monitor` now keeps `recent_data_subheaders` / `total_data_subheaders_seen`
+  - `E015` and `E016` now check the real contract: full lossless drain plus multi-subheader packetization with the correct search key
+  - verified in the full `123/123` implemented isolated nightly matrix with zero failures
 - Commit: pending

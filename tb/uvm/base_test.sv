@@ -211,6 +211,7 @@ class base_test extends uvm_test;
     cycles = 0;
     while (cycles < max_cycles) begin
       if (m_env.m_scb.remaining_entries() == 0 &&
+          m_env.m_scb.pending_drain_entries() == 0 &&
           m_env.m_scb.epoch_idle() &&
           m_env.m_scb.total_written == m_env.m_scb.total_ingress_accepted &&
           m_env.m_hit_drv.pending_source_items() == 0 &&
@@ -222,9 +223,10 @@ class base_test extends uvm_test;
       cycles++;
     end
     `uvm_info("TIMEOUT", $sformatf(
-      "%s debug: remaining=%0d max_remaining=%0d source_backlog=%0d source_backlog_max=%0d source_offered=%0d source_accepted=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
+      "%s debug: remaining=%0d pending_drain=%0d max_remaining=%0d source_backlog=%0d source_backlog_max=%0d source_offered=%0d source_accepted=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
       what,
       m_env.m_scb.remaining_entries(),
+      m_env.m_scb.pending_drain_entries(),
       m_env.m_scb.max_remaining_entries(),
       m_env.m_hit_drv.pending_source_items(),
       m_env.m_hit_drv.max_source_backlog,
@@ -246,8 +248,9 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.first_pop_cycle,
       m_env.m_dbg_mon.first_overwrite_cycle), UVM_LOW)
     `uvm_error("TIMEOUT", $sformatf(
-      "Timed out waiting for %s after %0d cycles: remaining=%0d epoch_idle=%0d accepted=%0d written=%0d source_backlog=%0d",
-      what, max_cycles, m_env.m_scb.remaining_entries(), m_env.m_scb.epoch_idle(),
+      "Timed out waiting for %s after %0d cycles: remaining=%0d pending_drain=%0d epoch_idle=%0d accepted=%0d written=%0d source_backlog=%0d",
+      what, max_cycles, m_env.m_scb.remaining_entries(),
+      m_env.m_scb.pending_drain_entries(), m_env.m_scb.epoch_idle(),
       m_env.m_scb.total_ingress_accepted, m_env.m_scb.total_written,
       m_env.m_hit_drv.pending_source_items()))
   endtask
@@ -350,6 +353,274 @@ class base_test extends uvm_test;
     if (pop_count > push_count) begin
       `uvm_error("X003", $sformatf("POP_COUNT exceeded PUSH_COUNT after terminate: push=%0d pop=%0d", push_count, pop_count))
     end
+  endtask
+
+  task automatic restart_after_flush(int unsigned latency = 2000);
+    enter_run_prepare();
+    csr_write(CSR_EXPECTED_LAT_ADDR, latency);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+    wait_clocks(2);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+    wait_clocks(20);
+  endtask
+
+  task automatic return_to_idle();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_IDLE);
+    wait_clocks(4);
+  endtask
+
+  task automatic run_x116_good_error_good_case(
+    string       what,
+    int unsigned good_a_hits = 32,
+    int unsigned bad_hits = 8,
+    int unsigned good_b_hits = 32,
+    int unsigned latency = 2000
+  );
+    same_key_burst_seq burst_seq;
+    error_burst_seq    err_burst;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       inerr_count;
+    int unsigned       fill_level;
+
+    configure_and_start(latency);
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_good_a"});
+    burst_seq.num_hits = good_a_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    err_burst = error_burst_seq::type_id::create({what, "_bad"});
+    err_burst.num_hits = bad_hits;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(32);
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_good_b"});
+    burst_seq.num_hits = good_b_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    terminate_and_drain(180_000, {what, " terminate drain"});
+    expect_service_model_accounting({what, " terminate drain"}, 1, 0);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != (good_a_hits + good_b_hits) ||
+        pop_count != (good_a_hits + good_b_hits) ||
+        inerr_count != bad_hits ||
+        fill_level != 0) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d inerr=%0d fill=%0d expected_push_pop=%0d expected_inerr=%0d",
+        what, push_count, pop_count, inerr_count, fill_level, good_a_hits + good_b_hits, bad_hits))
+    end
+  endtask
+
+  task automatic run_x117_good_error_flush_good_case(
+    string       what,
+    int unsigned good_a_hits = 32,
+    int unsigned bad_hits = 8,
+    int unsigned good_b_hits = 32,
+    int unsigned latency = 2000
+  );
+    same_key_burst_seq burst_seq;
+    error_burst_seq    err_burst;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       inerr_count;
+    int unsigned       overwrite_count;
+    int unsigned       cache_miss_count;
+    int unsigned       fill_level;
+
+    configure_and_start(latency);
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_good_a"});
+    burst_seq.num_hits = good_a_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    err_burst = error_burst_seq::type_id::create({what, "_bad"});
+    err_burst.num_hits = bad_hits;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(32);
+    restart_after_flush(latency);
+
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    if (inerr_count != 0 || overwrite_count != 0 || cache_miss_count != 0) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s flush did not clear transient error counters: inerr=%0d overwrite=%0d cache_miss=%0d",
+        what, inerr_count, overwrite_count, cache_miss_count))
+    end
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_good_b"});
+    burst_seq.num_hits = good_b_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    terminate_and_drain(180_000, {what, " restart drain"});
+    expect_service_model_accounting({what, " restart drain"}, 1, 0);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != good_b_hits || pop_count != good_b_hits || fill_level != 0) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s restart accounting mismatch: push=%0d pop=%0d fill=%0d expected=%0d",
+        what, push_count, pop_count, fill_level, good_b_hits))
+    end
+  endtask
+
+  task automatic run_x118_good_terminate_restart_case(
+    string       what,
+    int unsigned first_hits = 96,
+    int unsigned second_hits = 32,
+    int unsigned latency = 2000
+  );
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       fill_level;
+
+    configure_and_start(latency);
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_first"});
+    burst_seq.num_hits = first_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_clocks(4);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_ctrl_ready(1'b1, 40_000, {what, " first terminate ack"});
+    wait_for_scoreboard_idle(180_000, {what, " first terminate drain"});
+
+    return_to_idle();
+    restart_after_flush(latency);
+    if (m_env.m_dbg_mon.vif.endofrun_seen !== 1'b0) begin
+      `uvm_error("RECOVERY", $sformatf("%s restart inherited endofrun_seen", what))
+    end
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_second"});
+    burst_seq.num_hits = second_hits;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    terminate_and_drain(180_000, {what, " second terminate drain"});
+    expect_service_model_accounting({what, " second terminate drain"}, 1, 0);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != second_hits || pop_count != second_hits || fill_level != 0) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s second-run accounting mismatch: push=%0d pop=%0d fill=%0d expected=%0d",
+        what, push_count, pop_count, fill_level, second_hits))
+    end
+  endtask
+
+  task automatic run_cross_curated_all_bucket_mix();
+    same_key_burst_seq   burst_seq;
+    random_push_pop_seq  rand_same;
+    overwrite_profile_seq pressure_seq;
+    error_burst_seq      err_burst;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+    int unsigned         pop_count;
+
+    `uvm_info("CASE", "CASE_BEGIN run=CROSS-015", UVM_LOW)
+    configure_and_start(2000);
+
+    for (int round = 0; round < 3; round++) begin
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("cross015_basic_%0d", round));
+      burst_seq.num_hits = (round == 0) ? 128 : 256;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2 + round);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_clocks($urandom_range(0, 64));
+
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("cross015_edge_%0d", round));
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key((4 + round) % 8);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_clocks($urandom_range(0, 128));
+
+      rand_same = random_push_pop_seq::type_id::create($sformatf("cross015_prof_%0d", round));
+      rand_same.num_hits = 4096;
+      rand_same.search_key = (8 + (round * 7)) % 60;
+      rand_same.inter_hit_delay = round[1:0];
+      rand_same.start(m_env.m_hit_seqr);
+      wait_clocks($urandom_range(0, 200));
+
+      err_burst = error_burst_seq::type_id::create($sformatf("cross015_err_%0d", round));
+      err_burst.num_hits = 32;
+      err_burst.search_key = m_cfg.lane_key_ord_to_search_key((6 + round) % 8);
+      err_burst.start(m_env.m_hit_seqr);
+      wait_clocks(16);
+
+      restart_after_flush(2000);
+
+      pressure_seq = overwrite_profile_seq::type_id::create($sformatf("cross015_pressure_%0d", round));
+      pressure_seq.num_hits = 2048;
+      pressure_seq.lane_key_start_ord = 2 + round;
+      pressure_seq.pool_keys = 1 + (round % 2);
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.progress_stride = 256;
+      pressure_seq.progress_tag = $sformatf("CROSS-015 round %0d", round);
+      pressure_seq.start(m_env.m_hit_seqr);
+      wait_clocks($urandom_range(0, 200));
+    end
+
+    terminate_and_drain(400_000, "CROSS-015 curated all-bucket mix");
+    expect_service_model_accounting("CROSS-015 curated all-bucket mix", 1, 1);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    `uvm_info("CROSS-015", $sformatf(
+      "summary: inerr=%0d push=%0d pop=%0d overwrites=%0d max_remaining=%0d cache_miss_outputs=%0d",
+      inerr_count, push_count, pop_count, m_env.m_dbg_mon.dbg_overwrite_cnt[31:0],
+      m_env.m_scb.max_remaining_entries(), m_env.m_scb.total_cache_miss_outputs), UVM_LOW)
+    `uvm_info("CASE", "CASE_END run=CROSS-015", UVM_LOW)
+  endtask
+
+  task automatic run_cross_inerr_toggle_longrun();
+    error_burst_seq err_burst;
+    int unsigned    inerr_count;
+
+    `uvm_info("CASE", "CASE_BEGIN run=CROSS-091", UVM_LOW)
+    configure_and_start(2000);
+
+    err_burst = error_burst_seq::type_id::create("cross091_inerr_burst");
+    err_burst.num_hits = 131072;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(64);
+
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "CROSS-091 INERR frontdoor/backdoor match");
+    if (inerr_count != 131072) begin
+      `uvm_error("CROSS-091", $sformatf(
+        "Long-run INERR counter mismatch: observed=%0d expected=%0d",
+        inerr_count, 131072))
+    end
+    wait_for_scoreboard_idle(60_000, "CROSS-091 inerr long run");
+    `uvm_info("CROSS-091", $sformatf(
+      "summary: inerr=%0d cache_miss=%0d push=%0d pop=%0d",
+      inerr_count,
+      m_env.m_dbg_mon.dbg_cache_miss_cnt[31:0],
+      m_env.m_dbg_mon.dbg_push_cnt[31:0],
+      m_env.m_dbg_mon.dbg_pop_cnt[31:0]), UVM_LOW)
+    `uvm_info("CASE", "CASE_END run=CROSS-091", UVM_LOW)
+  endtask
+
+  task automatic run_cross_overwrite_toggle_longrun();
+    `uvm_info("CASE", "CASE_BEGIN run=CROSS-076", UVM_LOW)
+    run_single_key_overwrite_window("CROSS-076 overwrite toggle soak", 131072);
+    `uvm_info("CASE", "CASE_END run=CROSS-076", UVM_LOW)
   endtask
 
   task automatic terminate_and_drain(
@@ -577,8 +848,56 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.first_pop_cycle), UVM_LOW)
   endtask
 
+  task automatic run_same_key_epoch_count_case(
+    string what,
+    int unsigned num_hits,
+    int unsigned key_ord,
+    int unsigned expected_hit_count_field,
+    int unsigned latency = 2000,
+    int unsigned timeout_cycles = 200_000,
+    bit check_pre_drain_fill = 0,
+    int unsigned expected_pre_drain_fill = 0
+  );
+    same_key_burst_seq burst_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned focus_search_key;
+    int unsigned fill_level;
+
+    configure_and_start(latency);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(key_ord);
+    burst_seq = same_key_burst_seq::type_id::create({what, "_burst"});
+    burst_seq.num_hits = num_hits;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    if (check_pre_drain_fill) begin
+      wait_for_push_count(num_hits, timeout_cycles / 4, {what, " fill pre-check"});
+      wait_clocks(4);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (fill_level != expected_pre_drain_fill) begin
+        `uvm_error("SAME_KEY", $sformatf(
+          "%s pre-drain fill mismatch: observed=%0d expected=%0d",
+          what, fill_level, expected_pre_drain_fill))
+      end
+    end
+
+    wait_for_subheader_search_key(
+      focus_search_key[7:0], timeout_cycles, {what, " target subheader"}, matched_subheader);
+    if (matched_subheader == null ||
+        matched_subheader.hit_count != expected_hit_count_field[7:0]) begin
+      `uvm_error("SAME_KEY", $sformatf(
+        "%s subheader hit_count mismatch: observed=%s expected=0x%02x (%0d hits)",
+        what,
+        (matched_subheader == null) ? "none" : $sformatf("0x%02x", matched_subheader.hit_count),
+        expected_hit_count_field[7:0], num_hits))
+    end
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+  endtask
+
   function automatic logic [31:0] expected_meta_version();
-    return 32'h1A01_4192;
+    return 32'h1A01_51A2;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
@@ -666,6 +985,62 @@ class base_test extends uvm_test;
       what, max_cycles, expected_search_key, m_env.m_out_mon.total_subheaders_seen))
   endtask
 
+  task automatic wait_for_subheader_match(
+    input bit [7:0] expected_search_key,
+    input bit [7:0] expected_hit_count,
+    input bit check_hit_count = 0,
+    input bit require_nonzero_hit_count = 0,
+    input int unsigned max_cycles = 50_000,
+    input string what = "matching subheader",
+    output ring_buffer_cam_pkg::out_seq_item matched_subheader
+  );
+    int unsigned cycles;
+    int unsigned seen_before;
+    matched_subheader = null;
+    cycles = 0;
+    seen_before = require_nonzero_hit_count ?
+      m_env.m_out_mon.total_data_subheaders_seen :
+      m_env.m_out_mon.total_subheaders_seen;
+    while (cycles < max_cycles) begin
+      if (require_nonzero_hit_count &&
+          m_env.m_out_mon.total_data_subheaders_seen > seen_before &&
+          m_env.m_out_mon.recent_data_subheaders.size() > 0) begin
+        matched_subheader = m_env.m_out_mon.recent_data_subheaders[$];
+        seen_before = m_env.m_out_mon.total_data_subheaders_seen;
+      end else if (!require_nonzero_hit_count &&
+          m_env.m_out_mon.total_subheaders_seen > seen_before &&
+          m_env.m_out_mon.recent_subheaders.size() > 0) begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        seen_before = m_env.m_out_mon.total_subheaders_seen;
+      end else begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        cycles++;
+        continue;
+      end
+        if (matched_subheader.search_key != expected_search_key) begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+          cycles++;
+          continue;
+        end
+        if (require_nonzero_hit_count && matched_subheader.hit_count == 0) begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+          cycles++;
+          continue;
+        end
+        if (check_hit_count && matched_subheader.hit_count != expected_hit_count) begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+          cycles++;
+          continue;
+        end
+        return;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: expected_search_key=0x%02x expected_hit_count=%0d total_seen=%0d",
+      what, max_cycles, expected_search_key, expected_hit_count,
+      require_nonzero_hit_count ? m_env.m_out_mon.total_data_subheaders_seen :
+        m_env.m_out_mon.total_subheaders_seen))
+  endtask
+
   task automatic wait_for_push_count(
     int unsigned target_count,
     int unsigned max_cycles = 50_000,
@@ -686,6 +1061,30 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.dbg_overwrite_cnt[31:0], m_env.m_dbg_mon.current_live_fill))
   endtask
 
+  task automatic wait_for_partition_issue_mask(
+    input logic [3:0] expected_mask,
+    output logic [3:0] observed_mask,
+    input int unsigned max_cycles = 50_000,
+    input string what = "partition issue mask"
+  );
+    int unsigned cycles;
+    observed_mask = '0;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+        observed_mask[m_env.m_dbg_mon.pop_issue_partition_idx] = 1'b1;
+        if ((observed_mask & expected_mask) == expected_mask) begin
+          return;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: observed_mask=0x%0h expected_mask=0x%0h",
+      what, max_cycles, observed_mask, expected_mask))
+  endtask
+
   task automatic run_case_by_id(string case_id);
     single_push_pop_seq   single_seq;
     same_key_burst_seq    burst_seq;
@@ -696,6 +1095,7 @@ class base_test extends uvm_test;
     random_multi_key_seq  rand_multi;
     random_throughput_seq rand_tp;
     single_error_hit_seq  err_seq;
+    error_burst_seq       err_burst;
     ring_buffer_cam_pkg::out_seq_item matched_subheader;
     logic [31:0]          data_a;
     logic [31:0]          data_b;
@@ -725,7 +1125,14 @@ class base_test extends uvm_test;
     int unsigned          wait_min;
     int unsigned          wait_max;
     logic [3:0]           load_mask;
+    logic [1:0]           rr_before;
     bit                   saw_load;
+    bit                   saw_overlap;
+    bit                   saw_rr_advance;
+    bit                   saw_preempt;
+    bit                   traffic_done;
+    longint unsigned      cycle_a;
+    longint unsigned      cycle_b;
 
     if (case_id == "B001") begin
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
@@ -796,7 +1203,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260402, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260417, "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -965,7 +1372,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260402, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260417, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -1498,6 +1905,303 @@ class base_test extends uvm_test;
           "Pop descriptor cadence mismatch: observed=%0d expected=%0d interleaving_factor=%0d",
           observed_cmds, expected_cmds, m_cfg.interleaving_factor))
       end
+    end else if (case_id == "B070") begin
+      configure_and_start(2000);
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      single_seq = single_push_pop_seq::type_id::create("b070_first_epoch");
+      single_seq.search_key = m_cfg.lane_key_ord_to_search_key(0);
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_count(subhdr_before + 1, 60_000, "B070 first pop descriptor");
+      if (m_env.m_out_mon.recent_subheaders.size() == 0 ||
+          m_env.m_out_mon.recent_subheaders[$].search_key != 8'h00) begin
+        `uvm_error("B070", $sformatf(
+          "First subheader search key mismatch: observed=%s expected=0x00",
+          (m_env.m_out_mon.recent_subheaders.size() == 0) ? "none" :
+            $sformatf("0x%02x", m_env.m_out_mon.recent_subheaders[$].search_key)))
+      end
+      wait_for_scoreboard_idle(80_000, "B070 first-epoch drain");
+      expect_service_model_accounting("B070 first-epoch drain", 1, 0);
+    end else if (case_id == "B073") begin
+      run_same_key_epoch_count_case("B073 occupancy-1", 1, 2, 1, 2000, 80_000, 1, 1);
+    end else if (case_id == "B074") begin
+      run_same_key_epoch_count_case("B074 occupancy-2", 2, 2, 2);
+    end else if (case_id == "B076") begin
+      run_same_key_epoch_count_case("B076 occupancy-16", 16, 2, 16);
+    end else if (case_id == "B077") begin
+      run_same_key_epoch_count_case("B077 occupancy-17", 17, 2, 17);
+    end else if (case_id == "B081") begin
+      run_same_key_epoch_count_case("B081 occupancy-511", 511, 2, 8'hFF, 2000, 300_000);
+    end else if (case_id == "B082") begin
+      run_single_key_overwrite_window("B082 same-key wraparound", 1024);
+    end else if (case_id == "B083") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("b083_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "B083 immediate-latency push");
+      cycle_a = m_env.m_dbg_mon.first_push_cycle;
+      search_cycles = 0;
+      while (search_cycles < 64 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("B083", "EXPECTED_LATENCY=0 did not trigger an immediate pop descriptor")
+      end
+      wait_clocks(4);
+      dbg48_a = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if (dbg48_a > 48'd1) begin
+        `uvm_error("B083", $sformatf(
+          "EXPECTED_LATENCY=0 did not collapse read_time_ptr delta: observed=%0d",
+          dbg48_a))
+      end
+      wait_for_subheader_search_key(focus_search_key[7:0], 80_000, "B083 immediate subheader", matched_subheader);
+      wait_for_scoreboard_idle(80_000, "B083 immediate-latency drain");
+      expect_service_model_accounting("B083 immediate-latency drain", 1, 0);
+    end else if (case_id == "B084") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      single_seq = single_push_pop_seq::type_id::create("b084_pending_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "B084 pending hit");
+      wait_clocks(64);
+      if (m_env.m_out_mon.total_subheaders_seen != subhdr_before) begin
+        `uvm_error("B084", "Pending hit drained before the latency rewrite took effect")
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'h0000) begin
+        `uvm_error("B084", $sformatf(
+          "Latency rewrite to zero did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      wait_for_subheader_search_key(focus_search_key[7:0], 80_000, "B084 latency-shifted drain", matched_subheader);
+      wait_for_scoreboard_idle(80_000, "B084 latency rewrite drain");
+      expect_service_model_accounting("B084 latency rewrite drain", 1, 0);
+    end else if (case_id == "B085") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      for (int i = 0; i < 4; i++) begin
+        err_seq = single_error_hit_seq::type_id::create($sformatf("b085_filtered_%0d", i));
+        err_seq.search_key = focus_search_key;
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      wait_clocks(32);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd4, "B085 filtered half increments INERR");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "B085 filtered half does not push");
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0001);
+      wait_clocks(2);
+      for (int i = 0; i < 4; i++) begin
+        err_seq = single_error_hit_seq::type_id::create($sformatf("b085_passthrough_%0d", i));
+        err_seq.search_key = focus_search_key;
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      wait_for_subheader_search_key(focus_search_key[7:0], 80_000, "B085 accepted second-half drain", matched_subheader);
+      if (matched_subheader == null || matched_subheader.hit_count != 4) begin
+        `uvm_error("B085", $sformatf(
+          "Filter-toggle drain count mismatch: observed=%s expected=4",
+          (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
+      end
+      wait_for_scoreboard_idle(80_000, "B085 filter-toggle drain");
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd4, "B085 INERR_COUNT holds filtered half only");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd4, "B085 PUSH_COUNT reflects second half only");
+      expect_service_model_accounting("B085 filter-toggle drain", 1, 0);
+    end else if (case_id == "B086") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b086_same_key");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B086 DRAIN entry");
+      search_cycles = 0;
+      while (search_cycles < 128 &&
+             m_env.m_dbg_mon.pop_engine_state_code != 3'd5) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_engine_state_code != 3'd5) begin
+        `uvm_error("B086", "Drain did not reach RESET after the idle-partition round-robin handoff")
+      end
+      wait_for_scoreboard_idle(80_000, "B086 round-robin drain");
+      expect_service_model_accounting("B086 round-robin drain", 1, 0);
+    end else if (case_id == "B087") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b087_same_key");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B087 DRAIN entry");
+      saw_overlap = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 256 && !saw_overlap) begin
+        if (m_env.m_dbg_mon.pop_partition_advance[m_env.m_dbg_mon.pop_issue_partition_idx] === 1'b1 &&
+            m_env.m_dbg_mon.pop_partition_has_more[m_env.m_dbg_mon.pop_issue_partition_idx] === 1'b1) begin
+          saw_overlap = 1'b1;
+          @(posedge m_env.m_csr_drv.vif.clk);
+          if (m_env.m_dbg_mon.pop_partition_advance[m_env.m_dbg_mon.pop_issue_partition_idx] !== 1'b0) begin
+            `uvm_error("B087", "pop_partition_advance stayed high for more than one cycle")
+          end
+        end else begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+          search_cycles++;
+        end
+      end
+      if (!saw_overlap) begin
+        `uvm_error("B087", "Did not observe a one-cycle pop_partition_advance pulse while has_more=1")
+      end
+      wait_for_scoreboard_idle(80_000, "B087 advance handshake drain");
+      expect_service_model_accounting("B087 advance handshake drain", 1, 0);
+    end else if (case_id == "B088") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b088_same_key");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B088 DRAIN entry");
+      saw_overlap = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 256 && !saw_overlap) begin
+        if (m_env.m_dbg_mon.pop_last_hit_pending === 1'b1) begin
+          saw_overlap = 1'b1;
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_overlap) begin
+        `uvm_error("B088", "Did not observe pop_last_hit_pending before the final hit")
+      end
+      wait_for_hit_output_count(hit_before + 2, 80_000, "B088 last hit output");
+      if (m_env.m_out_mon.recent_hits.size() == 0 ||
+          !m_env.m_out_mon.recent_hits[$].eop) begin
+        `uvm_error("B088", "Final hit did not assert EOP after pop_last_hit_pending")
+      end
+      wait_for_scoreboard_idle(80_000, "B088 last-hit drain");
+      expect_service_model_accounting("B088 last-hit drain", 1, 0);
+    end else if (case_id == "B089") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b089_same_key");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd5, 40_000, "B089 RESET entry");
+      if (m_env.m_dbg_mon.pop_partition_pending != 0 ||
+          m_env.m_dbg_mon.pop_hits_count != 0 ||
+          m_env.m_dbg_mon.pop_partition_flag != 0 ||
+          m_env.m_dbg_mon.pop_partition_has_more != 0) begin
+        `uvm_error("B089", $sformatf(
+          "RESET state left stale partition context: pending=0x%0h hits=%0d flag=0x%0h has_more=0x%0h result_valid=0x%0h",
+          m_env.m_dbg_mon.pop_partition_pending,
+          m_env.m_dbg_mon.pop_hits_count,
+          m_env.m_dbg_mon.pop_partition_flag,
+          m_env.m_dbg_mon.pop_partition_has_more,
+          m_env.m_dbg_mon.pop_partition_result_valid))
+      end
+      wait_for_scoreboard_idle(80_000, "B089 reset cleanup drain");
+      expect_service_model_accounting("B089 reset cleanup drain", 1, 0);
+    end else if (case_id == "B090") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b090_overlap");
+      burst_seq.num_hits = 64;
+      burst_seq.search_key = focus_search_key;
+      saw_overlap = 1'b0;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 1_024 && !saw_overlap) begin
+            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+                (m_env.m_dbg_mon.pop_engine_state_code inside {3'd1, 3'd2, 3'd3})) begin
+              saw_overlap = 1'b1;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (!saw_overlap) begin
+        `uvm_error("B090", "Did not observe push_write_grant during SEARCH/LOAD/COUNT")
+      end
+      wait_for_scoreboard_idle(120_000, "B090 push/pop overlap drain");
+      expect_service_model_accounting("B090 push/pop overlap drain", 1, 0);
+    end else if (case_id == "B091") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b091_drain_priority");
+      burst_seq.num_hits = 256;
+      burst_seq.search_key = focus_search_key;
+      saw_overlap = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 1_024) begin
+            if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+                !traffic_done) begin
+              saw_overlap = 1'b1;
+              if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+                `uvm_error("B091", "push_write_grant remained high while pop_erase_grant owned DRAIN")
+              end
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (!saw_overlap) begin
+        `uvm_error("B091", "Did not observe pop_erase_grant under ingress backpressure")
+      end
+      wait_for_scoreboard_idle(120_000, "B091 drain-priority overlap");
+      expect_service_model_accounting("B091 drain-priority overlap", 1, 0);
+    end else if (case_id == "B093") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b093_preempt");
+      burst_seq.num_hits = 32;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      while (m_env.m_dbg_mon.vif.pop_erase_grant !== 1'b1) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      saw_preempt = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 512 && !saw_preempt) begin
+        if (m_env.m_dbg_mon.vif.decision_reg == 3'b011 &&
+            m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1) begin
+          saw_preempt = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_preempt) begin
+        `uvm_error("B093", "Flush did not preempt DRAIN with decision_reg=3")
+      end
+      repeat (8) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          `uvm_error("B093", "pop_erase_grant remained active after flush preemption")
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      m_env.m_scb.note_flush_reset();
+      wait_for_scoreboard_idle(120_000, "B093 flush preemption cleanup");
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);
@@ -1546,6 +2250,100 @@ class base_test extends uvm_test;
           "Concurrent push/pop accounting mismatch: push=%0d pop=%0d",
           push_count, pop_count))
       end
+    end else if (case_id == "E005") begin
+      configure_and_start(0);
+      single_seq = single_push_pop_seq::type_id::create("e005_first");
+      single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      single_seq.start(m_env.m_hit_seqr);
+      single_seq = single_push_pop_seq::type_id::create("e005_second");
+      single_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        m_cfg.lane_key_ord_to_search_key(2)[7:0], 8'd1, 1'b1, 1'b1, 200_000,
+        "E005 first data-bearing subheader", matched_subheader);
+      wait_for_subheader_match(
+        m_cfg.lane_key_ord_to_search_key(3)[7:0], 8'd1, 1'b1, 1'b1, 200_000,
+        "E005 second data-bearing subheader", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "E005 back-to-back drain");
+      expect_service_model_accounting("E005 back-to-back drain", 1, 0);
+    end else if (case_id == "E006") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e006_partition_balance");
+      burst_seq.num_hits = (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions) + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(burst_seq.num_hits, 40_000, "E006 partition-span fill");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != burst_seq.num_hits || overwrite_count != 0 || fill_level != burst_seq.num_hits) begin
+        `uvm_error("E006", $sformatf(
+          "Partition-span fill mismatch: push=%0d overwrite=%0d fill=%0d expected=%0d",
+          push_count, overwrite_count, fill_level, burst_seq.num_hits))
+      end
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < burst_seq.num_hits) begin
+        `uvm_error("E006", $sformatf(
+          "Partition-span occupancy never reached target: key=%0d max_for_key=%0d expected=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          burst_seq.num_hits))
+      end
+      terminate_and_drain(250_000, "E006 partition-span terminate");
+      expect_service_model_accounting("E006 partition-span terminate", 1, 0);
+    end else if (case_id == "E007") begin
+      configure_and_start();
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e007_partition_handoff");
+      burst_seq.num_hits = (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions) + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_hit_output_count(burst_seq.num_hits - 1, 2_500_000, "E007 first partition drain");
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      search_cycles = 0;
+      while (search_cycles < 200_000 &&
+             m_env.m_out_mon.total_hits_seen == hit_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_out_mon.total_hits_seen == hit_before) begin
+        `uvm_error("E007", "Drain stalled after the first partition emptied while one hit still remained")
+      end
+      wait_for_hit_output_count(burst_seq.num_hits, 200_000, "E007 final spill hit");
+      wait_for_scoreboard_idle(200_000, "E007 partition handoff drain");
+    end else if (case_id == "E008") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("e008_latency_min");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E008 min-latency push");
+      search_cycles = 0;
+      while (search_cycles < 64 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E008", "Minimum expected latency did not emit an immediate pop descriptor")
+      end
+      wait_for_scoreboard_idle(80_000, "E008 minimum-latency drain");
+      restart_after_flush(16'hffff);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(3);
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      single_seq = single_push_pop_seq::type_id::create("e008_latency_max");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E008 maximum-latency push");
+      wait_clocks(4096);
+      if (m_env.m_out_mon.total_subheaders_seen != subhdr_before) begin
+        `uvm_error("E008", "Maximum expected latency drained too early")
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_search_key(focus_search_key[7:0], 120_000, "E008 maximum-latency release", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "E008 latency-extreme drain");
     end else if (case_id == "E009") begin
       configure_and_start(2000);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -1649,7 +2447,9 @@ class base_test extends uvm_test;
       burst_seq.num_hits = 127;
       burst_seq.search_key = focus_search_key;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_subheader_search_key(focus_search_key[7:0], 60_000, "E013 127-hit subheader", matched_subheader);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'(burst_seq.num_hits), 1'b0, 1'b1, 500_000,
+        "E013 127-hit subheader", matched_subheader);
       if (matched_subheader == null || matched_subheader.hit_count != 127) begin
         `uvm_error("E013", $sformatf(
           "127-hit partition boundary mismatch: observed=%s",
@@ -1663,13 +2463,74 @@ class base_test extends uvm_test;
       burst_seq.num_hits = 128;
       burst_seq.search_key = focus_search_key;
       burst_seq.start(m_env.m_hit_seqr);
-      wait_for_subheader_search_key(focus_search_key[7:0], 60_000, "E014 128-hit subheader", matched_subheader);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'(burst_seq.num_hits), 1'b0, 1'b1, 500_000,
+        "E014 128-hit subheader", matched_subheader);
       if (matched_subheader == null || matched_subheader.hit_count != 128) begin
         `uvm_error("E014", $sformatf(
           "128-hit partition boundary mismatch: observed=%s",
           (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
       end
       wait_for_scoreboard_idle(120_000, "E014 128-hit drain");
+    end else if (case_id == "E015") begin
+      configure_and_start();
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("e015_boundary_129");
+      burst_seq.num_hits = (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions) + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_hit_output_count(burst_seq.num_hits, 2_500_000, "E015 full wrapped drain");
+      wait_for_scoreboard_idle(180_000, "E015 partition-span drain");
+      if (m_env.m_out_mon.total_data_subheaders_seen < subhdr_before + 2) begin
+        `uvm_error("E015", $sformatf(
+          "Partition-span packetization emitted too few data-bearing subheaders: observed_total=%0d baseline=%0d",
+          m_env.m_out_mon.total_data_subheaders_seen, subhdr_before))
+      end
+      if (m_env.m_out_mon.recent_data_subheaders.size() < 2) begin
+        `uvm_error("E015", "Partition-span packetization did not retain two data-bearing subheaders")
+      end else begin
+        if (m_env.m_out_mon.recent_data_subheaders[m_env.m_out_mon.recent_data_subheaders.size()-2].search_key !=
+            focus_search_key[7:0] ||
+            m_env.m_out_mon.recent_data_subheaders[$].search_key != focus_search_key[7:0]) begin
+          `uvm_error("E015", $sformatf(
+            "Partition-span packetization search-key mismatch: first=0x%02x last=0x%02x expected=0x%02x",
+            m_env.m_out_mon.recent_data_subheaders[m_env.m_out_mon.recent_data_subheaders.size()-2].search_key,
+            m_env.m_out_mon.recent_data_subheaders[$].search_key,
+            focus_search_key[7:0]))
+        end
+      end
+    end else if (case_id == "E016") begin
+      configure_and_start();
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("e016_full_partition_span");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 40_000, "E016 exact-depth full-partition fill");
+      expected_mask = (1 << m_cfg.n_partitions) - 1;
+      wait_for_partition_issue_mask(expected_mask[3:0], load_mask, 180_000, "E016 full-partition issue mask");
+      wait_for_hit_output_count(m_cfg.ring_buffer_n_entry, 2_500_000, "E016 full-depth drain");
+      wait_for_scoreboard_idle(300_000, "E016 full-partition drain");
+      if (m_env.m_out_mon.total_data_subheaders_seen < subhdr_before + 2) begin
+        `uvm_error("E016", $sformatf(
+          "Full-depth packetization emitted too few data-bearing subheaders: observed_total=%0d baseline=%0d",
+          m_env.m_out_mon.total_data_subheaders_seen, subhdr_before))
+      end
+      if (m_env.m_out_mon.recent_data_subheaders.size() < 2) begin
+        `uvm_error("E016", "Full-depth packetization did not retain two data-bearing subheaders")
+      end else begin
+        if (m_env.m_out_mon.recent_data_subheaders[m_env.m_out_mon.recent_data_subheaders.size()-2].search_key !=
+            focus_search_key[7:0] ||
+            m_env.m_out_mon.recent_data_subheaders[$].search_key != focus_search_key[7:0]) begin
+          `uvm_error("E016", $sformatf(
+            "Full-depth packetization search-key mismatch: first=0x%02x last=0x%02x expected=0x%02x",
+            m_env.m_out_mon.recent_data_subheaders[m_env.m_out_mon.recent_data_subheaders.size()-2].search_key,
+            m_env.m_out_mon.recent_data_subheaders[$].search_key,
+            focus_search_key[7:0]))
+        end
+      end
     end else if (case_id == "P001") begin
       configure_and_start();
       rand_same = random_push_pop_seq::type_id::create("rand_same");
@@ -1760,6 +2621,41 @@ class base_test extends uvm_test;
       end
     end else if (case_id == "X001") begin
       run_x001_filter_inerr_case();
+    end else if (case_id == "X002") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      single_seq = single_push_pop_seq::type_id::create("x002_tsglitch");
+      single_seq.use_raw_tcc8n = 1'b1;
+      single_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h0, 1'b1);
+      single_seq.hit_has_error = 1'b0;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_search_key(focus_search_key[7:0], 80_000, "X002 target subheader", matched_subheader);
+      wait_for_hit_output_count(hit_before + 1, 80_000, "X002 glitch-hit drain");
+      if (m_env.m_out_mon.recent_hits.size() == 0 ||
+          m_env.m_out_mon.recent_hits[$].error !== 1'b1) begin
+        `uvm_error("X002", "Timestamp-glitch hit did not assert the egress error bit")
+      end
+      wait_for_scoreboard_idle(80_000, "X002 glitch-hit drain");
+      expect_service_model_accounting("X002 glitch-hit drain", 1, 0);
+    end else if (case_id == "X017") begin
+      configure_and_start(2000);
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_clocks(2);
+      while (m_env.m_dbg_mon.vif.decision_reg != 3'b011) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      err_seq = single_error_hit_seq::type_id::create("x017_flush_bad");
+      err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      err_seq.start(m_env.m_hit_seqr);
+      wait_clocks(8);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X017 flush clears concurrent bad-hit count");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "X017 flush swallows the bad hit");
+      if (m_env.m_scb.total_ingress_accepted != 0) begin
+        `uvm_error("X017", $sformatf(
+          "Flushing bad hit should not be accepted, observed accepted ingress=%0d",
+          m_env.m_scb.total_ingress_accepted))
+      end
     end else if (case_id == "X007") begin
       configure_and_start(2000);
       err_seq = single_error_hit_seq::type_id::create("x007_err");
@@ -1937,6 +2833,12 @@ class base_test extends uvm_test;
       end
     end else if (case_id == "X003") begin
       run_x003_good_terminate_case();
+    end else if (case_id == "X116") begin
+      run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
+    end else if (case_id == "X117") begin
+      run_x117_good_error_flush_good_case("X117 GOOD-ERROR-FLUSH-GOOD");
+    end else if (case_id == "X118") begin
+      run_x118_good_terminate_restart_case("X118 GOOD-TERM-RESTART-GOOD");
     end else begin
       `uvm_fatal("CASE", $sformatf("Case %s is not implemented in the case engine", case_id))
     end
@@ -2400,8 +3302,18 @@ class test_case_engine extends base_test;
       end
       if (run_id == "CROSS-007") begin
         run_cross_good_error_good();
+      end else if (run_id == "CROSS-008") begin
+        run_x117_good_error_flush_good_case("CROSS-008 GOOD-ERROR-FLUSH-GOOD", 2048, 64, 2048, 2000);
+      end else if (run_id == "CROSS-009") begin
+        run_x118_good_terminate_restart_case("CROSS-009 GOOD-TERM-RESTART-GOOD", 2048, 2048, 2000);
       end else if (run_id == "CROSS-010") begin
         run_cross_good_error_good_overwrite();
+      end else if (run_id == "CROSS-015") begin
+        run_cross_curated_all_bucket_mix();
+      end else if (run_id == "CROSS-076") begin
+        run_cross_overwrite_toggle_longrun();
+      end else if (run_id == "CROSS-091") begin
+        run_cross_inerr_toggle_longrun();
       end else begin
         `uvm_fatal("CASE_ENGINE", $sformatf("cross run %s is not implemented yet", run_id))
       end

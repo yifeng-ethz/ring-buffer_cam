@@ -45,6 +45,7 @@ BUCKET_FILES = OrderedDict(
     }
 )
 CROSS_FILE = TB / "DV_CROSS.md"
+BUG_HISTORY_FILE = TB / "BUG_HISTORY.md"
 BASE_TEST_SV = TB / "uvm" / "base_test.sv"
 
 METRIC_ROWS = OrderedDict(
@@ -147,6 +148,50 @@ def parse_cross_rows(path: Path) -> list[dict]:
             }
         )
     return runs
+
+
+def parse_bug_history(path: Path) -> list[dict]:
+    if not path.is_file():
+        return []
+
+    bugs: list[dict] = []
+    current_date = ""
+    current: dict | None = None
+
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.rstrip()
+        if line.startswith("## "):
+            current_date = line[3:].strip()
+            continue
+
+        bug_match = re.match(r"^###\s+(BUG-\d+-([HR])):\s+(.+)$", line)
+        if bug_match:
+            if current is not None:
+                bugs.append(current)
+            bug_id = bug_match.group(1)
+            tag = bug_match.group(2)
+            current = {
+                "bug_id": bug_id,
+                "class": "Harness" if tag == "H" else "RTL",
+                "date": current_date,
+                "title": bug_match.group(3).strip(),
+                "fix_status": "",
+                "commit": "pending",
+            }
+            continue
+
+        if current is None:
+            continue
+
+        if line.startswith("- Fix status:"):
+            current["fix_status"] = line.split(":", 1)[1].strip()
+        elif line.startswith("- Commit:"):
+            current["commit"] = line.split(":", 1)[1].strip()
+
+    if current is not None:
+        bugs.append(current)
+
+    return bugs
 
 
 @functools.lru_cache(maxsize=1)
@@ -432,6 +477,8 @@ def cross_ucdb_candidates(run_data: dict) -> list[Path]:
 
 def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented: bool) -> None:
     target = PUB_LOGS / f"{name}_{RTL_VARIANT}_s{SEED}.log"
+    if src and src.is_file() and src.resolve() == target.resolve():
+        return
     if target.exists() or target.is_symlink():
         target.unlink()
 
@@ -450,6 +497,8 @@ def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented
 
 def publish_cov_artifact(name: str, src: Path | None) -> None:
     target = PUB_COV / f"{name}_s{SEED}.ucdb"
+    if src and src.is_file() and src.resolve() == target.resolve():
+        return
     if target.exists() or target.is_symlink():
         target.unlink()
 
@@ -697,6 +746,7 @@ def build_report() -> dict:
         "date": str(date.today()),
         "rtl_variant": RTL_VARIANT,
         "seed": SEED,
+        "bugs": parse_bug_history(BUG_HISTORY_FILE),
         "buckets": buckets,
         "bucket_summary": bucket_summary,
         "implementation_summary": {

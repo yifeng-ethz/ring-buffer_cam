@@ -1,3 +1,1 @@
-B082 has no live log artifact.
-State: planned only
-Scenario: same-key wraparound: write_pointer wraps the full ring while same key is hot, triggers repeated overwrites of prior same-key entries
+../work_uvm/logs/test_case_engine_B082_s1.log

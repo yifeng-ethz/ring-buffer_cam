@@ -1,3 +1,1 @@
-B093 has no live log artifact.
-State: planned only
-Scenario: arbiter priority: flush asserted during active DRAIN abandons pop_erase immediately
+../work_uvm/logs/test_case_engine_B093_s1.log

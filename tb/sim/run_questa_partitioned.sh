@@ -99,7 +99,7 @@ for vhdl_file in "${vhdl_files[@]}"; do
   "${vcom_cmd}" -2008 -modelsimini "${modelsim_ini}" -work work -quiet "${vhdl_file}"
 done
 
-"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/b2o_encoder.v"
+"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/rtl/b2o_encoder.v"
 
 # ── optional generic overrides via environment ──────────────────
 vsim_generics=""

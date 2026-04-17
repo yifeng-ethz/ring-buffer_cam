@@ -22,9 +22,11 @@ class out_monitor extends uvm_monitor;
   int unsigned active_hit_index;
   int unsigned total_items_seen;
   int unsigned total_subheaders_seen;
+  int unsigned total_data_subheaders_seen;
   int unsigned total_hits_seen;
   ring_buffer_cam_pkg::out_seq_item recent_items[$];
   ring_buffer_cam_pkg::out_seq_item recent_subheaders[$];
+  ring_buffer_cam_pkg::out_seq_item recent_data_subheaders[$];
   ring_buffer_cam_pkg::out_seq_item recent_hits[$];
 
   function new(string name, uvm_component parent);
@@ -37,6 +39,7 @@ class out_monitor extends uvm_monitor;
     active_hit_index = 0;
     total_items_seen = 0;
     total_subheaders_seen = 0;
+    total_data_subheaders_seen = 0;
     total_hits_seen = 0;
   endfunction
 
@@ -66,6 +69,11 @@ class out_monitor extends uvm_monitor;
       recent_subheaders.push_back(clone);
       if (recent_subheaders.size() > 64)
         void'(recent_subheaders.pop_front());
+      if (item.hit_count != 0) begin
+        recent_data_subheaders.push_back(clone);
+        if (recent_data_subheaders.size() > 64)
+          void'(recent_data_subheaders.pop_front());
+      end
     end else begin
       recent_hits.push_back(clone);
       if (recent_hits.size() > 128)
@@ -112,6 +120,8 @@ class out_monitor extends uvm_monitor;
             drain_hit_count   = 0;
           end
           total_subheaders_seen++;
+          if (item.hit_count > 0)
+            total_data_subheaders_seen++;
         end else begin
           // Hit data
           item.is_subheader = 0;

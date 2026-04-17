@@ -1,3 +1,1 @@
-B087 has no live log artifact.
-State: planned only
-Scenario: pop DRAIN advance handshake: after erase_grant, `pop_partition_advance(idx)` pulses exactly one cycle while has_more=1
+../work_uvm/logs/test_case_engine_B087_s1.log

@@ -1,3 +1,1 @@
-B077 has no live log artifact.
-State: planned only
-Scenario: same-key occupancy = LEAF_WIDTH+1 (17): crosses leaf boundary within partition, exercises `has_more` from first leaf
+../work_uvm/logs/test_case_engine_B077_s1.log

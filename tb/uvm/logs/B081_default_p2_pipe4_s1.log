@@ -1,3 +1,1 @@
-B081 has no live log artifact.
-State: planned only
-Scenario: same-key occupancy = RING_BUFFER_N_ENTRY-1 (511): drains 511 hits with subheader hit_count[7:0] wrapping at 255 boundary
+../work_uvm/logs/test_case_engine_B081_s1.log

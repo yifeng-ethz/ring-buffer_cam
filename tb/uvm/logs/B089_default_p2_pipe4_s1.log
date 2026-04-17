@@ -1,3 +1,1 @@
-B089 has no live log artifact.
-State: planned only
-Scenario: pop RESET state: clears pop_partition_snapshot, pending, total_hits, count_done, issue_valid in one cycle
+../work_uvm/logs/test_case_engine_B089_s1.log

@@ -1,3 +1,1 @@
-B073 has no live log artifact.
-State: planned only
-Scenario: same-key occupancy = 1: push 1, pop 1, scoreboard FILL_LEVEL trajectory {0,1,0} observed over CSR polls
+../work_uvm/logs/test_case_engine_B073_s1.log

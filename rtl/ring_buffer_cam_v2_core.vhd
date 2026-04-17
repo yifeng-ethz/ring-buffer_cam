@@ -74,7 +74,7 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 417;
+	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260417;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;

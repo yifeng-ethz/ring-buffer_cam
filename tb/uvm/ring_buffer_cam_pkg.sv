@@ -340,6 +340,31 @@ package ring_buffer_cam_pkg;
     endfunction
   endclass
 
+  class debug_pop_item extends uvm_sequence_item;
+    `uvm_object_utils(debug_pop_item)
+
+    bit [15:0] slot_addr;
+    bit [38:0] raw_hit;
+    bit        occupied;
+    bit [47:0] pop_count;
+
+    function new(string name = "debug_pop_item");
+      super.new(name);
+    endfunction
+
+    function bit [12:0] tcc8n();
+      return raw_hit[TCC8N_HI:TCC8N_LO];
+    endfunction
+
+    function bit [7:0] search_key();
+      return tcc8n()[11:4];
+    endfunction
+
+    function bit [7:0] ts50p();
+      return raw_hit[TCC1N6_HI:TFINE_LO];
+    endfunction
+  endclass
+
 endpackage
 
 `endif

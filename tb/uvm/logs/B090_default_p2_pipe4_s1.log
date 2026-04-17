@@ -1,3 +1,1 @@
-B090 has no live log artifact.
-State: planned only
-Scenario: push-pop non-exclusivity: push_write allowed while pop engine is in SEARCH/LOAD/COUNT (rev 2.4 relaxation)
+../work_uvm/logs/test_case_engine_B090_s1.log

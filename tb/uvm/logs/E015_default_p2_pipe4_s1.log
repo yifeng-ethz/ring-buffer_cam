@@ -1,3 +1,1 @@
-E015 has no live log artifact.
-State: planned only
-Scenario: fill exactly MATCH_PARTITION_SIZE_CONST+1 (129) so hits span partition 0 fully plus one in partition 1
+../work_uvm/logs/test_case_engine_E015_s1.log

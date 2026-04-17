@@ -1,3 +1,1 @@
-B085 has no live log artifact.
-State: planned only
-Scenario: same-key with filter_inerr toggled mid-burst: first half filtered, second half accepted
+../work_uvm/logs/test_case_engine_B085_s1.log

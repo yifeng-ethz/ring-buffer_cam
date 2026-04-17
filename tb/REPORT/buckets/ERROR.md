@@ -1,6 +1,6 @@
 # ⚠️ ERROR bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `13` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `18` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ⚠️ | stmt | 94.00 | 95.0 |
-| ⚠️ | branch | 79.93 | 90.0 |
+| ⚠️ | stmt | 94.20 | 95.0 |
+| ⚠️ | branch | 80.65 | 90.0 |
 | ℹ️ | cond | 66.94 | - |
 | ℹ️ | expr | 30.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 34.11 | 80.0 |
+| ⚠️ | toggle | 40.10 | 80.0 |
 
 ## Ordered merge trace
 
@@ -28,22 +28,22 @@
 | status | step | case_id | merged_total (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | detail |
 |:---:|---:|---|---|---|
 | ✅ | 1 | `X001` | stmt=92.99, branch=75.95, cond=55.65, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=29.75 | [case](../cases/X001.md) |
-| ❓ | 2 | `X002` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X002.md) |
-| ✅ | 3 | `X003` | stmt=93.54, branch=79.02, cond=65.32, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=32.19 | [case](../cases/X003.md) |
-| ✅ | 4 | `X004` | stmt=93.69, branch=79.57, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.48 | [case](../cases/X004.md) |
+| ✅ | 2 | `X002` | stmt=93.24, branch=76.85, cond=55.65, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=31.30 | [case](../cases/X002.md) |
+| ✅ | 3 | `X003` | stmt=93.74, branch=79.75, cond=65.32, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.73 | [case](../cases/X003.md) |
+| ✅ | 4 | `X004` | stmt=93.74, branch=79.75, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.43 | [case](../cases/X004.md) |
 | ❓ | 5 | `X005` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X005.md) |
-| ✅ | 6 | `X006` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.83 | [case](../cases/X006.md) |
-| ✅ | 7 | `X007` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.83 | [case](../cases/X007.md) |
-| ✅ | 8 | `X008` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.83 | [case](../cases/X008.md) |
-| ✅ | 9 | `X009` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.83 | [case](../cases/X009.md) |
-| ✅ | 10 | `X010` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.92 | [case](../cases/X010.md) |
-| ✅ | 11 | `X011` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.95 | [case](../cases/X011.md) |
-| ✅ | 12 | `X012` | stmt=94.00, branch=79.93, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=33.95 | [case](../cases/X012.md) |
-| ✅ | 13 | `X013` | stmt=94.00, branch=79.93, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.11 | [case](../cases/X013.md) |
-| ✅ | 14 | `X014` | stmt=94.00, branch=79.93, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.11 | [case](../cases/X014.md) |
-| ✅ | 15 | `X015` | stmt=94.00, branch=79.93, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.11 | [case](../cases/X015.md) |
+| ✅ | 6 | `X006` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.46 | [case](../cases/X006.md) |
+| ✅ | 7 | `X007` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.46 | [case](../cases/X007.md) |
+| ✅ | 8 | `X008` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.46 | [case](../cases/X008.md) |
+| ✅ | 9 | `X009` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.46 | [case](../cases/X009.md) |
+| ✅ | 10 | `X010` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.56 | [case](../cases/X010.md) |
+| ✅ | 11 | `X011` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.59 | [case](../cases/X011.md) |
+| ✅ | 12 | `X012` | stmt=94.05, branch=80.11, cond=66.13, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.59 | [case](../cases/X012.md) |
+| ✅ | 13 | `X013` | stmt=94.05, branch=80.11, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.74 | [case](../cases/X013.md) |
+| ✅ | 14 | `X014` | stmt=94.05, branch=80.11, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.74 | [case](../cases/X014.md) |
+| ✅ | 15 | `X015` | stmt=94.05, branch=80.11, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.74 | [case](../cases/X015.md) |
 | ❓ | 16 | `X016` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X016.md) |
-| ❓ | 17 | `X017` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X017.md) |
+| ✅ | 17 | `X017` | stmt=94.05, branch=80.11, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.74 | [case](../cases/X017.md) |
 | ❓ | 18 | `X018` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X018.md) |
 | ❓ | 19 | `X019` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X019.md) |
 | ❓ | 20 | `X020` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X020.md) |
@@ -142,9 +142,9 @@
 | ❓ | 113 | `X113` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X113.md) |
 | ❓ | 114 | `X114` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X114.md) |
 | ❓ | 115 | `X115` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X115.md) |
-| ❓ | 116 | `X116` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X116.md) |
-| ❓ | 117 | `X117` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X117.md) |
-| ❓ | 118 | `X118` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X118.md) |
+| ✅ | 116 | `X116` | stmt=94.10, branch=80.29, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=37.53 | [case](../cases/X116.md) |
+| ✅ | 117 | `X117` | stmt=94.10, branch=80.29, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=37.54 | [case](../cases/X117.md) |
+| ✅ | 118 | `X118` | stmt=94.20, branch=80.65, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=40.10 | [case](../cases/X118.md) |
 | ❓ | 119 | `X119` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X119.md) |
 | ❓ | 120 | `X120` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X120.md) |
 | ❓ | 121 | `X121` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X121.md) |

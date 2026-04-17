@@ -143,7 +143,7 @@ $(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS)
 	  cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work work -quiet $(VCOM_COVER) "$$f"; \
 	done
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet \
-	  $(VLOG_COVER) $(IP_DIR)/b2o_encoder.v
+	  $(VLOG_COVER) $(IP_DIR)/rtl/b2o_encoder.v
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet -mfcu \
 	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
 	  $(SV_SRCS)

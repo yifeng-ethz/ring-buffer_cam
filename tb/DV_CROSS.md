@@ -95,8 +95,8 @@ Each run pins a direct X-case (the "error window") between two randomized GOOD w
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
 | CROSS-007 | `anchored_hybrid` | GOOD(random, 10k) → X116 anchor → GOOD(random, 10k); explicit FLUSH between windows | X116, X129 regression; post-recovery counter and FILL_LEVEL invariants |
-| CROSS-008 | `anchored_hybrid` | push-heavy GOOD(λ=0.9, 20k) → X117 anchor (ERROR burst + FLUSH) → GOOD(random, 10k) | no pre-error occupancy leaks past FLUSH; `INERR_COUNT/OVERWRITE_COUNT/CACHE_MISS_COUNT` reset to 0 by FLUSH |
-| CROSS-009 | `anchored_hybrid` | same-key GOOD(pool=1, 5k) → X118 anchor (TERM mid-traffic, RUN_PREPARE, RUN) → multi-key GOOD(pool=4, 10k) | X118 regression; same-key ordering survives TERM; multi-key lanes see a clean CAM post-PREP |
+| CROSS-008 | `anchored_hybrid` | nightly promoted X117 anchor: GOOD(2048) → ERROR(64) → FLUSH → GOOD(2048) | no pre-error occupancy leaks past FLUSH; `INERR_COUNT/OVERWRITE_COUNT/CACHE_MISS_COUNT` reset to 0 by FLUSH |
+| CROSS-009 | `anchored_hybrid` | nightly promoted X118 anchor: GOOD(2048) → TERM → IDLE → RUN_PREPARE → RUN → GOOD(2048) | X118 regression; same-key ordering survives TERM; restart sees a clean CAM post-PREP |
 | CROSS-010 | `anchored_hybrid` | overwrite-pressure GOOD(pool=1, λ=1.0, 10k) → X119 anchor → recovery GOOD(random, 10k) | BUG-004 and BUG-008 regression; `OVERWRITE_COUNT` and `INERR_COUNT` are orthogonal across the boundary |
 
 ### 6.3 Arbitration and counter-delay anchors (CROSS-011-014)
@@ -112,7 +112,7 @@ Each run pins a direct X-case (the "error window") between two randomized GOOD w
 
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
-| CROSS-015 | `anchored_hybrid` | composer replays B005, B006, E002, P001 each twice in a random order, 30k | case-boundary ownership under repeated invocation; per-key retire-latency histogram populated across repeats |
+| CROSS-015 | `anchored_hybrid` | nightly curated all-bucket mix: B005/B006, E002, P001-style random push-pop, X117-style error+flush recovery, plus overwrite-pressure windows, all separated by random idle gaps | case-boundary ownership under repeated invocation; direct and random patterns from all four buckets coexist in one continuous frame |
 | CROSS-016 | `anchored_hybrid` | same as CROSS-015 but inter-case gap drawn uniformly from [0, 200] cycles | idle-gap insensitivity; DUT is idempotent across any idle-length in that range |
 
 ### 6.5 Seed-swept random promotions (CROSS-017-030)
@@ -208,7 +208,7 @@ These runs drive BUG-004 and BUG-008 the hardest. Each has an explicit overwrite
 
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
-| CROSS-076 | `seed_sweep` | P111 single-ts hotspot, small excess, 500k txn | `pushes_before_first_pop - 512` bound check |
+| CROSS-076 | `seed_sweep` | nightly hotspot overwrite soak derived from P111, 131072 txn same-ts pressure | `pushes_before_first_pop - 512` bound check plus deeper overwrite/toggle accumulation than the smoke pressure runs |
 | CROSS-077 | `seed_sweep` | P112 hotspot medium excess, 500k txn | same, larger excess |
 | CROSS-078 | `seed_sweep` | P113 hotspot sustained over-injection, 500k txn | BUG-008 regression trap at aggressive burst |
 | CROSS-079 | `seed_sweep` | P116 pool=4 120% push rate, 500k txn | per-key overwrite fairness |
@@ -230,7 +230,7 @@ One run per X101-X115 direct case, promoted to a long-soak with the backdoor obs
 
 | case_id | ladder | anchor | scenario | bug / coverage target |
 |---|---|---|---|---|
-| CROSS-091 | `seed_sweep` | X101-X102 | bad-hit burst sustained; frontdoor CSR polled every 1k cyc, 500k txn | `INERR` backdoor vs frontdoor within 4 clk |
+| CROSS-091 | `seed_sweep` | X101-X102 promoted to a 131072-txn sustained bad-hit burst | `INERR` backdoor vs frontdoor within 4 clk plus deeper error-counter toggle accumulation |
 | CROSS-092 | `seed_sweep` | X103 | bad hit concurrent with good push at 10% rate, 500k txn | both counters advance on same cycle |
 | CROSS-093 | `seed_sweep` | X104 | push near TERM, TERM rate 1/5k, 500k txn | final push captured before TERMINATING freezes |
 | CROSS-094 | `seed_sweep` | X105 | pop near TERM, TERM rate 1/5k, 500k txn | final pop 1 clk before asi_ctrl_ready |

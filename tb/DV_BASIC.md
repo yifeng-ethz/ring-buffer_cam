@@ -20,8 +20,8 @@
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
 | B009 | D | planned | none | CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity | UID CSR word 0 equals IP_UID generic across reset, RUNNING, TERMINATING reads; catches accidental writability or mux swap with META |
-| B010 | D | planned | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,4,402) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
-| B011 | D | planned | none | CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260402) | META word 1 reads the 32-bit date integer; catches a stale META mux leftover after meta_sel write |
+| B010 | D | planned | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,418) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
+| B011 | D | planned | none | CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260417) | META word 1 reads the 32-bit date integer; catches a stale META mux leftover after meta_sel write |
 | B012 | D | planned | none | CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic | META reads git hash constant; catches mis-decoded 2-bit selector |
 | B013 | D | planned | none | CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic | META reads instance id constant; catches default-branch fallthrough when other selectors are live |
 | B014 | D | planned | none | CSR[2] CTRL bit[0] `go` reset default = 1 verified before any write | CSR[2] read after reset yields bit[0]=1; catches a silent default flip that would block all ingress writes at startup |
@@ -70,7 +70,7 @@
 | B057 | D | planned | none | pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per partition | count load pulses = 4 for default N_PARTITIONS=4; catches skipped partition |
 | B058 | D | planned | none | pop COUNT: MATCH_COUNT_CHUNKS_CONST chunks accumulated per partition using `count_ones_16` | seed CAM with 17 hits in one partition and verify total_hits=17; catches off-by-one in chunk iteration |
 | B059 | D | planned | none | pop COUNT zero-hit fast path: if `pop_count_total_acc=0` engine transitions COUNT -> RESET and asserts `pop_cmd_fifo_rdack` | observe one-cycle rdack and no DRAIN entry; catches a spurious DRAIN on empty search |
-| B060 | D | planned | none | subheader framing for empty drain: SOP+EOP same beat, hit_count field = 0x00, K237 lane = 0xF7 | capture first egress beat after cache miss; catches SOP-only framing regression |
+| B060 | D | live UVM | none | subheader framing for empty drain: SOP+EOP same beat, hit_count field = 0x00, K237 lane = 0xF7 | capture first egress beat after cache miss; catches SOP-only framing regression |
 | B061 | D | planned | none | subheader framing for 1-hit drain: SOP on subheader beat, EOP on hit beat, hit_count field = 0x01 | two egress beats with correct SOP/EOP; catches EOP-on-subheader regression when hits>0 |
 | B062 | D | planned | none | subheader `data[31:24]` carries `pop_current_sk[7:0]` = ts[11:4] of the drained epoch | push hit at ts=0x2A0, verify subheader ts byte = 0x2A; catches wrong slice |
 | B063 | D | planned | none | subheader `data[15:8]` carries `pop_total_hits[7:0]` for non-zero drain | push 5 hits same key, subheader hit_count byte = 0x05; catches truncation |
@@ -79,7 +79,7 @@
 | B066 | D | planned | none | hit egress bit layout: `data[31:28]=ts[3:0]`, `[27:22]={00, asic[3:0]}`, `[21:17]=channel[4:0]`, `[16:9]=tcc1n6+tfine`, `[8:0]=et1n6` | drive a known hit payload, verify each field; catches slice regression from revision 2.x |
 | B067 | D | planned | none | cache-miss mid-drain: drive cmd whose key matches CAM entry but where side_ram occupancy=0 at erase-read time, `pop_cache_miss_pulse` fires | CACHE_MISS_COUNT=1, subheader has the hit but hit body is not forwarded | catches missing occupancy check in proc_avst_output_assembly |
 | B068 | D | planned | none | tsglitcherr: drive a hit whose stored ts[12] disagrees with pop_current_sk[8]; egress `aso_hit_type2_error[0]='1'` only on that hit beat | error bit asserts exactly once on the offending beat; catches wrong ts[12] index used in comparison |
-| B069 | D | planned | none | pop descriptor cadence: in RUNNING, command fifo gets one write per `read_time_ptr[3:0]=0000` AND lane match | count cmd writes over 256 cycles = 256/(16*INTERLEAVING_FACTOR); catches missing modulo guard |
+| B069 | D | live UVM | none | pop descriptor cadence: in RUNNING, command fifo gets one write per `read_time_ptr[3:0]=0000` AND lane match | count cmd writes over 256 cycles = 256/(16*INTERLEAVING_FACTOR); catches missing modulo guard |
 | B070 | D | planned | none | pop descriptor boundary: first pop fires at `read_time_ptr=0` exactly (ts[11:4]=0 bin not skipped) per revision 2.9 | observe first subheader ts byte = 0x00; catches return of the skip-first bug |
 | B071 | D | planned | none | terminating_drain_done combinational condition: all four subexpressions required simultaneously | bench each subexpression false individually and verify ready stays 0; catches loose OR of conditions |
 | B072 | D | planned | none | deassembly_fifo backpressure: `asi_hit_type1_ready` drops only when fifo_full; no other condition gates ready | fill deassembly fifo and observe ready=0 only at full; catches spurious ready toggles |
@@ -103,7 +103,7 @@
 | B090 | D | planned | none | push-pop non-exclusivity: push_write allowed while pop engine is in SEARCH/LOAD/COUNT (rev 2.4 relaxation) | push_write_grant observed during SEARCH with pop_engine_state not IDLE; catches the old exclusive lock |
 | B091 | D | planned | none | push-pop exclusivity: push_write blocked exactly when pop_erase holds grant in DRAIN | decision=2 wins over decision=0 in DRAIN; catches priority regression in proc_memory_arbiter_comb |
 | B092 | D | planned | none | arbiter priority: simultaneous push_erase + pop_erase -> push_erase wins (req[1] > req[2] per comb branch) | decision=1 in that cycle, overwrite counter advances; catches pop-erase overriding the data-dependency path |
-| B093 | D | planned | none | arbiter priority: flush asserted during active DRAIN abandons pop_erase immediately | decision=3 wins, pop_engine_state transitions via FLUSHING; catches stuck in DRAIN under flush |
+| B093 | D | live UVM | none | arbiter priority: flush asserted during active DRAIN abandons pop_erase immediately | decision=3 wins, pop_engine_state transitions via FLUSHING; catches stuck in DRAIN under flush |
 | B094 | D | planned | none | partitioned encoder PIPE_STAGES=1 baseline: o_result_valid reappears one cycle after i_load for a single-hit snapshot | measure i_load -> o_result_valid latency = 1; catches regression in ACTIVE_PIPE_STAGES min/max clamp |
 | B095 | D | planned | none | partitioned encoder PIPE_STAGES=2 baseline: single-hit latency = 2 cycles | same as B094 with PIPE_STAGES=2; catches drop of the extra_valid shift register |
 | B096 | D | planned | none | partitioned encoder PIPE_STAGES=3 baseline: single-hit latency = 3 cycles | same as B094/B095 with PIPE_STAGES=3; catches mis-mapped stage3 flag/lsb assignments |

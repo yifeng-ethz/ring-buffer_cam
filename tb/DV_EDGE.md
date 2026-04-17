@@ -6,27 +6,27 @@
 
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
-| E001 | D | planned | old `D002` intent | zero-hit subheader emission for searched key with no resident hits | SOP/EOP zero-hit framing and cache-miss counting behavior |
-| E002 | D | planned | old `D003` intent | max-depth same-key burst at CAM boundary | boundary drain count and no off-by-one corruption |
+| E001 | D | live UVM | old `D002` intent | zero-hit subheader emission for searched key with no resident hits | SOP/EOP zero-hit framing and cache-miss counting behavior |
+| E002 | D | live UVM | old `D003` intent | max-depth same-key burst at CAM boundary | boundary drain count and no off-by-one corruption |
 | E003 | D | live UVM | `test_overwrite_stress` | same-ts hotspot burst that injects more than 512 hits into one sector before the `EXPECTED_LATENCY=2000` service window can retire them | legal overwrite lower bound is derived from pushes observed before first pop service; no unexplained loss beyond overwrite accounting |
-| E004 | D | planned | old `D021` intent | push traffic arrives while pop drain is active | arbitration between push/pop keeps integrity |
-| E005 | D | planned | old `D011` intent | consecutive subheaders with minimal gap | subheader framing remains correct on back-to-back drains |
-| E006 | D | planned | old `D023-D024` intent | partition-balance spot checks across promoted configs | partitions share storage and drain fairly for supported encoders |
-| E007 | D | planned | old `D029` intent | one partition empties while others still hold hits | no global stall when one partition is empty |
-| E008 | D | planned | old `D008` intent | minimum and maximum expected-latency settings | latency programming changes behavior without corruption |
+| E004 | D | live UVM | old `D021` intent | push traffic arrives while pop drain is active | arbitration between push/pop keeps integrity |
+| E005 | D | live UVM | old `D011` intent | consecutive data-bearing subheaders with minimal gap | back-to-back drains preserve search-key framing even with zero-hit subheaders interleaved |
+| E006 | D | live UVM | old `D023-D024` intent | same-key burst spans beyond one promoted-config partition while service is held off | partitions share storage without premature overwrite; post-terminate drain remains lossless |
+| E007 | D | live UVM | old `D029` intent | one partition empties while another still has one remaining hit | drain continues across the partition boundary with no global stall |
+| E008 | D | live UVM | old `D008` intent | minimum and maximum expected-latency settings | latency programming changes behavior without corruption |
 
 # Canonical Planned Cases (E009-E129)
 
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
-| E009 | D | planned | none | fill to exactly RING_BUFFER_N_ENTRY-1 (511) same-key hits, then drain | FILL_LEVEL = N-1, PUSH_COUNT = 511, POP_COUNT = 511 after drain; no `push_state=ERASE` entry (no overwrite) catches premature overwrite at N-1 |
-| E010 | D | planned | none | fill to exactly RING_BUFFER_N_ENTRY (512) same-key hits with no drain window yet | `write_pointer` wraps from 511 back to 0; FILL_LEVEL = 512; OVERWRITE_COUNT still 0; catches write_pointer wrap miscount or spurious ERASE on unoccupied slot 0 |
-| E011 | D | planned | none | fill to RING_BUFFER_N_ENTRY+1 (513) same-key hits; first wrap-write lands on slot 0 which was already occupied | `push_state` transitions WRITE_AND_CHECK -> ERASE on beat 513 because `addr_occupied='1'` on slot 0; OVERWRITE_COUNT=1, PUSH_COUNT=512, FILL_LEVEL=512; catches wrap-induced overwrite not firing |
-| E012 | D | planned | none | fill to 2*RING_BUFFER_N_ENTRY (1024) same-key hits through two full wraps | OVERWRITE_COUNT = 512, PUSH_COUNT = 512 (never drops since overwrite + push are counted via `decision_reg=0` and `decision_reg=1` separately); FILL_LEVEL stays at 512 throughout; catches counter drift over repeated wrap |
-| E013 | D | planned | none | fill exactly to partition boundary MATCH_PARTITION_SIZE_CONST-1 (127) on partition 0 only | after search: `pop_partition_pending(0)='1'`, pending(1..3)='0'; `pop_total_hits=127`; subheader hit_cnt field [15:8] reads 127; catches off-by-one on partition slicing of `cam_match_addr_oh_partitioned_comb` |
-| E014 | D | planned | none | fill exactly MATCH_PARTITION_SIZE_CONST (128) to partition 0 so last write lands on slot 128 (partition 1) | partition_pending(0)=1 with 128 hits counted; last bit lives in partition 1's LSB slice; catches off-by-one where `(i+1)*128-1 downto i*128` slicing miscounts at the boundary bit |
-| E015 | D | planned | none | fill exactly MATCH_PARTITION_SIZE_CONST+1 (129) so hits span partition 0 fully plus one in partition 1 | partition_pending(0)=1 AND partition_pending(1)=1; round-robin `pop_rr_idx` walks 0→1 draining 128+1; catches encoder not detecting second partition during COUNT phase |
-| E016 | D | planned | none | fill 4*MATCH_PARTITION_SIZE_CONST (512 = all partitions full) same-key | all 4 `pop_partition_pending` bits set; `pop_count_total_acc`=512 sums across MATCH_COUNT_CHUNKS_CONST=8 chunks per partition × 4 partitions; subheader hit_cnt[7:0] wraps (since only 8 bits exposed) - catches field truncation undocumented |
+| E009 | D | live UVM | none | fill to exactly RING_BUFFER_N_ENTRY-1 (511) same-key hits, then drain | FILL_LEVEL = N-1, PUSH_COUNT = 511, POP_COUNT = 511 after drain; no `push_state=ERASE` entry (no overwrite) catches premature overwrite at N-1 |
+| E010 | D | live UVM | none | fill to exactly RING_BUFFER_N_ENTRY (512) same-key hits with no drain window yet | `write_pointer` wraps from 511 back to 0; FILL_LEVEL = 512; OVERWRITE_COUNT still 0; catches write_pointer wrap miscount or spurious ERASE on unoccupied slot 0 |
+| E011 | D | live UVM | none | fill to RING_BUFFER_N_ENTRY+1 (513) same-key hits; first wrap-write lands on slot 0 which was already occupied | `push_state` transitions WRITE_AND_CHECK -> ERASE on beat 513 because `addr_occupied='1'` on slot 0; OVERWRITE_COUNT=1, PUSH_COUNT=512, FILL_LEVEL=512; catches wrap-induced overwrite not firing |
+| E012 | D | live UVM | none | fill to 2*RING_BUFFER_N_ENTRY (1024) same-key hits through two full wraps | OVERWRITE_COUNT = 512, PUSH_COUNT = 512 (never drops since overwrite + push are counted via `decision_reg=0` and `decision_reg=1` separately); FILL_LEVEL stays at 512 throughout; catches counter drift over repeated wrap |
+| E013 | D | live UVM | none | fill exactly to one-hot partition boundary minus one resident for the promoted config | subheader hit_count field reports the pre-boundary occupancy exactly; catches off-by-one on partition slicing of `cam_match_addr_oh_partitioned_comb` |
+| E014 | D | live UVM | none | fill exactly to one full partition span for the promoted config | boundary occupancy still drains losslessly with the expected hit_count field; catches boundary-bit slicing errors |
+| E015 | D | live UVM | none | fill one resident beyond a full partition span for the promoted config | long same-key drain packetizes into multiple data-bearing subheaders while remaining lossless and preserving search key |
+| E016 | D | live UVM | none | fill the full ring depth with one same-key hotspot | full-depth drain packetizes across multiple data-bearing subheaders while remaining lossless and preserving search key |
 | E017 | D | planned | none | wrap index: write_pointer rolls from MAIN_CAM_ADDR_WIDTH max (511) to 0 with a pending pop on slot 510 | check pop_erase at slot 510 races with push_write at slot 511 then 0; `decision` arbitration 0 vs 2 yields pop_erase=2 when `pop_engine_state/=IDLE`; catches push_write leaking into pop-claimed slot |
 | E018 | D | planned | none | first-in-first-out at row boundary: write slots 510, 511, 0 same key; drain via pop, observe issue order | `pop_rr_idx` visits partition 3 (slots 384..511) first then partition 0 (0..127) per round-robin; verify binary LSB encoding of slot 510 (=partition3 LSB 126) precedes slot 0; catches LSB encoder direction |
 | E019 | D | planned | none | depth-1 (511 hits) same-key while EXPECTED_LATENCY=min (1) | pop command fires every 16 cycles regardless of latency=1; `read_time_ptr = gts_8n - 1`; all 511 hits drain into one subheader; catches latency=1 underflow path in `read_time_ptr_comb` |

@@ -129,6 +129,8 @@ class single_push_pop_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
   bit [4:0]    hit_tfine = 0;
   bit [8:0]    hit_et1n6 = 42;
   bit          hit_has_error = 0;
+  bit          use_raw_tcc8n = 0;
+  bit [12:0]   raw_tcc8n = '0;
 
   function new(string name = "single_push_pop_seq");
     super.new(name);
@@ -141,7 +143,7 @@ class single_push_pop_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
     hit.asic      = hit_asic;
     hit.ingress_channel = ingress_channel;
     hit.channel   = hit_channel;
-    hit.tcc8n     = 13'((search_key * 16) + ts_low);
+    hit.tcc8n     = use_raw_tcc8n ? raw_tcc8n : 13'((search_key * 16) + ts_low);
     hit.tcc1n6    = hit_tcc1n6;
     hit.tfine     = hit_tfine;
     hit.et1n6     = hit_et1n6;
@@ -184,6 +186,44 @@ class single_error_hit_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
     hit.has_error = hit_has_error;
     hit.is_empty_marker = hit_is_empty_marker;
     finish_item(hit);
+  endtask
+endclass
+
+class error_burst_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_item);
+  `uvm_object_utils(error_burst_seq)
+
+  int unsigned num_hits = 16;
+  int unsigned search_key = 4;
+  bit [3:0]    hit_asic_base = 0;
+  bit [3:0]    ingress_channel = 0;
+  bit [4:0]    hit_channel = 3;
+  bit [3:0]    ts_low_base = 0;
+  bit [2:0]    hit_tcc1n6_base = 0;
+  bit [4:0]    hit_tfine_base = 0;
+  bit [8:0]    hit_et1n6_base = 9'h001;
+  bit          use_raw_tcc8n = 0;
+  bit [12:0]   raw_tcc8n = '0;
+
+  function new(string name = "error_burst_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    ring_buffer_cam_pkg::hit_seq_item hit;
+    for (int i = 0; i < num_hits; i++) begin
+      hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("hit");
+      start_item(hit);
+      hit.asic      = hit_asic_base + i[3:0];
+      hit.ingress_channel = ingress_channel;
+      hit.channel   = hit_channel;
+      hit.tcc8n     = use_raw_tcc8n ? raw_tcc8n : 13'((search_key * 16) + ((ts_low_base + i) & 4'hf));
+      hit.tcc1n6    = hit_tcc1n6_base + i[2:0];
+      hit.tfine     = hit_tfine_base + i[4:0];
+      hit.et1n6     = hit_et1n6_base + i[8:0];
+      hit.has_error = 1'b1;
+      hit.is_empty_marker = 1'b0;
+      finish_item(hit);
+    end
   endtask
 endclass
 

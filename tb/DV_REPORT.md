@@ -15,8 +15,23 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `421` |
+| ⚠️ | unimplemented_cases | `393` |
 | ✅ | stale_artifacts | `0` |
+
+## Bugs
+
+<!-- latest bug-ledger entries from tb/BUG_HISTORY.md; class = Harness or RTL; commit = fixing commit hash once recorded. -->
+
+| status | bug_id | class | date | title | commit |
+|:---:|---|---|---|---|---|
+| ⚠️ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `pending` |
+| ⚠️ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `pending` |
+| ⚠️ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `pending` |
+| ⚠️ | `BUG-010-H` | Harness | `2026-04-17` | Framing checks sampled “latest subheader” instead of the case-target epoch | `pending` |
+| ⚠️ | `BUG-009-H` | Harness | `2026-04-17` | `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written | `pending` |
+| ⚠️ | `BUG-008-R` | RTL | `2026-04-17` | Same-key overwrite suppression compared against the next input beat instead of the just-written key | `pending` |
+| ⚠️ | `BUG-007-R` | RTL | `2026-04-16` | 48-bit counter cleanup logic truncated through `to_integer()` | `pending` |
+| ⚠️ | `BUG-006-H` | Harness | `2026-04-16` | Error-counter assumptions were too narrow for lane-mismatched bad hits | `pending` |
 
 ## Bucket summary
 
@@ -24,10 +39,10 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 63 | stmt=95.56, branch=84.63, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=54.53 | 48.84% (63/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 10 | stmt=95.46, branch=84.45, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=62.36 | 7.75% (10/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 80 | stmt=97.28, branch=88.97, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.81 | 62.02% (80/129) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 16 | stmt=95.51, branch=84.63, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=64.48 | 12.4% (16/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 13 | stmt=94.00, branch=79.93, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=34.11 | 10.08% (13/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 18 | stmt=94.20, branch=80.65, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=40.10 | 13.95% (18/129) |
 
 ## Totals
 
@@ -35,13 +50,13 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|---|
 | ✅ | stmt | 97.33 | 95.0 |
 | ⚠️ | branch | 89.33 | 90.0 |
-| ℹ️ | cond | 72.58 | - |
+| ℹ️ | cond | 73.39 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 71.21 | 80.0 |
+| ⚠️ | toggle | 72.07 | 80.0 |
 
-- functional coverage: `18.41% (95/516)`
+- functional coverage: `23.84% (123/516)`
 
 ## Cross / continuous-frame signoff
 

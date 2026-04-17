@@ -1,3 +1,1 @@
-B074 has no live log artifact.
-State: planned only
-Scenario: same-key occupancy = 2: push 2 same key, pop at next latency boundary yields one subheader with hit_count=2
+../work_uvm/logs/test_case_engine_B074_s1.log
