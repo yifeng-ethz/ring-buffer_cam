@@ -714,6 +714,177 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x038_double_terminate_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       pop_count_after_first;
+    int unsigned       pop_count_after_second;
+    int unsigned       fill_level_after_second;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x038_double_term");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X038 resident precondition");
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(120_000, "X038 first terminate drain");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after_first);
+    if (pop_count_after_first != 16) begin
+      `uvm_error("X038", $sformatf(
+        "First TERMINATE did not drain the expected residents: pop=%0d expected=16",
+        pop_count_after_first))
+    end
+
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_clocks(2);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after_second);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level_after_second);
+    if (pop_count_after_second != pop_count_after_first) begin
+      `uvm_error("X038", $sformatf(
+        "Redundant TERMINATE changed POP_COUNT: first=%0d second=%0d",
+        pop_count_after_first, pop_count_after_second))
+    end
+    if (fill_level_after_second != 0) begin
+      `uvm_error("X038", $sformatf(
+        "Redundant TERMINATE left non-zero fill level: fill=%0d",
+        fill_level_after_second))
+    end
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_TERMINATING) begin
+      `uvm_error("X038", $sformatf(
+        "Redundant TERMINATE left the DUT in the wrong state: observed=%0d",
+        m_env.m_dbg_mon.run_state_code))
+    end
+    expect_service_model_accounting("X038 double terminate", 1, 0);
+  endtask
+
+  task automatic run_x049_terminate_terminate_idle_case();
+    int unsigned fill_level;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_IDLE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_IDLE, 2_000, "X049 return to IDLE");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 0) begin
+      `uvm_error("X049", $sformatf(
+        "TERMINATE->TERMINATE->IDLE left residual fill_level=%0d",
+        fill_level))
+    end
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X049", "endofrun_seen did not clear after IDLE")
+    end
+  endtask
+
+  task automatic run_x126_recovery_empty_terminate_case();
+    error_burst_seq err_burst;
+    int unsigned    fill_level;
+    int unsigned    pop_count;
+
+    configure_and_start(2000);
+    err_burst = error_burst_seq::type_id::create("x126_error_window");
+    err_burst.num_hits = 8;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(32);
+    restart_after_flush(2000);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("X126", "Recovered empty terminate did not assert terminating_drain_done")
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (fill_level != 0 || pop_count != 0) begin
+      `uvm_error("X126", $sformatf(
+        "Recovered empty terminate changed counters unexpectedly: fill=%0d pop=%0d",
+        fill_level, pop_count))
+    end
+  endtask
+
+  task automatic run_x127_endofrun_clear_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x127_first_run");
+    burst_seq.num_hits = 4;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_clocks(16);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      `uvm_error("X127", "First terminate did not latch endofrun_seen")
+    end
+
+    return_to_idle();
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X127", "endofrun_seen did not clear on the IDLE boundary")
+    end
+
+    restart_after_flush(2000);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X127", "Second RUN inherited endofrun_seen")
+    end
+
+    burst_seq = same_key_burst_seq::type_id::create("x127_second_run");
+    burst_seq.num_hits = 4;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+    terminate_and_drain(120_000, "X127 second-run terminate");
+    expect_service_model_accounting("X127 second-run terminate", 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (push_count != 4 || pop_count != 4) begin
+      `uvm_error("X127", $sformatf(
+        "Second run accounting mismatch after endofrun clear: push=%0d pop=%0d",
+        push_count, pop_count))
+    end
+  endtask
+
+  task automatic run_x128_gts_end_of_run_refresh_case();
+    logic [47:0] gts_end_a;
+    logic [47:0] gts_end_b;
+
+    configure_and_start(2000);
+    wait_clocks(64);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_clocks(1);
+    gts_end_a = m_env.m_dbg_mon.gts_end_of_run;
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+
+    return_to_idle();
+    wait_clocks(64);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_clocks(1);
+    gts_end_b = m_env.m_dbg_mon.gts_end_of_run;
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+
+    if (gts_end_a == 48'd0 || gts_end_b == 48'd0) begin
+      `uvm_error("X128", $sformatf(
+        "gts_end_of_run snapshots did not capture non-zero values: first=%0d second=%0d",
+        gts_end_a, gts_end_b))
+    end
+    if (gts_end_b <= gts_end_a) begin
+      `uvm_error("X128", $sformatf(
+        "gts_end_of_run did not refresh on the second TERMINATE: first=%0d second=%0d",
+        gts_end_a, gts_end_b))
+    end
+  endtask
+
   task automatic run_cross_curated_all_bucket_mix();
     same_key_burst_seq   burst_seq;
     random_push_pop_seq  rand_same;
@@ -4991,6 +5162,10 @@ class base_test extends uvm_test;
       run_x003_good_terminate_case();
     end else if (case_id == "X031") begin
       run_x031_terminate_empty_case();
+    end else if (case_id == "X038") begin
+      run_x038_double_terminate_case();
+    end else if (case_id == "X049") begin
+      run_x049_terminate_terminate_idle_case();
     end else if (case_id == "X116") begin
       run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
     end else if (case_id == "X053") begin
@@ -5091,6 +5266,12 @@ class base_test extends uvm_test;
           "LINK_TEST command did not enter the unsupported state cleanly: ack=%0d state=%0d",
           data_a, m_env.m_dbg_mon.run_state_code))
       end
+    end else if (case_id == "X126") begin
+      run_x126_recovery_empty_terminate_case();
+    end else if (case_id == "X127") begin
+      run_x127_endofrun_clear_case();
+    end else if (case_id == "X128") begin
+      run_x128_gts_end_of_run_refresh_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,

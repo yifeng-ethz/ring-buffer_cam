@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `327` |
+| ⚠️ | unimplemented_cases | `322` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -46,8 +46,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 36 | 27.91% | 1117 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 189 | 36.63% | 32405 | 0 | 0 | 0 |
+| ⚠️ | `ERROR` | 129 | 41 | 31.78% | 1141 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 194 | 37.60% | 32429 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -58,7 +58,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.67, branch=87.57, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.85 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 36 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.84 | 27.91% (36/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 41 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.98 | 31.78% (41/129) |
 
 ## Totals
 
@@ -66,13 +66,13 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|---|
 | ✅ | stmt | 97.02 | 95.0 |
 | ⚠️ | branch | 88.11 | 90.0 |
-| ℹ️ | cond | 70.99 | - |
+| ℹ️ | cond | 72.52 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 73.07 | 80.0 |
+| ⚠️ | toggle | 73.15 | 80.0 |
 
-- functional coverage: `36.63% (189/516)`
+- functional coverage: `37.6% (194/516)`
 
 ## Cross / continuous-frame signoff
 
