@@ -234,3 +234,34 @@
   - `overwrite_profile_seq` now varies the full stored fingerprint tuple across long runs instead of only a partial subset
   - verified together with `BUG-015-H` by the targeted pressure slice and the full `130/130` implemented isolated nightly matrix
 - Commit: e8c18fe
+
+## 2026-04-18
+
+### BUG-017-H: Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late
+- First seen in: `B075`, `B079`, and `B080` on 2026-04-18 during the next nightly BASIC expansion
+- Symptom:
+  - the new partition cases failed even though the DUT drained all hits losslessly
+  - `B075/B079/B080` assumed `MATCH_PARTITION_SIZE=128`, but the active `default_p2_pipe4` build runs with `G_N_PARTITIONS=2`, so the real partition size is `256`
+  - `B075` also assumed a single `hit_count=3` subheader even though the output path packetized the three-hit drain across multiple data-bearing subheaders
+- Root cause:
+  - the testcase math was written against a stale 4-partition mental model instead of `RING_BUFFER_N_ENTRY/N_PARTITIONS`
+  - the monitor logic started sampling the partition walk after subheader emission, which missed the earlier two-partition issue window
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `B075/B078/B079/B080` now derive partition size from the live config, force occupancy before drain, and sample pending/issue behavior at DRAIN entry
+  - verified first by targeted reruns, then by a clean full `137/137` implemented isolated nightly matrix
+- Commit: pending
+
+### BUG-018-H: DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns
+- First seen in: `DV_REPORT.md` refresh on 2026-04-18 after the isolated `B071/B072` batch
+- Symptom:
+  - a targeted two-case rerun incorrectly collapsed the dashboard from `137` executed cases to `2`
+  - the old published logs and UCDBs had been emitted as symlinks into `tb/uvm/work_uvm/`, so the next isolated run cleaned the backing files and left the report with placeholders
+- Root cause:
+  - `generate_dv_report.py` treated `tb/uvm/logs/` and `tb/uvm/cov_after/` as if they could safely point into the volatile work tree
+  - once the work tree was cleaned, a subsequent regeneration lost real evidence for every case that had not just been rerun
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the publisher now materializes durable copies into `tb/uvm/logs/` and `tb/uvm/cov_after/` instead of leaving volatile symlinks behind
+  - verified by rerunning the full `137/137` implemented isolated matrix, regenerating the report, and confirming there are now `0` symlinks left in both evidence directories
+- Commit: pending

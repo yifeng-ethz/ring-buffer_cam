@@ -2,7 +2,7 @@ package require -exact qsys 16.1
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
-set_module_property VERSION 26.1.5.0421
+set_module_property VERSION 26.1.5.0422
 set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, adds the common CSR identity header, fixes long-run counter cleanup plus same-key overwrite tail visibility in the active partitioned V2 core, and hardens the nightly DV harness against slot-reuse pop recovery and deep-pressure fingerprint aliasing."
 set_module_property GROUP "Mu3e Data Plane/Modules"
 set_module_property AUTHOR "Yifeng Wang"
@@ -38,11 +38,11 @@ set FILLLEVEL_WIDTH_CONST       16
 set DEFAULT_RING_DEPTH_CONST    512
 set DEFAULT_PIPE_STAGES_CONST   4
 set IP_UID_DEFAULT_CONST        1380074317
-set BUILD_DEFAULT_CONST         421
+set BUILD_DEFAULT_CONST         422
 set VERSION_MAJOR_DEFAULT_CONST 26
 set VERSION_MINOR_DEFAULT_CONST 1
 set VERSION_PATCH_DEFAULT_CONST 5
-set VERSION_DATE_DEFAULT_CONST  20260417
+set VERSION_DATE_DEFAULT_CONST  20260418
 set VERSION_GIT_DEFAULT_CONST   0
 set INSTANCE_ID_DEFAULT_CONST   0
 

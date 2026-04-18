@@ -425,6 +425,17 @@ def symlink_relative(target: Path, src: Path) -> None:
     target.symlink_to(rel)
 
 
+def materialize_artifact(target: Path, src: Path) -> None:
+    """Publish a durable copy of a volatile run artifact into tb/uvm/."""
+    ensure_parent(target)
+    resolved_src = src.resolve()
+    if target.exists() or target.is_symlink():
+        if not target.is_symlink() and target.resolve() == resolved_src:
+            return
+        target.unlink()
+    shutil.copy2(resolved_src, target)
+
+
 def case_log_candidates(case_data: dict) -> list[Path]:
     case_id = case_data["case_id"]
     alias = case_data.get("alias")
@@ -483,13 +494,8 @@ def cross_ucdb_candidates(run_data: dict) -> list[Path]:
 
 def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented: bool) -> None:
     target = PUB_LOGS / f"{name}_{RTL_VARIANT}_s{SEED}.log"
-    if src and src.is_file() and src.resolve() == target.resolve():
-        return
-
     if src and src.is_file():
-        if target.exists() or target.is_symlink():
-            target.unlink()
-        symlink_relative(target, src)
+        materialize_artifact(target, src)
         return
 
     if is_real_log(target):
@@ -509,13 +515,8 @@ def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented
 
 def publish_cov_artifact(name: str, src: Path | None) -> None:
     target = PUB_COV / f"{name}_s{SEED}.ucdb"
-    if src and src.is_file() and src.resolve() == target.resolve():
-        return
-
     if src and src.is_file():
-        if target.exists() or target.is_symlink():
-            target.unlink()
-        symlink_relative(target, src)
+        materialize_artifact(target, src)
         return
 
     if summarize_ucdb(str(target)):

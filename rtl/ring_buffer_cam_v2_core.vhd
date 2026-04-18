@@ -32,9 +32,11 @@
 --      Date: Apr 17, 2026
 -- Revision: 2.13 (no RTL delta; metadata bump for the nightly pressure-fingerprint / scoreboard-consistency checkpoint)
 --      Date: Apr 17, 2026
+-- Revision: 2.14 (no RTL delta; metadata bump for the durable DV evidence publisher and live-partition harness checkpoint)
+--      Date: Apr 18, 2026
 -- Version : 26.1.5
--- Date    : 20260417
--- Change  : fix long-run counter cleanup compares and the same-key overwrite tail erase bug
+-- Date    : 20260418
+-- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the durable DV evidence checkpoint metadata
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -78,8 +80,8 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 421;
-	VERSION_DATE		: natural := 20260417;
+	BUILD				: natural := 422;
+	VERSION_DATE		: natural := 20260418;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
 	DEBUG				: natural := 1

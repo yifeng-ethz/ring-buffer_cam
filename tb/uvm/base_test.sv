@@ -897,7 +897,7 @@ class base_test extends uvm_test;
   endtask
 
   function automatic logic [31:0] expected_meta_version();
-    return 32'h1A01_51A5;
+    return 32'h1A01_51A6;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
@@ -1144,15 +1144,27 @@ class base_test extends uvm_test;
     int unsigned          wait_min;
     int unsigned          wait_max;
     int unsigned          error_hit_count;
+    int unsigned          partition_size;
+    int unsigned          prefill_hits;
     logic [3:0]           load_mask;
     logic [1:0]           rr_before;
     bit                   saw_load;
     bit                   saw_overlap;
     bit                   saw_rr_advance;
     bit                   saw_preempt;
+    bit                   saw_full;
+    bit                   saw_ready_recover;
+    bit                   saw_term_deassm_block;
+    bit                   saw_term_popcmd_block;
+    bit                   saw_term_busy_block;
+    bit                   saw_term_accounting_block;
     bit                   traffic_done;
     longint unsigned      cycle_a;
     longint unsigned      cycle_b;
+
+    partition_size = (m_cfg.n_partitions == 0) ? m_cfg.ring_buffer_n_entry :
+                     (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
+    prefill_hits = 0;
 
     if (case_id == "B001") begin
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
@@ -1223,7 +1235,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260417, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260418, "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -1392,7 +1404,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260417, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260418, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -2058,14 +2070,333 @@ class base_test extends uvm_test;
       end
       wait_for_scoreboard_idle(80_000, "B070 first-epoch drain");
       expect_service_model_accounting("B070 first-epoch drain", 1, 0);
+    end else if (case_id == "B071") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b071_prefill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "B071 ring-fill precondition");
+      traffic_done = 1'b0;
+      burst_seq = same_key_burst_seq::type_id::create("b071_terminate_overlap");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          wait_for_push_count(m_cfg.ring_buffer_n_entry + 64, 120_000, "B071 overwrite-pressure start");
+          ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+        end
+      join
+      send_endofrun_marker();
+      saw_term_deassm_block = 1'b0;
+      saw_term_popcmd_block = 1'b0;
+      saw_term_busy_block = 1'b0;
+      saw_term_accounting_block = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 240_000 &&
+             m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+        if (m_env.m_dbg_mon.vif.endofrun_seen === 1'b1 &&
+            m_env.m_dbg_mon.terminating_drain_done === 1'b0) begin
+          if (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1)
+            saw_term_deassm_block = 1'b1;
+          if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1)
+            saw_term_popcmd_block = 1'b1;
+          if (m_env.m_dbg_mon.pop_engine_state_code != 3'd0)
+            saw_term_busy_block = 1'b1;
+          if (m_env.m_dbg_mon.dbg_push_cnt[31:0] !=
+              (m_env.m_dbg_mon.dbg_pop_cnt[31:0] + m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
+            saw_term_accounting_block = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+        `uvm_error("B071", $sformatf(
+          "terminating_drain_done did not assert after %0d cycles: endofrun=%0d deassm_empty=%0d pop_cmd_empty=%0d pop_state=%0d push=%0d pop=%0d overwrite=%0d",
+          search_cycles,
+          m_env.m_dbg_mon.vif.endofrun_seen,
+          m_env.m_dbg_mon.vif.deassembly_fifo_empty,
+          m_env.m_dbg_mon.vif.pop_cmd_fifo_empty,
+          m_env.m_dbg_mon.pop_engine_state_code,
+          m_env.m_dbg_mon.dbg_push_cnt[31:0],
+          m_env.m_dbg_mon.dbg_pop_cnt[31:0],
+          m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
+      end
+      if (!(saw_term_deassm_block && saw_term_popcmd_block &&
+            saw_term_busy_block && saw_term_accounting_block)) begin
+        `uvm_error("B071", $sformatf(
+          "Terminate drain did not prove all blocking conjuncts independently: deassm=%0d popcmd=%0d busy=%0d accounting=%0d",
+          saw_term_deassm_block, saw_term_popcmd_block,
+          saw_term_busy_block, saw_term_accounting_block))
+      end
+      wait_clocks(4);
+      wait_for_scoreboard_idle(300_000, "B071 terminating condition audit");
+      expect_service_model_accounting("B071 terminating condition audit", 1, 1);
+    end else if (case_id == "B072") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b072_prefill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "B072 ring-fill precondition");
+      saw_full = 1'b0;
+      saw_ready_recover = 1'b0;
+      traffic_done = 1'b0;
+      burst_seq = same_key_burst_seq::type_id::create("b072_fifo_backpressure");
+      burst_seq.num_hits = 1024;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 240_000 && !traffic_done) begin
+            if (m_env.m_hit_drv.vif.ready === 1'b0 &&
+                m_env.m_dbg_mon.vif.deassembly_fifo_full !== 1'b1) begin
+              `uvm_error("B072", $sformatf(
+                "Ingress ready dropped before deassembly_fifo_full asserted: usedw=%0d full=%0d",
+                m_env.m_dbg_mon.deassembly_fifo_usedw,
+                m_env.m_dbg_mon.vif.deassembly_fifo_full))
+            end
+            if (m_env.m_dbg_mon.vif.deassembly_fifo_full === 1'b1) begin
+              saw_full = 1'b1;
+              if (m_env.m_hit_drv.vif.ready !== 1'b0) begin
+                `uvm_error("B072", $sformatf(
+                  "Ingress ready stayed high while deassembly_fifo_full asserted: usedw=%0d",
+                  m_env.m_dbg_mon.deassembly_fifo_usedw))
+              end
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (!saw_full) begin
+        `uvm_error("B072", $sformatf(
+          "Overwrite-pressure run never filled the deassembly FIFO: max_ready_low_streak=%0d usedw=%0d",
+          m_env.m_hit_drv.max_ready_low_streak,
+          m_env.m_dbg_mon.deassembly_fifo_usedw))
+      end
+      search_cycles = 0;
+      while (search_cycles < 40_000 && !saw_ready_recover) begin
+        if (m_env.m_dbg_mon.vif.deassembly_fifo_full !== 1'b1 &&
+            m_env.m_hit_drv.vif.ready === 1'b1) begin
+          saw_ready_recover = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_ready_recover) begin
+        `uvm_error("B072", "Ingress ready did not recover after the deassembly FIFO left full")
+      end
+      terminate_and_drain(350_000, "B072 deassembly backpressure drain");
+      expect_service_model_accounting("B072 deassembly backpressure drain", 1, 1);
     end else if (case_id == "B073") begin
       run_same_key_epoch_count_case("B073 occupancy-1", 1, 2, 1, 2000, 80_000, 1, 1);
     end else if (case_id == "B074") begin
       run_same_key_epoch_count_case("B074 occupancy-2", 2, 2, 2);
+    end else if (case_id == "B075") begin
+      configure_and_start(0);
+      prefill_hits = partition_size - 1;
+      burst_seq = same_key_burst_seq::type_id::create("b075_prefill");
+      burst_seq.num_hits = prefill_hits;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(2_500_000, "B075 pointer advance prefill");
+      expect_service_model_accounting("B075 pointer advance prefill", 1, 0);
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
+      wait_clocks(4);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b075_target");
+      burst_seq.num_hits = 3;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(prefill_hits + 3, 20_000, "B075 boundary fill");
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < 3) begin
+        `uvm_error("B075", $sformatf(
+          "Boundary-crossing case never accumulated 3 live hits: key=%0d max_for_key=%0d",
+          focus_search_key, m_env.m_scb.max_remaining_entries_for_key(focus_search_key)))
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B075 DRAIN entry");
+      saw_overlap = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 1_024 && !saw_overlap) begin
+        if ((m_env.m_dbg_mon.pop_partition_pending & 4'b0011) == 4'b0011) begin
+          saw_overlap = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_overlap) begin
+        `uvm_error("B075", $sformatf(
+          "Boundary-crossing case never exposed both partitions pending: pending=0x%0h rr_idx=%0d issue_idx=%0d",
+          m_env.m_dbg_mon.pop_partition_pending,
+          m_env.m_dbg_mon.pop_rr_idx,
+          m_env.m_dbg_mon.pop_issue_partition_idx))
+      end
+      load_mask = '0;
+      search_cycles = 0;
+      while (search_cycles < 1_024 &&
+             ((m_env.m_out_mon.total_hits_seen - hit_before) < 3 || load_mask != 4'b0011)) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          load_mask[m_env.m_dbg_mon.pop_issue_partition_idx] = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (load_mask != 4'b0011) begin
+        `uvm_error("B075", $sformatf(
+          "Boundary-crossing 3-hit drain did not visit partitions 0 and 1: observed_mask=0x%0h",
+          load_mask))
+      end
+      wait_for_hit_output_count(hit_before + 3, 200_000, "B075 boundary hit drain");
+      wait_for_scoreboard_idle(160_000, "B075 boundary-crossing drain");
+      if (m_env.m_out_mon.total_data_subheaders_seen <= subhdr_before ||
+          m_env.m_out_mon.recent_data_subheaders.size() == 0 ||
+          m_env.m_out_mon.recent_data_subheaders[$].search_key != focus_search_key[7:0]) begin
+        `uvm_error("B075", $sformatf(
+          "Boundary-crossing drain did not publish a target data-bearing subheader: delta=%0d last_key=%s expected=0x%02x",
+          m_env.m_out_mon.total_data_subheaders_seen - subhdr_before,
+          (m_env.m_out_mon.recent_data_subheaders.size() == 0) ? "none" :
+            $sformatf("0x%02x", m_env.m_out_mon.recent_data_subheaders[$].search_key),
+          focus_search_key[7:0]))
+      end
+      expect_service_model_accounting("B075 boundary-crossing drain", 1, 0);
     end else if (case_id == "B076") begin
       run_same_key_epoch_count_case("B076 occupancy-16", 16, 2, 16);
     end else if (case_id == "B077") begin
       run_same_key_epoch_count_case("B077 occupancy-17", 17, 2, 17);
+    end else if (case_id == "B078") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b078_partition_full");
+      burst_seq.num_hits = partition_size;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(partition_size, 40_000, "B078 partition-full fill");
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < partition_size) begin
+        `uvm_error("B078", $sformatf(
+          "Partition-full case never accumulated one full partition: key=%0d max_for_key=%0d partition_size=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          partition_size))
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B078 DRAIN entry");
+      load_mask = '0;
+      wait_for_partition_issue_mask(4'b0001, load_mask, 200_000, "B078 single-partition issue mask");
+      if (load_mask != 4'b0001) begin
+        `uvm_error("B078", $sformatf(
+          "Exactly-one-partition drain leaked beyond partition 0: observed_mask=0x%0h",
+          load_mask))
+      end
+      wait_for_hit_output_count(hit_before + partition_size, 3_000_000, "B078 partition-full hit drain");
+      wait_for_scoreboard_idle(200_000, "B078 single-partition drain");
+      expect_service_model_accounting("B078 single-partition drain", 1, 0);
+    end else if (case_id == "B079") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b079_partition_plus_one");
+      burst_seq.num_hits = partition_size + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(partition_size + 1, 40_000, "B079 partition+1 fill");
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < (partition_size + 1)) begin
+        `uvm_error("B079", $sformatf(
+          "Partition+1 case never accumulated the target occupancy: key=%0d max_for_key=%0d expected=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          partition_size + 1))
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B079 DRAIN entry");
+      saw_overlap = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 4_096 && !saw_overlap) begin
+        if ((m_env.m_dbg_mon.pop_partition_pending & 4'b0011) == 4'b0011) begin
+          saw_overlap = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_overlap) begin
+        `uvm_error("B079", $sformatf(
+          "Partition+1 drain never exposed both partitions pending: pending=0x%0h rr_idx=%0d issue_idx=%0d",
+          m_env.m_dbg_mon.pop_partition_pending,
+          m_env.m_dbg_mon.pop_rr_idx,
+          m_env.m_dbg_mon.pop_issue_partition_idx))
+      end
+      wait_for_hit_output_count(hit_before + partition_size + 1, 3_000_000, "B079 partition+1 hit drain");
+      wait_for_scoreboard_idle(200_000, "B079 partition+1 drain");
+      expect_service_model_accounting("B079 partition+1 drain", 1, 0);
+    end else if (case_id == "B080") begin
+      configure_and_start(0);
+      if (m_cfg.n_partitions == 2)
+        prefill_hits = partition_size / 2;
+      else
+        prefill_hits = 0;
+      if (prefill_hits != 0) begin
+        burst_seq = same_key_burst_seq::type_id::create("b080_prefill");
+        burst_seq.num_hits = prefill_hits;
+        burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+        burst_seq.start(m_env.m_hit_seqr);
+        wait_for_scoreboard_idle(2_500_000, "B080 pointer advance prefill");
+        expect_service_model_accounting("B080 pointer advance prefill", 1, 0);
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
+      wait_clocks(4);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b080_half_ring");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry / 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(prefill_hits + (m_cfg.ring_buffer_n_entry / 2), 80_000, "B080 half-ring fill");
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < (m_cfg.ring_buffer_n_entry / 2)) begin
+        `uvm_error("B080", $sformatf(
+          "Half-ring case never accumulated the target occupancy: key=%0d max_for_key=%0d expected=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          m_cfg.ring_buffer_n_entry / 2))
+      end
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B080 DRAIN entry");
+      load_mask = '0;
+      wait_for_partition_issue_mask(4'b0011, load_mask, 240_000, "B080 two-full-partition issue mask");
+      saw_rr_advance = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 4_096 && !saw_rr_advance) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
+            m_env.m_dbg_mon.pop_rr_idx == 2'd1) begin
+          saw_rr_advance = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_rr_advance) begin
+        `uvm_error("B080", "Two-partition equal-load drain never advanced pop_rr_idx from partition 0 to 1")
+      end
+      wait_for_hit_output_count(hit_before + (m_cfg.ring_buffer_n_entry / 2), 3_000_000, "B080 half-ring hit drain");
+      wait_for_scoreboard_idle(260_000, "B080 half-ring drain");
+      expect_service_model_accounting("B080 half-ring drain", 1, 0);
     end else if (case_id == "B081") begin
       run_same_key_epoch_count_case("B081 occupancy-511", 511, 2, 8'hFF, 2000, 300_000);
     end else if (case_id == "B082") begin
@@ -2307,6 +2638,45 @@ class base_test extends uvm_test;
       end
       wait_for_scoreboard_idle(120_000, "B091 drain-priority overlap");
       expect_service_model_accounting("B091 drain-priority overlap", 1, 0);
+    end else if (case_id == "B092") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b092_prefill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "B092 ring-fill precondition");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B092 DRAIN entry");
+      saw_overlap = 1'b0;
+      burst_seq = same_key_burst_seq::type_id::create("b092_overlap");
+      burst_seq.num_hits = 128;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 8_192 && !saw_overlap) begin
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
+                m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
+              saw_overlap = 1'b1;
+              if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+                `uvm_error("B092", "pop_erase_grant remained asserted while push_erase_grant won the cycle")
+              end
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (!saw_overlap) begin
+        `uvm_error("B092", "Did not observe push_erase_grant preempting DRAIN under full-ring overlap")
+      end
+      terminate_and_drain(240_000, "B092 push-erase priority drain");
+      expect_service_model_accounting("B092 push-erase priority drain", 1, 1);
     end else if (case_id == "B093") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);

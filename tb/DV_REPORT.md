@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `386` |
+| ⚠️ | unimplemented_cases | `379` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `pending` |
+| ⚠️ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `pending` |
 | ✅ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `e8c18fe` |
 | ✅ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `e8c18fe` |
 | ✅ | `BUG-014-H` | Harness | `2026-04-17` | Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it | `e8c18fe` |
 | ✅ | `BUG-013-H` | Harness | `2026-04-17` | Long-span EDGE cases assumed one subheader represented the whole same-key drain epoch | `d412d7a` |
 | ✅ | `BUG-012-H` | Harness | `2026-04-17` | Mid-drain flush testcase reset the scoreboard before FLUSHING actually owned the datapath | `d412d7a` |
 | ✅ | `BUG-011-H` | Harness | `2026-04-17` | META VERSION/DATE checks drifted behind the packaged build metadata | `d412d7a` |
-| ✅ | `BUG-010-H` | Harness | `2026-04-17` | Framing checks sampled “latest subheader” instead of the case-target epoch | `d412d7a` |
-| ✅ | `BUG-009-H` | Harness | `2026-04-17` | `wait_for_scoreboard_idle()` could declare quiescent before accepted ingress was written | `d412d7a` |
 
 ## Formal / contract cases
 
@@ -43,11 +43,11 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
-| ⚠️ | `BASIC` | 129 | 83 | 64.34% | 4092 | 0 | 0 | 0 |
+| ⚠️ | `BASIC` | 129 | 90 | 69.77% | 8447 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 20 | 15.50% | 8765 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 18 | 13.95% | 331 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 130 | 25.19% | 21362 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 137 | 26.55% | 25717 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -55,7 +55,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 83 | stmt=97.28, branch=88.97, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.42 | 64.34% (83/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 90 | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.46 | 69.77% (90/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 20 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 15.5% (20/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 18 | stmt=94.20, branch=80.65, cond=66.94, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=40.10 | 13.95% (18/129) |
@@ -72,7 +72,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
 | ⚠️ | toggle | 72.86 | 80.0 |
 
-- functional coverage: `25.19% (130/516)`
+- functional coverage: `26.55% (137/516)`
 
 ## Cross / continuous-frame signoff
 

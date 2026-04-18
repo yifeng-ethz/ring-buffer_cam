@@ -22,7 +22,7 @@ This page is the coverage summary only. Per-case incremental coverage lives unde
 
 | status | bucket | stmt | branch | cond | expr | fsm_state | fsm_trans | toggle |
 |:---:|---|---|---|---|---|---|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 97.28 | 88.97 | 73.39 | 40.00 | 100.00 | 66.67 | 71.42 |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 97.28 | 89.15 | 73.39 | 40.00 | 100.00 | 66.67 | 71.46 |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 95.56 | 84.81 | 69.35 | 40.00 | 100.00 | 66.67 | 67.10 |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 95.56 | 84.99 | 68.55 | 40.00 | 100.00 | 66.67 | 65.84 |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 94.20 | 80.65 | 66.94 | 30.00 | 100.00 | 66.67 | 40.10 |
