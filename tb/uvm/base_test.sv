@@ -2709,6 +2709,166 @@ class base_test extends uvm_test;
       end
       m_env.m_scb.note_flush_reset();
       wait_for_scoreboard_idle(120_000, "B093 flush preemption cleanup");
+    end else if (case_id == "B107") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b107_flushing_rst");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B107 DRAIN entry");
+      while (m_env.m_dbg_mon.vif.pop_erase_grant !== 1'b1) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_pop_engine_state(3'd6, 40_000, "B107 FLUSHING entry");
+      m_env.m_scb.note_flush_reset();
+      wait_for_pop_engine_state(3'd7, 400_000, "B107 FLUSHING_RST entry");
+      wait_for_pop_engine_state(3'd0, 400_000, "B107 IDLE return");
+      if (m_env.m_dbg_mon.vif.pop_total_hits != 0 ||
+          m_env.m_dbg_mon.pop_hits_count != 0 ||
+          m_env.m_dbg_mon.pop_partition_pending != 0 ||
+          m_env.m_dbg_mon.pop_partition_has_more != 0 ||
+          m_env.m_dbg_mon.vif.pop_pipeline_start != 1'b0) begin
+        `uvm_error("B107", $sformatf(
+          "FLUSHING_RST left stale reset-owned pop-engine context: total_hits=%0d hits=%0d pending=0x%0h has_more=0x%0h pipeline_start=%0d flag=0x%0h result_valid=0x%0h",
+          m_env.m_dbg_mon.vif.pop_total_hits,
+          m_env.m_dbg_mon.pop_hits_count,
+          m_env.m_dbg_mon.pop_partition_pending,
+          m_env.m_dbg_mon.pop_partition_has_more,
+          m_env.m_dbg_mon.vif.pop_pipeline_start,
+          m_env.m_dbg_mon.pop_partition_flag,
+          m_env.m_dbg_mon.pop_partition_result_valid))
+      end
+      wait_for_ctrl_ready(1'b1, 400_000, "B107 PREP ready");
+      wait_for_scoreboard_idle(120_000, "B107 FLUSHING_RST cleanup");
+    end else if (case_id == "B109") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      single_seq = single_push_pop_seq::type_id::create("b109_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.hit_et1n6 = 9'h12a;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 80_000,
+        "B109 one-hit data-bearing subheader", matched_subheader);
+      wait_for_scoreboard_idle(80_000, "B109 one-hit drain");
+      terminate_and_drain(80_000, "B109 end-to-end terminate");
+      expect_service_model_accounting("B109 end-to-end terminate", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != 1 || pop_count != 1 || overwrite_count != 0) begin
+        `uvm_error("B109", $sformatf(
+          "One-hit end-to-end accounting mismatch: push=%0d pop=%0d overwrite=%0d",
+          push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "B113") begin
+      configure_and_start(2000);
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      send_endofrun_marker();
+      wait_for_ctrl_ready(1'b1, 4_000, "B113 empty terminate ack");
+      cycle_b = m_env.m_dbg_mon.sampled_cycles;
+      if ((cycle_b - cycle_a) > 64) begin
+        `uvm_error("B113", $sformatf(
+          "Empty terminate ack took too long: observed=%0d cycles expected<=64",
+          cycle_b - cycle_a))
+      end
+      wait_for_scoreboard_idle(40_000, "B113 empty terminate cleanup");
+      expect_service_model_accounting("B113 empty terminate cleanup", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != 0 || pop_count != 0 || overwrite_count != 0) begin
+        `uvm_error("B113", $sformatf(
+          "Empty terminate changed counters: push=%0d pop=%0d overwrite=%0d",
+          push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "B114") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b114_pending_hits");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(16, 20_000, "B114 pending fill");
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      send_endofrun_marker();
+      saw_term_accounting_block = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 120_000 &&
+             m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+        if (m_env.m_dbg_mon.vif.endofrun_seen === 1'b1 &&
+            m_env.m_dbg_mon.dbg_push_cnt[31:0] !=
+              (m_env.m_dbg_mon.dbg_pop_cnt[31:0] + m_env.m_dbg_mon.dbg_overwrite_cnt[31:0])) begin
+          saw_term_accounting_block = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+        `uvm_error("B114", $sformatf(
+          "Pending-hit terminate never completed: push=%0d pop=%0d overwrite=%0d search_cycles=%0d",
+          m_env.m_dbg_mon.dbg_push_cnt[31:0],
+          m_env.m_dbg_mon.dbg_pop_cnt[31:0],
+          m_env.m_dbg_mon.dbg_overwrite_cnt[31:0],
+          search_cycles))
+      end
+      if (!saw_term_accounting_block) begin
+        `uvm_error("B114", "TERMINATING never had to wait on pending hit accounting before ack")
+      end
+      cycle_b = m_env.m_dbg_mon.sampled_cycles;
+      if ((cycle_b - cycle_a) <= 4) begin
+        `uvm_error("B114", $sformatf(
+          "Pending-hit terminate ack was unexpectedly immediate: observed=%0d cycles",
+          cycle_b - cycle_a))
+      end
+      wait_for_scoreboard_idle(120_000, "B114 pending-hit terminate cleanup");
+      expect_service_model_accounting("B114 pending-hit terminate cleanup", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != 16 || pop_count != 16 || overwrite_count != 0) begin
+        `uvm_error("B114", $sformatf(
+          "Pending-hit terminate accounting mismatch: push=%0d pop=%0d overwrite=%0d",
+          push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "B115") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b115_first_pass");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      terminate_and_drain(120_000, "B115 first terminate");
+      expect_service_model_accounting("B115 first terminate", 1, 0);
+      return_to_idle();
+      restart_after_flush(0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (push_count != 0 || pop_count != 0 || overwrite_count != 0 || cache_miss_count != 0) begin
+        `uvm_error("B115", $sformatf(
+          "Second RUN inherited stale counters after restart: push=%0d pop=%0d overwrite=%0d cache_miss=%0d",
+          push_count, pop_count, overwrite_count, cache_miss_count))
+      end
+      burst_seq = same_key_burst_seq::type_id::create("b115_second_pass");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+      burst_seq.start(m_env.m_hit_seqr);
+      terminate_and_drain(120_000, "B115 second terminate");
+      expect_service_model_accounting("B115 second terminate", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 16 || pop_count != 16 || fill_level != 0) begin
+        `uvm_error("B115", $sformatf(
+          "Second RUN accounting mismatch after restart: push=%0d pop=%0d fill=%0d",
+          push_count, pop_count, fill_level))
+      end
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);

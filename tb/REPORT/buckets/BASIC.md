@@ -1,6 +1,6 @@
 # ⚠️ BASIC bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `90` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `95` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -19,7 +19,7 @@
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 71.46 | 80.0 |
+| ⚠️ | toggle | 71.61 | 80.0 |
 
 ## Ordered merge trace
 
@@ -133,15 +133,15 @@
 | ❓ | 104 | `B104` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B104.md) |
 | ❓ | 105 | `B105` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B105.md) |
 | ❓ | 106 | `B106` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B106.md) |
-| ❓ | 107 | `B107` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B107.md) |
+| ✅ | 107 | `B107` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B107.md) |
 | ❓ | 108 | `B108` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B108.md) |
-| ❓ | 109 | `B109` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B109.md) |
+| ✅ | 109 | `B109` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B109.md) |
 | ❓ | 110 | `B110` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B110.md) |
 | ❓ | 111 | `B111` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B111.md) |
 | ❓ | 112 | `B112` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B112.md) |
-| ❓ | 113 | `B113` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B113.md) |
-| ❓ | 114 | `B114` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B114.md) |
-| ❓ | 115 | `B115` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B115.md) |
+| ✅ | 113 | `B113` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B113.md) |
+| ✅ | 114 | `B114` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B114.md) |
+| ✅ | 115 | `B115` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.61 | [case](../cases/B115.md) |
 | ❓ | 116 | `B116` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B116.md) |
 | ❓ | 117 | `B117` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B117.md) |
 | ❓ | 118 | `B118` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B118.md) |
