@@ -62,7 +62,7 @@
 - Root cause:
   - `configure_and_start()` sent `RUN_PREPARE` once and then slept for a hard-coded delay
   - `terminate_and_drain()` relied on scoreboard waits alone instead of the DUT's own TERMINATING ready/`terminating_drain_done` handshake
-- Fix status: fixed in working tree, not yet committed
+- Fix status: fixed and verified on `dev`
 - Runtime / coverage context:
   - startup now re-issues `RUN_PREPARE` so the second command waits on the actual flush-complete handshake
   - terminate now re-issues `TERMINATING` after the end-of-run marker so the driver waits on the DUT's real drain-complete path
@@ -375,4 +375,4 @@
   - related RTL logic:
     - `terminating_drain_done` / quiescent detection in `rtl/ring_buffer_cam_v2_core.vhd`
     - `TERMINATING` ready gate in `rtl/ring_buffer_cam_v2_core.vhd`
-- Commit: pending
+- Commit: f575af8

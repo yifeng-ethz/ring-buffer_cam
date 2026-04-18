@@ -42,7 +42,7 @@
       "class": "Harness",
       "date": "2026-04-16",
       "title": "Run-control startup/terminate sequencing used fixed waits instead of the DUT handshake",
-      "fix_status": "fixed in working tree, not yet committed",
+      "fix_status": "fixed and verified on `dev`",
       "commit": "d412d7a"
     },
     {
@@ -203,7 +203,7 @@
       "date": "2026-04-18",
       "title": "Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "f575af8"
     }
   ],
   "buckets": {
