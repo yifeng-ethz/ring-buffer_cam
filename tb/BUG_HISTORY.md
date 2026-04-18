@@ -342,3 +342,20 @@
     - `terminating_drain_done` gate at `rtl/ring_buffer_cam_v2_core.vhd:1633-1639`
     - `TERMINATING` ready gate at `rtl/ring_buffer_cam_v2_core.vhd:1765-1770`
 - Commit: b203a04
+
+### BUG-024-H: X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion
+- First seen in: `X039` on 2026-04-18 during the next control-path ERROR tranche after `BUG-023-R`
+- Symptom:
+  - `X039` timed out waiting for `CTRL_RUN_PREPARE` acknowledgement after a `TERMINATING -> RUN_PREPARE` transition
+  - the failing run then reported `RUN_PREPARE did not complete the flush handshake after TERMINATING` even though the DUT had already moved into `RUN_STATE_RUN_PREPARE`
+- Root cause:
+  - the testcase used a single `ctrl_send(CTRL_RUN_PREPARE)` and assumed it both pulsed the control command into PREP and waited for the later flush-complete acknowledgement
+  - `ctrl_driver.sv` intentionally splits those semantics: the first `RUN_PREPARE` pulse only enters PREP when the DUT is in another run state, and a second `RUN_PREPARE` send is required to wait for the flush-complete ready path once PREP is active
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `X039` now follows the real driver contract: raw PREP pulse, wait for `RUN_STATE_RUN_PREPARE`, reset the scoreboard flush epoch, then send `RUN_PREPARE` again to wait for the flush-complete acknowledgement
+  - verified locally by rerunning `X039`, `X042`, and `X044` cleanly before the `0426` report refresh
+  - related harness logic:
+    - testcase sequencing in `tb/uvm/base_test.sv`
+    - PREP command contract in `tb/uvm/ctrl_driver.sv`
+- Commit: pending

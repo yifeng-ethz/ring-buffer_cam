@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `322` |
+| ⚠️ | unimplemented_cases | `319` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,6 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-024-H` | Harness | `2026-04-18` | X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion | `pending` |
 | ✅ | `BUG-023-R` | RTL | `2026-04-18` | TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen` | `b203a04` |
 | ✅ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `84b13e9` |
 | ✅ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `84b13e9` |
@@ -31,7 +32,6 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ✅ | `BUG-019-H` | Harness | `2026-04-18` | E026 partition-walk harness observed the wrong partition index during skip logic | `63e3652` |
 | ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
 | ✅ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `cec8e58` |
-| ✅ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `e8c18fe` |
 
 ## Formal / contract cases
 
@@ -46,8 +46,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 41 | 31.78% | 1141 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 194 | 37.60% | 32429 | 0 | 0 | 0 |
+| ⚠️ | `ERROR` | 129 | 44 | 34.11% | 1141 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 197 | 38.18% | 32429 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -58,7 +58,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.67, branch=87.57, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.85 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 41 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.98 | 31.78% (41/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 44 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.98 | 34.11% (44/129) |
 
 ## Totals
 
@@ -72,7 +72,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
 | ⚠️ | toggle | 73.15 | 80.0 |
 
-- functional coverage: `37.6% (194/516)`
+- functional coverage: `38.18% (197/516)`
 
 ## Cross / continuous-frame signoff
 

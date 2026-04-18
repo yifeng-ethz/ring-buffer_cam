@@ -885,6 +885,75 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x039_terminate_then_prep_case();
+    int unsigned fill_level;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X039 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X039", "RUN_PREPARE did not clear endofrun_seen after TERMINATING")
+    end
+    if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+      `uvm_error("X039", "RUN_PREPARE did not complete the flush handshake after TERMINATING")
+    end
+    if (fill_level != 0) begin
+      `uvm_error("X039", $sformatf(
+        "TERMINATE->RUN_PREPARE left non-zero fill_level=%0d",
+        fill_level))
+    end
+  endtask
+
+  task automatic run_x042_prelatched_endofrun_case();
+    int unsigned fill_level;
+
+    configure_and_start(2000);
+    send_endofrun_marker();
+    wait_clocks(4);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      `uvm_error("X042", "Precondition failed: endofrun_seen did not latch before TERMINATING")
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("X042", "Pre-latched endofrun TERMINATE did not reach drain_done promptly")
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 0) begin
+      `uvm_error("X042", $sformatf(
+        "Pre-latched endofrun TERMINATE left residual fill_level=%0d",
+        fill_level))
+    end
+  endtask
+
+  task automatic run_x044_bad_hits_survive_terminate_case();
+    error_burst_seq err_burst;
+    int unsigned    inerr_before;
+    int unsigned    inerr_after;
+
+    configure_and_start(2000);
+    err_burst = error_burst_seq::type_id::create("x044_bad_burst");
+    err_burst.num_hits = 8;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(32);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (inerr_before != 8 || inerr_after != inerr_before) begin
+      `uvm_error("X044", $sformatf(
+        "INERR_COUNT did not survive TERMINATING: before=%0d after=%0d expected=8",
+        inerr_before, inerr_after))
+    end
+  endtask
+
   task automatic run_cross_curated_all_bucket_mix();
     same_key_burst_seq   burst_seq;
     random_push_pop_seq  rand_same;
@@ -1264,7 +1333,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd425;
+    version_word[11:0]  = 12'd426;
     return version_word;
   endfunction
 
@@ -5164,6 +5233,8 @@ class base_test extends uvm_test;
       run_x031_terminate_empty_case();
     end else if (case_id == "X038") begin
       run_x038_double_terminate_case();
+    end else if (case_id == "X039") begin
+      run_x039_terminate_then_prep_case();
     end else if (case_id == "X049") begin
       run_x049_terminate_terminate_idle_case();
     end else if (case_id == "X116") begin
@@ -5272,6 +5343,10 @@ class base_test extends uvm_test;
       run_x127_endofrun_clear_case();
     end else if (case_id == "X128") begin
       run_x128_gts_end_of_run_refresh_case();
+    end else if (case_id == "X042") begin
+      run_x042_prelatched_endofrun_case();
+    end else if (case_id == "X044") begin
+      run_x044_bad_hits_survive_terminate_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
