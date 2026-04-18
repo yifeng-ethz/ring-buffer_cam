@@ -1102,6 +1102,120 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x047_terminate_push_count_write_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_before;
+    int unsigned       push_after;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x047_preterminate_fill");
+    burst_seq.num_hits = 8;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(8, 20_000, "X047 pre-terminate push count");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+
+    fork
+      begin
+        csr_write(CSR_PUSH_COUNT_ADDR, 32'hdead_beef);
+      end
+      begin
+        ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      end
+    join
+    send_endofrun_marker();
+    wait_for_ctrl_ready(1'b1, 40_000, "X047 terminate ack");
+    wait_for_scoreboard_idle(120_000, "X047 terminate after push-count write");
+    expect_service_model_accounting("X047 terminate after push-count write", 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    if (push_after != push_before) begin
+      `uvm_error("X047", $sformatf(
+        "PUSH_COUNT write in flight changed the counter: before=%0d after=%0d",
+        push_before, push_after))
+    end
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_TERMINATING) begin
+      `uvm_error("X047", $sformatf(
+        "Concurrent PUSH_COUNT write disturbed run_state_cmd: observed=%0d",
+        m_env.m_dbg_mon.run_state_code))
+    end
+  endtask
+
+  task automatic run_x050_filllevel_underflow_guard_case();
+    single_push_pop_seq single_seq;
+    int unsigned        fill_now;
+
+    configure_and_start(0);
+    single_seq = single_push_pop_seq::type_id::create("x050_one_hit");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    single_seq.start(m_env.m_hit_seqr);
+    wait_for_scoreboard_idle(80_000, "X050 exact-balance precondition");
+    wait_clocks(4);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_now);
+    if (fill_now != 0) begin
+      `uvm_error("X050", $sformatf(
+        "Exact-balance precondition left non-zero FILL_LEVEL=%0d",
+        fill_now))
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    for (int unsigned sample = 0; sample < 64; sample++) begin
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_now);
+      if (fill_now == 32'hffff_ffff) begin
+        `uvm_error("X050", "FILL_LEVEL underflowed to all-ones during exact-balance TERMINATING")
+      end
+      if (fill_now != 0) begin
+        `uvm_error("X050", $sformatf(
+          "Exact-balance TERMINATING should keep FILL_LEVEL at 0, observed=%0d sample=%0d",
+          fill_now, sample))
+      end
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        break;
+      end
+      wait_clocks(1);
+    end
+    wait_for_ctrl_ready(1'b1, 40_000, "X050 terminate ack");
+    wait_for_scoreboard_idle(40_000, "X050 exact-balance terminate");
+  endtask
+
+  task automatic run_x052_flush_full_ring_case();
+    sequential_keys_seq key_seq;
+    int unsigned        hit_before;
+    int unsigned        fill_level;
+    int unsigned        push_count;
+    int unsigned        pop_count;
+    int unsigned        overwrite_count;
+
+    configure_and_start(2000);
+    key_seq = sequential_keys_seq::type_id::create("x052_full_ring");
+    key_seq.num_keys = m_cfg.ring_buffer_n_entry / 4;
+    key_seq.hits_per_key = 4;
+    key_seq.start_key = 4;
+    key_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(m_cfg.ring_buffer_n_entry, 160_000, "X052 full-ring fill");
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X052 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_scoreboard_idle(120_000, "X052 full-ring flush");
+
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    if (fill_level != 0 || push_count != 0 || pop_count != 0 || overwrite_count != 0) begin
+      `uvm_error("X052", $sformatf(
+        "Full-ring FLUSH did not clear accounting: fill=%0d push=%0d pop=%0d overwrite=%0d",
+        fill_level, push_count, pop_count, overwrite_count))
+    end
+    if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+      `uvm_error("X052", $sformatf(
+        "Full-ring FLUSH emitted residual outputs: before=%0d after=%0d",
+        hit_before, m_env.m_out_mon.total_hits_seen))
+    end
+  endtask
+
   task automatic run_x051_flush_empty_case();
     int unsigned fill_level;
     int unsigned inerr_count;
@@ -1160,6 +1274,67 @@ class base_test extends uvm_test;
       `uvm_error("X065", $sformatf(
         "Post-flush TERMINATING emitted stray output beats: before=%0d after=%0d",
         hit_before, m_env.m_out_mon.total_hits_seen))
+    end
+  endtask
+
+  task automatic run_x058_flush_from_running_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       hit_before;
+    int unsigned       fill_level;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x058_flush_running");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X058 pre-flush fill");
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X058 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_scoreboard_idle(80_000, "X058 flush from RUNNING");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 0) begin
+      `uvm_error("X058", $sformatf(
+        "RUNNING->RUN_PREPARE flush left residual fill_level=%0d",
+        fill_level))
+    end
+    if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+      `uvm_error("X058", $sformatf(
+        "RUNNING->RUN_PREPARE flush emitted residual outputs: before=%0d after=%0d",
+        hit_before, m_env.m_out_mon.total_hits_seen))
+    end
+  endtask
+
+  task automatic run_x066_duplicate_prep_noop_case();
+    int unsigned flush_grants_before;
+    bit          saw_restart;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X066 first RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    flush_grants_before = m_env.m_dbg_mon.pop_flush_grant_count;
+    saw_restart = 1'b0;
+
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    for (int unsigned cycles = 0; cycles < 256; cycles++) begin
+      if (m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1 ||
+          m_env.m_dbg_mon.pop_flush_grant_count > flush_grants_before) begin
+        saw_restart = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (saw_restart) begin
+      `uvm_error("X066", "Duplicate RUN_PREPARE retriggered the flush walk after already reaching flushed state")
+    end
+    if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1 || m_env.m_ctrl_drv.vif.ready !== 1'b1) begin
+      `uvm_error("X066", $sformatf(
+        "Duplicate RUN_PREPARE did not leave PREP in the flushed/ready state: flushed=%0d ready=%0d",
+        m_env.m_dbg_mon.run_mgmt_flushed, m_env.m_ctrl_drv.vif.ready))
     end
   endtask
 
@@ -5450,10 +5625,16 @@ class base_test extends uvm_test;
       run_x049_terminate_terminate_idle_case();
     end else if (case_id == "X046") begin
       run_x046_filllevel_read_during_terminate_case();
+    end else if (case_id == "X047") begin
+      run_x047_terminate_push_count_write_case();
     end else if (case_id == "X048") begin
       run_x048_multihot_terminate_case();
+    end else if (case_id == "X050") begin
+      run_x050_filllevel_underflow_guard_case();
     end else if (case_id == "X051") begin
       run_x051_flush_empty_case();
+    end else if (case_id == "X052") begin
+      run_x052_flush_full_ring_case();
     end else if (case_id == "X116") begin
       run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
     end else if (case_id == "X053") begin
@@ -5566,6 +5747,10 @@ class base_test extends uvm_test;
       run_x044_bad_hits_survive_terminate_case();
     end else if (case_id == "X065") begin
       run_x065_flush_then_terminate_case();
+    end else if (case_id == "X066") begin
+      run_x066_duplicate_prep_noop_case();
+    end else if (case_id == "X058") begin
+      run_x058_flush_from_running_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,

@@ -16,7 +16,7 @@
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=96.62, branch=87.39, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 |
 | ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 49 | stmt=95.46, branch=85.71, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.24 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 54 | stmt=95.46, branch=85.71, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.26 |
 
 ## Cross / continuous-frame runs
 
@@ -162,10 +162,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `202`
+- evidenced_cases = `207`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=96.97, branch=87.93, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.16`
-- functional coverage: `39.15% (202/516)`
+- functional coverage: `40.12% (207/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

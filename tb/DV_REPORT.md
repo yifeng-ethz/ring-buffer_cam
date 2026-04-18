@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `314` |
+| ⚠️ | unimplemented_cases | `309` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -46,8 +46,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 49 | 37.98% | 1717 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 202 | 39.15% | 33005 | 0 | 0 | 0 |
+| ⚠️ | `ERROR` | 129 | 54 | 41.86% | 2254 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 207 | 40.12% | 33542 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -58,7 +58,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.62, branch=87.39, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 49 | stmt=95.46, branch=85.71, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.24 | 37.98% (49/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 54 | stmt=95.46, branch=85.71, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.26 | 41.86% (54/129) |
 
 ## Totals
 
@@ -72,7 +72,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
 | ⚠️ | toggle | 73.16 | 80.0 |
 
-- functional coverage: `39.15% (202/516)`
+- functional coverage: `40.12% (207/516)`
 
 ## Cross / continuous-frame signoff
 
