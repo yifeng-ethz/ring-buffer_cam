@@ -1,3 +1,3 @@
 X054 has no live log artifact.
-State: planned only
+State: implemented but not yet rerun
 Scenario: FLUSH interleaved with pushes arriving (hits at deassembly input while RUN_PREPARE asserted) — proc_avst_input_deassembly_comb gates wrreq because run_state_cmd≠RUNNING

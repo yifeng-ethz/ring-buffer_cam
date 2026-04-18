@@ -74,8 +74,19 @@ class ctrl_driver extends uvm_driver #(ring_buffer_cam_pkg::ctrl_seq_item);
       if ((wait_cycles % 20_000) == 0) begin
         if (debug_vif != null) begin
           `uvm_info("CTRL_DRV", $sformatf(
-            "Waiting for ctrl ready cmd=0x%0h after %0d cycles: ready=%0d endofrun_seen=%0d term_done=%0d deassm_empty=%0d deassm_usedw=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d push=%0d pop=%0d overwrite=%0d",
+            "Waiting for ctrl ready cmd=0x%0h after %0d cycles: ready=%0d run_state=%0d pop_state=%0d flushed=%0d flush_start=%0d flush_done=%0d flush_grant=%0d flush_ram_done=%0d flush_cam_done=%0d flush_ram_wraddr=%0d flush_cam_wraddr=%0d flush_cam_wrdata=%0d cam_clean=%0d endofrun_seen=%0d term_done=%0d deassm_empty=%0d deassm_usedw=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d push=%0d pop=%0d overwrite=%0d",
             item.cmd, wait_cycles, vif.ready,
+            debug_vif.run_state_code, debug_vif.pop_engine_state_code,
+            debug_vif.run_mgmt_flushed,
+            debug_vif.run_mgmt_flush_memory_start,
+            debug_vif.run_mgmt_flush_memory_done,
+            debug_vif.pop_flush_grant,
+            debug_vif.pop_flush_ram_done,
+            debug_vif.pop_flush_cam_done,
+            debug_vif.flush_ram_wraddr,
+            debug_vif.flush_cam_wraddr,
+            debug_vif.flush_cam_wrdata,
+            debug_vif.cam_clean,
             debug_vif.endofrun_seen, debug_vif.terminating_drain_done,
             debug_vif.deassembly_fifo_empty, debug_vif.deassembly_fifo_usedw,
             debug_vif.pop_cmd_fifo_empty, debug_vif.pop_cmd_fifo_usedw,

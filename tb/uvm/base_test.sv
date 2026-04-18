@@ -444,6 +444,40 @@ class base_test extends uvm_test;
     wait_for_scoreboard_idle(120_000, "X053 flush preemption cleanup");
   endtask
 
+  task automatic run_x054_flush_drops_incoming_hits_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_before;
+    int unsigned       push_after;
+    int unsigned       inerr_after;
+
+    configure_and_start(2000);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X054 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+
+    burst_seq = same_key_burst_seq::type_id::create("x054_flush_burst");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_clocks(16);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_scoreboard_idle(80_000, "X054 flush drops incoming hits");
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (push_after != push_before) begin
+      `uvm_error("X054", $sformatf(
+        "Incoming hits during FLUSHING unexpectedly incremented PUSH_COUNT: before=%0d after=%0d",
+        push_before, push_after))
+    end
+    if (inerr_after != 0) begin
+      `uvm_error("X054", $sformatf(
+        "Incoming good hits during FLUSHING unexpectedly affected INERR_COUNT=%0d",
+        inerr_after))
+    end
+  endtask
+
   task automatic run_x055_flush_error_reset_case();
     same_key_burst_seq  burst_seq;
     single_error_hit_seq pre_err;
@@ -1307,6 +1341,47 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x056_flush_restart_good_push_case();
+    same_key_burst_seq  burst_seq;
+    single_push_pop_seq single_seq;
+    int unsigned        fill_level;
+    int unsigned        push_count;
+    int unsigned        pop_count;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x056_preflush_fill");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X056 pre-flush fill");
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X056 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    restart_after_flush(2000);
+
+    single_seq = single_push_pop_seq::type_id::create("x056_postflush_good");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    single_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(1, 20_000, "X056 first good push after restart");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 1) begin
+      `uvm_error("X056", $sformatf(
+        "First good push after flush did not see clean fill trajectory: fill=%0d",
+        fill_level))
+    end
+
+    terminate_and_drain(80_000, "X056 post-flush restart drain");
+    expect_service_model_accounting("X056 post-flush restart drain", 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (push_count != 1 || pop_count != 1) begin
+      `uvm_error("X056", $sformatf(
+        "Post-flush restart counters mismatch: push=%0d pop=%0d expected=1",
+        push_count, pop_count))
+    end
+  endtask
+
   task automatic run_x066_duplicate_prep_noop_case();
     int unsigned flush_grants_before;
     bit          saw_restart;
@@ -1336,6 +1411,98 @@ class base_test extends uvm_test;
         "Duplicate RUN_PREPARE did not leave PREP in the flushed/ready state: flushed=%0d ready=%0d",
         m_env.m_dbg_mon.run_mgmt_flushed, m_env.m_ctrl_drv.vif.ready))
     end
+  endtask
+
+  task automatic run_x060_flush_backlog_deassembly_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_before;
+    int unsigned       push_after;
+    bit                saw_backlog;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x060_deassembly_backlog");
+    burst_seq.num_hits = 64;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    saw_backlog = 1'b0;
+    for (int unsigned cycles = 0; cycles < 20_000; cycles++) begin
+      if (m_env.m_dbg_mon.deassembly_fifo_usedw != 0) begin
+        saw_backlog = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_backlog) begin
+      `uvm_error("X060", "Did not observe any queued data in deassembly_fifo before FLUSHING")
+    end
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+    if (push_before == 0) begin
+      `uvm_error("X060", "Precondition failed: deassembly backlog never translated into pre-flush PUSH_COUNT activity")
+    end
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X060 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_scoreboard_idle(80_000, "X060 deassembly backlog flush");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    if (push_after != 0) begin
+      `uvm_error("X060", $sformatf(
+        "FLUSH with deassembly backlog did not clear PUSH_COUNT: before=%0d after=%0d",
+        push_before, push_after))
+    end
+    if (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+      `uvm_error("X060", $sformatf(
+        "deassembly_fifo was not empty after FLUSHING: usedw=%0d empty=%0d",
+        m_env.m_dbg_mon.deassembly_fifo_usedw,
+        m_env.m_dbg_mon.vif.deassembly_fifo_empty))
+    end
+  endtask
+
+  task automatic run_x067_flush_complete_sync_case();
+    logic [47:0] gts_before;
+    bit          saw_sync_ack;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X067 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    gts_before = m_env.m_dbg_mon.gts_end_of_run;
+    saw_sync_ack = 1'b0;
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_SYNC;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+    saw_sync_ack = (m_env.m_ctrl_drv.vif.ready === 1'b1);
+    m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_SYNC);
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+    if (!saw_sync_ack) begin
+      `uvm_error("X067", "SYNC did not acknowledge immediately after flush completion")
+    end
+    if (m_env.m_dbg_mon.gts_end_of_run != gts_before) begin
+      `uvm_error("X067", $sformatf(
+        "SYNC after flush unexpectedly changed gts_end_of_run: before=%0d after=%0d",
+        gts_before, m_env.m_dbg_mon.gts_end_of_run))
+    end
+  endtask
+
+  task automatic run_x068_prep_clears_endofrun_case();
+    configure_and_start(2000);
+    send_endofrun_marker();
+    wait_clocks(8);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      `uvm_error("X068", "Precondition failed: matching empty marker did not latch endofrun_seen")
+    end
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X068 RUN_PREPARE entry");
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X068", "RUN_PREPARE entry did not clear endofrun_seen")
+    end
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
   endtask
 
   task automatic run_cross_curated_all_bucket_mix();
@@ -5639,8 +5806,12 @@ class base_test extends uvm_test;
       run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
     end else if (case_id == "X053") begin
       run_x053_flush_preempts_drain_case();
+    end else if (case_id == "X054") begin
+      run_x054_flush_drops_incoming_hits_case();
     end else if (case_id == "X055") begin
       run_x055_flush_error_reset_case();
+    end else if (case_id == "X056") begin
+      run_x056_flush_restart_good_push_case();
     end else if (case_id == "X061") begin
       run_x061_flush_backlog_popcmd_case();
     end else if (case_id == "X082") begin
@@ -5749,8 +5920,14 @@ class base_test extends uvm_test;
       run_x065_flush_then_terminate_case();
     end else if (case_id == "X066") begin
       run_x066_duplicate_prep_noop_case();
+    end else if (case_id == "X067") begin
+      run_x067_flush_complete_sync_case();
+    end else if (case_id == "X068") begin
+      run_x068_prep_clears_endofrun_case();
     end else if (case_id == "X058") begin
       run_x058_flush_from_running_case();
+    end else if (case_id == "X060") begin
+      run_x060_flush_backlog_deassembly_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,

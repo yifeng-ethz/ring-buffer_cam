@@ -44408,7 +44408,7 @@
     },
     "ERROR": {
       "planned_cases": 129,
-      "evidenced_cases": 54,
+      "evidenced_cases": 55,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1892,
@@ -49407,7 +49407,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X048",
@@ -49929,7 +49929,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X051",
@@ -50301,7 +50301,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X053",
@@ -50530,7 +50530,7 @@
           "full_case_id": "X054",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSH interleaved with pushes arriving (hits at deassembly input while RUN_PREPARE asserted) \u2014 proc_avst_input_deassembly_comb gates wrreq because run_state_cmd\u2260RUNNING",
           "description": "FLUSH interleaved with pushes arriving (hits at deassembly input while RUN_PREPARE asserted) \u2014 proc_avst_input_deassembly_comb gates wrreq because run_state_cmd\u2260RUNNING",
@@ -50539,15 +50539,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1635,
+              "bins": 1986,
+              "pct": 82.33
+            },
+            "branch": {
+              "hits": 310,
+              "bins": 558,
+              "pct": 55.56
+            },
+            "cond": {
+              "hits": 46,
+              "bins": 132,
+              "pct": 34.85
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 784,
+              "bins": 6333,
+              "pct": 12.38
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X055",
@@ -50776,7 +50812,7 @@
           "full_case_id": "X056",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSH followed by immediate new-key push once RUNNING entered \u2014 first GOOD push after flush must see `FILL_LEVEL`=0 and normal push latency",
           "description": "FLUSH followed by immediate new-key push once RUNNING entered \u2014 first GOOD push after flush must see `FILL_LEVEL`=0 and normal push latency",
@@ -50785,15 +50821,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1837,
+              "bins": 1986,
+              "pct": 92.5
+            },
+            "branch": {
+              "hits": 427,
+              "bins": 558,
+              "pct": 76.52
+            },
+            "cond": {
+              "hits": 79,
+              "bins": 132,
+              "pct": 59.85
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1621,
+              "bins": 6333,
+              "pct": 25.6
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X057",
@@ -51039,7 +51111,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X059",
@@ -51070,7 +51142,7 @@
           "full_case_id": "X060",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSH with a backlog in `deassembly_fifo` \u2014 fifo sclr is asserted by `deassembly_fifo_sclr<='1'`; entries drop silently",
           "description": "FLUSH with a backlog in `deassembly_fifo` \u2014 fifo sclr is asserted by `deassembly_fifo_sclr<='1'`; entries drop silently",
@@ -51079,15 +51151,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1646,
+              "bins": 1986,
+              "pct": 82.88
+            },
+            "branch": {
+              "hits": 323,
+              "bins": 558,
+              "pct": 57.89
+            },
+            "cond": {
+              "hits": 51,
+              "bins": 132,
+              "pct": 38.64
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 1346,
+              "bins": 6333,
+              "pct": 21.25
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 25.71875,
+              "bins": 1986,
+              "pct": 1.3
+            },
+            "branch": {
+              "hits": 5.046875,
+              "bins": 558,
+              "pct": 0.9
+            },
+            "cond": {
+              "hits": 0.796875,
+              "bins": 132,
+              "pct": 0.6
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.046875,
+              "bins": 8,
+              "pct": 0.59
+            },
+            "fsm_trans": {
+              "hits": 0.046875,
+              "bins": 15,
+              "pct": 0.31
+            },
+            "toggle": {
+              "hits": 21.03125,
+              "bins": 6333,
+              "pct": 0.33
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 4,
+              "bins": 6333,
+              "pct": 0.06
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1887,
+              "bins": 1982,
+              "pct": 95.21
+            },
+            "branch": {
+              "hits": 460,
+              "bins": 553,
+              "pct": 83.18
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4103,
+              "bins": 6333,
+              "pct": 64.79
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0625,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 64,
+          "log_summary": {
+            "pushed": 64,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 64,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X061",
@@ -51246,9 +51516,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           },
           "bucket_gain_per_txn": {
@@ -51504,9 +51774,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           },
           "bucket_gain_per_txn": {},
@@ -51654,9 +51924,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           },
           "bucket_gain_per_txn": {},
@@ -51681,14 +51951,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X067",
           "full_case_id": "X067",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSH completion coincident with a fresh asi_ctrl_valid=SYNC \u2014 SYNC case in `proc_run_control_mgmt` asserts gts_counter_rst; ack immediate",
           "description": "FLUSH completion coincident with a fresh asi_ctrl_valid=SYNC \u2014 SYNC case in `proc_run_control_mgmt` asserts gts_counter_rst; ack immediate",
@@ -51697,22 +51967,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1632,
+              "bins": 1986,
+              "pct": 82.18
+            },
+            "branch": {
+              "hits": 307,
+              "bins": 558,
+              "pct": 55.02
+            },
+            "cond": {
+              "hits": 46,
+              "bins": 132,
+              "pct": 34.85
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 576,
+              "bins": 6333,
+              "pct": 9.1
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X068",
           "full_case_id": "X068",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSH initiated while `endofrun_seen`=1 \u2014 endofrun_seen cleared on RUN_PREPARE entry (`run_state_cmd_next_v = IDLE or RUN_PREPARE` branch)",
           "description": "FLUSH initiated while `endofrun_seen`=1 \u2014 endofrun_seen cleared on RUN_PREPARE entry (`run_state_cmd_next_v = IDLE or RUN_PREPARE` branch)",
@@ -51721,15 +52027,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1634,
+              "bins": 1986,
+              "pct": 82.28
+            },
+            "branch": {
+              "hits": 314,
+              "bins": 558,
+              "pct": 56.27
+            },
+            "cond": {
+              "hits": 48,
+              "bins": 132,
+              "pct": 36.36
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 596,
+              "bins": 6333,
+              "pct": 9.41
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X069",
@@ -52164,9 +52506,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           },
           "bucket_gain_per_txn": {},
@@ -52314,9 +52656,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           },
           "bucket_gain_per_txn": {},
@@ -52464,9 +52806,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           },
           "bucket_gain_per_txn": {},
@@ -52673,9 +53015,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 56,
+              "hits": 52,
               "bins": 6333,
-              "pct": 0.88
+              "pct": 0.82
             }
           },
           "bucket_merged_total_after_case": {
@@ -57767,7 +58109,43 @@
           "step": 60,
           "case_id": "X060",
           "full_case_id": "X060",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1887,
+              "bins": 1982,
+              "pct": 95.21
+            },
+            "branch": {
+              "hits": 460,
+              "bins": 553,
+              "pct": 83.18
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4103,
+              "bins": 6333,
+              "pct": 64.79
+            }
+          }
         },
         {
           "step": 61,
@@ -57805,9 +58183,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           }
         },
@@ -57865,9 +58243,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           }
         },
@@ -57907,9 +58285,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4103,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 64.79
             }
           }
         },
@@ -58039,9 +58417,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           }
         },
@@ -58081,9 +58459,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           }
         },
@@ -58123,9 +58501,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4102,
+              "hits": 4106,
               "bins": 6333,
-              "pct": 64.77
+              "pct": 64.83
             }
           }
         },
@@ -59159,7 +59537,7 @@
     {
       "bucket": "ERROR",
       "planned_cases": 129,
-      "evidenced_cases": 54,
+      "evidenced_cases": 55,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1892,
@@ -59198,8 +59576,8 @@
         }
       },
       "functional_coverage": {
-        "pct": 41.86,
-        "evidenced": 54,
+        "pct": 42.64,
+        "evidenced": 55,
         "planned": 129
       }
     }
@@ -59238,9 +59616,9 @@
     {
       "scope": "ERROR",
       "planned_cases": 129,
-      "executed_cases": 54,
-      "executed_ratio_pct": 41.86,
-      "observed_txn": 2254,
+      "executed_cases": 55,
+      "executed_ratio_pct": 42.64,
+      "observed_txn": 2318,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
@@ -59248,17 +59626,17 @@
     {
       "scope": "TOTAL",
       "planned_cases": 516,
-      "executed_cases": 207,
-      "executed_ratio_pct": 40.12,
-      "observed_txn": 33542,
+      "executed_cases": 208,
+      "executed_ratio_pct": 40.31,
+      "observed_txn": 33606,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
     }
   ],
   "implementation_summary": {
-    "implemented_count": 207,
-    "unimplemented_count": 309,
+    "implemented_count": 212,
+    "unimplemented_count": 304,
     "stale_artifact_without_engine_marker_count": 0
   },
   "failed_cases": [],
@@ -63899,7 +64277,7 @@
   "signoff_runs": [],
   "totals": {
     "planned_cases": 516,
-    "evidenced_cases": 207,
+    "evidenced_cases": 208,
     "excluded_cases": 0,
     "merged_total_code_coverage": {
       "stmt": {
@@ -63939,8 +64317,8 @@
       }
     },
     "functional_coverage": {
-      "pct": 40.12,
-      "evidenced": 207,
+      "pct": 40.31,
+      "evidenced": 208,
       "planned": 516
     }
   }
