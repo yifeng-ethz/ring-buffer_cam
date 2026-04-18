@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-17` &nbsp;
-**Release under check:** `26.1.5.0422` &nbsp; **Git base:** `e8c18fe`
+**Release under check:** `26.1.5.0423` &nbsp; **Git base:** `e8c18fe`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -52,7 +52,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-008` same-key overwrite tail suppression verified in the signoff build |
 | ✅ | Harness | standalone Quartus source list repaired to compile the live `rtl/` tree and active V2 core |
 | ✅ | Harness | synthesis harness updated to the live wrapper contract and normalized to the delivered `512`-entry depth |
-| ✅ | Metadata | wrapper defaults aligned to `26.1.5.0422` so runtime identity matches the packaged IP |
+| ✅ | Metadata | wrapper defaults aligned to `26.1.5.0423` so runtime identity matches the packaged IP |
 
 ## Evidence Index
 

@@ -80,7 +80,7 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 422;
+	BUILD				: natural := 423;
 	VERSION_DATE		: natural := 20260418;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;

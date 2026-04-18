@@ -279,3 +279,17 @@
   - `E026` now derives `visit_idx = pop_issue_addr / partition_size` on each pop issue and masks checks against that index
   - this aligns with the DUT interface contract used by other partition checks and removes the false-negative on empty-partition skips
 - Commit: 63e3652
+
+### BUG-020-H: B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed
+- First seen in: `B116` on 2026-04-18 during the first `B116-B123` tranche run
+- Symptom:
+  - the new end-to-end fill trajectory case failed with `observed=3 expected=4`, `observed=7 expected=8`, and the same off-by-one pattern at the later checkpoints
+  - the testcase still terminated cleanly with `pushed=16 popped=16 remaining=0`, so the DUT accounting was correct while the CSR sampling point was early
+- Root cause:
+  - the testcase assumed that four/eight/twelve/sixteen `single_push_pop_seq.start()` calls implied that the corresponding push grants had already committed into the debug counters and `FILL_LEVEL`
+  - in reality the CSR read raced the final accepted beat in each checkpoint group and sampled one cycle before the last increment became visible
+- Fix status: fixed and verified in working tree
+- Runtime / coverage context:
+  - `B116` now waits for `dbg_push_cnt` to reach the checkpoint target before polling `FILL_LEVEL`
+  - verified by a clean rerun of `B116-B123` and then the full `161/161` implemented isolated nightly matrix
+- Commit: pending

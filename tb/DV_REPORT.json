@@ -156,12 +156,20 @@
       "title": "E026 partition-walk harness observed the wrong partition index during skip logic",
       "fix_status": "fixed and verified on `dev`",
       "commit": "63e3652"
+    },
+    {
+      "bug_id": "BUG-020-H",
+      "class": "Harness",
+      "date": "2026-04-18",
+      "title": "B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed",
+      "fix_status": "fixed and verified in working tree",
+      "commit": "pending"
     }
   ],
   "buckets": {
     "BASIC": {
       "planned_cases": 129,
-      "evidenced_cases": 98,
+      "evidenced_cases": 106,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1928,
@@ -169,9 +177,9 @@
           "pct": 97.28
         },
         "branch": {
-          "hits": 493,
+          "hits": 494,
           "bins": 553,
-          "pct": 89.15
+          "pct": 89.33
         },
         "cond": {
           "hits": 91,
@@ -194,9 +202,9 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4532,
+          "hits": 4537,
           "bins": 6329,
-          "pct": 71.61
+          "pct": 71.69
         }
       },
       "cases": [
@@ -348,7 +356,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B002",
@@ -498,7 +506,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B003",
@@ -720,7 +728,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B004",
@@ -942,7 +950,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B005",
@@ -1164,7 +1172,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B006",
@@ -1386,7 +1394,7 @@
             "cg_output_pct": 75.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B007",
@@ -1608,14 +1616,14 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B008",
           "full_case_id": "B008",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "explicit run-control startup spine as a standalone case",
           "description": "explicit run-control startup spine as a standalone case",
@@ -1758,14 +1766,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B009",
           "full_case_id": "B009",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity",
           "description": "CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity",
@@ -1908,17 +1916,17 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B010",
           "full_case_id": "B010",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,422) bit layout",
-          "description": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,422) bit layout",
+          "scenario": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,423) bit layout",
+          "description": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,423) bit layout",
           "primary_checks": "META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression",
           "contract_anchor": "",
           "seed": 1,
@@ -1956,9 +1964,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 116,
+              "hits": 118,
               "bins": 6329,
-              "pct": 1.83
+              "pct": 1.86
             }
           },
           "isolated_cov_per_txn": {},
@@ -2065,7 +2073,7 @@
           "full_case_id": "B011",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260418)",
           "description": "CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260418)",
@@ -2208,14 +2216,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B012",
           "full_case_id": "B012",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic",
           "description": "CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic",
@@ -2358,14 +2366,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B013",
           "full_case_id": "B013",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic",
           "description": "CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic",
@@ -2508,14 +2516,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B014",
           "full_case_id": "B014",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[2] CTRL bit[0] `go` reset default = 1 verified before any write",
           "description": "CSR[2] CTRL bit[0] `go` reset default = 1 verified before any write",
@@ -2658,14 +2666,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B015",
           "full_case_id": "B015",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[2] CTRL bit[1] `soft_reset` self-clears within one idle cycle after host write-1",
           "description": "CSR[2] CTRL bit[1] `soft_reset` self-clears within one idle cycle after host write-1",
@@ -2808,14 +2816,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B016",
           "full_case_id": "B016",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[2] CTRL bit[4] `filter_inerr` reset default = 1",
           "description": "CSR[2] CTRL bit[4] `filter_inerr` reset default = 1",
@@ -2958,14 +2966,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B017",
           "full_case_id": "B017",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[2] CTRL bits[3:2] and bits[31:5] unused inertness check",
           "description": "CSR[2] CTRL bits[3:2] and bits[31:5] unused inertness check",
@@ -3108,14 +3116,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B018",
           "full_case_id": "B018",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[3] EXPECTED_LATENCY reset default = 2000 (`to_unsigned(2000,16)`)",
           "description": "CSR[3] EXPECTED_LATENCY reset default = 2000 (`to_unsigned(2000,16)`)",
@@ -3258,14 +3266,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B019",
           "full_case_id": "B019",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[3] EXPECTED_LATENCY full 16-bit writable range (no RTL clamp) using 0x0000 and 0xFFFF",
           "description": "CSR[3] EXPECTED_LATENCY full 16-bit writable range (no RTL clamp) using 0x0000 and 0xFFFF",
@@ -3408,14 +3416,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B020",
           "full_case_id": "B020",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[3] EXPECTED_LATENCY mid-range write 0x4000 while RUNNING and verify `read_time_ptr` shifts by the same delta",
           "description": "CSR[3] EXPECTED_LATENCY mid-range write 0x4000 while RUNNING and verify `read_time_ptr` shifts by the same delta",
@@ -3558,14 +3566,14 @@
             "cg_output_pct": 46.2,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B021",
           "full_case_id": "B021",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[4] FILL_LEVEL tracks `push_cnt - pop_cnt - overwrite_cnt` after N pushes with no pops",
           "description": "CSR[4] FILL_LEVEL tracks `push_cnt - pop_cnt - overwrite_cnt` after N pushes with no pops",
@@ -3780,14 +3788,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B022",
           "full_case_id": "B022",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[4] FILL_LEVEL is write-ignored (WI) per proc_avmm_csr case branch",
           "description": "CSR[4] FILL_LEVEL is write-ignored (WI) per proc_avmm_csr case branch",
@@ -4002,14 +4010,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B023",
           "full_case_id": "B023",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[5] INERR_COUNT increments only when `filter_inerr=1` AND `asi_hit_type1_error(0)=1` is seen",
           "description": "CSR[5] INERR_COUNT increments only when `filter_inerr=1` AND `asi_hit_type1_error(0)=1` is seen",
@@ -4224,14 +4232,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B024",
           "full_case_id": "B024",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[5] INERR_COUNT is cleared when run-control enters RUN_PREPARE (flush, `decision_reg=3`)",
           "description": "CSR[5] INERR_COUNT is cleared when run-control enters RUN_PREPARE (flush, `decision_reg=3`)",
@@ -4374,14 +4382,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B025",
           "full_case_id": "B025",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[6] PUSH_COUNT increments only when arbiter grants `decision_reg=0` (push_write), never on accepted-but-not-granted cycles",
           "description": "CSR[6] PUSH_COUNT increments only when arbiter grants `decision_reg=0` (push_write), never on accepted-but-not-granted cycles",
@@ -4596,14 +4604,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B026",
           "full_case_id": "B026",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[7] POP_COUNT increments only on `decision_reg=2` (pop_erase), not on cache-miss drains",
           "description": "CSR[7] POP_COUNT increments only on `decision_reg=2` (pop_erase), not on cache-miss drains",
@@ -4818,14 +4826,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B027",
           "full_case_id": "B027",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[8] OVERWRITE_COUNT increments on `decision_reg=1` (push_erase) triggered by `addr_occupied=1` on the write pointer",
           "description": "CSR[8] OVERWRITE_COUNT increments on `decision_reg=1` (push_erase) triggered by `addr_occupied=1` on the write pointer",
@@ -5040,14 +5048,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B028",
           "full_case_id": "B028",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[8] OVERWRITE_COUNT write-to-offset ignored (commented-out WO reset branch)",
           "description": "CSR[8] OVERWRITE_COUNT write-to-offset ignored (commented-out WO reset branch)",
@@ -5262,7 +5270,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B029",
@@ -5317,7 +5325,7 @@
           "full_case_id": "B031",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR[0] UID and CSR[1] META correlated readback in the same transaction pair: UID stable across a concurrent META selector write",
           "description": "CSR[0] UID and CSR[1] META correlated readback in the same transaction pair: UID stable across a concurrent META selector write",
@@ -5460,14 +5468,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B032",
           "full_case_id": "B032",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "CSR waitrequest protocol: `avs_csr_waitrequest` drops to 0 the cycle after any read or write, returns to 1 in idle",
           "description": "CSR waitrequest protocol: `avs_csr_waitrequest` drops to 0 the cycle after any read or write, returns to 1 in idle",
@@ -5610,14 +5618,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B033",
           "full_case_id": "B033",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control: payload `000000001` (IDLE) at reset produces immediate `asi_ctrl_ready` ack",
           "description": "run-control: payload `000000001` (IDLE) at reset produces immediate `asi_ctrl_ready` ack",
@@ -5760,14 +5768,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B034",
           "full_case_id": "B034",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: IDLE -> RUN_PREPARE on payload `000000010` asserts both `pop_cmd_fifo_sclr` and `deassembly_fifo_sclr`",
           "description": "run-control edge: IDLE -> RUN_PREPARE on payload `000000010` asserts both `pop_cmd_fifo_sclr` and `deassembly_fifo_sclr`",
@@ -5910,14 +5918,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B035",
           "full_case_id": "B035",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: PREP -> PREP-ready requires all of `pop_cmd_fifo_empty`, `deassembly_fifo_empty`, `debug_msg2.cam_clean`, `run_mgmt_flushed`",
           "description": "run-control edge: PREP -> PREP-ready requires all of `pop_cmd_fifo_empty`, `deassembly_fifo_empty`, `debug_msg2.cam_clean`, `run_mgmt_flushed`",
@@ -6060,14 +6068,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B036",
           "full_case_id": "B036",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: PREP flush path asserts `run_mgmt_flush_memory_start` for one pop_engine FLUSHING round, then latches `run_mgmt_flushed='1'`",
           "description": "run-control edge: PREP flush path asserts `run_mgmt_flush_memory_start` for one pop_engine FLUSHING round, then latches `run_mgmt_flushed='1'`",
@@ -6210,14 +6218,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B037",
           "full_case_id": "B037",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: RUN_PREPARE -> SYNC on payload `000000100` asserts `gts_counter_rst='1'`",
           "description": "run-control edge: RUN_PREPARE -> SYNC on payload `000000100` asserts `gts_counter_rst='1'`",
@@ -6360,14 +6368,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B038",
           "full_case_id": "B038",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: SYNC -> RUNNING on payload `000001000` deasserts `gts_counter_rst` and clears `run_mgmt_flushed`",
           "description": "run-control edge: SYNC -> RUNNING on payload `000001000` deasserts `gts_counter_rst` and clears `run_mgmt_flushed`",
@@ -6510,14 +6518,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B039",
           "full_case_id": "B039",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: RUNNING -> TERMINATING on payload `000010000` captures `gts_end_of_run <= gts_8n` on entry cycle",
           "description": "run-control edge: RUNNING -> TERMINATING on payload `000010000` captures `gts_end_of_run <= gts_8n` on entry cycle",
@@ -6660,14 +6668,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B040",
           "full_case_id": "B040",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: TERMINATING ready deferred until `terminating_drain_done=1` (endofrun_seen & fifos empty & pop IDLE & push=pop+ow)",
           "description": "run-control edge: TERMINATING ready deferred until `terminating_drain_done=1` (endofrun_seen & fifos empty & pop IDLE & push=pop+ow)",
@@ -6882,14 +6890,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B041",
           "full_case_id": "B041",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: TERMINATING -> IDLE on payload `000000001` clears `endofrun_seen` via the reset branch",
           "description": "run-control edge: TERMINATING -> IDLE on payload `000000001` clears `endofrun_seen` via the reset branch",
@@ -7032,14 +7040,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B042",
           "full_case_id": "B042",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control edge: IDLE -> RESET on payload `010000000` drops `asi_ctrl_ready` immediately (per RESET branch)",
           "description": "run-control edge: IDLE -> RESET on payload `010000000` drops `asi_ctrl_ready` immediately (per RESET branch)",
@@ -7182,14 +7190,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B043",
           "full_case_id": "B043",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control illegal payload (e.g. `000000011`) maps to `ERROR` state",
           "description": "run-control illegal payload (e.g. `000000011`) maps to `ERROR` state",
@@ -7332,14 +7340,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B044",
           "full_case_id": "B044",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control idempotency: duplicate `RUN_PREPARE` commands do not retrigger `run_mgmt_flush_memory_start` once `run_mgmt_flushed=1`",
           "description": "run-control idempotency: duplicate `RUN_PREPARE` commands do not retrigger `run_mgmt_flush_memory_start` once `run_mgmt_flushed=1`",
@@ -7482,14 +7490,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B045",
           "full_case_id": "B045",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control idempotency: duplicate `SYNC` commands keep `gts_counter_rst` asserted without glitches",
           "description": "run-control idempotency: duplicate `SYNC` commands keep `gts_counter_rst` asserted without glitches",
@@ -7632,14 +7640,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B046",
           "full_case_id": "B046",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control idempotency: duplicate `RUNNING` commands do not reset run_mgmt_flushed twice (only one clear per transition)",
           "description": "run-control idempotency: duplicate `RUNNING` commands do not reset run_mgmt_flushed twice (only one clear per transition)",
@@ -7782,14 +7790,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B047",
           "full_case_id": "B047",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control bypass: IDLE -> RUNNING opens ingress immediately even though PREP/SYNC were skipped",
           "description": "run-control bypass: IDLE -> RUNNING opens ingress immediately even though PREP/SYNC were skipped",
@@ -8004,14 +8012,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B048",
           "full_case_id": "B048",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control partial spine: PREP -> RUNNING (skipping SYNC), then late SYNC recovery",
           "description": "run-control partial spine: PREP -> RUNNING (skipping SYNC), then late SYNC recovery",
@@ -8226,14 +8234,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B049",
           "full_case_id": "B049",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control: `LINK_TEST` (`000100000`) and `SYNC_TEST` (`001000000`) fall into the `others=>` branch, leaving ctrl_ready=0",
           "description": "run-control: `LINK_TEST` (`000100000`) and `SYNC_TEST` (`001000000`) fall into the `others=>` branch, leaving ctrl_ready=0",
@@ -8376,14 +8384,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B050",
           "full_case_id": "B050",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "run-control: `OUT_OF_DAQ` (`100000000`) falls into `others=>` branch, no ingress accepted",
           "description": "run-control: `OUT_OF_DAQ` (`100000000`) falls into `others=>` branch, no ingress accepted",
@@ -8526,14 +8534,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B051",
           "full_case_id": "B051",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "ingress gate: `csr.go=0` blocks `deassembly_fifo_wrreq` even in RUNNING",
           "description": "ingress gate: `csr.go=0` blocks `deassembly_fifo_wrreq` even in RUNNING",
@@ -8676,14 +8684,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B052",
           "full_case_id": "B052",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "ingress interleaving: only beats with `ts[TCC8N_INTERLEAVING_HI:LO] = INTERLEAVING_INDEX` reach the fifo",
           "description": "ingress interleaving: only beats with `ts[TCC8N_INTERLEAVING_HI:LO] = INTERLEAVING_INDEX` reach the fifo",
@@ -8898,14 +8906,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B053",
           "full_case_id": "B053",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "ingress empty-marker: `asi_hit_type1_empty=1` with matching `channel[1:0]` bypasses the data-based lane match and sets `endofrun_seen` on EOP",
           "description": "ingress empty-marker: `asi_hit_type1_empty=1` with matching `channel[1:0]` bypasses the data-based lane match and sets `endofrun_seen` on EOP",
@@ -9048,14 +9056,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B054",
           "full_case_id": "B054",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "push pipeline depth 1: single hit, verify one-cycle push_write, no ERASE state entered (`addr_occupied=0` at write_pointer)",
           "description": "push pipeline depth 1: single hit, verify one-cycle push_write, no ERASE state entered (`addr_occupied=0` at write_pointer)",
@@ -9270,14 +9278,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B055",
           "full_case_id": "B055",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "push pipeline depth 2: one hit followed by pointer wrap onto an occupied slot, state enters ERASE for one cycle",
           "description": "push pipeline depth 2: one hit followed by pointer wrap onto an occupied slot, state enters ERASE for one cycle",
@@ -9492,14 +9500,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B056",
           "full_case_id": "B056",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop search latency baseline: `SEARCH` state counts `pop_search_wait_cnt` 0..5 before snapshotting match vector",
           "description": "pop search latency baseline: `SEARCH` state counts `pop_search_wait_cnt` 0..5 before snapshotting match vector",
@@ -9714,14 +9722,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B057",
           "full_case_id": "B057",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per partition",
           "description": "pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per partition",
@@ -9936,14 +9944,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B058",
           "full_case_id": "B058",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop COUNT: MATCH_COUNT_CHUNKS_CONST chunks accumulated per partition using `count_ones_16`",
           "description": "pop COUNT: MATCH_COUNT_CHUNKS_CONST chunks accumulated per partition using `count_ones_16`",
@@ -10158,14 +10166,14 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B059",
           "full_case_id": "B059",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop COUNT zero-hit fast path: if `pop_count_total_acc=0` engine transitions COUNT -> RESET and asserts `pop_cmd_fifo_rdack`",
           "description": "pop COUNT zero-hit fast path: if `pop_count_total_acc=0` engine transitions COUNT -> RESET and asserts `pop_cmd_fifo_rdack`",
@@ -10308,7 +10316,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B060",
@@ -10458,14 +10466,14 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B061",
           "full_case_id": "B061",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader framing for 1-hit drain: SOP on subheader beat, EOP on hit beat, hit_count field = 0x01",
           "description": "subheader framing for 1-hit drain: SOP on subheader beat, EOP on hit beat, hit_count field = 0x01",
@@ -10680,14 +10688,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B062",
           "full_case_id": "B062",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader `data[31:24]` carries `pop_current_sk[7:0]` = ts[11:4] of the drained epoch",
           "description": "subheader `data[31:24]` carries `pop_current_sk[7:0]` = ts[11:4] of the drained epoch",
@@ -10902,14 +10910,14 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B063",
           "full_case_id": "B063",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader `data[15:8]` carries `pop_total_hits[7:0]` for non-zero drain",
           "description": "subheader `data[15:8]` carries `pop_total_hits[7:0]` for non-zero drain",
@@ -11124,14 +11132,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 16.7
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B064",
           "full_case_id": "B064",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader `data[7:0]` = K237 (0xF7) constant",
           "description": "subheader `data[7:0]` = K237 (0xF7) constant",
@@ -11346,14 +11354,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B065",
           "full_case_id": "B065",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader `data[35:32]` (byte_is_k) = \"0001\" on subheader, \"0000\" on hits",
           "description": "subheader `data[35:32]` (byte_is_k) = \"0001\" on subheader, \"0000\" on hits",
@@ -11568,14 +11576,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B066",
           "full_case_id": "B066",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "hit egress bit layout: `data[31:28]=ts[3:0]`, `[27:22]={00, asic[3:0]}`, `[21:17]=channel[4:0]`, `[16:9]=tcc1n6+tfine`, `[8:0]=et1n6`",
           "description": "hit egress bit layout: `data[31:28]=ts[3:0]`, `[27:22]={00, asic[3:0]}`, `[21:17]=channel[4:0]`, `[16:9]=tcc1n6+tfine`, `[8:0]=et1n6`",
@@ -11790,7 +11798,7 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B067",
@@ -11821,7 +11829,7 @@
           "full_case_id": "B068",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "tsglitcherr isolation: good-hit / glitch-hit / good-hit window under one search key",
           "description": "tsglitcherr isolation: good-hit / glitch-hit / good-hit window under one search key",
@@ -12036,7 +12044,7 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 12.5
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B069",
@@ -12186,14 +12194,14 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B070",
           "full_case_id": "B070",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop descriptor boundary: first pop fires at `read_time_ptr=0` exactly (ts[11:4]=0 bin not skipped) per revision 2.9",
           "description": "pop descriptor boundary: first pop fires at `read_time_ptr=0` exactly (ts[11:4]=0 bin not skipped) per revision 2.9",
@@ -12408,7 +12416,7 @@
             "cg_output_pct": 59.5,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B071",
@@ -12630,7 +12638,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B072",
@@ -12852,14 +12860,14 @@
             "cg_output_pct": 71.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B073",
           "full_case_id": "B073",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key occupancy = 1: push 1, pop 1, scoreboard FILL_LEVEL trajectory {0,1,0} observed over CSR polls",
           "description": "same-key occupancy = 1: push 1, pop 1, scoreboard FILL_LEVEL trajectory {0,1,0} observed over CSR polls",
@@ -13074,14 +13082,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B074",
           "full_case_id": "B074",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key occupancy = 2: push 2 same key, pop at next latency boundary yields one subheader with hit_count=2",
           "description": "same-key occupancy = 2: push 2 same key, pop at next latency boundary yields one subheader with hit_count=2",
@@ -13296,7 +13304,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B075",
@@ -13518,14 +13526,14 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B076",
           "full_case_id": "B076",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key occupancy = LEAF_WIDTH (16): fills exactly one encoder leaf in one partition",
           "description": "same-key occupancy = LEAF_WIDTH (16): fills exactly one encoder leaf in one partition",
@@ -13740,14 +13748,14 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B077",
           "full_case_id": "B077",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key occupancy = LEAF_WIDTH+1 (17): crosses leaf boundary within partition, exercises `has_more` from first leaf",
           "description": "same-key occupancy = LEAF_WIDTH+1 (17): crosses leaf boundary within partition, exercises `has_more` from first leaf",
@@ -13962,7 +13970,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B078",
@@ -14184,7 +14192,7 @@
             "cg_output_pct": 83.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B079",
@@ -14406,7 +14414,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B080",
@@ -14628,14 +14636,14 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B081",
           "full_case_id": "B081",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key occupancy = RING_BUFFER_N_ENTRY-1 (511): drains 511 hits with subheader hit_count[7:0] wrapping at 255 boundary",
           "description": "same-key occupancy = RING_BUFFER_N_ENTRY-1 (511): drains 511 hits with subheader hit_count[7:0] wrapping at 255 boundary",
@@ -14850,14 +14858,14 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B082",
           "full_case_id": "B082",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key wraparound: write_pointer wraps the full ring while same key is hot, triggers repeated overwrites of prior same-key entries",
           "description": "same-key wraparound: write_pointer wraps the full ring while same key is hot, triggers repeated overwrites of prior same-key entries",
@@ -15072,14 +15080,14 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B083",
           "full_case_id": "B083",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key with EXPECTED_LATENCY=0: pop fires immediately at each 16-cycle boundary",
           "description": "same-key with EXPECTED_LATENCY=0: pop fires immediately at each 16-cycle boundary",
@@ -15294,7 +15302,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B084",
@@ -15516,14 +15524,14 @@
             "cg_output_pct": 59.5,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B085",
           "full_case_id": "B085",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same-key with filter_inerr toggled mid-burst: first half filtered, second half accepted",
           "description": "same-key with filter_inerr toggled mid-burst: first half filtered, second half accepted",
@@ -15738,14 +15746,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B086",
           "full_case_id": "B086",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop DRAIN round-robin: one partition with 2 hits, next partition idle, verify pop_rr_idx increments past the idle partition without stall",
           "description": "pop DRAIN round-robin: one partition with 2 hits, next partition idle, verify pop_rr_idx increments past the idle partition without stall",
@@ -15960,14 +15968,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B087",
           "full_case_id": "B087",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop DRAIN advance handshake: after erase_grant, `pop_partition_advance(idx)` pulses exactly one cycle while has_more=1",
           "description": "pop DRAIN advance handshake: after erase_grant, `pop_partition_advance(idx)` pulses exactly one cycle while has_more=1",
@@ -16182,7 +16190,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B088",
@@ -16404,7 +16412,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B089",
@@ -16626,14 +16634,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B090",
           "full_case_id": "B090",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "push-pop non-exclusivity: push_write allowed while pop engine is in SEARCH/LOAD/COUNT (rev 2.4 relaxation)",
           "description": "push-pop non-exclusivity: push_write allowed while pop engine is in SEARCH/LOAD/COUNT (rev 2.4 relaxation)",
@@ -16848,14 +16856,14 @@
             "cg_output_pct": 72.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B091",
           "full_case_id": "B091",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "push-pop exclusivity: push_write blocked exactly when pop_erase holds grant in DRAIN",
           "description": "push-pop exclusivity: push_write blocked exactly when pop_erase holds grant in DRAIN",
@@ -17070,7 +17078,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B092",
@@ -17292,7 +17300,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B093",
@@ -17514,7 +17522,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B094",
@@ -18048,7 +18056,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B108",
@@ -18294,7 +18302,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B110",
@@ -18516,7 +18524,7 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B111",
@@ -18738,7 +18746,7 @@
             "cg_output_pct": 81.6,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B112",
@@ -18960,7 +18968,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 20.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B113",
@@ -19110,7 +19118,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B114",
@@ -19332,7 +19340,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B115",
@@ -19554,38 +19562,236 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B116",
           "full_case_id": "B116",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "end-to-end flow: FILL_LEVEL trajectory follows integer model across 16 pushes and 16 pops at 1 beat per 16 cycles",
-          "description": "end-to-end flow: FILL_LEVEL trajectory follows integer model across 16 pushes and 16 pops at 1 beat per 16 cycles",
-          "primary_checks": "FILL_LEVEL CSR polls match predicted curve; catches latched-stale subtraction",
+          "scenario": "end-to-end flow: FILL_LEVEL trajectory follows the integer model across a 16-hit fill window and the corresponding full drain",
+          "description": "end-to-end flow: FILL_LEVEL trajectory follows the integer model across a 16-hit fill window and the corresponding full drain",
+          "primary_checks": "FILL_LEVEL CSR polls match the predicted fill ramp and return to zero after terminate; catches latched-stale subtraction",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1844,
+              "bins": 1982,
+              "pct": 93.04
+            },
+            "branch": {
+              "hits": 431,
+              "bins": 553,
+              "pct": 77.94
+            },
+            "cond": {
+              "hits": 77,
+              "bins": 124,
+              "pct": 62.1
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1508,
+              "bins": 6329,
+              "pct": 23.83
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 115.25,
+              "bins": 1982,
+              "pct": 5.81
+            },
+            "branch": {
+              "hits": 26.9375,
+              "bins": 553,
+              "pct": 4.87
+            },
+            "cond": {
+              "hits": 4.8125,
+              "bins": 124,
+              "pct": 3.88
+            },
+            "expr": {
+              "hits": 0.1875,
+              "bins": 10,
+              "pct": 1.88
+            },
+            "fsm_state": {
+              "hits": 0.5,
+              "bins": 8,
+              "pct": 6.25
+            },
+            "fsm_trans": {
+              "hits": 0.625,
+              "bins": 15,
+              "pct": 4.17
+            },
+            "toggle": {
+              "hits": 94.25,
+              "bins": 6329,
+              "pct": 1.49
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 16,
+          "log_summary": {
+            "pushed": 16,
+            "popped": 16,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 7,
+            "zero_hit_subheaders": 6,
+            "accepted": 16,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.1,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B117",
           "full_case_id": "B117",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow subheader phase boundary: run for exactly one latency window, verify exactly one subheader generated and it carries the correct ts byte",
           "description": "end-to-end flow subheader phase boundary: run for exactly one latency window, verify exactly one subheader generated and it carries the correct ts byte",
@@ -19594,22 +19800,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1826,
+              "bins": 1982,
+              "pct": 92.13
+            },
+            "branch": {
+              "hits": 408,
+              "bins": 553,
+              "pct": 73.78
+            },
+            "cond": {
+              "hits": 61,
+              "bins": 124,
+              "pct": 49.19
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1159,
+              "bins": 6329,
+              "pct": 18.31
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 1826.0,
+              "bins": 1982,
+              "pct": 92.13
+            },
+            "branch": {
+              "hits": 408.0,
+              "bins": 553,
+              "pct": 73.78
+            },
+            "cond": {
+              "hits": 61.0,
+              "bins": 124,
+              "pct": 49.19
+            },
+            "expr": {
+              "hits": 2.0,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8.0,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10.0,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1159.0,
+              "bins": 6329,
+              "pct": 18.31
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 1,
+          "log_summary": {
+            "pushed": 1,
+            "popped": 1,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 5,
+            "zero_hit_subheaders": 4,
+            "accepted": 1,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 65.9,
+            "cg_hit_data_pct": 8.3
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B118",
           "full_case_id": "B118",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow with empty subheader injection: one cmd has zero matches, egress emits SOP+EOP subheader with hit_count=0 and no hits",
           "description": "end-to-end flow with empty subheader injection: one cmd has zero matches, egress emits SOP+EOP subheader with hit_count=0 and no hits",
@@ -19618,22 +20022,148 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1748,
+              "bins": 1982,
+              "pct": 88.19
+            },
+            "branch": {
+              "hits": 351,
+              "bins": 553,
+              "pct": 63.47
+            },
+            "cond": {
+              "hits": 50,
+              "bins": 124,
+              "pct": 40.32
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 7,
+              "bins": 8,
+              "pct": 87.5
+            },
+            "fsm_trans": {
+              "hits": 8,
+              "bins": 15,
+              "pct": 53.33
+            },
+            "toggle": {
+              "hits": 641,
+              "bins": 6329,
+              "pct": 10.13
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 1,
+            "zero_hit_subheaders": 1,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 34.5,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B119",
           "full_case_id": "B119",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow where push rate > pop rate until FILL_LEVEL stabilizes at a non-zero plateau (no overwrite)",
           "description": "end-to-end flow where push rate > pop rate until FILL_LEVEL stabilizes at a non-zero plateau (no overwrite)",
@@ -19642,22 +20172,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1848,
+              "bins": 1982,
+              "pct": 93.24
+            },
+            "branch": {
+              "hits": 433,
+              "bins": 553,
+              "pct": 78.3
+            },
+            "cond": {
+              "hits": 74,
+              "bins": 124,
+              "pct": 59.68
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2375,
+              "bins": 6329,
+              "pct": 37.53
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 14.4375,
+              "bins": 1982,
+              "pct": 0.73
+            },
+            "branch": {
+              "hits": 3.3828125,
+              "bins": 553,
+              "pct": 0.61
+            },
+            "cond": {
+              "hits": 0.578125,
+              "bins": 124,
+              "pct": 0.47
+            },
+            "expr": {
+              "hits": 0.0234375,
+              "bins": 10,
+              "pct": 0.23
+            },
+            "fsm_state": {
+              "hits": 0.0625,
+              "bins": 8,
+              "pct": 0.78
+            },
+            "fsm_trans": {
+              "hits": 0.078125,
+              "bins": 15,
+              "pct": 0.52
+            },
+            "toggle": {
+              "hits": 18.5546875,
+              "bins": 6329,
+              "pct": 0.29
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 128,
+          "log_summary": {
+            "pushed": 128,
+            "popped": 128,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 41,
+            "zero_hit_subheaders": 40,
+            "accepted": 128,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 76.1,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B120",
           "full_case_id": "B120",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow where pop rate > push rate leaves FILL_LEVEL at 0 and no cache miss (all real hits are drained exactly once)",
           "description": "end-to-end flow where pop rate > push rate leaves FILL_LEVEL at 0 and no cache miss (all real hits are drained exactly once)",
@@ -19666,22 +20394,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1828,
+              "bins": 1982,
+              "pct": 92.23
+            },
+            "branch": {
+              "hits": 410,
+              "bins": 553,
+              "pct": 74.14
+            },
+            "cond": {
+              "hits": 61,
+              "bins": 124,
+              "pct": 49.19
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1480,
+              "bins": 6329,
+              "pct": 23.38
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 228.5,
+              "bins": 1982,
+              "pct": 11.53
+            },
+            "branch": {
+              "hits": 51.25,
+              "bins": 553,
+              "pct": 9.27
+            },
+            "cond": {
+              "hits": 7.625,
+              "bins": 124,
+              "pct": 6.15
+            },
+            "expr": {
+              "hits": 0.25,
+              "bins": 10,
+              "pct": 2.5
+            },
+            "fsm_state": {
+              "hits": 1.0,
+              "bins": 8,
+              "pct": 12.5
+            },
+            "fsm_trans": {
+              "hits": 1.25,
+              "bins": 15,
+              "pct": 8.33
+            },
+            "toggle": {
+              "hits": 185.0,
+              "bins": 6329,
+              "pct": 2.92
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 8,
+          "log_summary": {
+            "pushed": 8,
+            "popped": 8,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 455,
+            "zero_hit_subheaders": 447,
+            "accepted": 8,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 83.1,
+            "cg_hit_data_pct": 22.9
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B121",
           "full_case_id": "B121",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow with channel-index empty-marker endofrun only on the matching INTERLEAVING_INDEX lane",
           "description": "end-to-end flow with channel-index empty-marker endofrun only on the matching INTERLEAVING_INDEX lane",
@@ -19690,22 +20616,148 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1630,
+              "bins": 1982,
+              "pct": 82.24
+            },
+            "branch": {
+              "hits": 311,
+              "bins": 553,
+              "pct": 56.24
+            },
+            "cond": {
+              "hits": 46,
+              "bins": 124,
+              "pct": 37.1
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 505,
+              "bins": 6329,
+              "pct": 7.98
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 1,
+              "bins": 553,
+              "pct": 0.18
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B122",
           "full_case_id": "B122",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow with subsequent PREP after TERMINATE ack: PREP re-asserts flush even if cam is already clean (run_mgmt_flushed starts low)",
           "description": "end-to-end flow with subsequent PREP after TERMINATE ack: PREP re-asserts flush even if cam is already clean (run_mgmt_flushed starts low)",
@@ -19714,39 +20766,291 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1639,
+              "bins": 1982,
+              "pct": 82.69
+            },
+            "branch": {
+              "hits": 322,
+              "bins": 553,
+              "pct": 58.23
+            },
+            "cond": {
+              "hits": 50,
+              "bins": 124,
+              "pct": 40.32
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 606,
+              "bins": 6329,
+              "pct": 9.57
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "B123",
           "full_case_id": "B123",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow covering all four meta_sel values in one READ walk (00/01/10/11)",
           "description": "end-to-end flow covering all four meta_sel values in one READ walk (00/01/10/11)",
-          "primary_checks": "four META reads yield four distinct values in sequence; catches readdata mux stickiness",
+          "primary_checks": "META VERSION / DATE / GIT / INSTANCE pages are returned in selector order without mux stickiness",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1547,
+              "bins": 1982,
+              "pct": 78.05
+            },
+            "branch": {
+              "hits": 226,
+              "bins": 553,
+              "pct": 40.87
+            },
+            "cond": {
+              "hits": 33,
+              "bins": 124,
+              "pct": 26.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 1,
+              "bins": 8,
+              "pct": 12.5
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 185,
+              "bins": 6329,
+              "pct": 2.92
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 5,
+              "bins": 6329,
+              "pct": 0.08
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B124",
@@ -24116,49 +25420,337 @@
           "step": 116,
           "case_id": "B116",
           "full_case_id": "B116",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 117,
           "case_id": "B117",
           "full_case_id": "B117",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 118,
           "case_id": "B118",
           "full_case_id": "B118",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 119,
           "case_id": "B119",
           "full_case_id": "B119",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 120,
           "case_id": "B120",
           "full_case_id": "B120",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 121,
           "case_id": "B121",
           "full_case_id": "B121",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 122,
           "case_id": "B122",
           "full_case_id": "B122",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4532,
+              "bins": 6329,
+              "pct": 71.61
+            }
+          }
         },
         {
           "step": 123,
           "case_id": "B123",
           "full_case_id": "B123",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          }
         },
         {
           "step": 124,
@@ -24387,7 +25979,7 @@
             "cg_output_pct": 35.3,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E002",
@@ -24609,7 +26201,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E003",
@@ -24831,7 +26423,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E004",
@@ -25053,7 +26645,7 @@
             "cg_output_pct": 73.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E005",
@@ -25275,7 +26867,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E006",
@@ -25497,7 +27089,7 @@
             "cg_output_pct": 78.4,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E007",
@@ -25719,7 +27311,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E008",
@@ -25941,7 +27533,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E009",
@@ -26163,7 +27755,7 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E010",
@@ -26385,7 +27977,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E011",
@@ -26607,7 +28199,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E012",
@@ -26829,7 +28421,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E013",
@@ -27051,7 +28643,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E014",
@@ -27273,7 +28865,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E015",
@@ -27495,7 +29087,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E016",
@@ -27717,7 +29309,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E017",
@@ -27939,7 +29531,7 @@
             "cg_output_pct": 91.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E018",
@@ -28185,7 +29777,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E020",
@@ -28407,7 +29999,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E021",
@@ -28629,7 +30221,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E022",
@@ -28911,7 +30503,7 @@
             "cg_output_pct": 83.1,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E024",
@@ -29157,7 +30749,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E026",
@@ -29379,7 +30971,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E027",
@@ -29721,7 +31313,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E033",
@@ -33954,7 +35546,7 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 66.7
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P002",
@@ -34176,7 +35768,7 @@
             "cg_output_pct": 77.7,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P003",
@@ -34398,7 +35990,7 @@
             "cg_output_pct": 76.9,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P004",
@@ -34620,7 +36212,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P005",
@@ -37386,7 +38978,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P112",
@@ -37608,7 +39200,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P113",
@@ -37830,7 +39422,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P114",
@@ -38100,7 +39692,7 @@
             "cg_output_pct": 76.1,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P117",
@@ -38370,7 +39962,7 @@
             "cg_output_pct": 71.2,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "P120",
@@ -39975,7 +41567,7 @@
             "cg_output_pct": 72.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X002",
@@ -40197,7 +41789,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X003",
@@ -40419,14 +42011,14 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X004",
           "full_case_id": "X004",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "flush and immediate restart",
           "description": "flush and immediate restart",
@@ -40641,7 +42233,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X005",
@@ -40672,7 +42264,7 @@
           "full_case_id": "X006",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "illegal or premature control word injection",
           "description": "illegal or premature control word injection",
@@ -40815,14 +42407,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X007",
           "full_case_id": "X007",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "single `asi_hit_type1_error(0)=1` pulse during RUNNING with `filter_inerr=1`, DUT idle (no in-flight push/drain) \u2014 expect filter in `proc_avst_input_deassembly_comb` to suppress `deassembly_fifo_wrreq` and `proc_csr_rw` to bump `inerr_cnt`",
           "description": "single `asi_hit_type1_error(0)=1` pulse during RUNNING with `filter_inerr=1`, DUT idle (no in-flight push/drain) \u2014 expect filter in `proc_avst_input_deassembly_comb` to suppress `deassembly_fifo_wrreq` and `proc_csr_rw` to bump `inerr_cnt`",
@@ -40965,14 +42557,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X008",
           "full_case_id": "X008",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "same single bad-hit injection but with `filter_inerr=0` (CTRL bit4=0) \u2014 the error path must pass through: deassembly_fifo_wrreq asserts, push occurs, and `inerr_cnt` must NOT increment",
           "description": "same single bad-hit injection but with `filter_inerr=0` (CTRL bit4=0) \u2014 the error path must pass through: deassembly_fifo_wrreq asserts, push occurs, and `inerr_cnt` must NOT increment",
@@ -41187,14 +42779,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X009",
           "full_case_id": "X009",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad-hit concurrent with a good-hit one cycle later, same search key, `filter_inerr=1` \u2014 bad hit drops at deassembly; good hit pushes",
           "description": "bad-hit concurrent with a good-hit one cycle later, same search key, `filter_inerr=1` \u2014 bad hit drops at deassembly; good hit pushes",
@@ -41409,14 +43001,14 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X010",
           "full_case_id": "X010",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "back-to-back bad hits (2 consecutive cycles), `filter_inerr=1`, during RUNNING \u2014 confirm `inerr_cnt` accumulates without double-pumping or skipping",
           "description": "back-to-back bad hits (2 consecutive cycles), `filter_inerr=1`, during RUNNING \u2014 confirm `inerr_cnt` accumulates without double-pumping or skipping",
@@ -41559,14 +43151,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X011",
           "full_case_id": "X011",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "back-to-back bad hits with `filter_inerr=0` \u2014 both must reach the CAM via deassembly_fifo",
           "description": "back-to-back bad hits with `filter_inerr=0` \u2014 both must reach the CAM via deassembly_fifo",
@@ -41781,14 +43373,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X012",
           "full_case_id": "X012",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "alternating good/bad pattern (G,B,G,B,G,B) 6 cycles, `filter_inerr=1` \u2014 interleave must not corrupt fifo write strobes",
           "description": "alternating good/bad pattern (G,B,G,B,G,B) 6 cycles, `filter_inerr=1` \u2014 interleave must not corrupt fifo write strobes",
@@ -42003,14 +43595,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X013",
           "full_case_id": "X013",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit with `asi_hit_type1_channel` NOT matching `INTERLEAVING_INDEX` \u2014 the lane_match_v guard should drop the hit before the error-filter ever sees it",
           "description": "bad hit with `asi_hit_type1_channel` NOT matching `INTERLEAVING_INDEX` \u2014 the lane_match_v guard should drop the hit before the error-filter ever sees it",
@@ -42153,14 +43745,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X014",
           "full_case_id": "X014",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit with `asi_hit_type1_empty=1` (end-of-run marker beat) and error=1 \u2014 confirm endofrun_seen decode path is not spoofed into bumping inerr_cnt on the empty beat",
           "description": "bad hit with `asi_hit_type1_empty=1` (end-of-run marker beat) and error=1 \u2014 confirm endofrun_seen decode path is not spoofed into bumping inerr_cnt on the empty beat",
@@ -42303,14 +43895,14 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X015",
           "full_case_id": "X015",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit exactly on the cycle `push_write_grant=1` for a prior good hit \u2014 arbiter must not corrupt the previous push while the error is filtered",
           "description": "bad hit exactly on the cycle `push_write_grant=1` for a prior good hit \u2014 arbiter must not corrupt the previous push while the error is filtered",
@@ -42525,7 +44117,7 @@
             "cg_output_pct": 65.9,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X016",
@@ -42556,7 +44148,7 @@
           "full_case_id": "X017",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit during the single cycle when `decision_reg=3` (flushing) \u2014 flushing path clears inerr_cnt in `proc_csr_rw`; the injected event must be swallowed",
           "description": "bad hit during the single cycle when `decision_reg=3` (flushing) \u2014 flushing path clears inerr_cnt in `proc_csr_rw`; the injected event must be swallowed",
@@ -42699,7 +44291,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X018",
@@ -43161,7 +44753,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X032",
@@ -43887,7 +45479,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X054",
@@ -44133,7 +45725,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X056",
@@ -44475,7 +46067,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X062",
@@ -45993,7 +47585,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X117",
@@ -46215,7 +47807,7 @@
             "cg_output_pct": 70.6,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X118",
@@ -46437,7 +48029,7 @@
             "cg_output_pct": 76.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X119",
@@ -48278,7 +49870,7 @@
     {
       "bucket": "BASIC",
       "planned_cases": 129,
-      "evidenced_cases": 98,
+      "evidenced_cases": 106,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1928,
@@ -48286,9 +49878,9 @@
           "pct": 97.28
         },
         "branch": {
-          "hits": 493,
+          "hits": 494,
           "bins": 553,
-          "pct": 89.15
+          "pct": 89.33
         },
         "cond": {
           "hits": 91,
@@ -48311,14 +49903,14 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4532,
+          "hits": 4537,
           "bins": 6329,
-          "pct": 71.61
+          "pct": 71.69
         }
       },
       "functional_coverage": {
-        "pct": 75.97,
-        "evidenced": 98,
+        "pct": 82.17,
+        "evidenced": 106,
         "planned": 129
       }
     },
@@ -48468,9 +50060,9 @@
     {
       "scope": "BASIC",
       "planned_cases": 129,
-      "executed_cases": 98,
-      "executed_ratio_pct": 75.97,
-      "observed_txn": 8520,
+      "executed_cases": 106,
+      "executed_ratio_pct": 82.17,
+      "observed_txn": 8673,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
@@ -48508,17 +50100,17 @@
     {
       "scope": "TOTAL",
       "planned_cases": 516,
-      "executed_cases": 153,
-      "executed_ratio_pct": 29.65,
-      "observed_txn": 26818,
+      "executed_cases": 161,
+      "executed_ratio_pct": 31.2,
+      "observed_txn": 26971,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
     }
   ],
   "implementation_summary": {
-    "implemented_count": 153,
-    "unimplemented_count": 363,
+    "implemented_count": 161,
+    "unimplemented_count": 355,
     "stale_artifact_without_engine_marker_count": 0
   },
   "failed_cases": [],
@@ -48743,7 +50335,7 @@
         "cg_output_pct": 88.8,
         "cg_hit_data_pct": 66.7
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P002",
@@ -48965,7 +50557,7 @@
         "cg_output_pct": 77.7,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P003",
@@ -49187,7 +50779,7 @@
         "cg_output_pct": 76.9,
         "cg_hit_data_pct": 39.6
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P005",
@@ -51953,7 +53545,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P112",
@@ -52175,7 +53767,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P113",
@@ -52397,7 +53989,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P114",
@@ -52667,7 +54259,7 @@
         "cg_output_pct": 76.1,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P117",
@@ -52937,7 +54529,7 @@
         "cg_output_pct": 71.2,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "case_engine_log"
+      "implementation_mode": "published_case_log"
     },
     {
       "case_id": "P120",
@@ -53159,7 +54751,7 @@
   "signoff_runs": [],
   "totals": {
     "planned_cases": 516,
-    "evidenced_cases": 153,
+    "evidenced_cases": 161,
     "excluded_cases": 0,
     "merged_total_code_coverage": {
       "stmt": {
@@ -53168,9 +54760,9 @@
         "pct": 97.33
       },
       "branch": {
-        "hits": 494,
+        "hits": 495,
         "bins": 553,
-        "pct": 89.33
+        "pct": 89.51
       },
       "cond": {
         "hits": 91,
@@ -53193,14 +54785,14 @@
         "pct": 66.67
       },
       "toggle": {
-        "hits": 4613,
+        "hits": 4616,
         "bins": 6329,
-        "pct": 72.89
+        "pct": 72.93
       }
     },
     "functional_coverage": {
-      "pct": 29.65,
-      "evidenced": 153,
+      "pct": 31.2,
+      "evidenced": 161,
       "planned": 516
     }
   }

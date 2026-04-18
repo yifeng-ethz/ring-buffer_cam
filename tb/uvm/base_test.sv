@@ -1088,7 +1088,7 @@ class base_test extends uvm_test;
   endtask
 
   function automatic logic [31:0] expected_meta_version();
-    return 32'h1A01_51A6;
+    return 32'h1A01_51A7;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
@@ -1306,6 +1306,7 @@ class base_test extends uvm_test;
     random_throughput_seq rand_tp;
     single_error_hit_seq  err_seq;
     error_burst_seq       err_burst;
+    endofrun_marker_seq   eor_seq;
     ring_buffer_cam_pkg::out_seq_item matched_subheader;
     logic [31:0]          data_a;
     logic [31:0]          data_b;
@@ -3196,6 +3197,188 @@ class base_test extends uvm_test;
         `uvm_error("B115", $sformatf(
           "Second RUN accounting mismatch after restart: push=%0d pop=%0d fill=%0d",
           push_count, pop_count, fill_level))
+      end
+    end else if (case_id == "B116") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      for (int idx = 1; idx <= 16; idx++) begin
+        single_seq = single_push_pop_seq::type_id::create($sformatf("b116_single_%0d", idx));
+        single_seq.search_key = focus_search_key;
+        single_seq.ts_low = idx[3:0];
+        single_seq.start(m_env.m_hit_seqr);
+        if ((idx % 4) == 0) begin
+          wait_for_push_count(idx, 20_000, $sformatf("B116 push grant %0d", idx));
+          wait_clocks(4);
+          read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+          if (fill_level != idx) begin
+            `uvm_error("B116", $sformatf(
+              "FILL_LEVEL trajectory mismatch after %0d pushes: observed=%0d expected=%0d",
+              idx, fill_level, idx))
+          end
+        end
+      end
+      terminate_and_drain(120_000, "B116 fill trajectory terminate");
+      expect_service_model_accounting("B116 fill trajectory terminate", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 16 || pop_count != 16 || fill_level != 0) begin
+        `uvm_error("B116", $sformatf(
+          "End-to-end fill trajectory accounting mismatch: push=%0d pop=%0d fill=%0d",
+          push_count, pop_count, fill_level))
+      end
+    end else if (case_id == "B117") begin
+      configure_and_start(16);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(3);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      single_seq = single_push_pop_seq::type_id::create("b117_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 80_000,
+        "B117 first data-bearing subheader", matched_subheader);
+      wait_clocks(64);
+      if (m_env.m_out_mon.total_data_subheaders_seen != subhdr_before + 1) begin
+        `uvm_error("B117", $sformatf(
+          "Expected exactly one data-bearing subheader over one latency window: before=%0d after=%0d",
+          subhdr_before, m_env.m_out_mon.total_data_subheaders_seen))
+      end
+      if (matched_subheader == null || matched_subheader.search_key != focus_search_key[7:0]) begin
+        `uvm_error("B117", $sformatf(
+          "Latency-window subheader search key mismatch: observed=%s expected=0x%02x",
+          (matched_subheader == null) ? "none" : $sformatf("0x%02x", matched_subheader.search_key),
+          focus_search_key[7:0]))
+      end
+      wait_for_scoreboard_idle(80_000, "B117 single-window drain");
+      expect_service_model_accounting("B117 single-window drain", 1, 0);
+    end else if (case_id == "B118") begin
+      configure_and_start();
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      wait_for_subheader_count(subhdr_before + 1, 40_000, "B118 zero-hit subheader");
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (m_env.m_out_mon.recent_subheaders.size() == 0) begin
+        `uvm_error("B118", "No subheader captured for zero-hit end-to-end check")
+      end else begin
+        if (!(m_env.m_out_mon.recent_subheaders[$].sop && m_env.m_out_mon.recent_subheaders[$].eop)) begin
+          `uvm_error("B118", "Zero-hit end-to-end subheader did not assert SOP+EOP")
+        end
+        if (m_env.m_out_mon.recent_subheaders[$].hit_count != 0) begin
+          `uvm_error("B118", $sformatf(
+            "Zero-hit end-to-end subheader carried hit_count=%0d",
+            m_env.m_out_mon.recent_subheaders[$].hit_count))
+        end
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("B118", $sformatf(
+          "Zero-hit end-to-end flow unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+      if (cache_miss_count != 0) begin
+        `uvm_error("B118", $sformatf(
+          "Zero-hit end-to-end flow unexpectedly bumped CACHE_MISS_COUNT=%0d",
+          cache_miss_count))
+      end
+    end else if (case_id == "B119") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(4);
+      burst_seq = same_key_burst_seq::type_id::create("b119_plateau");
+      burst_seq.num_hits = 128;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(128, 40_000, "B119 plateau fill");
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, push_count);
+      wait_clocks(64);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, pop_count);
+      if (overwrite_count != 0) begin
+        `uvm_error("B119", $sformatf(
+          "Plateau case unexpectedly overwrote entries: overwrite=%0d",
+          overwrite_count))
+      end
+      if (push_count == 0 || pop_count != push_count) begin
+        `uvm_error("B119", $sformatf(
+          "Non-zero fill plateau was not stable before service: fill_a=%0d fill_b=%0d",
+          push_count, pop_count))
+      end
+      terminate_and_drain(160_000, "B119 plateau terminate");
+      expect_service_model_accounting("B119 plateau terminate", 1, 0);
+    end else if (case_id == "B120") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(5);
+      for (int idx = 0; idx < 8; idx++) begin
+        single_seq = single_push_pop_seq::type_id::create($sformatf("b120_single_%0d", idx));
+        single_seq.search_key = focus_search_key;
+        single_seq.ts_low = idx[3:0];
+        single_seq.start(m_env.m_hit_seqr);
+        wait_for_scoreboard_idle(40_000, $sformatf("B120 immediate drain step %0d", idx));
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 8 || pop_count != 8 || cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("B120", $sformatf(
+          "Pop-dominant end-to-end accounting mismatch: push=%0d pop=%0d cache_miss=%0d fill=%0d",
+          push_count, pop_count, cache_miss_count, fill_level))
+      end
+      expect_service_model_accounting("B120 immediate-drain accounting", 1, 0);
+    end else if (case_id == "B121") begin
+      configure_and_start(2000);
+      eor_seq = endofrun_marker_seq::type_id::create("b121_wrong_lane_eor");
+      eor_seq.lane_channel = (m_cfg.interleaving_index + 1) % m_cfg.interleaving_factor;
+      eor_seq.start(m_env.m_hit_seqr);
+      wait_clocks(8);
+      if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+        `uvm_error("B121", "Non-matching empty marker incorrectly latched endofrun_seen")
+      end
+      send_endofrun_marker();
+      wait_clocks(8);
+      if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+        `uvm_error("B121", "Matching empty marker did not latch endofrun_seen")
+      end
+    end else if (case_id == "B122") begin
+      configure_and_start(2000);
+      terminate_and_drain(60_000, "B122 empty terminate");
+      return_to_idle();
+      wait_for_run_state(4'd0, 2_000, "B122 return to IDLE");
+      grant_count = m_env.m_dbg_mon.pop_flush_grant_count;
+      saw_load = 1'b0;
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B122 second PREP entry");
+      search_cycles = 0;
+      while (search_cycles < 10_000) begin
+        if (m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1 ||
+            m_env.m_dbg_mon.pop_flush_grant_count > grant_count) begin
+          saw_load = 1'b1;
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_load) begin
+        `uvm_error("B122", "Second PREP never reasserted the flush activity on a clean CAM")
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+        `uvm_error("B122", "Second PREP did not settle to run_mgmt_flushed=1")
+      end
+    end else if (case_id == "B123") begin
+      set_meta_sel(2'b00);
+      csr_read(CSR_META_ADDR, data_a);
+      set_meta_sel(2'b01);
+      csr_read(CSR_META_ADDR, data_b);
+      if (data_a != expected_meta_version() || data_b != 32'd20260418) begin
+        `uvm_error("B123", $sformatf(
+          "META walk mismatch in VERSION/DATE phase: version=0x%08x date=0x%08x",
+          data_a, data_b))
+      end
+      set_meta_sel(2'b10);
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "B123 META GIT readback");
+      set_meta_sel(2'b11);
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "B123 META INSTANCE readback");
+      if (data_a == data_b) begin
+        `uvm_error("B123", "META walk returned identical VERSION and DATE values")
       end
     end else if (case_id == "E001") begin
       configure_and_start();
