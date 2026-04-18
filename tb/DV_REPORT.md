@@ -24,8 +24,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `pending` |
-| ⚠️ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `pending` |
+| ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
+| ✅ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `cec8e58` |
 | ✅ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `e8c18fe` |
 | ✅ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `e8c18fe` |
 | ✅ | `BUG-014-H` | Harness | `2026-04-17` | Long-run scoreboard lost drain traceability when a recycled slot was popped after the model had already cleared it | `e8c18fe` |

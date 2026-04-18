@@ -139,7 +139,7 @@
       "date": "2026-04-18",
       "title": "Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "cec8e58"
     },
     {
       "bug_id": "BUG-018-H",
@@ -147,7 +147,7 @@
       "date": "2026-04-18",
       "title": "DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "cec8e58"
     }
   ],
   "buckets": {

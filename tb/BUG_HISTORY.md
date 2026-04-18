@@ -250,7 +250,7 @@
 - Runtime / coverage context:
   - `B075/B078/B079/B080` now derive partition size from the live config, force occupancy before drain, and sample pending/issue behavior at DRAIN entry
   - verified first by targeted reruns, then by a clean full `137/137` implemented isolated nightly matrix
-- Commit: pending
+- Commit: cec8e58
 
 ### BUG-018-H: DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns
 - First seen in: `DV_REPORT.md` refresh on 2026-04-18 after the isolated `B071/B072` batch
@@ -264,4 +264,4 @@
 - Runtime / coverage context:
   - the publisher now materializes durable copies into `tb/uvm/logs/` and `tb/uvm/cov_after/` instead of leaving volatile symlinks behind
   - verified by rerunning the full `137/137` implemented isolated matrix, regenerating the report, and confirming there are now `0` symlinks left in both evidence directories
-- Commit: pending
+- Commit: cec8e58
