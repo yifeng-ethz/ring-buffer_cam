@@ -137,6 +137,9 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [47:0]  read_time_ptr;
   logic [47:0]  gts_8n;
   logic [47:0]  gts_end_of_run;
+  logic [15:0]  flush_ram_wraddr;
+  logic [15:0]  flush_cam_wraddr;
+  logic [15:0]  flush_cam_wrdata;
   logic [47:0]  dbg_inerr_cnt;
   logic [47:0]  dbg_push_cnt;
   logic [47:0]  dbg_pop_cnt;
@@ -162,6 +165,7 @@ interface dut_debug_if (input logic clk, input logic rst);
           deassembly_fifo_usedw, endofrun_seen, terminating_drain_done,
           run_mgmt_flushed, cam_clean, gts_counter_rst,
           expected_latency_48b, read_time_ptr, gts_8n, gts_end_of_run,
+          flush_ram_wraddr, flush_cam_wraddr, flush_cam_wrdata,
           dbg_inerr_cnt, dbg_push_cnt, dbg_pop_cnt, dbg_overwrite_cnt,
           dbg_cache_miss_cnt, clk, rst
   );

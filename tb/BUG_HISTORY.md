@@ -293,3 +293,33 @@
   - `B116` now waits for `dbg_push_cnt` to reach the checkpoint target before polling `FILL_LEVEL`
   - verified by a clean rerun of `B116-B123` and then the full `161/161` implemented isolated nightly matrix
 - Commit: 740adc0
+
+### BUG-021-H: FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover
+- First seen in: `B105` and `B106` on 2026-04-18 during the first flush-walk BASIC tranche run
+- Symptom:
+  - `B105` failed with `pop_flush_cam_done=1 addr=0`
+  - `B106` failed with `pop_flush_ram_done=1 addr=0`
+  - both cases had otherwise clean control-state progress, indicating the DUT completed the flush walk while the testcase rejected the final cursor value
+- Root cause:
+  - the harness assumed the terminal cursor would remain at `0x1ff` when the done pulse asserted
+  - in the RTL FLUSHING state, both `flush_cam_wraddr` and `flush_ram_wraddr` increment on the final granted cycle and therefore wrap to `0` at the same edge that raises the corresponding done bit
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `B105` now checks the documented walk property plus the terminal rollover semantics: previous address reaches `0x1ff`, current address wraps to `0`, and `pop_flush_cam_done` asserts
+  - `B106` now checks the same rollover contract for the RAM flush cursor
+  - verified by a clean rerun of `B098/B100/B101/B102/B103/B105/B106` after the fix
+- Commit: pending
+
+### BUG-022-H: META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump
+- First seen in: `B010` on 2026-04-18 during the first full `0424` nightly rerun
+- Symptom:
+  - `B010` failed with `META VERSION readback mismatch` and reported `got 0x1a0151a8 expected 0x1a0151a7`
+  - all other early BASIC cases stayed green, indicating the DUT metadata path had moved while the testcase expectation lagged one build stamp behind
+- Root cause:
+  - `expected_meta_version()` in `base_test.sv` still packed build `423` after the verified harness bug-fix batch bumped the IP to `26.1.5.0424`
+  - the testcase therefore encoded stale harness metadata instead of matching the current wrapper/core version word
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `expected_meta_version()` now packs the live `26.1.5.0424` META word used by the current IP build
+  - verified by a clean isolated rerun of `B010` after the fix
+- Commit: pending

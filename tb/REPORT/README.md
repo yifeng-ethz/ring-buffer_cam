@@ -13,10 +13,10 @@
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
-| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 113 | stmt=97.33, branch=89.51, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.84 |
+| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=97.33, branch=89.51, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.84 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 |
 | ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 22 | stmt=94.20, branch=80.65, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=41.16 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 29 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.51 |
 
 ## Cross / continuous-frame runs
 
@@ -162,10 +162,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `168`
+- evidenced_cases = `182`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=97.33, branch=89.51, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.00`
-- functional coverage: `32.56% (168/516)`
+- merged total code coverage: `stmt=97.33, branch=90.42, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.00`
+- functional coverage: `35.27% (182/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

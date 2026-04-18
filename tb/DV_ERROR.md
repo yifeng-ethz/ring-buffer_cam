@@ -99,14 +99,14 @@
 | X086 | D | planned | none | illegal CTRL write: bit2 (reserved) set to 1 — only bits {1=soft_reset, 4=filter_inerr} are defined; reserved bits must be inert | CTRL readback shows only bits 1 and 4; reserved bits read back 0 |
 | X087 | D | planned | none | illegal CTRL write: bit3 (reserved) set to 1 — inert | CTRL readback: bit3=0 |
 | X088 | D | planned | none | illegal CTRL write: upper 27 bits set to all-1 — only bits 1 and 4 latch | CTRL readback = `0x00000012` regardless of input 0xFFFFFFFF |
-| X089 | D | planned | none | write to RO register UID (address 0) — `proc_csr_rw` when-branch has no write case for UID; should be inert | UID readback unchanged; avs_csr_waitrequest handshake completes |
+| X089 | D | live UVM | none | write to RO register UID (address 0) — `proc_csr_rw` when-branch has no write case for UID; should be inert | UID readback unchanged; avs_csr_waitrequest handshake completes |
 | X090 | D | planned | none | write to RO register META (address 1) — inert | META readback unchanged (version/build constants) |
-| X091 | D | planned | none | write to RO register FILL_LEVEL (address 4) — inert | FILL_LEVEL readback reflects live counter, not written value |
-| X092 | D | planned | none | write to RO register PUSH_COUNT (address 6) — inert (no write side-effect) | PUSH_COUNT unchanged by write |
-| X093 | D | planned | none | write to RO register POP_COUNT (address 7) — inert | POP_COUNT unchanged |
-| X094 | D | planned | none | write to RO register OVERWRITE_COUNT (address 8) — commented-out clear path; write is currently inert | OVERWRITE_COUNT unchanged; no inadvertent clear |
-| X095 | D | planned | none | write to RO register CACHE_MISS_COUNT (address 9) — inert per when-others | CACHE_MISS_COUNT unchanged |
-| X096 | D | planned | none | write to unmapped CSR offset (address 10..31 within 5-bit address space) — when-others falls through with no effect; waitrequest handshake still completes | no counter changes; readback from unmapped offset returns default/previous |
+| X091 | D | live UVM | none | write to RO register FILL_LEVEL (address 4) — inert | FILL_LEVEL readback reflects live counter, not written value |
+| X092 | D | live UVM | none | write to RO register PUSH_COUNT (address 6) — inert (no write side-effect) | PUSH_COUNT unchanged by write |
+| X093 | D | live UVM | none | write to RO register POP_COUNT (address 7) — inert | POP_COUNT unchanged |
+| X094 | D | live UVM | none | write to RO register OVERWRITE_COUNT (address 8) — commented-out clear path; write is currently inert | OVERWRITE_COUNT unchanged; no inadvertent clear |
+| X095 | D | live UVM | none | write to RO register CACHE_MISS_COUNT (address 9) — inert per when-others | CACHE_MISS_COUNT unchanged |
+| X096 | D | live UVM | none | write to unmapped CSR offset (address 10..31 within 5-bit address space) — when-others falls through with no effect; waitrequest handshake still completes | no counter changes; readback from unmapped offset returns default/previous |
 | X097 | D | planned | none | run-control word = undefined value (e.g. `0x0FF`, multi-hot) — `proc_run_control_mgmt` falls through to `run_state_cmd_next_v := ERROR` | run_state_cmd=ERROR observable; `asi_ctrl_ready=0` per when-others branch; no state corruption |
 | X098 | D | planned | none | run-control word = 0x000 (all zeros) — hits the when-others branch → ERROR | run_state_cmd=ERROR; asi_ctrl_ready=0 |
 | X099 | D | planned | none | run-control command TERMINATE sent while already in IDLE (no prior RUNNING) — TERMINATING entered; `terminating_drain_done` trivially true; ack immediate | asi_ctrl_ready within 2 clk; no spurious drain beats |

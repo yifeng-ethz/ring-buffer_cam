@@ -1088,12 +1088,38 @@ class base_test extends uvm_test;
   endtask
 
   function automatic logic [31:0] expected_meta_version();
-    return 32'h1A01_51A7;
+    logic [31:0] version_word;
+    version_word = '0;
+    version_word[31:24] = 8'd26;
+    version_word[23:16] = 8'd1;
+    version_word[15:12] = 4'd5;
+    version_word[11:0]  = 12'd424;
+    return version_word;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
     csr_write(CSR_META_ADDR, {30'd0, sel});
     wait_clocks(2);
+  endtask
+
+  task automatic expect_csr_write_no_effect(
+    int unsigned addr,
+    logic [31:0] write_data,
+    logic [31:0] mask,
+    string       what
+  );
+    logic [31:0] before_data;
+    logic [31:0] after_data;
+
+    csr_read(addr, before_data);
+    csr_write(addr, write_data);
+    wait_clocks(2);
+    csr_read(addr, after_data);
+    if ((before_data & mask) !== (after_data & mask)) begin
+      `uvm_error("CSR_RO", $sformatf(
+        "%s changed under write: before=0x%08x after=0x%08x write=0x%08x mask=0x%08x",
+        what, before_data, after_data, write_data, mask))
+    end
   endtask
 
   task automatic expect_backdoor_counter_matches(
@@ -1369,6 +1395,9 @@ class base_test extends uvm_test;
     bit                   saw_term_accounting_block;
     int unsigned          reads_needed;
     int unsigned          max_cmd_usedw;
+    int unsigned          prev_flush_ram_addr;
+    int unsigned          prev_flush_cam_addr;
+    int unsigned          prev_flush_cam_data;
     bit                   traffic_done;
     longint unsigned      cycle_a;
     longint unsigned      cycle_b;
@@ -2920,6 +2949,292 @@ class base_test extends uvm_test;
       end
       m_env.m_scb.note_flush_reset();
       wait_for_scoreboard_idle(120_000, "B093 flush preemption cleanup");
+    end else if (case_id == "B098") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b098_one_partition_flag");
+      burst_seq.num_hits = partition_size;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(partition_size, 40_000, "B098 partition-local fill");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B098 DRAIN entry");
+      saw_load = 1'b0;
+      grant_count = 0;
+      search_cycles = 0;
+      while (search_cycles < 240_000 &&
+             m_env.m_out_mon.total_hits_seen < (hit_before + partition_size)) begin
+        if ((m_env.m_dbg_mon.pop_partition_flag & 4'b1110) != 0) begin
+          `uvm_error("B098", $sformatf(
+            "Inactive partition flagged a match: flags=0x%0h pending=0x%0h",
+            m_env.m_dbg_mon.pop_partition_flag,
+            m_env.m_dbg_mon.pop_partition_pending))
+        end
+        if (m_env.m_dbg_mon.pop_partition_flag[0] === 1'b1)
+          saw_load = 1'b1;
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+          if (visit_idx != 0) begin
+            `uvm_error("B098", $sformatf(
+              "Exactly-one-partition case issued from unexpected partition=%0d addr=%0d",
+              visit_idx, m_env.m_dbg_mon.vif.pop_issue_addr))
+          end
+          grant_count++;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_load) begin
+        `uvm_error("B098", "Matching partition never asserted pop_partition_flag")
+      end
+      wait_for_hit_output_count(hit_before + partition_size, 3_000_000, "B098 one-partition hit drain");
+      wait_for_scoreboard_idle(200_000, "B098 one-partition flag drain");
+      expect_service_model_accounting("B098 one-partition flag drain", 1, 0);
+    end else if (case_id == "B100") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b100_single_hot_partition");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B100 DRAIN entry");
+      grant_count = 0;
+      search_cycles = 0;
+      while (search_cycles < 8_192 && grant_count < 8) begin
+        if (m_env.m_dbg_mon.pop_partition_pending[0] === 1'b1 &&
+            m_env.m_dbg_mon.pop_rr_idx != 0) begin
+          `uvm_error("B100", $sformatf(
+            "pop_rr_idx left the active partition before exhaustion: rr_idx=%0d pending=0x%0h grants=%0d",
+            m_env.m_dbg_mon.pop_rr_idx,
+            m_env.m_dbg_mon.pop_partition_pending,
+            grant_count))
+        end
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+          if (visit_idx != 0) begin
+            `uvm_error("B100", $sformatf(
+              "Single-hot-partition case issued from unexpected partition=%0d addr=%0d",
+              visit_idx, m_env.m_dbg_mon.vif.pop_issue_addr))
+          end
+          grant_count++;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (grant_count != 8) begin
+        `uvm_error("B100", $sformatf(
+          "Did not observe all eight grants from the hot partition: grants=%0d",
+          grant_count))
+      end
+      wait_for_scoreboard_idle(120_000, "B100 single-hot-partition drain");
+      expect_service_model_accounting("B100 single-hot-partition drain", 1, 0);
+    end else if (case_id == "B101") begin
+      configure_and_start(0);
+      if (m_cfg.n_partitions < 2) begin
+        `uvm_fatal("B101", "B101 requires at least 2 active partitions")
+      end
+      prefill_hits = partition_size - 1;
+      burst_seq = same_key_burst_seq::type_id::create("b101_prefill");
+      burst_seq.num_hits = prefill_hits;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(2_500_000, "B101 pointer advance prefill");
+      expect_service_model_accounting("B101 pointer advance prefill", 1, 0);
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
+      wait_clocks(4);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b101_active_partition_rotation");
+      burst_seq.num_hits = m_cfg.n_partitions;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(prefill_hits + m_cfg.n_partitions, 20_000, "B101 active-partition fill");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 40_000, "B101 DRAIN entry");
+      expected_mask = (1 << m_cfg.n_partitions) - 1;
+      load_mask = '0;
+      grant_count = 0;
+      search_cycles = 0;
+      while (search_cycles < 80_000 && grant_count < m_cfg.n_partitions) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+          if (visit_idx >= m_cfg.n_partitions) begin
+            `uvm_error("B101", $sformatf(
+              "Issued from partition outside active build range: partition=%0d n_partitions=%0d",
+              visit_idx, m_cfg.n_partitions))
+          end else begin
+            load_mask[visit_idx[1:0]] = 1'b1;
+            if (visit_idx != grant_count) begin
+              `uvm_error("B101", $sformatf(
+                "Active-partition round-robin order mismatch: grant=%0d observed_partition=%0d expected_partition=%0d",
+                grant_count + 1, visit_idx, grant_count))
+            end
+          end
+          grant_count++;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if ((load_mask & expected_mask[3:0]) != expected_mask[3:0]) begin
+        `uvm_error("B101", $sformatf(
+          "Not all active partitions were visited in order: observed_mask=0x%0h expected=0x%0h",
+          load_mask, expected_mask))
+      end
+      wait_for_scoreboard_idle(120_000, "B101 active-partition round-robin drain");
+      expect_service_model_accounting("B101 active-partition round-robin drain", 1, 0);
+    end else if (case_id == "B102") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b102_clear_onehot_bit");
+      burst_seq.num_hits = 3;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B102 DRAIN entry");
+      grant_count = 0;
+      data_b = 32'hffff_ffff;
+      search_cycles = 0;
+      while (search_cycles < 8_192 && grant_count < 3) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+          if (visit_idx != 0) begin
+            `uvm_error("B102", $sformatf(
+              "clear_onehot_bit case escaped the active partition: partition=%0d addr=%0d",
+              visit_idx, m_env.m_dbg_mon.vif.pop_issue_addr))
+          end
+          if (grant_count > 0 &&
+              m_env.m_dbg_mon.vif.pop_issue_addr == data_b) begin
+            `uvm_error("B102", $sformatf(
+              "clear_onehot_bit replayed the same address on consecutive grants: addr=%0d grant=%0d",
+              m_env.m_dbg_mon.vif.pop_issue_addr, grant_count + 1))
+          end
+          data_b = m_env.m_dbg_mon.vif.pop_issue_addr;
+          grant_count++;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (grant_count != 3) begin
+        `uvm_error("B102", $sformatf(
+          "Did not observe three distinct grants for clear_onehot_bit audit: grants=%0d",
+          grant_count))
+      end
+      wait_for_scoreboard_idle(120_000, "B102 clear_onehot_bit drain");
+      expect_service_model_accounting("B102 clear_onehot_bit drain", 1, 0);
+    end else if (case_id == "B103") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b103_has_more_transition");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B103 DRAIN entry");
+      saw_rr_step1 = 1'b0;
+      saw_rr_step2 = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 8_192 && !saw_rr_step2) begin
+        if (m_env.m_dbg_mon.pop_partition_result_valid[0] === 1'b1 &&
+            m_env.m_dbg_mon.pop_partition_flag[0] === 1'b1) begin
+          if (!saw_rr_step1 &&
+              m_env.m_dbg_mon.pop_partition_has_more[0] === 1'b1) begin
+            saw_rr_step1 = 1'b1;
+          end else if (saw_rr_step1 &&
+                       m_env.m_dbg_mon.pop_partition_has_more[0] === 1'b0) begin
+            saw_rr_step2 = 1'b1;
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!(saw_rr_step1 && saw_rr_step2)) begin
+        `uvm_error("B103", $sformatf(
+          "Did not observe has_more transition 1->0 on the final match: saw_has_more=%0d saw_last=%0d",
+          saw_rr_step1, saw_rr_step2))
+      end
+      wait_for_scoreboard_idle(120_000, "B103 has_more transition drain");
+      expect_service_model_accounting("B103 has_more transition drain", 1, 0);
+    end else if (case_id == "B105") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B105 RUN_PREPARE entry");
+      wait_for_pop_engine_state(3'd6, 40_000, "B105 FLUSHING entry");
+      prev_flush_cam_addr = m_env.m_dbg_mon.flush_cam_wraddr[8:0];
+      prev_flush_cam_data = m_env.m_dbg_mon.flush_cam_wrdata[7:0];
+      saw_load = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 300_000 &&
+             m_env.m_dbg_mon.pop_flush_cam_done !== 1'b1) begin
+        if (m_env.m_dbg_mon.pop_flush_grant === 1'b1 &&
+            m_env.m_dbg_mon.pop_flush_cam_done !== 1'b1) begin
+          if (m_env.m_dbg_mon.flush_cam_wraddr[8:0] != prev_flush_cam_addr[8:0]) begin
+            saw_load = 1'b1;
+            if (prev_flush_cam_data[7:0] != 8'hff) begin
+              `uvm_error("B105", $sformatf(
+                "flush_cam_wraddr advanced before flush_cam_wrdata rolled over: prev_addr=%0d prev_data=0x%02x curr_addr=%0d curr_data=0x%02x",
+                prev_flush_cam_addr[8:0], prev_flush_cam_data[7:0],
+                m_env.m_dbg_mon.flush_cam_wraddr[8:0],
+                m_env.m_dbg_mon.flush_cam_wrdata[7:0]))
+            end
+          end
+          prev_flush_cam_addr = m_env.m_dbg_mon.flush_cam_wraddr[8:0];
+          prev_flush_cam_data = m_env.m_dbg_mon.flush_cam_wrdata[7:0];
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_load) begin
+        `uvm_error("B105", "flush_cam_wraddr never advanced during FLUSHING")
+      end
+      if (m_env.m_dbg_mon.pop_flush_cam_done !== 1'b1 ||
+          prev_flush_cam_addr[8:0] != 9'h1ff ||
+          m_env.m_dbg_mon.flush_cam_wraddr[8:0] != 9'h000) begin
+        `uvm_error("B105", $sformatf(
+          "FLUSHING cam walk did not roll over on the terminal address: done=%0d prev_addr=%0d curr_addr=%0d",
+          m_env.m_dbg_mon.pop_flush_cam_done,
+          prev_flush_cam_addr[8:0],
+          m_env.m_dbg_mon.flush_cam_wraddr[8:0]))
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_ctrl_ready(1'b1, 400_000, "B105 PREP ready");
+    end else if (case_id == "B106") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B106 RUN_PREPARE entry");
+      wait_for_pop_engine_state(3'd6, 40_000, "B106 FLUSHING entry");
+      prev_flush_ram_addr = m_env.m_dbg_mon.flush_ram_wraddr[8:0];
+      saw_load = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 300_000 &&
+             m_env.m_dbg_mon.pop_flush_ram_done !== 1'b1) begin
+        if (m_env.m_dbg_mon.pop_flush_grant === 1'b1 &&
+            m_env.m_dbg_mon.pop_flush_ram_done !== 1'b1) begin
+          if (m_env.m_dbg_mon.flush_ram_wraddr[8:0] != prev_flush_ram_addr[8:0]) begin
+            saw_load = 1'b1;
+            if (m_env.m_dbg_mon.flush_ram_wraddr[8:0] != (prev_flush_ram_addr + 1)) begin
+              `uvm_error("B106", $sformatf(
+                "flush_ram_wraddr skipped or repeated during FLUSHING: prev=%0d curr=%0d",
+                prev_flush_ram_addr,
+                m_env.m_dbg_mon.flush_ram_wraddr[8:0]))
+            end
+          end
+          prev_flush_ram_addr = m_env.m_dbg_mon.flush_ram_wraddr[8:0];
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_load) begin
+        `uvm_error("B106", "flush_ram_wraddr never advanced during FLUSHING")
+      end
+      if (m_env.m_dbg_mon.pop_flush_ram_done !== 1'b1 ||
+          prev_flush_ram_addr[8:0] != 9'h1ff ||
+          m_env.m_dbg_mon.flush_ram_wraddr[8:0] != 9'h000) begin
+        `uvm_error("B106", $sformatf(
+          "FLUSHING ram walk did not roll over on the terminal address: done=%0d prev_addr=%0d curr_addr=%0d",
+          m_env.m_dbg_mon.pop_flush_ram_done,
+          prev_flush_ram_addr[8:0],
+          m_env.m_dbg_mon.flush_ram_wraddr[8:0]))
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_ctrl_ready(1'b1, 400_000, "B106 PREP ready");
     end else if (case_id == "B107") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -4684,6 +4999,64 @@ class base_test extends uvm_test;
       run_x055_flush_error_reset_case();
     end else if (case_id == "X061") begin
       run_x061_flush_backlog_popcmd_case();
+    end else if (case_id == "X089") begin
+      expect_csr_write_no_effect(
+        CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X089 UID write must be inert");
+    end else if (case_id == "X091") begin
+      configure_and_start(2000);
+      burst_seq = same_key_burst_seq::type_id::create("x091_filllevel_prefill");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(8, 10_000, "X091 prefill");
+      wait_clocks(4);
+      expect_csr_write_no_effect(
+        CSR_FILL_LEVEL_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X091 FILL_LEVEL write must be inert");
+      m_env.m_scb.note_intentional_nonempty_end(8);
+    end else if (case_id == "X092") begin
+      configure_and_start(2000);
+      burst_seq = same_key_burst_seq::type_id::create("x092_pushcount_prefill");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(8, 10_000, "X092 prefill");
+      wait_clocks(4);
+      expect_csr_write_no_effect(
+        CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X092 PUSH_COUNT write must be inert");
+      m_env.m_scb.note_intentional_nonempty_end(8);
+    end else if (case_id == "X093") begin
+      configure_and_start(2000);
+      single_seq = single_push_pop_seq::type_id::create("x093_single");
+      single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(80_000, "X093 pre-drain");
+      expect_csr_write_no_effect(
+        CSR_POP_COUNT_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X093 POP_COUNT write must be inert");
+      expect_service_model_accounting("X093 post-drain", 1, 0);
+    end else if (case_id == "X094") begin
+      configure_and_start(2000);
+      burst_seq = same_key_burst_seq::type_id::create("x094_overwrite_prefill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 1;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry + 1, 30_000, "X094 overwrite prefill");
+      wait_clocks(4);
+      expect_csr_write_no_effect(
+        CSR_OVERWRITE_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X094 OVERWRITE_COUNT write must be inert");
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "X095") begin
+      expect_csr_write_no_effect(
+        CSR_CACHE_MISS_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X095 CACHE_MISS_COUNT write must be inert");
+    end else if (case_id == "X096") begin
+      expect_csr_write_no_effect(
+        32'd10, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
+        "X096 unmapped CSR write must be inert");
     end else if (case_id == "X117") begin
       run_x117_good_error_flush_good_case("X117 GOOD-ERROR-FLUSH-GOOD");
     end else if (case_id == "X118") begin
