@@ -10,7 +10,7 @@
 - Root cause:
   - `hit_seq_item.search_key()` and the interleaving constraint were not aligned to the DUT contract `ts[11:4]`
   - sequence generation used global keys instead of lane-local legal keys for a single `INTERLEAVING_INDEX`
-- Fix status: fixed in working tree, not yet committed
+- Fix status: fixed and verified on `dev`
 - Runtime / coverage context:
   - restored passing behavior for the promoted multi-key/random smoke cases and enabled the new case engine to reuse those sequences safely
 - Commit: d412d7a
@@ -354,8 +354,8 @@
 - Fix status: fixed in working tree, not yet committed
 - Runtime / coverage context:
   - `X039` now follows the real driver contract: raw PREP pulse, wait for `RUN_STATE_RUN_PREPARE`, reset the scoreboard flush epoch, then send `RUN_PREPARE` again to wait for the flush-complete acknowledgement
-  - verified locally by rerunning `X039`, `X042`, and `X044` cleanly before the `0426` report refresh
+  - verified by rerunning `B010`, `X039`, `X042`, and `X044` cleanly on the `0426` build before regenerating the dashboard
   - related harness logic:
     - testcase sequencing in `tb/uvm/base_test.sv`
     - PREP command contract in `tb/uvm/ctrl_driver.sv`
-- Commit: pending
+- Commit: c2bcc79

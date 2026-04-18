@@ -10,7 +10,7 @@
       "class": "Harness",
       "date": "2026-04-16",
       "title": "Search-key decode and interleaving model in UVM harness were wrong",
-      "fix_status": "fixed in working tree, not yet committed",
+      "fix_status": "fixed and verified on `dev`",
       "commit": "d412d7a"
     },
     {
@@ -195,7 +195,7 @@
       "date": "2026-04-18",
       "title": "X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "c2bcc79"
     }
   ],
   "buckets": {

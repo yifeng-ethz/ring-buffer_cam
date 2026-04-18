@@ -24,7 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-024-H` | Harness | `2026-04-18` | X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion | `pending` |
+| ✅ | `BUG-024-H` | Harness | `2026-04-18` | X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion | `c2bcc79` |
 | ✅ | `BUG-023-R` | RTL | `2026-04-18` | TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen` | `b203a04` |
 | ✅ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `84b13e9` |
 | ✅ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `84b13e9` |
