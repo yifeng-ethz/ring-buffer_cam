@@ -274,8 +274,8 @@
 - Root cause:
   - the testcase sample path read `m_env.m_dbg_mon.pop_issue_partition_idx` instead of deriving the active partition from the surfaced `pop_issue_addr`
   - in the `default_p2_pipe4` geometry this produced inconsistent partition bookkeeping when round-robin skipped empty partitions
-- Fix status: fixed in working tree, commit pending
+- Fix status: fixed and verified on `dev`
 - Runtime / coverage context:
   - `E026` now derives `visit_idx = pop_issue_addr / partition_size` on each pop issue and masks checks against that index
   - this aligns with the DUT interface contract used by other partition checks and removes the false-negative on empty-partition skips
-- Commit: pending
+- Commit: 63e3652

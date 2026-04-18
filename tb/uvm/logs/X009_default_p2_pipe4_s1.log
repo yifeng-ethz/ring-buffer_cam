@@ -3,7 +3,7 @@ Reading pref.tcl
 # 2022.4
 
 # vsim -modelsimini modelsim.ini -c -quiet -coverage -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=X009" -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/X009_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
-# Start time: 03:11:50 on Apr 18,2026
+# Start time: 11:24:08 on Apr 18,2026
 # ** Note: (vsim-8009) Loading existing optimized design _opt
 # //  Questa Intel Starter FPGA Edition-64
 # //  Version 2022.4 linux_x86_64 Oct 18 2022
@@ -157,19 +157,19 @@ Reading pref.tcl
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_traversal.svh(279) @ 0: reporter [UVM/COMP/NAMECHECK] This implementation of the component name checks requires DPI to be enabled
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4105) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X009 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4683) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X009 mode=isolated
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 160116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 320116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 480116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 640116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 800116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 960116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4107) @ 1066212000: uvm_test_top [CASE] CASE_END id=X009 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4685) @ 1066212000: uvm_test_top [CASE] CASE_END id=X009 mode=isolated
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 1066212000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 1066212000: uvm_test_top.m_env.m_cov [COV] cg_output=65.2% cg_hit_data=8.3%
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(491) @ 1066212000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=1 popped=1 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=3 zero_hit_subheaders=2 accepted=1 cache_miss_outputs=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(499) @ 1066212000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=1 ring_depth=512
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3814) @ 1066212000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4392) @ 1066212000: uvm_test_top [TEST] *** TEST PASSED ***
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 1066212000: reporter [UVM/REPORT/SERVER] 
 # --- UVM Report Summary ---
 # 
@@ -192,5 +192,5 @@ Reading pref.tcl
 # 
 # ** Note: $finish    : /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
 #    Time: 1066212 ns  Iteration: 70  Instance: /tb_top
-# End time: 03:12:02 on Apr 18,2026, Elapsed time: 0:00:12
+# End time: 11:24:20 on Apr 18,2026, Elapsed time: 0:00:12
 # Errors: 0, Warnings: 55

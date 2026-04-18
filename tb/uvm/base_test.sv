@@ -1322,6 +1322,7 @@ class base_test extends uvm_test;
     int unsigned          push_count;
     int unsigned          pop_count;
     int unsigned          overwrite_count;
+    int unsigned          inerr_count;
     int unsigned          cache_miss_count;
     int unsigned          fill_level;
     int unsigned          focus_search_key;
@@ -2963,6 +2964,132 @@ class base_test extends uvm_test;
         `uvm_error("B109", $sformatf(
           "One-hit end-to-end accounting mismatch: push=%0d pop=%0d overwrite=%0d",
           push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "B110") begin
+      configure_and_start(0);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      seq_keys = sequential_keys_seq::type_id::create("b110_seq_keys");
+      seq_keys.num_keys = 10;
+      seq_keys.hits_per_key = 1;
+      seq_keys.start_key = 2;
+      seq_keys.start(m_env.m_hit_seqr);
+      for (int k = 0; k < 10; k++) begin
+        wait_for_subheader_match(
+          m_cfg.lane_key_ord_to_search_key(2 + k)[7:0], 8'd1, 1'b1, 1'b1, 120_000,
+          $sformatf("B110 subheader %0d", k), matched_subheader);
+        if (matched_subheader.raw_data[7:0] != 8'hF7) begin
+          `uvm_error("B110", $sformatf(
+            "Subheader %0d lost the K237 marker: search_key=0x%02x marker=0x%02x",
+            k, matched_subheader.search_key, matched_subheader.raw_data[7:0]))
+        end
+      end
+      wait_for_hit_output_count(hit_before + 10, 200_000, "B110 ten single-hit drains");
+      wait_for_scoreboard_idle(200_000, "B110 mixed-epoch drain");
+      if ((m_env.m_out_mon.total_data_subheaders_seen - subhdr_before) < 10) begin
+        `uvm_error("B110", $sformatf(
+          "Expected ten data-bearing subheaders, observed delta=%0d",
+          m_env.m_out_mon.total_data_subheaders_seen - subhdr_before))
+      end
+      expect_service_model_accounting("B110 mixed-epoch drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      if (push_count != 10 || pop_count != 10) begin
+        `uvm_error("B110", $sformatf(
+          "Ten-key end-to-end accounting mismatch: push=%0d pop=%0d",
+          push_count, pop_count))
+      end
+    end else if (case_id == "B111") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("b111_first_latency");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "B111 first-latency push");
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      search_cycles = 0;
+      while (search_cycles < 160_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("B111", "First-latency hit never emitted a pop descriptor")
+      end
+      search_cycles = int'(m_env.m_dbg_mon.sampled_cycles - cycle_a);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 160_000,
+        "B111 first-latency subheader", matched_subheader);
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd1000);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'd1000) begin
+        `uvm_error("B111", $sformatf(
+          "Latency rewrite to 1000 did not reach the DUT: observed=%0d",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("b111_second_latency");
+      single_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(2, 10_000, "B111 second-latency push");
+      cycle_b = m_env.m_dbg_mon.sampled_cycles;
+      wait_min = 0;
+      while (wait_min < 120_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        wait_min++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("B111", "Second-latency hit never emitted a pop descriptor")
+      end
+      wait_min = int'(m_env.m_dbg_mon.sampled_cycles - cycle_b);
+      if (wait_min >= search_cycles || (search_cycles - wait_min) < 200) begin
+        `uvm_error("B111", $sformatf(
+          "Latency ramp did not shorten the descriptor window enough: before=%0d after=%0d",
+          search_cycles, wait_min))
+      end
+      wait_for_subheader_match(
+        m_cfg.lane_key_ord_to_search_key(4)[7:0], 8'd1, 1'b1, 1'b1, 120_000,
+        "B111 second-latency subheader", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "B111 latency-ramp drain");
+      expect_service_model_accounting("B111 latency-ramp drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (push_count != 2 || pop_count != 2 || overwrite_count != 0) begin
+        `uvm_error("B111", $sformatf(
+          "Latency-ramp accounting mismatch: push=%0d pop=%0d overwrite=%0d",
+          push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "B112") begin
+      configure_and_start(2000);
+      err_burst = error_burst_seq::type_id::create("b112_filtered_half");
+      err_burst.num_hits = 4;
+      err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      err_burst.start(m_env.m_hit_seqr);
+      wait_clocks(32);
+      csr_expect_mask(CSR_INERR_COUNT_ADDR, 32'hFFFF_FFFF, 32'd4, "B112 filtered half increments INERR");
+      csr_expect_mask(CSR_PUSH_COUNT_ADDR, 32'hFFFF_FFFF, 32'd0, "B112 filtered half does not push");
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0001);
+      wait_clocks(2);
+      err_burst = error_burst_seq::type_id::create("b112_passthrough_half");
+      err_burst.num_hits = 4;
+      err_burst.search_key = m_cfg.lane_key_ord_to_search_key(4);
+      err_burst.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        m_cfg.lane_key_ord_to_search_key(4)[7:0], 8'd4, 1'b1, 1'b1, 120_000,
+        "B112 accepted error-half drain", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "B112 filter-toggle drain");
+      expect_service_model_accounting("B112 filter-toggle drain", 1, 0);
+      read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (inerr_count != 4 || push_count != 4 || pop_count != 4 || fill_level != 0) begin
+        `uvm_error("B112", $sformatf(
+          "Filter-toggle end-to-end accounting mismatch: inerr=%0d push=%0d pop=%0d fill=%0d",
+          inerr_count, push_count, pop_count, fill_level))
       end
     end else if (case_id == "B113") begin
       configure_and_start(2000);

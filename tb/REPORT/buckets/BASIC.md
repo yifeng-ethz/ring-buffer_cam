@@ -1,6 +1,6 @@
 # ⚠️ BASIC bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `95` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `98` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -136,9 +136,9 @@
 | ✅ | 107 | `B107` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B107.md) |
 | ❓ | 108 | `B108` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B108.md) |
 | ✅ | 109 | `B109` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B109.md) |
-| ❓ | 110 | `B110` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B110.md) |
-| ❓ | 111 | `B111` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B111.md) |
-| ❓ | 112 | `B112` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/B112.md) |
+| ✅ | 110 | `B110` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B110.md) |
+| ✅ | 111 | `B111` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B111.md) |
+| ✅ | 112 | `B112` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B112.md) |
 | ✅ | 113 | `B113` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B113.md) |
 | ✅ | 114 | `B114` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.53 | [case](../cases/B114.md) |
 | ✅ | 115 | `B115` | stmt=97.28, branch=89.15, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.61 | [case](../cases/B115.md) |
