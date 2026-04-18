@@ -1349,6 +1349,12 @@ class base_test extends uvm_test;
     bit                   saw_rr_step2;
     bit                   saw_last_partition;
     bit                   saw_rr_advance;
+    bit                   saw_ram_done;
+    bit                   saw_cam_done;
+    bit                   saw_done_pulse;
+    bit                   saw_subheader_channel;
+    bit                   saw_hit_channel;
+    bit                   saw_idle_bubble;
     int unsigned          visit_idx;
     bit                   saw_push_511;
     bit                   saw_push_000;
@@ -1361,6 +1367,8 @@ class base_test extends uvm_test;
     bit                   saw_term_popcmd_block;
     bit                   saw_term_busy_block;
     bit                   saw_term_accounting_block;
+    int unsigned          reads_needed;
+    int unsigned          max_cmd_usedw;
     bit                   traffic_done;
     longint unsigned      cycle_a;
     longint unsigned      cycle_b;
@@ -2945,6 +2953,42 @@ class base_test extends uvm_test;
       end
       wait_for_ctrl_ready(1'b1, 400_000, "B107 PREP ready");
       wait_for_scoreboard_idle(120_000, "B107 FLUSHING_RST cleanup");
+    end else if (case_id == "B108") begin
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_run_state(4'd1, 2_000, "B108 RUN_PREPARE entry");
+      saw_ram_done = 1'b0;
+      saw_cam_done = 1'b0;
+      saw_done_pulse = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 400_000 && !saw_done_pulse) begin
+        if (m_env.m_dbg_mon.pop_flush_ram_done === 1'b1)
+          saw_ram_done = 1'b1;
+        if (m_env.m_dbg_mon.pop_flush_cam_done === 1'b1)
+          saw_cam_done = 1'b1;
+        if (saw_ram_done && saw_cam_done) begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+          search_cycles++;
+          if (m_env.m_dbg_mon.run_mgmt_flush_memory_done !== 1'b1) begin
+            `uvm_error("B108", $sformatf(
+              "run_mgmt_flush_memory_done did not assert one cycle after both flush completions: ram_done=%0d cam_done=%0d done=%0d",
+              m_env.m_dbg_mon.pop_flush_ram_done,
+              m_env.m_dbg_mon.pop_flush_cam_done,
+              m_env.m_dbg_mon.run_mgmt_flush_memory_done))
+          end else begin
+            saw_done_pulse = 1'b1;
+          end
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!(saw_ram_done && saw_cam_done && saw_done_pulse)) begin
+        `uvm_error("B108", $sformatf(
+          "Flush completion handshake incomplete after %0d cycles: ram_done=%0d cam_done=%0d done=%0d",
+          search_cycles, saw_ram_done, saw_cam_done, saw_done_pulse))
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      wait_for_ctrl_ready(1'b1, 400_000, "B108 PREP ready after done pulse");
     end else if (case_id == "B109") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -3380,6 +3424,232 @@ class base_test extends uvm_test;
       if (data_a == data_b) begin
         `uvm_error("B123", "META walk returned identical VERSION and DATE values")
       end
+    end else if (case_id == "B124") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b124_soft_reset_mid_drain");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 40_000, "B124 DRAIN entry");
+      while (m_env.m_dbg_mon.vif.pop_erase_grant !== 1'b1) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0013);
+      wait_clocks(2);
+      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "B124 soft_reset self-clears during DRAIN");
+      if (m_env.m_dbg_mon.run_state_code != 4'd3) begin
+        `uvm_error("B124", $sformatf(
+          "soft_reset write during DRAIN glitched run_state: observed=%0d expected RUNNING",
+          m_env.m_dbg_mon.run_state_code))
+      end
+      wait_for_scoreboard_idle(120_000, "B124 mid-drain soft_reset cleanup");
+      expect_service_model_accounting("B124 mid-drain soft_reset cleanup", 1, 0);
+      if (m_env.m_out_mon.total_data_subheaders_seen <= subhdr_before) begin
+        `uvm_error("B124", "Mid-drain soft_reset aborted the in-flight data subheader")
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      if (push_count != 16 || pop_count != 16) begin
+        `uvm_error("B124", $sformatf(
+          "Mid-drain soft_reset accounting mismatch: push=%0d pop=%0d expected=16",
+          push_count, pop_count))
+      end
+    end else if (case_id == "B125") begin
+      configure_and_start(2000);
+      for (int idx = 0; idx < 32; idx++) begin
+        if (m_env.m_out_mon.vif.filllevel_valid !== 1'b1) begin
+          `uvm_error("B125", $sformatf(
+            "aso_filllevel_valid dropped low in idle sample %0d", idx))
+        end
+        if (m_env.m_out_mon.vif.filllevel_data !== m_env.m_dbg_mon.current_live_fill[15:0]) begin
+          `uvm_error("B125", $sformatf(
+            "Idle filllevel stream mismatch sample %0d: stream=%0d debug=%0d",
+            idx, m_env.m_out_mon.vif.filllevel_data, m_env.m_dbg_mon.current_live_fill[15:0]))
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      burst_seq = same_key_burst_seq::type_id::create("b125_filllevel_fill");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(8, 20_000, "B125 filllevel fill");
+      wait_clocks(4);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (fill_level != 8) begin
+        `uvm_error("B125", $sformatf(
+          "B125 fill precondition mismatch: observed fill=%0d expected=8",
+          fill_level))
+      end
+      for (int idx = 0; idx < 32; idx++) begin
+        if (m_env.m_out_mon.vif.filllevel_valid !== 1'b1) begin
+          `uvm_error("B125", $sformatf(
+            "aso_filllevel_valid dropped low during non-zero fill sample %0d", idx))
+        end
+        if (m_env.m_out_mon.vif.filllevel_data !== fill_level[15:0]) begin
+          `uvm_error("B125", $sformatf(
+            "Non-zero filllevel stream mismatch sample %0d: stream=%0d expected=%0d",
+            idx, m_env.m_out_mon.vif.filllevel_data, fill_level[15:0]))
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      terminate_and_drain(120_000, "B125 filllevel terminate");
+      expect_service_model_accounting("B125 filllevel terminate", 1, 0);
+      for (int idx = 0; idx < 16; idx++) begin
+        if (m_env.m_out_mon.vif.filllevel_valid !== 1'b1 ||
+            m_env.m_out_mon.vif.filllevel_data !== 16'd0) begin
+          `uvm_error("B125", $sformatf(
+            "Post-drain filllevel stream mismatch sample %0d: valid=%0d data=%0d",
+            idx, m_env.m_out_mon.vif.filllevel_valid, m_env.m_out_mon.vif.filllevel_data))
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+    end else if (case_id == "B126") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      single_seq = single_push_pop_seq::type_id::create("b126_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.ingress_channel = 4'h9;
+      single_seq.hit_channel = 5'd17;
+      single_seq.hit_asic = 4'ha;
+      single_seq.hit_et1n6 = 9'h155;
+      single_seq.start(m_env.m_hit_seqr);
+      saw_subheader_channel = 1'b0;
+      saw_hit_channel = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 80_000 && !(saw_subheader_channel && saw_hit_channel)) begin
+        if (m_env.m_out_mon.vif.valid === 1'b1) begin
+          if (m_env.m_out_mon.vif.channel !== m_cfg.interleaving_index[3:0]) begin
+            `uvm_error("B126", $sformatf(
+              "aso_hit_type2_channel mismatch: observed=%0d expected=%0d",
+              m_env.m_out_mon.vif.channel, m_cfg.interleaving_index[3:0]))
+          end
+          if (m_env.m_out_mon.vif.data[35:32] == 4'b0001) begin
+            saw_subheader_channel = 1'b1;
+          end else begin
+            saw_hit_channel = 1'b1;
+            if (m_env.m_out_mon.vif.data[21:17] != 5'd17) begin
+              `uvm_error("B126", $sformatf(
+                "Hit payload channel mutated while egress bus channel stayed lane-indexed: payload=%0d expected=17",
+                m_env.m_out_mon.vif.data[21:17]))
+            end
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!(saw_subheader_channel && saw_hit_channel)) begin
+        `uvm_error("B126", $sformatf(
+          "Did not observe both subheader and hit beats while auditing aso_hit_type2_channel: subheader=%0d hit=%0d",
+          saw_subheader_channel, saw_hit_channel))
+      end
+      wait_for_scoreboard_idle(80_000, "B126 egress channel cleanup");
+      expect_service_model_accounting("B126 egress channel cleanup", 1, 0);
+    end else if (case_id == "B127") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      grant_count = m_env.m_dbg_mon.push_write_grant_count;
+      single_seq = single_push_pop_seq::type_id::create("b127_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      search_cycles = 0;
+      while (search_cycles < 10_000 &&
+             m_env.m_dbg_mon.push_write_grant_count == grant_count) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.push_write_grant_count == grant_count) begin
+        `uvm_error("B127", "Timed out waiting for the granted push_write event")
+      end
+      reads_needed = 0;
+      push_count = 0;
+      while (reads_needed < 3 && push_count < 1) begin
+        reads_needed++;
+        read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      end
+      if (push_count != 1 || reads_needed > 2) begin
+        `uvm_error("B127", $sformatf(
+          "PUSH_COUNT visibility exceeded the 2-read bound: reads=%0d push_count=%0d",
+          reads_needed, push_count))
+      end
+      terminate_and_drain(80_000, "B127 bounded-delay terminate");
+      expect_service_model_accounting("B127 bounded-delay terminate", 1, 0);
+    end else if (case_id == "B128") begin
+      configure_and_start(2000);
+      max_cmd_usedw = 0;
+      traffic_done = 1'b0;
+      pressure_seq = overwrite_profile_seq::type_id::create("b128_cmd_fifo_soak");
+      pressure_seq.num_hits = 4096;
+      pressure_seq.lane_key_start_ord = 2;
+      pressure_seq.pool_keys = 8;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.inter_hit_gap_cycles = 31;
+      pressure_seq.progress_stride = 1024;
+      pressure_seq.progress_tag = "B128";
+      fork
+        begin
+          pressure_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 400_000 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_dbg_mon.pop_cmd_fifo_usedw != 0)) begin
+            if (m_env.m_dbg_mon.pop_cmd_fifo_usedw > max_cmd_usedw)
+              max_cmd_usedw = m_env.m_dbg_mon.pop_cmd_fifo_usedw;
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (max_cmd_usedw == 0) begin
+        `uvm_error("B128", "pop_cmd_fifo_usedw never rose above 0 during the soak")
+      end
+      if (max_cmd_usedw > 11) begin
+        `uvm_error("B128", $sformatf(
+          "pop_cmd_fifo_usedw exceeded the bounded-soak ceiling: observed_peak=%0d expected<=11",
+          max_cmd_usedw))
+      end
+      terminate_and_drain(250_000, "B128 pop_cmd soak terminate");
+      expect_service_model_accounting("B128 pop_cmd soak terminate", 1, 0);
+    end else if (case_id == "B129") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      saw_idle_bubble = 1'b0;
+      traffic_done = 1'b0;
+      burst_seq = same_key_burst_seq::type_id::create("b129_back_to_back_pushes");
+      burst_seq.num_hits = 256;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 120_000 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_dbg_mon.push_write_grant_count < 256)) begin
+            if (m_env.m_dbg_mon.push_write_grant_count > 0 &&
+                m_env.m_dbg_mon.push_write_grant_count < 256 &&
+                (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0) &&
+                m_env.m_dbg_mon.vif.decision_reg == 3'd4) begin
+              saw_idle_bubble = 1'b1;
+              break;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      wait_for_push_count(256, 80_000, "B129 back-to-back push grants");
+      if (saw_idle_bubble) begin
+        `uvm_error("B129", "decision_reg=4 appeared between consecutive push_write grants under sustained pressure")
+      end
+      terminate_and_drain(250_000, "B129 no-bubble terminate");
+      expect_service_model_accounting("B129 no-bubble terminate", 1, 0);
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);

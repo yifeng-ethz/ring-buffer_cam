@@ -169,17 +169,17 @@
   "buckets": {
     "BASIC": {
       "planned_cases": 129,
-      "evidenced_cases": 106,
+      "evidenced_cases": 113,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1928,
+          "hits": 1929,
           "bins": 1982,
-          "pct": 97.28
+          "pct": 97.33
         },
         "branch": {
-          "hits": 494,
+          "hits": 495,
           "bins": 553,
-          "pct": 89.33
+          "pct": 89.51
         },
         "cond": {
           "hits": 91,
@@ -202,9 +202,9 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4537,
+          "hits": 4547,
           "bins": 6329,
-          "pct": 71.69
+          "pct": 71.84
         }
       },
       "cases": [
@@ -356,7 +356,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B002",
@@ -506,7 +506,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B003",
@@ -728,7 +728,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B004",
@@ -950,7 +950,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B005",
@@ -1172,7 +1172,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B006",
@@ -1394,7 +1394,7 @@
             "cg_output_pct": 75.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B007",
@@ -1616,7 +1616,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B008",
@@ -1766,7 +1766,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B009",
@@ -1916,7 +1916,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B010",
@@ -2216,7 +2216,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B012",
@@ -2366,7 +2366,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B013",
@@ -2516,7 +2516,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B014",
@@ -2666,7 +2666,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B015",
@@ -2816,7 +2816,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B016",
@@ -2966,7 +2966,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B017",
@@ -3116,7 +3116,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B018",
@@ -3266,7 +3266,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B019",
@@ -3416,7 +3416,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B020",
@@ -3566,7 +3566,7 @@
             "cg_output_pct": 46.2,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B021",
@@ -3788,7 +3788,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B022",
@@ -4010,7 +4010,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B023",
@@ -4232,7 +4232,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B024",
@@ -4382,7 +4382,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B025",
@@ -4604,7 +4604,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B026",
@@ -4826,7 +4826,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B027",
@@ -5048,7 +5048,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B028",
@@ -5270,7 +5270,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B029",
@@ -5468,7 +5468,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B032",
@@ -5618,7 +5618,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B033",
@@ -5768,7 +5768,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B034",
@@ -5918,7 +5918,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B035",
@@ -6068,7 +6068,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B036",
@@ -6218,7 +6218,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B037",
@@ -6368,7 +6368,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B038",
@@ -6518,7 +6518,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B039",
@@ -6668,7 +6668,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B040",
@@ -6890,7 +6890,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B041",
@@ -7040,7 +7040,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B042",
@@ -7190,7 +7190,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B043",
@@ -7340,7 +7340,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B044",
@@ -7490,7 +7490,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B045",
@@ -7640,7 +7640,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B046",
@@ -7790,7 +7790,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B047",
@@ -8012,7 +8012,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B048",
@@ -8234,7 +8234,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B049",
@@ -8384,7 +8384,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B050",
@@ -8534,7 +8534,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B051",
@@ -8684,7 +8684,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B052",
@@ -8906,7 +8906,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 14.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B053",
@@ -9056,7 +9056,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B054",
@@ -9278,7 +9278,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B055",
@@ -9500,7 +9500,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B056",
@@ -9722,7 +9722,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B057",
@@ -9944,7 +9944,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B058",
@@ -10166,7 +10166,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B059",
@@ -10316,7 +10316,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B060",
@@ -10466,7 +10466,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B061",
@@ -10688,7 +10688,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B062",
@@ -10910,7 +10910,7 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B063",
@@ -11132,7 +11132,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 16.7
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B064",
@@ -11354,7 +11354,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B065",
@@ -11576,7 +11576,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B066",
@@ -11798,7 +11798,7 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B067",
@@ -12044,7 +12044,7 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 12.5
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B069",
@@ -12194,7 +12194,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B070",
@@ -12416,7 +12416,7 @@
             "cg_output_pct": 59.5,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B071",
@@ -12638,7 +12638,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B072",
@@ -12860,7 +12860,7 @@
             "cg_output_pct": 71.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B073",
@@ -13082,7 +13082,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B074",
@@ -13304,7 +13304,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B075",
@@ -13526,7 +13526,7 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B076",
@@ -13748,7 +13748,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B077",
@@ -13970,7 +13970,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B078",
@@ -14192,7 +14192,7 @@
             "cg_output_pct": 83.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B079",
@@ -14414,7 +14414,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B080",
@@ -14636,7 +14636,7 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B081",
@@ -14858,7 +14858,7 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B082",
@@ -15080,7 +15080,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B083",
@@ -15302,7 +15302,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B084",
@@ -15524,7 +15524,7 @@
             "cg_output_pct": 59.5,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B085",
@@ -15746,7 +15746,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B086",
@@ -15968,7 +15968,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B087",
@@ -16190,7 +16190,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B088",
@@ -16412,7 +16412,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B089",
@@ -16634,7 +16634,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 10.4
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B090",
@@ -16856,7 +16856,7 @@
             "cg_output_pct": 72.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B091",
@@ -17078,7 +17078,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B092",
@@ -17300,7 +17300,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B093",
@@ -17522,7 +17522,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B094",
@@ -18056,14 +18056,14 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B108",
           "full_case_id": "B108",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "FLUSHING completion handshake: run_mgmt_flush_memory_done asserts one cycle after both ram and cam done",
           "description": "FLUSHING completion handshake: run_mgmt_flush_memory_done asserts one cycle after both ram and cam done",
@@ -18072,15 +18072,141 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1612,
+              "bins": 1982,
+              "pct": 81.33
+            },
+            "branch": {
+              "hits": 287,
+              "bins": 553,
+              "pct": 51.9
+            },
+            "cond": {
+              "hits": 41,
+              "bins": 124,
+              "pct": 33.06
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 409,
+              "bins": 6329,
+              "pct": 6.46
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4527,
+              "bins": 6329,
+              "pct": 71.53
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B109",
@@ -18302,7 +18428,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B110",
@@ -18524,7 +18650,7 @@
             "cg_output_pct": 66.7,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B111",
@@ -18746,7 +18872,7 @@
             "cg_output_pct": 81.6,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B112",
@@ -18968,7 +19094,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 20.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B113",
@@ -19118,7 +19244,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B114",
@@ -19340,7 +19466,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B115",
@@ -19562,7 +19688,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B116",
@@ -19784,7 +19910,7 @@
             "cg_output_pct": 69.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B117",
@@ -20006,7 +20132,7 @@
             "cg_output_pct": 65.9,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B118",
@@ -20156,7 +20282,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B119",
@@ -20378,7 +20504,7 @@
             "cg_output_pct": 76.1,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B120",
@@ -20600,7 +20726,7 @@
             "cg_output_pct": 83.1,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B121",
@@ -20750,7 +20876,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B122",
@@ -20900,7 +21026,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B123",
@@ -21057,7 +21183,7 @@
           "full_case_id": "B124",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow where CTRL soft_reset is pulsed during active DRAIN; soft_reset latches then self-clears without affecting in-flight subheader (TODO comment acknowledges not yet implemented)",
           "description": "end-to-end flow where CTRL soft_reset is pulsed during active DRAIN; soft_reset latches then self-clears without affecting in-flight subheader (TODO comment acknowledges not yet implemented)",
@@ -21066,22 +21192,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1842,
+              "bins": 1982,
+              "pct": 92.94
+            },
+            "branch": {
+              "hits": 418,
+              "bins": 553,
+              "pct": 75.59
+            },
+            "cond": {
+              "hits": 64,
+              "bins": 124,
+              "pct": 51.61
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1746,
+              "bins": 6329,
+              "pct": 27.59
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 115.125,
+              "bins": 1982,
+              "pct": 5.81
+            },
+            "branch": {
+              "hits": 26.125,
+              "bins": 553,
+              "pct": 4.72
+            },
+            "cond": {
+              "hits": 4.0,
+              "bins": 124,
+              "pct": 3.23
+            },
+            "expr": {
+              "hits": 0.1875,
+              "bins": 10,
+              "pct": 1.88
+            },
+            "fsm_state": {
+              "hits": 0.5,
+              "bins": 8,
+              "pct": 6.25
+            },
+            "fsm_trans": {
+              "hits": 0.625,
+              "bins": 15,
+              "pct": 4.17
+            },
+            "toggle": {
+              "hits": 109.125,
+              "bins": 6329,
+              "pct": 1.72
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 16,
+          "log_summary": {
+            "pushed": 16,
+            "popped": 16,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 8,
+            "zero_hit_subheaders": 7,
+            "accepted": 16,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.1,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B125",
           "full_case_id": "B125",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow: aso_filllevel stream asserts valid every cycle once i_rst=0, data mirrors CSR fill_level[15:0]",
           "description": "end-to-end flow: aso_filllevel stream asserts valid every cycle once i_rst=0, data mirrors CSR fill_level[15:0]",
@@ -21090,22 +21414,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1843,
+              "bins": 1982,
+              "pct": 92.99
+            },
+            "branch": {
+              "hits": 430,
+              "bins": 553,
+              "pct": 77.76
+            },
+            "cond": {
+              "hits": 74,
+              "bins": 124,
+              "pct": 59.68
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1613,
+              "bins": 6329,
+              "pct": 25.49
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 230.375,
+              "bins": 1982,
+              "pct": 11.62
+            },
+            "branch": {
+              "hits": 53.75,
+              "bins": 553,
+              "pct": 9.72
+            },
+            "cond": {
+              "hits": 9.25,
+              "bins": 124,
+              "pct": 7.46
+            },
+            "expr": {
+              "hits": 0.375,
+              "bins": 10,
+              "pct": 3.75
+            },
+            "fsm_state": {
+              "hits": 1.0,
+              "bins": 8,
+              "pct": 12.5
+            },
+            "fsm_trans": {
+              "hits": 1.25,
+              "bins": 15,
+              "pct": 8.33
+            },
+            "toggle": {
+              "hits": 201.625,
+              "bins": 6329,
+              "pct": 3.19
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 8,
+          "log_summary": {
+            "pushed": 8,
+            "popped": 8,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 5,
+            "zero_hit_subheaders": 4,
+            "accepted": 8,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.1,
+            "cg_hit_data_pct": 22.9
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B126",
           "full_case_id": "B126",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow: aso_hit_type2_channel field on both subheader and hit egress beats equals INTERLEAVING_INDEX generic",
           "description": "end-to-end flow: aso_hit_type2_channel field on both subheader and hit egress beats equals INTERLEAVING_INDEX generic",
@@ -21114,22 +21636,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1826,
+              "bins": 1982,
+              "pct": 92.13
+            },
+            "branch": {
+              "hits": 408,
+              "bins": 553,
+              "pct": 73.78
+            },
+            "cond": {
+              "hits": 61,
+              "bins": 124,
+              "pct": 49.19
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1228,
+              "bins": 6329,
+              "pct": 19.4
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 1826.0,
+              "bins": 1982,
+              "pct": 92.13
+            },
+            "branch": {
+              "hits": 408.0,
+              "bins": 553,
+              "pct": 73.78
+            },
+            "cond": {
+              "hits": 61.0,
+              "bins": 124,
+              "pct": 49.19
+            },
+            "expr": {
+              "hits": 2.0,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8.0,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10.0,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1228.0,
+              "bins": 6329,
+              "pct": 19.4
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 1,
+          "log_summary": {
+            "pushed": 1,
+            "popped": 1,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 4,
+            "zero_hit_subheaders": 3,
+            "accepted": 1,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 65.2,
+            "cg_hit_data_pct": 8.3
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B127",
           "full_case_id": "B127",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow: counter bounded-delay contract - PUSH_COUNT visible at CSR within 2 CSR-read cycles of the granted push_write",
           "description": "end-to-end flow: counter bounded-delay contract - PUSH_COUNT visible at CSR within 2 CSR-read cycles of the granted push_write",
@@ -21138,22 +21858,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1833,
+              "bins": 1982,
+              "pct": 92.48
+            },
+            "branch": {
+              "hits": 422,
+              "bins": 553,
+              "pct": 76.31
+            },
+            "cond": {
+              "hits": 71,
+              "bins": 124,
+              "pct": 57.26
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1117,
+              "bins": 6329,
+              "pct": 17.65
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 1833.0,
+              "bins": 1982,
+              "pct": 92.48
+            },
+            "branch": {
+              "hits": 422.0,
+              "bins": 553,
+              "pct": 76.31
+            },
+            "cond": {
+              "hits": 71.0,
+              "bins": 124,
+              "pct": 57.26
+            },
+            "expr": {
+              "hits": 2.0,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8.0,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10.0,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1117.0,
+              "bins": 6329,
+              "pct": 17.65
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 1,
+          "log_summary": {
+            "pushed": 1,
+            "popped": 1,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 3,
+            "zero_hit_subheaders": 2,
+            "accepted": 1,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 65.2,
+            "cg_hit_data_pct": 8.3
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B128",
           "full_case_id": "B128",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow: pop_cmd_fifo depth=16 soak under RUNNING - descriptor rate matches consumption so fifo never exceeds 11 (per RTL comment for 960kHz case)",
           "description": "end-to-end flow: pop_cmd_fifo depth=16 soak under RUNNING - descriptor rate matches consumption so fifo never exceeds 11 (per RTL comment for 960kHz case)",
@@ -21162,22 +22080,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1891,
+              "bins": 1982,
+              "pct": 95.41
+            },
+            "branch": {
+              "hits": 462,
+              "bins": 553,
+              "pct": 83.54
+            },
+            "cond": {
+              "hits": 82,
+              "bins": 124,
+              "pct": 66.13
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 3867,
+              "bins": 6329,
+              "pct": 61.1
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 0.461669921875,
+              "bins": 1982,
+              "pct": 0.02
+            },
+            "branch": {
+              "hits": 0.11279296875,
+              "bins": 553,
+              "pct": 0.02
+            },
+            "cond": {
+              "hits": 0.02001953125,
+              "bins": 124,
+              "pct": 0.02
+            },
+            "expr": {
+              "hits": 0.0009765625,
+              "bins": 10,
+              "pct": 0.01
+            },
+            "fsm_state": {
+              "hits": 0.001953125,
+              "bins": 8,
+              "pct": 0.02
+            },
+            "fsm_trans": {
+              "hits": 0.00244140625,
+              "bins": 15,
+              "pct": 0.02
+            },
+            "toggle": {
+              "hits": 0.944091796875,
+              "bins": 6329,
+              "pct": 0.01
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 1,
+              "bins": 1982,
+              "pct": 0.05
+            },
+            "branch": {
+              "hits": 1,
+              "bins": 553,
+              "pct": 0.18
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 10,
+              "bins": 6329,
+              "pct": 0.16
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1929,
+              "bins": 1982,
+              "pct": 97.33
+            },
+            "branch": {
+              "hits": 495,
+              "bins": 553,
+              "pct": 89.51
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4547,
+              "bins": 6329,
+              "pct": 71.84
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.000244140625,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.000244140625,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.00244140625,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 4096,
+          "log_summary": {
+            "pushed": 4096,
+            "popped": 4096,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 1999,
+            "zero_hit_subheaders": 1743,
+            "accepted": 4096,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 88.8,
+            "cg_hit_data_pct": 68.8
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B129",
           "full_case_id": "B129",
           "bucket": "BASIC",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "end-to-end flow: decision_reg=4 (idle) occurs only when no engine is requesting, never between two back-to-back push_write grants",
           "description": "end-to-end flow: decision_reg=4 (idle) occurs only when no engine is requesting, never between two back-to-back push_write grants",
@@ -21186,15 +22302,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1853,
+              "bins": 1982,
+              "pct": 93.49
+            },
+            "branch": {
+              "hits": 437,
+              "bins": 553,
+              "pct": 79.02
+            },
+            "cond": {
+              "hits": 75,
+              "bins": 124,
+              "pct": 60.48
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2775,
+              "bins": 6329,
+              "pct": 43.85
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 7.23828125,
+              "bins": 1982,
+              "pct": 0.37
+            },
+            "branch": {
+              "hits": 1.70703125,
+              "bins": 553,
+              "pct": 0.31
+            },
+            "cond": {
+              "hits": 0.29296875,
+              "bins": 124,
+              "pct": 0.24
+            },
+            "expr": {
+              "hits": 0.01171875,
+              "bins": 10,
+              "pct": 0.12
+            },
+            "fsm_state": {
+              "hits": 0.03125,
+              "bins": 8,
+              "pct": 0.39
+            },
+            "fsm_trans": {
+              "hits": 0.0390625,
+              "bins": 15,
+              "pct": 0.26
+            },
+            "toggle": {
+              "hits": 10.83984375,
+              "bins": 6329,
+              "pct": 0.17
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1929,
+              "bins": 1982,
+              "pct": 97.33
+            },
+            "branch": {
+              "hits": 495,
+              "bins": 553,
+              "pct": 89.51
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4547,
+              "bins": 6329,
+              "pct": 71.84
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6329,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 256,
+          "log_summary": {
+            "pushed": 256,
+            "popped": 256,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 48,
+            "zero_hit_subheaders": 47,
+            "accepted": 256,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 75.9,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "case_engine_log"
         }
       ],
       "merge_trace": [
@@ -25120,7 +26434,43 @@
           "step": 108,
           "case_id": "B108",
           "full_case_id": "B108",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 493,
+              "bins": 553,
+              "pct": 89.15
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4527,
+              "bins": 6329,
+              "pct": 71.53
+            }
+          }
         },
         {
           "step": 109,
@@ -25756,37 +27106,253 @@
           "step": 124,
           "case_id": "B124",
           "full_case_id": "B124",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          }
         },
         {
           "step": 125,
           "case_id": "B125",
           "full_case_id": "B125",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          }
         },
         {
           "step": 126,
           "case_id": "B126",
           "full_case_id": "B126",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          }
         },
         {
           "step": 127,
           "case_id": "B127",
           "full_case_id": "B127",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1928,
+              "bins": 1982,
+              "pct": 97.28
+            },
+            "branch": {
+              "hits": 494,
+              "bins": 553,
+              "pct": 89.33
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4537,
+              "bins": 6329,
+              "pct": 71.69
+            }
+          }
         },
         {
           "step": 128,
           "case_id": "B128",
           "full_case_id": "B128",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1929,
+              "bins": 1982,
+              "pct": 97.33
+            },
+            "branch": {
+              "hits": 495,
+              "bins": 553,
+              "pct": 89.51
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4547,
+              "bins": 6329,
+              "pct": 71.84
+            }
+          }
         },
         {
           "step": 129,
           "case_id": "B129",
           "full_case_id": "B129",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1929,
+              "bins": 1982,
+              "pct": 97.33
+            },
+            "branch": {
+              "hits": 495,
+              "bins": 553,
+              "pct": 89.51
+            },
+            "cond": {
+              "hits": 91,
+              "bins": 124,
+              "pct": 73.39
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4547,
+              "bins": 6329,
+              "pct": 71.84
+            }
+          }
         }
       ]
     },
@@ -25979,7 +27545,7 @@
             "cg_output_pct": 35.3,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E002",
@@ -26201,7 +27767,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E003",
@@ -26423,7 +27989,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E004",
@@ -26645,7 +28211,7 @@
             "cg_output_pct": 73.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E005",
@@ -26867,7 +28433,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E006",
@@ -27089,7 +28655,7 @@
             "cg_output_pct": 78.4,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E007",
@@ -27311,7 +28877,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E008",
@@ -27533,7 +29099,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E009",
@@ -27755,7 +29321,7 @@
             "cg_output_pct": 74.5,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E010",
@@ -27977,7 +29543,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E011",
@@ -28199,7 +29765,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E012",
@@ -28421,7 +29987,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E013",
@@ -28643,7 +30209,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E014",
@@ -28865,7 +30431,7 @@
             "cg_output_pct": 75.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E015",
@@ -29087,7 +30653,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E016",
@@ -29309,7 +30875,7 @@
             "cg_output_pct": 88.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E017",
@@ -29531,7 +31097,7 @@
             "cg_output_pct": 91.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E018",
@@ -29777,7 +31343,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E020",
@@ -29999,7 +31565,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E021",
@@ -30221,7 +31787,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 22.9
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E022",
@@ -30503,7 +32069,7 @@
             "cg_output_pct": 83.1,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E024",
@@ -30749,7 +32315,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E026",
@@ -30971,7 +32537,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E027",
@@ -31313,7 +32879,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E033",
@@ -35546,7 +37112,7 @@
             "cg_output_pct": 88.8,
             "cg_hit_data_pct": 66.7
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P002",
@@ -35768,7 +37334,7 @@
             "cg_output_pct": 77.7,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P003",
@@ -35990,7 +37556,7 @@
             "cg_output_pct": 76.9,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P004",
@@ -36212,7 +37778,7 @@
             "cg_output_pct": 86.2,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P005",
@@ -38978,7 +40544,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P112",
@@ -39200,7 +40766,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P113",
@@ -39422,7 +40988,7 @@
             "cg_output_pct": 72.0,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P114",
@@ -39692,7 +41258,7 @@
             "cg_output_pct": 76.1,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P117",
@@ -39962,7 +41528,7 @@
             "cg_output_pct": 71.2,
             "cg_hit_data_pct": 68.8
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "P120",
@@ -41567,7 +43133,7 @@
             "cg_output_pct": 72.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X002",
@@ -41789,7 +43355,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X003",
@@ -42011,7 +43577,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X004",
@@ -42233,7 +43799,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X005",
@@ -42407,7 +43973,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X007",
@@ -42557,7 +44123,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X008",
@@ -42779,7 +44345,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X009",
@@ -43001,7 +44567,7 @@
             "cg_output_pct": 65.2,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X010",
@@ -43151,7 +44717,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X011",
@@ -43373,7 +44939,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X012",
@@ -43595,7 +45161,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X013",
@@ -43745,7 +45311,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X014",
@@ -43895,7 +45461,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X015",
@@ -44117,7 +45683,7 @@
             "cg_output_pct": 65.9,
             "cg_hit_data_pct": 8.3
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X016",
@@ -44291,7 +45857,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X018",
@@ -44753,7 +46319,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X032",
@@ -45479,7 +47045,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X054",
@@ -45725,7 +47291,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X056",
@@ -46067,7 +47633,7 @@
             "cg_output_pct": 68.3,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X062",
@@ -47585,7 +49151,7 @@
             "cg_output_pct": 71.4,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X117",
@@ -47807,7 +49373,7 @@
             "cg_output_pct": 70.6,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X118",
@@ -48029,7 +49595,7 @@
             "cg_output_pct": 76.2,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X119",
@@ -49870,17 +51436,17 @@
     {
       "bucket": "BASIC",
       "planned_cases": 129,
-      "evidenced_cases": 106,
+      "evidenced_cases": 113,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1928,
+          "hits": 1929,
           "bins": 1982,
-          "pct": 97.28
+          "pct": 97.33
         },
         "branch": {
-          "hits": 494,
+          "hits": 495,
           "bins": 553,
-          "pct": 89.33
+          "pct": 89.51
         },
         "cond": {
           "hits": 91,
@@ -49903,14 +51469,14 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4537,
+          "hits": 4547,
           "bins": 6329,
-          "pct": 71.69
+          "pct": 71.84
         }
       },
       "functional_coverage": {
-        "pct": 82.17,
-        "evidenced": 106,
+        "pct": 87.6,
+        "evidenced": 113,
         "planned": 129
       }
     },
@@ -50060,9 +51626,9 @@
     {
       "scope": "BASIC",
       "planned_cases": 129,
-      "executed_cases": 106,
-      "executed_ratio_pct": 82.17,
-      "observed_txn": 8673,
+      "executed_cases": 113,
+      "executed_ratio_pct": 87.6,
+      "observed_txn": 13051,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
@@ -50100,17 +51666,17 @@
     {
       "scope": "TOTAL",
       "planned_cases": 516,
-      "executed_cases": 161,
-      "executed_ratio_pct": 31.2,
-      "observed_txn": 26971,
+      "executed_cases": 168,
+      "executed_ratio_pct": 32.56,
+      "observed_txn": 31349,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
     }
   ],
   "implementation_summary": {
-    "implemented_count": 161,
-    "unimplemented_count": 355,
+    "implemented_count": 168,
+    "unimplemented_count": 348,
     "stale_artifact_without_engine_marker_count": 0
   },
   "failed_cases": [],
@@ -50335,7 +51901,7 @@
         "cg_output_pct": 88.8,
         "cg_hit_data_pct": 66.7
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P002",
@@ -50557,7 +52123,7 @@
         "cg_output_pct": 77.7,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P003",
@@ -50779,7 +52345,7 @@
         "cg_output_pct": 76.9,
         "cg_hit_data_pct": 39.6
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P005",
@@ -53545,7 +55111,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P112",
@@ -53767,7 +55333,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P113",
@@ -53989,7 +55555,7 @@
         "cg_output_pct": 72.0,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P114",
@@ -54259,7 +55825,7 @@
         "cg_output_pct": 76.1,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P117",
@@ -54529,7 +56095,7 @@
         "cg_output_pct": 71.2,
         "cg_hit_data_pct": 68.8
       },
-      "implementation_mode": "published_case_log"
+      "implementation_mode": "case_engine_log"
     },
     {
       "case_id": "P120",
@@ -54751,7 +56317,7 @@
   "signoff_runs": [],
   "totals": {
     "planned_cases": 516,
-    "evidenced_cases": 161,
+    "evidenced_cases": 168,
     "excluded_cases": 0,
     "merged_total_code_coverage": {
       "stmt": {
@@ -54785,14 +56351,14 @@
         "pct": 66.67
       },
       "toggle": {
-        "hits": 4616,
+        "hits": 4620,
         "bins": 6329,
-        "pct": 72.93
+        "pct": 73.0
       }
     },
     "functional_coverage": {
-      "pct": 31.2,
-      "evidenced": 161,
+      "pct": 32.56,
+      "evidenced": 168,
       "planned": 516
     }
   }
