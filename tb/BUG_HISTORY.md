@@ -359,3 +359,20 @@
     - testcase sequencing in `tb/uvm/base_test.sv`
     - PREP command contract in `tb/uvm/ctrl_driver.sv`
 - Commit: c2bcc79
+
+### BUG-025-R: Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged
+- First seen in: `X065` on 2026-04-18 during the next control-path ERROR tranche after `BUG-024-H`
+- Symptom:
+  - after an empty `RUN_PREPARE` flush, issuing `CTRL_TERMINATING` moved `run_state_cmd` into `TERMINATING` but never raised `asi_ctrl_ready`
+  - the failing run stayed quiescent with `endofrun_seen=0`, `deassembly_fifo_empty=1`, `pop_cmd_fifo_empty=1`, `push=0`, `pop=0`, and still timed out waiting for the terminate acknowledgement
+- Root cause:
+  - the earlier quiescent terminate fix only covered the entry case indirectly and still relied on the `TERMINATING` state logic to rediscover that the transition began from an already-empty state
+  - once the DUT was in `RUN_PREPARE -> TERMINATING`, the ready path still fell through the normal `terminating_drain_done` gate, which remained `0` because `endofrun_seen` was never supposed to assert in this quiescent post-flush path
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - the RTL now latches `terminating_entry_quiescent` when a `TERMINATING` episode starts from an already-empty state and uses that latched fact in the `TERMINATING` ready gate
+  - verified by a clean focused rerun of `B010`, `X031`, `X038`, `X039`, `X042`, `X043`, `X044`, `X046`, `X048`, `X051`, `X065`, and `X099` on build `26.1.5.0427`
+  - related RTL logic:
+    - `terminating_drain_done` / quiescent detection in `rtl/ring_buffer_cam_v2_core.vhd`
+    - `TERMINATING` ready gate in `rtl/ring_buffer_cam_v2_core.vhd`
+- Commit: pending

@@ -80,7 +80,7 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 426;
+	BUILD				: natural := 427;
 	VERSION_DATE		: natural := 20260418;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
@@ -507,6 +507,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal run_mgmt_flush_memory_done		: std_logic;
 	signal terminating_drain_done				: std_logic;
 	signal terminating_quiescent				: std_logic;
+	signal terminating_entry_quiescent			: std_logic;
 	signal run_mgmt_flushed					: std_logic;
 	signal dbg_run_state_code				: unsigned(3 downto 0);
 	signal dbg_pop_engine_state_code		: unsigned(2 downto 0);
@@ -1640,8 +1641,9 @@ begin
 	) else '0';
 
 	-- Preserve the normal end-of-run drain gate, but also recognize the
-	-- already-empty/quiescent case so a redundant TERMINATING command from
-	-- IDLE can acknowledge cleanly without waiting on endofrun_seen.
+	-- already-empty/quiescent case so a non-running TERMINATING transition can
+	-- acknowledge cleanly without waiting on an end-of-run marker that will
+	-- never arrive.
 	terminating_quiescent <= '1' when (
 		deassembly_fifo_empty = '1' and
 		pop_cmd_fifo_empty = '1' and
@@ -1664,6 +1666,7 @@ begin
 		if (i_rst = '1') then 
 			run_mgmt_flush_memory_start			<= '0';
 			run_mgmt_flushed					<= '0';
+			terminating_entry_quiescent		<= '0';
 			run_state_cmd						<= IDLE;
 		elsif (rising_edge(i_clk)) then 
 			run_state_cmd_next_v := run_state_cmd;
@@ -1699,6 +1702,16 @@ begin
 				gts_end_of_run	<= gts_8n;
 			else
 				gts_end_of_run	<= gts_end_of_run;
+			end if;
+			
+			-- Remember whether the current TERMINATING episode started from a
+			-- quiescent state. This keeps non-running states such as IDLE or
+			-- RUN_PREPARE from wedging on endofrun_seen='0' when there is no
+			-- live traffic to drain.
+			if (run_state_cmd /= TERMINATING and run_state_cmd_next_v = TERMINATING) then
+				terminating_entry_quiescent <= terminating_quiescent;
+			elsif (run_state_cmd_next_v /= TERMINATING) then
+				terminating_entry_quiescent <= '0';
 			end if;
 			
 			-- packet support (hit type 1: mu3e run)
@@ -1775,7 +1788,7 @@ begin
 					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
 				when TERMINATING => 
 					run_mgmt_flush_memory_start	<= '0';
-					if (terminating_drain_done = '1' or (run_state_cmd = IDLE and terminating_quiescent = '1')) then
+					if (terminating_drain_done = '1' or terminating_entry_quiescent = '1') then
 						asi_ctrl_ready			<= '1';
 					else
 						asi_ctrl_ready			<= '0';

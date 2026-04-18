@@ -954,6 +954,215 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x043_full_ring_terminate_case();
+    sequential_keys_seq key_seq;
+    int unsigned        partition_size;
+    int unsigned        visit_idx;
+    logic [3:0]         visit_mask;
+    logic [3:0]         expected_mask;
+    int unsigned        hit_before;
+    int unsigned        search_cycles;
+    int unsigned        pop_count;
+    int unsigned        fill_level;
+
+    configure_and_start(2000);
+    partition_size = (m_cfg.n_partitions == 0) ? m_cfg.ring_buffer_n_entry :
+                     (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
+    key_seq = sequential_keys_seq::type_id::create("x043_full_ring");
+    key_seq.num_keys = m_cfg.ring_buffer_n_entry / 4;
+    key_seq.hits_per_key = 4;
+    key_seq.start_key = 4;
+    key_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(m_cfg.ring_buffer_n_entry, 160_000, "X043 full-ring fill");
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    expected_mask = (1 << m_cfg.n_partitions) - 1;
+    visit_mask = '0;
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X043 TERMINATING entry");
+    search_cycles = 0;
+    while (search_cycles < 400_000 &&
+           (m_env.m_dbg_mon.terminating_drain_done !== 1'b1 ||
+            m_env.m_out_mon.total_hits_seen < (hit_before + m_cfg.ring_buffer_n_entry))) begin
+      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+        visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+        if (visit_idx >= m_cfg.n_partitions) begin
+          `uvm_error("X043", $sformatf(
+            "Drain issued from partition outside active build range: partition=%0d n_partitions=%0d addr=%0d",
+            visit_idx, m_cfg.n_partitions, m_env.m_dbg_mon.vif.pop_issue_addr))
+        end else begin
+          visit_mask[visit_idx[1:0]] = 1'b1;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("X043", "Full-ring TERMINATING never reached drain_done")
+    end
+    wait_for_ctrl_ready(1'b1, 40_000, "X043 terminate ack");
+    wait_for_hit_output_count(hit_before + m_cfg.ring_buffer_n_entry, 3_000_000, "X043 full-ring hit drain");
+    wait_for_scoreboard_idle(240_000, "X043 full-ring terminate drain");
+    expect_service_model_accounting("X043 full-ring terminate drain", 1, 0);
+
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (pop_count != m_cfg.ring_buffer_n_entry || fill_level != 0) begin
+      `uvm_error("X043", $sformatf(
+        "Full-ring terminate accounting mismatch: pop=%0d fill=%0d expected_pop=%0d",
+        pop_count, fill_level, m_cfg.ring_buffer_n_entry))
+    end
+    if ((visit_mask & expected_mask) != expected_mask) begin
+      `uvm_error("X043", $sformatf(
+        "Full-ring terminate did not visit all active partitions: observed_mask=0x%0h expected=0x%0h",
+        visit_mask, expected_mask))
+    end
+  endtask
+
+  task automatic run_x046_filllevel_read_during_terminate_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       fill_prev;
+    int unsigned       fill_now;
+    int unsigned       source_wait_cycles;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x046_terminate_filllevel");
+    burst_seq.num_hits = 64;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(64, 40_000, "X046 pre-terminate fill");
+    source_wait_cycles = 0;
+    while (m_env.m_hit_drv.pending_source_items() != 0 && source_wait_cycles < 40_000) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      source_wait_cycles++;
+    end
+    if (m_env.m_hit_drv.pending_source_items() != 0) begin
+      `uvm_error("X046", $sformatf(
+        "Source backlog did not drain before TERMINATING: backlog=%0d after %0d cycles",
+        m_env.m_hit_drv.pending_source_items(), source_wait_cycles))
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_prev);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X046 TERMINATING entry");
+    for (int unsigned sample = 0; sample < 128; sample++) begin
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_now);
+      if (fill_now > fill_prev) begin
+        `uvm_error("X046", $sformatf(
+          "FILL_LEVEL increased during TERMINATING: prev=%0d now=%0d sample=%0d",
+          fill_prev, fill_now, sample))
+      end
+      if (fill_now == 32'hffff_ffff) begin
+        `uvm_error("X046", "FILL_LEVEL read all-ones during TERMINATING")
+      end
+      fill_prev = fill_now;
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        break;
+      end
+      wait_clocks(2);
+    end
+    wait_for_ctrl_ready(1'b1, 40_000, "X046 terminate ack");
+    wait_for_scoreboard_idle(120_000, "X046 terminate fill-level drain");
+    expect_service_model_accounting("X046 terminate fill-level drain", 1, 0);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_now);
+    if (fill_now != 0) begin
+      `uvm_error("X046", $sformatf(
+        "TERMINATING fill-level read case left residual fill_level=%0d",
+        fill_now))
+    end
+  endtask
+
+  task automatic run_x048_multihot_terminate_case();
+    int unsigned fill_level;
+
+    configure_and_start(2000);
+    m_env.m_ctrl_drv.vif.data <= (ring_buffer_cam_pkg::CTRL_TERMINATING |
+                                  ring_buffer_cam_pkg::CTRL_RUNNING);
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_ERROR) begin
+      `uvm_error("X048", $sformatf(
+        "Illegal TERMINATING|RUNNING payload did not enter ERROR: observed=%0d",
+        m_env.m_dbg_mon.run_state_code))
+    end
+    if (m_env.m_ctrl_drv.vif.ready !== 1'b0) begin
+      `uvm_error("X048", "Illegal TERMINATING|RUNNING payload should not acknowledge")
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 0) begin
+      `uvm_error("X048", $sformatf(
+        "Illegal TERMINATING|RUNNING payload corrupted FILL_LEVEL=%0d",
+        fill_level))
+    end
+  endtask
+
+  task automatic run_x051_flush_empty_case();
+    int unsigned fill_level;
+    int unsigned inerr_count;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X051 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+      `uvm_error("X051", "Empty RUN_PREPARE flush never asserted run_mgmt_flushed")
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    if (fill_level != 0 || inerr_count != 0 || push_count != 0 ||
+        pop_count != 0 || overwrite_count != 0 || cache_miss_count != 0) begin
+      `uvm_error("X051", $sformatf(
+        "Empty RUN_PREPARE flush counters not clean: fill=%0d inerr=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d",
+        fill_level, inerr_count, push_count, pop_count, overwrite_count, cache_miss_count))
+    end
+    if (m_env.m_ctrl_drv.vif.ready !== 1'b1) begin
+      `uvm_error("X051", "Empty RUN_PREPARE flush did not acknowledge")
+    end
+    wait_for_scoreboard_idle(40_000, "X051 empty flush");
+  endtask
+
+  task automatic run_x065_flush_then_terminate_case();
+    int unsigned fill_level;
+    int unsigned hit_before;
+
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X065 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X065 TERMINATING entry");
+    wait_for_ctrl_ready(1'b1, 2_000, "X065 terminate ack after empty flush");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (fill_level != 0) begin
+      `uvm_error("X065", $sformatf(
+        "Post-flush TERMINATING left residual fill_level=%0d",
+        fill_level))
+    end
+    wait_for_scoreboard_idle(40_000, "X065 flush then terminate");
+    if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+      `uvm_error("X065", $sformatf(
+        "Post-flush TERMINATING emitted stray output beats: before=%0d after=%0d",
+        hit_before, m_env.m_out_mon.total_hits_seen))
+    end
+  endtask
+
   task automatic run_cross_curated_all_bucket_mix();
     same_key_burst_seq   burst_seq;
     random_push_pop_seq  rand_same;
@@ -1333,7 +1542,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd426;
+    version_word[11:0]  = 12'd427;
     return version_word;
   endfunction
 
@@ -5235,8 +5444,16 @@ class base_test extends uvm_test;
       run_x038_double_terminate_case();
     end else if (case_id == "X039") begin
       run_x039_terminate_then_prep_case();
+    end else if (case_id == "X043") begin
+      run_x043_full_ring_terminate_case();
     end else if (case_id == "X049") begin
       run_x049_terminate_terminate_idle_case();
+    end else if (case_id == "X046") begin
+      run_x046_filllevel_read_during_terminate_case();
+    end else if (case_id == "X048") begin
+      run_x048_multihot_terminate_case();
+    end else if (case_id == "X051") begin
+      run_x051_flush_empty_case();
     end else if (case_id == "X116") begin
       run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
     end else if (case_id == "X053") begin
@@ -5347,6 +5564,8 @@ class base_test extends uvm_test;
       run_x042_prelatched_endofrun_case();
     end else if (case_id == "X044") begin
       run_x044_bad_hits_survive_terminate_case();
+    end else if (case_id == "X065") begin
+      run_x065_flush_then_terminate_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
