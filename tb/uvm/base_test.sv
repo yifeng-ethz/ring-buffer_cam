@@ -355,6 +355,197 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x031_terminate_empty_case();
+    int unsigned push_count_before;
+    int unsigned pop_count_before;
+    int unsigned fill_level_before;
+    int unsigned pop_count_after;
+    int unsigned fill_level_after;
+
+    configure_and_start(2000);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count_before);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_before);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level_before);
+    if (fill_level_before != 0 || push_count_before != 0 || pop_count_before != 0) begin
+      `uvm_error("X031", $sformatf(
+        "Precondition for empty terminate was not met: fill=%0d push=%0d pop=%0d",
+        fill_level_before, push_count_before, pop_count_before))
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("X031", "terminating_drain_done did not assert after terminate+endofrun")
+    end
+
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level_after);
+    if (pop_count_after != pop_count_before) begin
+      `uvm_error("X031", $sformatf(
+        "POP_COUNT changed across empty terminate: before=%0d after=%0d",
+        pop_count_before, pop_count_after))
+    end
+    if (fill_level_after != 0) begin
+      `uvm_error("X031", $sformatf(
+        "X031 empty terminate left residual FILL_LEVEL=%0d", fill_level_after))
+    end
+    if (m_env.m_ctrl_drv.vif.ready !== 1'b1) begin
+      `uvm_error("X031", "asi_ctrl_ready did not assert after terminate handshake")
+    end
+    expect_service_model_accounting("X031 empty terminate", 1, 0);
+  endtask
+
+  task automatic run_x053_flush_preempts_drain_case();
+    same_key_burst_seq   burst_seq;
+    int unsigned         pop_count_before;
+    int unsigned         pop_count_after;
+    int unsigned         pop_cmd_before;
+    bit                  saw_sclr;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x053_drain_burst");
+    burst_seq.num_hits = 64;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 40_000, "X053 DRAIN entry");
+    pop_cmd_before = m_env.m_dbg_mon.pop_cmd_fifo_usedw;
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_before);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+
+    saw_sclr = 1'b0;
+    for (int unsigned i = 0; i < 200; i++) begin
+      if (m_env.m_dbg_mon.pop_cmd_fifo_sclr === 1'b1) begin
+        saw_sclr = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (saw_sclr) begin
+        break;
+      end
+    end
+    if (!saw_sclr) begin
+      `uvm_error("X053", "RUN_PREPARE did not assert pop_cmd_fifo_sclr during flush entry")
+    end
+
+    wait_for_pop_engine_state(3'd6, 40_000, "X053 FLUSHING entry");
+    if (m_env.m_dbg_mon.pop_cmd_fifo_usedw > pop_cmd_before) begin
+      `uvm_error("X053", $sformatf(
+        "pop_cmd_fifo_usedw grew during flush preemption: before=%0d after=%0d",
+        pop_cmd_before, m_env.m_dbg_mon.pop_cmd_fifo_usedw))
+    end
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after);
+    if (pop_count_after > pop_count_before) begin
+      `uvm_error("X053", $sformatf(
+        "POP_COUNT advanced during DRAIN preemption flush: before=%0d after=%0d",
+        pop_count_before, pop_count_after))
+    end
+    m_env.m_scb.note_flush_reset();
+    wait_for_scoreboard_idle(120_000, "X053 flush preemption cleanup");
+  endtask
+
+  task automatic run_x055_flush_error_reset_case();
+    same_key_burst_seq  burst_seq;
+    single_error_hit_seq pre_err;
+    single_error_hit_seq flush_err;
+    int unsigned        inerr_before;
+    int unsigned        inerr_after;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x055_drain_burst");
+    burst_seq.num_hits = 64;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    pre_err = single_error_hit_seq::type_id::create("x055_pre_err");
+    pre_err.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    pre_err.start(m_env.m_hit_seqr);
+    wait_clocks(8);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+
+    wait_for_pop_engine_state(3'd4, 60_000, "X055 DRAIN entry");
+    fork
+      begin
+        ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+      end
+      begin
+        while (m_env.m_dbg_mon.vif.decision_reg != 3'b011) begin
+          @(posedge m_env.m_csr_drv.vif.clk);
+        end
+        flush_err = single_error_hit_seq::type_id::create("x055_flush_err");
+        flush_err.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        flush_err.start(m_env.m_hit_seqr);
+      end
+    join
+    wait_for_pop_engine_state(3'd6, 60_000, "X055 FLUSHING entry");
+
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (inerr_after != 0) begin
+      `uvm_error("X055", $sformatf(
+        "INERR_COUNT was not wiped by FLUSHING: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+    m_env.m_scb.note_flush_reset();
+    wait_for_scoreboard_idle(80_000, "X055 inerr clear under flush");
+  endtask
+
+  task automatic run_x061_flush_backlog_popcmd_case();
+    same_key_burst_seq   burst_seq;
+    int unsigned         pop_count_before_flush;
+    int unsigned         pop_count_after;
+    int unsigned         cmd_usedw_before;
+    bit                  saw_sclr;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x061_backlog_burst");
+    burst_seq.num_hits = 128;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 60_000, "X061 DRAIN entry");
+    wait_for_pop_cmd_fifo_usedw_at_least(4, 120_000, "X061 backlog in pop_cmd_fifo");
+    cmd_usedw_before = m_env.m_dbg_mon.pop_cmd_fifo_usedw;
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+
+    saw_sclr = 1'b0;
+    wait_for_pop_engine_state(3'd6, 120_000, "X061 FLUSHING entry");
+    for (int unsigned i = 0; i < 200; i++) begin
+      if (m_env.m_dbg_mon.pop_cmd_fifo_sclr === 1'b1) begin
+        saw_sclr = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_sclr) begin
+      `uvm_error("X061", "RUN_PREPARE flush did not assert pop_cmd_fifo_sclr with fifo backlog")
+    end
+    if (m_env.m_dbg_mon.pop_cmd_fifo_usedw > cmd_usedw_before) begin
+      `uvm_error("X061", $sformatf(
+        "pop_cmd_fifo_usedw increased before clear: before=%0d after=%0d",
+        cmd_usedw_before, m_env.m_dbg_mon.pop_cmd_fifo_usedw))
+    end
+    if (m_env.m_dbg_mon.pop_cmd_fifo_usedw != 0 &&
+        m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1) begin
+      `uvm_error("X061", $sformatf(
+        "pop_cmd_fifo was not cleared during FLUSHING: usedw=%0d empty=%0d",
+        m_env.m_dbg_mon.pop_cmd_fifo_usedw,
+        m_env.m_dbg_mon.vif.pop_cmd_fifo_empty))
+    end
+
+    wait_for_pop_engine_state(3'd6, 120_000, "X061 FLUSHING entry");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_before_flush);
+    repeat (64) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after);
+    if (pop_count_after > pop_count_before_flush) begin
+      `uvm_error("X061", $sformatf(
+        "POP_COUNT changed during FLUSHING with pop_cmd backlog: before=%0d after=%0d",
+        pop_count_before_flush, pop_count_after))
+    end
+    m_env.m_scb.note_flush_reset();
+    wait_for_scoreboard_idle(120_000, "X061 pop_cmd backlog clear");
+  endtask
+
   task automatic restart_after_flush(int unsigned latency = 2000);
     enter_run_prepare();
     csr_write(CSR_EXPECTED_LAT_ADDR, latency);
@@ -3651,8 +3842,16 @@ class base_test extends uvm_test;
       end
     end else if (case_id == "X003") begin
       run_x003_good_terminate_case();
+    end else if (case_id == "X031") begin
+      run_x031_terminate_empty_case();
     end else if (case_id == "X116") begin
       run_x116_good_error_good_case("X116 GOOD-ERROR-GOOD");
+    end else if (case_id == "X053") begin
+      run_x053_flush_preempts_drain_case();
+    end else if (case_id == "X055") begin
+      run_x055_flush_error_reset_case();
+    end else if (case_id == "X061") begin
+      run_x061_flush_backlog_popcmd_case();
     end else if (case_id == "X117") begin
       run_x117_good_error_flush_good_case("X117 GOOD-ERROR-FLUSH-GOOD");
     end else if (case_id == "X118") begin
