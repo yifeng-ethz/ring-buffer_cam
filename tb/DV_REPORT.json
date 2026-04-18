@@ -171,7 +171,7 @@
       "date": "2026-04-18",
       "title": "FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "84b13e9"
     },
     {
       "bug_id": "BUG-022-H",
@@ -179,7 +179,7 @@
       "date": "2026-04-18",
       "title": "META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "84b13e9"
     }
   ],
   "buckets": {

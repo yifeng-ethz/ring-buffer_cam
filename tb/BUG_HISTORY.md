@@ -308,7 +308,7 @@
   - `B105` now checks the documented walk property plus the terminal rollover semantics: previous address reaches `0x1ff`, current address wraps to `0`, and `pop_flush_cam_done` asserts
   - `B106` now checks the same rollover contract for the RAM flush cursor
   - verified by a clean rerun of `B098/B100/B101/B102/B103/B105/B106` after the fix
-- Commit: pending
+- Commit: 84b13e9
 
 ### BUG-022-H: META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump
 - First seen in: `B010` on 2026-04-18 during the first full `0424` nightly rerun
@@ -322,4 +322,4 @@
 - Runtime / coverage context:
   - `expected_meta_version()` now packs the live `26.1.5.0424` META word used by the current IP build
   - verified by a clean isolated rerun of `B010` after the fix
-- Commit: pending
+- Commit: 84b13e9

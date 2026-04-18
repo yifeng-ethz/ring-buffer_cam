@@ -24,8 +24,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `pending` |
-| ⚠️ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `pending` |
+| ✅ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `84b13e9` |
+| ✅ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `84b13e9` |
 | ✅ | `BUG-020-H` | Harness | `2026-04-18` | B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed | `740adc0` |
 | ✅ | `BUG-019-H` | Harness | `2026-04-18` | E026 partition-walk harness observed the wrong partition index during skip logic | `63e3652` |
 | ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
