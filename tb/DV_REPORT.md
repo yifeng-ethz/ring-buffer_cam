@@ -24,7 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-020-H` | Harness | `2026-04-18` | B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed | `pending` |
+| ✅ | `BUG-020-H` | Harness | `2026-04-18` | B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed | `740adc0` |
 | ✅ | `BUG-019-H` | Harness | `2026-04-18` | E026 partition-walk harness observed the wrong partition index during skip logic | `63e3652` |
 | ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
 | ✅ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `cec8e58` |

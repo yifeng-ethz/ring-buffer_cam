@@ -162,8 +162,8 @@
       "class": "Harness",
       "date": "2026-04-18",
       "title": "B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed",
-      "fix_status": "fixed and verified in working tree",
-      "commit": "pending"
+      "fix_status": "fixed and verified on `dev`",
+      "commit": "740adc0"
     }
   ],
   "buckets": {

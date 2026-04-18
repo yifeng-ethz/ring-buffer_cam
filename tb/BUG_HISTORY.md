@@ -288,8 +288,8 @@
 - Root cause:
   - the testcase assumed that four/eight/twelve/sixteen `single_push_pop_seq.start()` calls implied that the corresponding push grants had already committed into the debug counters and `FILL_LEVEL`
   - in reality the CSR read raced the final accepted beat in each checkpoint group and sampled one cycle before the last increment became visible
-- Fix status: fixed and verified in working tree
+- Fix status: fixed and verified on `dev`
 - Runtime / coverage context:
   - `B116` now waits for `dbg_push_cnt` to reach the checkpoint target before polling `FILL_LEVEL`
   - verified by a clean rerun of `B116-B123` and then the full `161/161` implemented isolated nightly matrix
-- Commit: pending
+- Commit: 740adc0
