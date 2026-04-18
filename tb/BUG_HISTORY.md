@@ -323,3 +323,22 @@
   - `expected_meta_version()` now packs the live `26.1.5.0424` META word used by the current IP build
   - verified by a clean isolated rerun of `B010` after the fix
 - Commit: 84b13e9
+
+### BUG-023-R: TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen`
+- First seen in: `X099` on 2026-04-18 during the post-`d52b587` control-path ERROR tranche
+- Symptom:
+  - driving `CTRL_TERMINATING` while the DUT is in `IDLE` transitions `run_state_cmd` to `TERMINATING` but never asserts `asi_ctrl_ready`
+  - the targeted run failed with `ack=0 state=4 endofrun_seen=0 term_done=0`
+- Root cause:
+  - `proc_run_control_mgmt` only acks `TERMINATING` when `terminating_drain_done='1'`
+  - `terminating_drain_done` is hard-gated by `endofrun_seen='1'`, even when the DUT is already empty and idle
+  - as a result, an out-of-order or redundant TERMINATE command from IDLE wedges the control interface in `TERMINATING` with no legal path to ready
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - reproduced by isolated case `X099`
+  - fixed by adding a quiescent `IDLE -> TERMINATING` ready path while keeping the normal end-of-run `terminating_drain_done` gate unchanged
+  - verified by a clean focused rerun of `B010`, `B033-B041`, `B071`, `X031`, and `X099`
+  - related RTL logic:
+    - `terminating_drain_done` gate at `rtl/ring_buffer_cam_v2_core.vhd:1633-1639`
+    - `TERMINATING` ready gate at `rtl/ring_buffer_cam_v2_core.vhd:1765-1770`
+- Commit: pending verified bug-fix commit

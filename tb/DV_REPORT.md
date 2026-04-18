@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `334` |
+| ⚠️ | unimplemented_cases | `327` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,6 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ✅ | `BUG-023-R` | RTL | `2026-04-18` | TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen` | `pending verified bug-fix commit` |
 | ✅ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `84b13e9` |
 | ✅ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `84b13e9` |
 | ✅ | `BUG-020-H` | Harness | `2026-04-18` | B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed | `740adc0` |
@@ -31,7 +32,6 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
 | ✅ | `BUG-017-H` | Harness | `2026-04-18` | Partition-stress BASIC cases hardcoded a 4-way geometry and sampled packetized output too late | `cec8e58` |
 | ✅ | `BUG-016-H` | Harness | `2026-04-17` | Deep overwrite-profile stimulus reused the full scoreboard fingerprint tuple every 2048 hits | `e8c18fe` |
-| ✅ | `BUG-015-H` | Harness | `2026-04-17` | Long-run output matching reused the pending-drain queue index as a live-slot index and could clear the wrong resident | `e8c18fe` |
 
 ## Formal / contract cases
 
@@ -46,8 +46,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 29 | 22.48% | 1117 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 182 | 35.27% | 32405 | 0 | 0 | 0 |
+| ⚠️ | `ERROR` | 129 | 36 | 27.91% | 1117 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 189 | 36.63% | 32405 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -55,24 +55,24 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=97.33, branch=89.51, cond=73.39, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.84 | 93.02% (120/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.67, branch=87.57, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.85 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 29 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.51 | 22.48% (29/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 36 | stmt=94.40, branch=83.00, cond=67.74, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=44.84 | 27.91% (36/129) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 97.33 | 95.0 |
-| ✅ | branch | 90.42 | 90.0 |
-| ℹ️ | cond | 73.39 | - |
+| ✅ | stmt | 97.02 | 95.0 |
+| ⚠️ | branch | 88.11 | 90.0 |
+| ℹ️ | cond | 70.99 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 73.00 | 80.0 |
+| ⚠️ | toggle | 73.07 | 80.0 |
 
-- functional coverage: `35.27% (182/516)`
+- functional coverage: `36.63% (189/516)`
 
 ## Cross / continuous-frame signoff
 

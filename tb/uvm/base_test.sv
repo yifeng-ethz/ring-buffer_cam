@@ -1093,7 +1093,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd424;
+    version_word[11:0]  = 12'd425;
     return version_word;
   endfunction
 
@@ -4999,6 +4999,98 @@ class base_test extends uvm_test;
       run_x055_flush_error_reset_case();
     end else if (case_id == "X061") begin
       run_x061_flush_backlog_popcmd_case();
+    end else if (case_id == "X082") begin
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+      wait_clocks(2);
+      csr_expect_mask(
+        CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+        "X082 CTRL soft_reset bit self-clears after a single write");
+    end else if (case_id == "X083") begin
+      wait_clocks(2);
+      csr_expect_mask(
+        CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+        "X083 CTRL soft_reset bit stays low without writes");
+      wait_clocks(2);
+      csr_expect_mask(
+        CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+        "X083 CTRL soft_reset bit remains low on the next idle sample");
+    end else if (case_id == "X084") begin
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+      wait_clocks(2);
+      csr_expect_mask(
+        CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+        "X084 back-to-back soft-reset writes still self-clear");
+    end else if (case_id == "X097") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= 9'h0ff;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1)
+          data_a = 1;
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (data_a != 0 || m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_ERROR) begin
+        `uvm_error("X097", $sformatf(
+          "Multi-hot run-control command was not contained: ack=%0d state=%0d",
+          data_a, m_env.m_dbg_mon.run_state_code))
+      end
+    end else if (case_id == "X098") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= 9'h000;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1)
+          data_a = 1;
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (data_a != 0 || m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_ERROR) begin
+        `uvm_error("X098", $sformatf(
+          "Zero run-control command was not contained: ack=%0d state=%0d",
+          data_a, m_env.m_dbg_mon.run_state_code))
+      end
+    end else if (case_id == "X099") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (8) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1)
+          data_a = 1;
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (data_a != 1 || m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_TERMINATING) begin
+        `uvm_error("X099", $sformatf(
+          "IDLE TERMINATE did not ack cleanly: ack=%0d state=%0d endofrun_seen=%0d term_done=%0d",
+          data_a, m_env.m_dbg_mon.run_state_code,
+          m_env.m_dbg_mon.endofrun_seen,
+          m_env.m_dbg_mon.terminating_drain_done))
+      end
+    end else if (case_id == "X100") begin
+      data_a = 0;
+      m_env.m_ctrl_drv.vif.data <= 9'h020;
+      m_env.m_ctrl_drv.vif.valid <= 1'b1;
+      repeat (2) begin
+        @(posedge m_env.m_ctrl_drv.vif.clk);
+        if (m_env.m_ctrl_drv.vif.ready === 1'b1)
+          data_a = 1;
+      end
+      m_env.m_ctrl_drv.vif.valid <= 1'b0;
+      m_env.m_ctrl_drv.vif.data <= '0;
+      repeat (2) @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (data_a != 0 || m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_LINK_TEST) begin
+        `uvm_error("X100", $sformatf(
+          "LINK_TEST command did not enter the unsupported state cleanly: ack=%0d state=%0d",
+          data_a, m_env.m_dbg_mon.run_state_code))
+      end
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
