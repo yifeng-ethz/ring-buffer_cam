@@ -1505,6 +1505,178 @@ class base_test extends uvm_test;
     ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
   endtask
 
+  task automatic run_x072_soft_reset_in_prep_case();
+    configure_and_start(2000);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X072 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X072 soft_reset self-clears during RUN_PREPARE");
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
+      `uvm_error("X072", "RUN_PREPARE flush did not complete after soft_reset write")
+    end
+  endtask
+
+  task automatic run_x073_soft_reset_in_terminate_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x073_terminate_burst");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X073 pre-terminate fill");
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X073 TERMINATING entry");
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X073 soft_reset self-clears during TERMINATING");
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(80_000, "X073 terminate drain with soft_reset");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (push_count != 16 || pop_count != 16) begin
+      `uvm_error("X073", $sformatf(
+        "TERMINATING + soft_reset disturbed drain accounting: push=%0d pop=%0d expected=16",
+        push_count, pop_count))
+    end
+  endtask
+
+  task automatic run_x075_soft_reset_with_latency_write_case();
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'd1536);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X075 soft_reset self-clears with adjacent EXPECTED_LAT write");
+    csr_expect_mask(
+      CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'd1536,
+      "X075 EXPECTED_LAT write survives adjacent soft_reset write");
+  endtask
+
+  task automatic run_x085_soft_reset_uid_read_case();
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(1);
+    csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "X085 UID readback under soft_reset activity");
+    wait_clocks(1);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X085 soft_reset self-clears around UID read");
+  endtask
+
+  task automatic run_x086_reserved_ctrl_bit2_case();
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0015);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_001F, 32'h0000_0011,
+      "X086 reserved CTRL bit2 is inert");
+  endtask
+
+  task automatic run_x087_reserved_ctrl_bit3_case();
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0019);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_001F, 32'h0000_0011,
+      "X087 reserved CTRL bit3 is inert");
+  endtask
+
+  task automatic run_x088_reserved_ctrl_upper_bits_case();
+    csr_write(CSR_CTRL_ADDR, 32'hFFFF_FFFF);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'hFFFF_FFFF, 32'h0000_0011,
+      "X088 upper CTRL bits stay inert and soft_reset self-clears");
+  endtask
+
+  task automatic run_x071_soft_reset_running_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_before;
+    int unsigned       fill_before;
+    int unsigned       push_after;
+    int unsigned       fill_after;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x071_running_burst");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X071 RUNNING traffic");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X071 soft_reset self-clears during RUNNING");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
+    if (push_after != push_before || fill_after != fill_before) begin
+      `uvm_error("X071", $sformatf(
+        "RUNNING soft_reset caused immediate functional side effects: push %0d->%0d fill %0d->%0d",
+        push_before, push_after, fill_before, fill_after))
+    end
+    terminate_and_drain(80_000, "X071 running soft_reset drain");
+    expect_service_model_accounting("X071 running soft_reset drain", 1, 0);
+  endtask
+
+  task automatic run_x074_soft_reset_during_drain_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x074_drain_burst");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_pop_engine_state(3'd4, 40_000, "X074 active DRAIN");
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X074 soft_reset self-clears during DRAIN");
+    wait_for_scoreboard_idle(80_000, "X074 drain completion");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (push_count != 32 || pop_count != 32) begin
+      `uvm_error("X074", $sformatf(
+        "Active-drain soft_reset disturbed accounting: push=%0d pop=%0d expected=32",
+        push_count, pop_count))
+    end
+    if (m_env.m_scb.total_unexpected_outputs != 0) begin
+      `uvm_error("X074", $sformatf(
+        "Active-drain soft_reset produced unexpected outputs=%0d",
+        m_env.m_scb.total_unexpected_outputs))
+    end
+  endtask
+
+  task automatic run_x090_meta_selector_case();
+    logic [31:0] version_word;
+    logic [31:0] date_word;
+
+    set_meta_sel(2'b00);
+    csr_read(CSR_META_ADDR, version_word);
+    set_meta_sel(2'b01);
+    csr_read(CSR_META_ADDR, date_word);
+    if (version_word != expected_meta_version() || date_word != 32'd20260418) begin
+      `uvm_error("X090", $sformatf(
+        "META selector write/read mismatch: version=0x%08x date=0x%08x",
+        version_word, date_word))
+    end
+    if (version_word == date_word) begin
+      `uvm_error("X090", "META selector did not change the returned bank")
+    end
+  endtask
+
   task automatic run_cross_curated_all_bucket_mix();
     same_key_burst_seq   burst_seq;
     random_push_pop_seq  rand_same;
@@ -5924,14 +6096,34 @@ class base_test extends uvm_test;
       run_x067_flush_complete_sync_case();
     end else if (case_id == "X068") begin
       run_x068_prep_clears_endofrun_case();
+    end else if (case_id == "X071") begin
+      run_x071_soft_reset_running_case();
+    end else if (case_id == "X072") begin
+      run_x072_soft_reset_in_prep_case();
+    end else if (case_id == "X073") begin
+      run_x073_soft_reset_in_terminate_case();
+    end else if (case_id == "X074") begin
+      run_x074_soft_reset_during_drain_case();
+    end else if (case_id == "X075") begin
+      run_x075_soft_reset_with_latency_write_case();
     end else if (case_id == "X058") begin
       run_x058_flush_from_running_case();
     end else if (case_id == "X060") begin
       run_x060_flush_backlog_deassembly_case();
+    end else if (case_id == "X085") begin
+      run_x085_soft_reset_uid_read_case();
+    end else if (case_id == "X086") begin
+      run_x086_reserved_ctrl_bit2_case();
+    end else if (case_id == "X087") begin
+      run_x087_reserved_ctrl_bit3_case();
+    end else if (case_id == "X088") begin
+      run_x088_reserved_ctrl_upper_bits_case();
     end else if (case_id == "X089") begin
       expect_csr_write_no_effect(
         CSR_UID_ADDR, 32'hFFFF_FFFF, 32'hFFFF_FFFF,
         "X089 UID write must be inert");
+    end else if (case_id == "X090") begin
+      run_x090_meta_selector_case();
     end else if (case_id == "X091") begin
       configure_and_start(2000);
       burst_seq = same_key_burst_seq::type_id::create("x091_filllevel_prefill");

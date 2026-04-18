@@ -1,3 +1,3 @@
 X090 has no live log artifact.
-State: planned only
-Scenario: write to RO register META (address 1) — inert
+State: implemented but not yet rerun
+Scenario: write to CSR META selector (address 1) — this is not RO; writes steer which metadata bank is returned on the next META read
