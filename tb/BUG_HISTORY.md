@@ -341,4 +341,4 @@
   - related RTL logic:
     - `terminating_drain_done` gate at `rtl/ring_buffer_cam_v2_core.vhd:1633-1639`
     - `TERMINATING` ready gate at `rtl/ring_buffer_cam_v2_core.vhd:1765-1770`
-- Commit: pending verified bug-fix commit
+- Commit: b203a04

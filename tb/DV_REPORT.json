@@ -187,7 +187,7 @@
       "date": "2026-04-18",
       "title": "TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen`",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending verified bug-fix commit"
+      "commit": "b203a04"
     }
   ],
   "buckets": {
