@@ -1677,6 +1677,161 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x076_soft_reset_retains_inerr_case();
+    error_burst_seq err_burst;
+    int unsigned    inerr_before;
+    int unsigned    inerr_after;
+
+    configure_and_start(2000);
+    err_burst = error_burst_seq::type_id::create("x076_inerr_burst");
+    err_burst.num_hits = 4;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_clocks(32);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    if (inerr_before != 4) begin
+      `uvm_error("X076", $sformatf(
+        "Precondition failed: expected INERR_COUNT=4 before soft_reset, observed %0d",
+        inerr_before))
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X076 soft_reset self-clears while INERR_COUNT is non-zero");
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (inerr_after != inerr_before) begin
+      `uvm_error("X076", $sformatf(
+        "soft_reset unexpectedly changed INERR_COUNT: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+  endtask
+
+  task automatic run_x077_soft_reset_retains_push_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_before;
+    int unsigned       push_after;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x077_push_burst");
+    burst_seq.num_hits = 8;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(8, 20_000, "X077 RUNNING traffic");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X077 soft_reset self-clears while PUSH_COUNT is non-zero");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    if (push_after != push_before) begin
+      `uvm_error("X077", $sformatf(
+        "soft_reset unexpectedly changed PUSH_COUNT: before=%0d after=%0d",
+        push_before, push_after))
+    end
+    terminate_and_drain(80_000, "X077 push-count retention drain");
+    expect_service_model_accounting("X077 push-count retention drain", 1, 0);
+  endtask
+
+  task automatic run_x078_soft_reset_retains_pop_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       pop_before;
+    int unsigned       pop_after;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x078_pop_burst");
+    burst_seq.num_hits = 8;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_scoreboard_idle(80_000, "X078 pre-soft-reset drain");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_before);
+    if (pop_before != 8) begin
+      `uvm_error("X078", $sformatf(
+        "Precondition failed: expected POP_COUNT=8 before soft_reset, observed %0d",
+        pop_before))
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X078 soft_reset self-clears after drain activity");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after);
+    if (pop_after != pop_before) begin
+      `uvm_error("X078", $sformatf(
+        "soft_reset unexpectedly changed POP_COUNT: before=%0d after=%0d",
+        pop_before, pop_after))
+    end
+  endtask
+
+  task automatic run_x079_soft_reset_retains_overwrite_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       overwrite_before;
+    int unsigned       overwrite_after;
+    int unsigned       cycles;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x079_overwrite_burst");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(m_cfg.ring_buffer_n_entry + 1, 40_000, "X079 overwrite start");
+    cycles = 0;
+    while (cycles < 40_000 && m_env.m_dbg_mon.dbg_overwrite_cnt[31:0] == 0) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_before);
+    if (overwrite_before == 0) begin
+      `uvm_error("X079", "Precondition failed: overwrite counter never became non-zero before soft_reset")
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X079 soft_reset self-clears while OVERWRITE_COUNT is non-zero");
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_after);
+    if (overwrite_after < overwrite_before) begin
+      `uvm_error("X079", $sformatf(
+        "soft_reset unexpectedly reduced OVERWRITE_COUNT: before=%0d after=%0d",
+        overwrite_before, overwrite_after))
+    end
+    terminate_and_drain(120_000, "X079 overwrite retention drain");
+    expect_service_model_accounting("X079 overwrite retention drain", 1, 1);
+  endtask
+
+  task automatic run_x081_soft_reset_retains_fill_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       fill_before;
+    int unsigned       fill_after;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x081_fill_burst");
+    burst_seq.num_hits = 12;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(12, 20_000, "X081 fill precondition");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
+    if (fill_before != 12) begin
+      `uvm_error("X081", $sformatf(
+        "Precondition failed: expected FILL_LEVEL=12 before soft_reset, observed %0d",
+        fill_before))
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X081 soft_reset self-clears while FILL_LEVEL is non-zero");
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
+    if (fill_after != fill_before) begin
+      `uvm_error("X081", $sformatf(
+        "soft_reset unexpectedly changed FILL_LEVEL: before=%0d after=%0d",
+        fill_before, fill_after))
+    end
+    terminate_and_drain(80_000, "X081 fill retention drain");
+    expect_service_model_accounting("X081 fill retention drain", 1, 0);
+  endtask
+
   task automatic run_cross_curated_all_bucket_mix();
     same_key_burst_seq   burst_seq;
     random_push_pop_seq  rand_same;
@@ -6106,10 +6261,20 @@ class base_test extends uvm_test;
       run_x074_soft_reset_during_drain_case();
     end else if (case_id == "X075") begin
       run_x075_soft_reset_with_latency_write_case();
+    end else if (case_id == "X076") begin
+      run_x076_soft_reset_retains_inerr_case();
+    end else if (case_id == "X077") begin
+      run_x077_soft_reset_retains_push_case();
+    end else if (case_id == "X078") begin
+      run_x078_soft_reset_retains_pop_case();
+    end else if (case_id == "X079") begin
+      run_x079_soft_reset_retains_overwrite_case();
     end else if (case_id == "X058") begin
       run_x058_flush_from_running_case();
     end else if (case_id == "X060") begin
       run_x060_flush_backlog_deassembly_case();
+    end else if (case_id == "X081") begin
+      run_x081_soft_reset_retains_fill_case();
     end else if (case_id == "X085") begin
       run_x085_soft_reset_uid_read_case();
     end else if (case_id == "X086") begin
