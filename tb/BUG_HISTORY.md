@@ -265,3 +265,17 @@
   - the publisher now materializes durable copies into `tb/uvm/logs/` and `tb/uvm/cov_after/` instead of leaving volatile symlinks behind
   - verified by rerunning the full `137/137` implemented isolated matrix, regenerating the report, and confirming there are now `0` symlinks left in both evidence directories
 - Commit: cec8e58
+
+### BUG-019-H: E026 partition-walk harness observed the wrong partition index during skip logic
+- First seen in: `E026` on 2026-04-18 during the first `E017/E025/E026/E032` tranche run
+- Symptom:
+  - `E026` failed with `Last partition P1 was never visited after drain start` and `Partition visits did not match expected mask 0x3`
+  - counters still showed `pushed==popped`, so the DUT output itself appeared lossless while case bookkeeping missed partition `0x1`
+- Root cause:
+  - the testcase sample path read `m_env.m_dbg_mon.pop_issue_partition_idx` instead of deriving the active partition from the surfaced `pop_issue_addr`
+  - in the `default_p2_pipe4` geometry this produced inconsistent partition bookkeeping when round-robin skipped empty partitions
+- Fix status: fixed in working tree, commit pending
+- Runtime / coverage context:
+  - `E026` now derives `visit_idx = pop_issue_addr / partition_size` on each pop issue and masks checks against that index
+  - this aligns with the DUT interface contract used by other partition checks and removes the false-negative on empty-partition skips
+- Commit: pending

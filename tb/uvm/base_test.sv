@@ -1339,9 +1339,19 @@ class base_test extends uvm_test;
     int unsigned          prefill_hits;
     logic [3:0]           load_mask;
     logic [1:0]           rr_before;
+    int unsigned          last_partition_idx;
+    bit [3:0]             expected_partition_mask;
     bit                   saw_load;
     bit                   saw_overlap;
+    bit                   saw_rr_step1;
+    bit                   saw_rr_step2;
+    bit                   saw_last_partition;
     bit                   saw_rr_advance;
+    int unsigned          visit_idx;
+    bit                   saw_push_511;
+    bit                   saw_push_000;
+    bit                   saw_pop_510;
+    int unsigned          grant_count;
     bit                   saw_preempt;
     bit                   saw_full;
     bit                   saw_ready_recover;
@@ -3389,6 +3399,248 @@ class base_test extends uvm_test;
             focus_search_key[7:0]))
         end
       end
+    end else if (case_id == "E017") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e017_prefill_other");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - 2;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 2, 80_000, "E017 near-wrap prefill");
+      burst_seq = same_key_burst_seq::type_id::create("e017_target_wrap_slot510");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 1, 80_000, "E017 target at slot510");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_search_key(
+        focus_search_key[7:0], 120_000, "E017 target subheader", matched_subheader);
+      wait_for_pop_engine_state(3'd4, 120_000, "E017 DRAIN entry");
+      saw_push_511 = 1'b0;
+      saw_push_000 = 1'b0;
+      saw_pop_510 = 1'b0;
+      saw_overlap = 1'b0;
+      grant_count = 0;
+      fork
+        begin
+          while (m_env.m_dbg_mon.pop_engine_state_code != 3'd4) begin
+            @(posedge m_env.m_csr_drv.vif.clk);
+          end
+          single_seq = single_push_pop_seq::type_id::create("e017_wrap_push_511");
+          single_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+          single_seq.start(m_env.m_hit_seqr);
+          @(posedge m_env.m_csr_drv.vif.clk);
+          single_seq = single_push_pop_seq::type_id::create("e017_wrap_push_000");
+          single_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+          single_seq.start(m_env.m_hit_seqr);
+        end
+        begin
+          while (grant_count < 3 && !(saw_push_511 && saw_push_000)) begin
+            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+                m_env.m_dbg_mon.pop_engine_state_code != 3'd0) begin
+              if (m_env.m_dbg_mon.vif.cam_wr_addr == (m_cfg.ring_buffer_n_entry - 1))
+                saw_push_511 = 1'b1;
+              if (m_env.m_dbg_mon.vif.cam_wr_addr == 16'h0000)
+                saw_push_000 = 1'b1;
+            end
+            if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+              grant_count++;
+              if (m_env.m_dbg_mon.vif.cam_wr_addr == (m_cfg.ring_buffer_n_entry - 2))
+                saw_pop_510 = 1'b1;
+              if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1)
+                saw_overlap = 1'b1;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+          end
+        end
+      join
+      if (!saw_pop_510) begin
+        `uvm_error("E017", "Target pop-erase at slot510 did not occur")
+      end
+      if (!saw_push_511 || !saw_push_000) begin
+        `uvm_error("E017", $sformatf(
+          "Did not observe full wrap-around push pressure during DRAIN: saw_push_511=%0d saw_push_000=%0d",
+          saw_push_511, saw_push_000))
+      end
+      if (saw_overlap) begin
+        `uvm_error("E017", "Arbitration selected non-pop path while pop_erase was active")
+      end
+      wait_for_hit_output_count(1, 120_000, "E017 target pop beat");
+      wait_for_scoreboard_idle(200_000, "E017 wraparound conflict drain");
+    end else if (case_id == "E025") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e025_slot0_single");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 20_000, "E025 one-hit fill");
+      wait_for_pop_engine_state(3'd4, 80_000, "E025 DRAIN entry");
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      if (m_env.m_dbg_mon.pop_partition_pending != 4'b0001) begin
+        `uvm_error("E025", $sformatf(
+          "Partition snapshot leaked stale partitions: pending=0x%0h",
+          m_env.m_dbg_mon.pop_partition_pending))
+      end
+      load_mask = '0;
+      wait_for_partition_issue_mask(4'b0001, load_mask, 80_000, "E025 partition0 issue mask");
+      if (load_mask != 4'b0001) begin
+        `uvm_error("E025", $sformatf(
+          "Single-slot0 hit escaped partition0 issue mask: observed=0x%0h",
+          load_mask))
+      end
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      wait_for_hit_output_count(hit_before + 1, 120_000, "E025 single-hit output");
+      if (m_env.m_out_mon.total_hits_seen != (hit_before + 1)) begin
+        `uvm_error("E025", "Exactly one hit beat was expected for the single-hit burst")
+      end
+      matched_subheader = null;
+      for (int idx = int'(m_env.m_out_mon.recent_data_subheaders.size()) - 1; idx >= 0; idx--) begin
+        if (m_env.m_out_mon.recent_data_subheaders[idx].search_key == focus_search_key[7:0] &&
+            m_env.m_out_mon.recent_data_subheaders[idx].hit_count == 8'd1) begin
+          matched_subheader = m_env.m_out_mon.recent_data_subheaders[idx];
+          break;
+        end
+      end
+      if (matched_subheader == null) begin
+        wait_for_subheader_match(
+          focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 40_000,
+          "E025 target single-hit subheader", matched_subheader);
+      end
+      if (matched_subheader == null || m_env.m_out_mon.recent_hits.size() == 0) begin
+        `uvm_error("E025", "Did not capture subheader and hit beat")
+      end else begin
+        if (matched_subheader.search_key != focus_search_key[7:0]) begin
+          `uvm_error("E025", $sformatf(
+            "Single-hit subheader search-key mismatch: observed=0x%02x expected=0x%02x",
+            matched_subheader.search_key, focus_search_key[7:0]))
+        end
+        if (matched_subheader.hit_count != 1) begin
+          `uvm_error("E025", $sformatf(
+            "Expected one-hit framing but observed hit_count=%0d",
+            matched_subheader.hit_count))
+        end
+        if (!(matched_subheader.sop && !matched_subheader.eop)) begin
+          `uvm_error("E025", "One-hit framing was not SOP-only")
+        end
+        if (!m_env.m_out_mon.recent_hits[$].eop) begin
+          `uvm_error("E025", "One-hit frame did not close on hit beat")
+        end
+      end
+      wait_for_scoreboard_idle(80_000, "E025 slot0 single-hit drain");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 1 || pop_count != 1 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E025", $sformatf(
+          "Single-hit accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, fill_level))
+      end
+    end else if (case_id == "E026") begin
+      configure_and_start(16'hFFFF);
+      last_partition_idx = (m_cfg.n_partitions > 0) ? (m_cfg.n_partitions - 1) : 0;
+      expected_partition_mask = 4'b0001;
+      if (last_partition_idx < 4) begin
+        expected_partition_mask[last_partition_idx] = 1'b1;
+      end
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e026_two_partition_fill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - partition_size + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - partition_size + 1, 120_000, "E026 two-partition fill");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_pop_engine_state(3'd4, 80_000, "E026 DRAIN entry");
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      search_cycles = 0;
+      while (search_cycles < 80_000) begin
+        if ((m_env.m_dbg_mon.pop_partition_pending & expected_partition_mask) == expected_partition_mask) begin
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if ((m_env.m_dbg_mon.pop_partition_pending & expected_partition_mask) != expected_partition_mask) begin
+        `uvm_error("E026", $sformatf(
+          "Target partition snapshot mismatch after DRAIN stabilizes: observed=0x%0h expected=0x%0h",
+          m_env.m_dbg_mon.pop_partition_pending, expected_partition_mask))
+      end
+      load_mask = '0;
+      grant_count = 0;
+      saw_rr_step1 = 1'b0;
+      saw_rr_step2 = 1'b0;
+      saw_last_partition = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 240_000 &&
+             ((load_mask & expected_partition_mask) != expected_partition_mask ||
+              grant_count < 1)) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant) begin
+          visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+          if (visit_idx < 4) begin
+            load_mask[visit_idx[1:0]] = 1'b1;
+          end
+          grant_count++;
+          if (grant_count == 1 && visit_idx[1:0] != 2'd0) begin
+            `uvm_error("E026", $sformatf(
+              "First pop partition should be P0, observed=%0d", visit_idx))
+          end
+          if (visit_idx == last_partition_idx) begin
+            saw_last_partition = 1'b1;
+          end
+        end else if (grant_count == 1) begin
+          if (m_env.m_dbg_mon.pop_rr_idx == 2'd1) begin
+            saw_rr_step1 = 1'b1;
+          end
+          if (m_env.m_dbg_mon.pop_rr_idx == 2'd2) begin
+            saw_rr_step2 = 1'b1;
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_cfg.n_partitions > 2 && !saw_rr_step1) begin
+        `uvm_error("E026", "Did not observe round-robin advance to partition1 while scanning")
+      end
+      if (m_cfg.n_partitions > 3 && !saw_rr_step2) begin
+        `uvm_error("E026", "Did not observe round-robin advance to partition2 while scanning")
+      end
+      if (!saw_last_partition) begin
+        `uvm_error("E026", $sformatf(
+          "Last partition P%0d was never visited after drain start", last_partition_idx[1:0]))
+      end
+      if (load_mask != expected_partition_mask) begin
+        `uvm_error("E026", $sformatf(
+          "Partition visits did not match expected mask 0x%0h: observed=0x%0h",
+          expected_partition_mask, load_mask))
+      end
+      wait_for_hit_output_count(
+        hit_before + (m_cfg.ring_buffer_n_entry - partition_size + 1), 200_000, "E026 two-partition drain");
+      wait_for_scoreboard_idle(160_000, "E026 partition skip drain");
+    end else if (case_id == "E032") begin
+      configure_and_start();
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("e032_single_hit");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        burst_seq.search_key[7:0], 1, 1'b1, 1'b1, 80_000,
+        "E032 target single-hit subheader", matched_subheader);
+      wait_for_hit_output_count(hit_before + 1, 120_000, "E032 single-hit output");
+      if (matched_subheader == null || m_env.m_out_mon.recent_hits.size() == 0) begin
+        `uvm_error("E032", "Did not capture both subheader and hit beats")
+      end else begin
+        if (!(matched_subheader.sop && !matched_subheader.eop)) begin
+          `uvm_error("E032", "SOP-only subheader for N=1 hit was not observed")
+        end
+        if (!m_env.m_out_mon.recent_hits[$].eop) begin
+          `uvm_error("E032", "Single hit did not assert EOP")
+        end
+      end
+      wait_for_scoreboard_idle(80_000, "E032 single-hit drain");
     end else if (case_id == "E019") begin
       configure_and_start(1);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
