@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `253` |
+| ⚠️ | unimplemented_cases | `248` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -45,9 +45,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
-| ⚠️ | `PROF` | 129 | 11 | 8.53% | 10222 | 0 | 0 | 0 |
+| ⚠️ | `PROF` | 129 | 16 | 12.40% | 26830 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 84 | 65.12% | 4945 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 239 | 46.32% | 38281 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 244 | 47.29% | 54889 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -57,7 +57,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---:|---:|---|---|
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.19, branch=86.68, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 11 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.00 | 8.53% (11/129) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 16 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.55 | 12.4% (16/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 84 | stmt=95.94, branch=86.45, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 | 65.12% (84/129) |
 
 ## Totals
@@ -72,7 +72,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
 | ⚠️ | toggle | 73.24 | 80.0 |
 
-- functional coverage: `46.32% (239/516)`
+- functional coverage: `47.29% (244/516)`
 
 ## Cross / continuous-frame signoff
 

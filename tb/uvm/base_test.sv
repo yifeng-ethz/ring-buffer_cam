@@ -3922,6 +3922,91 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_single_key_slow_creep_case(
+    string       what,
+    int unsigned latency,
+    int unsigned prefill_hits,
+    int unsigned slow_hits,
+    int unsigned slow_inter_hit_gap_cycles,
+    int unsigned min_overwrites,
+    int unsigned max_overwrite_pct_x100
+  );
+    overwrite_profile_seq pressure_seq;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned fill_level;
+    int unsigned total_hits;
+    int unsigned focus_search_key;
+
+    configure_and_start(latency);
+
+    pressure_seq = overwrite_profile_seq::type_id::create({what, "_prefill"});
+    pressure_seq.num_hits = prefill_hits;
+    pressure_seq.lane_key_start_ord = 2;
+    pressure_seq.pool_keys = 1;
+    pressure_seq.hits_per_key_switch = 1;
+    pressure_seq.progress_stride = 128;
+    pressure_seq.progress_tag = {what, " prefill"};
+    pressure_seq.start(m_env.m_hit_seqr);
+
+    pressure_seq = overwrite_profile_seq::type_id::create({what, "_slow"});
+    pressure_seq.num_hits = slow_hits;
+    pressure_seq.lane_key_start_ord = 2;
+    pressure_seq.pool_keys = 1;
+    pressure_seq.hits_per_key_switch = 1;
+    pressure_seq.inter_hit_gap_cycles = slow_inter_hit_gap_cycles;
+    pressure_seq.progress_stride = 1024;
+    pressure_seq.progress_tag = {what, " slow"};
+    pressure_seq.start(m_env.m_hit_seqr);
+
+    terminate_and_drain(1_000_000, {what, " terminate drain"});
+    expect_service_model_accounting({what, " post-terminate"}, 1, min_overwrites);
+
+    total_hits = prefill_hits + slow_hits;
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+
+    if (push_count != total_hits) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s final push_count mismatch: observed=%0d expected=%0d",
+        what, push_count, total_hits))
+    end
+    if (fill_level != 0) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s expected a drained fill_level=0 after terminate, observed %0d",
+        what, fill_level))
+    end
+    if (m_env.m_dbg_mon.first_pop_cycle == 0 || m_env.m_dbg_mon.first_overwrite_cycle == 0) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s did not observe both first pop and first overwrite cycles: first_pop=%0d first_overwrite=%0d",
+        what, m_env.m_dbg_mon.first_pop_cycle, m_env.m_dbg_mon.first_overwrite_cycle))
+    end
+    if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s hotspot never saturated the full sector depth: key=%0d max_for_key=%0d ring_depth=%0d",
+        what, focus_search_key,
+        m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+        m_cfg.ring_buffer_n_entry))
+    end
+    if ((overwrite_count * 10_000) > (push_count * max_overwrite_pct_x100)) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s overwrite rate escaped the slow-creep envelope: push=%0d overwrite=%0d pct_x100=%0d limit_x100=%0d",
+        what, push_count, overwrite_count,
+        (push_count == 0) ? 0 : ((overwrite_count * 10_000) / push_count),
+        max_overwrite_pct_x100))
+    end
+    `uvm_info("PRESSURE", $sformatf(
+      "%s slow-creep summary: latency=%0d prefill_hits=%0d slow_hits=%0d slow_gap=%0d push=%0d pop=%0d overwrite=%0d overwrite_pct_x100=%0d max_hotspot=%0d",
+      what, latency, prefill_hits, slow_hits, slow_inter_hit_gap_cycles,
+      push_count, pop_count, overwrite_count,
+      (push_count == 0) ? 0 : ((overwrite_count * 10_000) / push_count),
+      m_env.m_scb.max_remaining_entries_for_key(focus_search_key)), UVM_LOW)
+  endtask
+
   task automatic run_same_key_epoch_count_case(
     string what,
     int unsigned num_hits,
@@ -7608,6 +7693,152 @@ class base_test extends uvm_test;
       run_single_key_overwrite_window("P112 single-key overwrite 30pct-ish", 736);
     end else if (case_id == "P113") begin
       run_single_key_overwrite_window("P113 single-key overwrite 50pct-ish", 1024);
+    end else if (case_id == "P114") begin
+      int unsigned bp_push_count;
+      int unsigned bp_pop_count;
+      int unsigned bp_overwrite_count;
+      int unsigned bp_fill_level;
+      int unsigned sink_low_cycles;
+      bit          bp_traffic_done;
+
+      configure_and_start(2000);
+      sink_low_cycles = 0;
+      bp_traffic_done = 1'b0;
+      fork
+        begin
+          search_cycles = 0;
+          while (search_cycles < 800_000 &&
+                 (!bp_traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            if ((search_cycles & 1) == 0) begin
+              set_sink_ready(1'b1);
+            end else begin
+              set_sink_ready(1'b0);
+              sink_low_cycles++;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+          set_sink_ready(1'b1);
+        end
+        begin
+          burst_seq = same_key_burst_seq::type_id::create("p114_prefill");
+          burst_seq.num_hits = 544;
+          burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+          burst_seq.start(m_env.m_hit_seqr);
+
+          pressure_seq = overwrite_profile_seq::type_id::create("p114_slow_pressure");
+          pressure_seq.num_hits = 4096;
+          pressure_seq.lane_key_start_ord = 2;
+          pressure_seq.pool_keys = 1;
+          pressure_seq.hits_per_key_switch = 1;
+          pressure_seq.inter_hit_gap_cycles = 39;
+          pressure_seq.progress_stride = 1024;
+          pressure_seq.progress_tag = "P114";
+          pressure_seq.start(m_env.m_hit_seqr);
+          bp_traffic_done = 1'b1;
+        end
+      join
+      terminate_and_drain(1_000_000, "P114 backpressure overwrite terminate drain");
+      expect_service_model_accounting("P114 backpressure overwrite post-terminate", 1, 1);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, bp_push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, bp_pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, bp_overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, bp_fill_level);
+      if (sink_low_cycles == 0) begin
+        `uvm_error("P114", "Backpressure-driven overwrite case never actually forced sink-ready low")
+      end
+      if (bp_push_count != 4640 || bp_fill_level != 0) begin
+        `uvm_error("P114", $sformatf(
+          "Backpressure overwrite accounting precondition failed: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          bp_push_count, bp_pop_count, bp_overwrite_count, bp_fill_level))
+      end
+      if (bp_overwrite_count < 64) begin
+        `uvm_error("P114", $sformatf(
+          "Backpressure-driven overwrite stayed too small to prove the sink-pressure regime: overwrite=%0d expected_at_least=64",
+          bp_overwrite_count))
+      end
+      if ((bp_overwrite_count * 10_000) >= (bp_push_count * 4000)) begin
+        `uvm_error("P114", $sformatf(
+          "Backpressure overwrite escaped the intended moderate regime: push=%0d overwrite=%0d pct_x100=%0d",
+          bp_push_count,
+          bp_overwrite_count,
+          (bp_push_count == 0) ? 0 : ((bp_overwrite_count * 10_000) / bp_push_count)))
+      end
+    end else if (case_id == "P115") begin
+      int unsigned bp_push_count;
+      int unsigned bp_pop_count;
+      int unsigned bp_overwrite_count;
+      int unsigned bp_fill_level;
+      int unsigned sink_low_cycles;
+      bit          bp_traffic_done;
+      logic [31:0] ready_lfsr;
+
+      configure_and_start(2000);
+      sink_low_cycles = 0;
+      bp_traffic_done = 1'b0;
+      ready_lfsr = 32'h1bad_cafe;
+      fork
+        begin
+          search_cycles = 0;
+          while (search_cycles < 800_000 &&
+                 (!bp_traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            ready_lfsr = {ready_lfsr[30:0],
+                          ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+            if (ready_lfsr[7:0] < 8'd77) begin
+              set_sink_ready(1'b1);
+            end else begin
+              set_sink_ready(1'b0);
+              sink_low_cycles++;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+          set_sink_ready(1'b1);
+        end
+        begin
+          burst_seq = same_key_burst_seq::type_id::create("p115_prefill");
+          burst_seq.num_hits = 544;
+          burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+          burst_seq.start(m_env.m_hit_seqr);
+
+          pressure_seq = overwrite_profile_seq::type_id::create("p115_random_backpressure");
+          pressure_seq.num_hits = 4096;
+          pressure_seq.lane_key_start_ord = 2;
+          pressure_seq.pool_keys = 1;
+          pressure_seq.hits_per_key_switch = 1;
+          pressure_seq.inter_hit_gap_cycles = 19;
+          pressure_seq.progress_stride = 1024;
+          pressure_seq.progress_tag = "P115";
+          pressure_seq.start(m_env.m_hit_seqr);
+          bp_traffic_done = 1'b1;
+        end
+      join
+      terminate_and_drain(1_000_000, "P115 random-backpressure overwrite terminate drain");
+      expect_service_model_accounting("P115 random-backpressure overwrite post-terminate", 1, 1);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, bp_push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, bp_pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, bp_overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, bp_fill_level);
+      if (sink_low_cycles == 0) begin
+        `uvm_error("P115", "Random-backpressure overwrite case never actually forced sink-ready low")
+      end
+      if (bp_push_count != 4640 || bp_fill_level != 0) begin
+        `uvm_error("P115", $sformatf(
+          "Random-backpressure overwrite accounting precondition failed: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          bp_push_count, bp_pop_count, bp_overwrite_count, bp_fill_level))
+      end
+      if (bp_overwrite_count < 160) begin
+        `uvm_error("P115", $sformatf(
+          "Random-backpressure overwrite stayed too small to prove the 30%%-ready regime: overwrite=%0d expected_at_least=160",
+          bp_overwrite_count))
+      end
+      if ((bp_overwrite_count * 10_000) >= (bp_push_count * 6500)) begin
+        `uvm_error("P115", $sformatf(
+          "Random-backpressure overwrite escaped the intended stochastic regime: push=%0d overwrite=%0d pct_x100=%0d",
+          bp_push_count,
+          bp_overwrite_count,
+          (bp_push_count == 0) ? 0 : ((bp_overwrite_count * 10_000) / bp_push_count)))
+      end
     end else if (case_id == "P116") begin
       configure_and_start(2000);
       pressure_seq = overwrite_profile_seq::type_id::create("p116_pressure");
@@ -7662,6 +7893,10 @@ class base_test extends uvm_test;
           "Burst overwrite case never saturated the rbCAM: max_remaining=%0d ring_depth=%0d",
           m_env.m_scb.max_remaining_entries(), m_cfg.ring_buffer_n_entry))
       end
+    end else if (case_id == "P120") begin
+      run_single_key_slow_creep_case(
+        "P120 single-key overwrite slow-creep",
+        16'd2000, 544, 4096, 39, 16, 500);
     end else if (case_id == "P123") begin
       run_single_key_latency_extreme_case(
         "P123 single-key overwrite max-latency",
@@ -7670,6 +7905,14 @@ class base_test extends uvm_test;
       run_single_key_latency_extreme_case(
         "P124 single-key overwrite min-latency",
         16'd1, 1024, 128, 192, 384, 448, 1'b0);
+    end else if (case_id == "P128") begin
+      run_single_key_overwrite_window("P128 single-key overwrite upper-bound", 2048);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (overwrite_count < 1024) begin
+        `uvm_error("P128", $sformatf(
+          "Upper-bound overwrite case did not sustain the expected heavy overwrite regime: overwrite=%0d expected_at_least=1024",
+          overwrite_count))
+      end
     end else if (case_id == "P117") begin
       configure_and_start(2000);
       emit_weighted_overwrite_epochs(
@@ -7783,6 +8026,65 @@ class base_test extends uvm_test;
       read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
       if (overwrite_count == 0) begin
         `uvm_error("P121", "Second overwrite-pressure window never accumulated overwrite after FLUSH restart")
+      end
+    end else if (case_id == "P122") begin
+      int unsigned window_push_a;
+      int unsigned window_pop_a;
+      int unsigned window_overwrite_a;
+      int unsigned window_fill_a;
+      int unsigned window_push_b;
+      int unsigned window_pop_b;
+      int unsigned window_overwrite_b;
+      int unsigned window_fill_b;
+
+      configure_and_start(2000);
+      pressure_seq = overwrite_profile_seq::type_id::create("p122_window_a");
+      pressure_seq.num_hits = 640;
+      pressure_seq.lane_key_start_ord = 4;
+      pressure_seq.pool_keys = 4;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.progress_stride = 128;
+      pressure_seq.progress_tag = "P122-A";
+      pressure_seq.start(m_env.m_hit_seqr);
+      terminate_and_drain(200_000, "P122 window_a terminate drain");
+      expect_service_model_accounting("P122 window_a post-terminate", 1, 1);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, window_push_a);
+      read_counter_u32(CSR_POP_COUNT_ADDR, window_pop_a);
+      read_counter_u32(CSR_OVERWRITE_ADDR, window_overwrite_a);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, window_fill_a);
+      if (window_push_a != 640 || window_fill_a != 0 || window_overwrite_a == 0) begin
+        `uvm_error("P122", $sformatf(
+          "Window-A terminate/restart precondition failed: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          window_push_a, window_pop_a, window_overwrite_a, window_fill_a))
+      end
+
+      configure_and_start(2000);
+      pressure_seq = overwrite_profile_seq::type_id::create("p122_window_b");
+      pressure_seq.num_hits = 640;
+      pressure_seq.lane_key_start_ord = 4;
+      pressure_seq.pool_keys = 4;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.progress_stride = 128;
+      pressure_seq.progress_tag = "P122-B";
+      pressure_seq.start(m_env.m_hit_seqr);
+      terminate_and_drain(200_000, "P122 window_b terminate drain");
+      expect_service_model_accounting("P122 window_b post-terminate", 1, 1);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, window_push_b);
+      read_counter_u32(CSR_POP_COUNT_ADDR, window_pop_b);
+      read_counter_u32(CSR_OVERWRITE_ADDR, window_overwrite_b);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, window_fill_b);
+      if (window_push_b != 640 || window_fill_b != 0 || window_overwrite_b == 0) begin
+        `uvm_error("P122", $sformatf(
+          "Window-B terminate/restart precondition failed: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          window_push_b, window_pop_b, window_overwrite_b, window_fill_b))
+      end
+      if (window_push_a != window_push_b ||
+          window_pop_a != window_pop_b ||
+          window_overwrite_a != window_overwrite_b) begin
+        `uvm_error("P122", $sformatf(
+          "Terminate/restart windows were not repeatable: A(push=%0d pop=%0d overwrite=%0d) B(push=%0d pop=%0d overwrite=%0d)",
+          window_push_a, window_pop_a, window_overwrite_a,
+          window_push_b, window_pop_b, window_overwrite_b))
       end
     end else if (case_id == "X001") begin
       run_x001_filter_inerr_case();

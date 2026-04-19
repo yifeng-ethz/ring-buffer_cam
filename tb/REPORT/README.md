@@ -15,7 +15,7 @@
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=96.19, branch=86.68, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 11 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.00 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 16 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.55 |
 | ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 84 | stmt=95.94, branch=86.45, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 |
 
 ## Cross / continuous-frame runs
@@ -141,31 +141,31 @@
 | ❓ | [`P111`](cases/P111.md) | PROF | 576 | [growth](txn_growth/P111.md) |
 | ❓ | [`P112`](cases/P112.md) | PROF | 736 | [growth](txn_growth/P112.md) |
 | ❓ | [`P113`](cases/P113.md) | PROF | 1024 | [growth](txn_growth/P113.md) |
-| ❓ | [`P114`](cases/P114.md) | PROF | 0 | [growth](txn_growth/P114.md) |
-| ❓ | [`P115`](cases/P115.md) | PROF | 0 | [growth](txn_growth/P115.md) |
+| ❓ | [`P114`](cases/P114.md) | PROF | 4640 | [growth](txn_growth/P114.md) |
+| ❓ | [`P115`](cases/P115.md) | PROF | 4640 | [growth](txn_growth/P115.md) |
 | ❓ | [`P116`](cases/P116.md) | PROF | 640 | [growth](txn_growth/P116.md) |
 | ❓ | [`P117`](cases/P117.md) | PROF | 0 | [growth](txn_growth/P117.md) |
 | ❓ | [`P118`](cases/P118.md) | PROF | 0 | [growth](txn_growth/P118.md) |
 | ❓ | [`P119`](cases/P119.md) | PROF | 768 | [growth](txn_growth/P119.md) |
-| ❓ | [`P120`](cases/P120.md) | PROF | 0 | [growth](txn_growth/P120.md) |
+| ❓ | [`P120`](cases/P120.md) | PROF | 4640 | [growth](txn_growth/P120.md) |
 | ❓ | [`P121`](cases/P121.md) | PROF | 0 | [growth](txn_growth/P121.md) |
-| ❓ | [`P122`](cases/P122.md) | PROF | 0 | [growth](txn_growth/P122.md) |
+| ❓ | [`P122`](cases/P122.md) | PROF | 640 | [growth](txn_growth/P122.md) |
 | ❓ | [`P123`](cases/P123.md) | PROF | 1024 | [growth](txn_growth/P123.md) |
 | ❓ | [`P124`](cases/P124.md) | PROF | 1024 | [growth](txn_growth/P124.md) |
 | ❓ | [`P125`](cases/P125.md) | PROF | 0 | [growth](txn_growth/P125.md) |
 | ❓ | [`P126`](cases/P126.md) | PROF | 0 | [growth](txn_growth/P126.md) |
 | ❓ | [`P127`](cases/P127.md) | PROF | 0 | [growth](txn_growth/P127.md) |
-| ❓ | [`P128`](cases/P128.md) | PROF | 0 | [growth](txn_growth/P128.md) |
+| ❓ | [`P128`](cases/P128.md) | PROF | 2048 | [growth](txn_growth/P128.md) |
 
 ## Totals
 
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `239`
+- evidenced_cases = `244`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=96.84, branch=87.57, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.24`
-- functional coverage: `46.32% (239/516)`
+- functional coverage: `47.29% (244/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_
