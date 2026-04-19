@@ -425,7 +425,7 @@
 - Runtime / coverage context:
   - fixed by adding ingress observability to the debug path and rewriting `X019` to use a sequencer-aligned bad-hit injection one cycle ahead of `CTRL_RUNNING`
   - verified by clean isolated reruns of `X019` together with the surrounding flush-sensitive cases `X017` and `X055`
-- Commit: pending
+- Commit: e85f536
 
 ### BUG-029-H: `note_flush_reset()` cleared the resident model but not the scoreboard epoch counters
 - First seen in: `P118` on 2026-04-19 while bringing up rotating overwrite-pressure windows with a mid-case flush/restart
@@ -439,4 +439,4 @@
 - Runtime / coverage context:
   - exposed by isolated case `P118`, which timed out after a legal flush/restart boundary with `accepted=1280` and `written=1232` even though the resident model was empty
   - fixed by resetting the epoch counters/maps in `scoreboard.note_flush_reset()` and verified by clean reruns of `P118`, `P121`, `P124`, `X017`, `X019`, and `X055`
-- Commit: pending
+- Commit: e85f536

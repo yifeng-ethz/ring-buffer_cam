@@ -24,8 +24,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-029-H` | Harness | `2026-04-19` | `note_flush_reset()` cleared the resident model but not the scoreboard epoch counters | `pending` |
-| ⚠️ | `BUG-028-H` | Harness | `2026-04-19` | The original `X019` raw boundary injector did not actually drive an ingress beat | `pending` |
+| ✅ | `BUG-029-H` | Harness | `2026-04-19` | `note_flush_reset()` cleared the resident model but not the scoreboard epoch counters | `e85f536` |
+| ✅ | `BUG-028-H` | Harness | `2026-04-19` | The original `X019` raw boundary injector did not actually drive an ingress beat | `e85f536` |
 | ✅ | `BUG-027-R` | RTL | `2026-04-19` | MM CSR traffic masked same-cycle `INERR_COUNT` updates | `e182765` |
 | ✅ | `BUG-026-H` | Harness | `2026-04-19` | The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain | `e182765` |
 | ✅ | `BUG-025-R` | RTL | `2026-04-18` | Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged | `f575af8` |

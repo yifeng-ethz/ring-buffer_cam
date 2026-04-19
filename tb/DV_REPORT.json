@@ -227,7 +227,7 @@
       "date": "2026-04-19",
       "title": "The original `X019` raw boundary injector did not actually drive an ingress beat",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "e85f536"
     },
     {
       "bug_id": "BUG-029-H",
@@ -235,7 +235,7 @@
       "date": "2026-04-19",
       "title": "`note_flush_reset()` cleared the resident model but not the scoreboard epoch counters",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "e85f536"
     }
   ],
   "buckets": {
