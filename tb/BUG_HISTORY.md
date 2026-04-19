@@ -413,16 +413,30 @@
     - `rtl/ring_buffer_cam_v2_core.vhd` `proc_avmm_csr`
 - Commit: e182765
 
-### BUG-028-R: The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost
+### BUG-028-H: The original `X019` raw boundary injector did not actually drive an ingress beat
 - First seen in: `X019` on 2026-04-19 while extending the same counter-observer/boundary ERROR tranche
 - Symptom:
-  - a raw one-cycle bad hit driven exactly with the `CTRL_RUNNING` entry pulse leaves both `INERR_COUNT` and `PUSH_COUNT` at `0`
-  - surrounding cases still behave correctly: `X018` now shows the expected RUN_PREPARE flush-clear swallow semantics, and `X022` / `X023` / `X024` / `X025` / `X030` all pass with the same observer infrastructure
+  - a supposed one-cycle raw bad hit driven exactly with the `CTRL_RUNNING` entry pulse left both `INERR_COUNT` and `PUSH_COUNT` at `0`
+  - added ingress visibility later showed `boundary_valid=0` and `retry_valid=0`, meaning the testcase never placed a real beat on the DUT interface
 - Root cause:
-  - current evidence indicates the `SYNC -> RUNNING` boundary loses the first raw ingress error pulse instead of reporting it through `INERR_COUNT`
-  - the exact RTL priority path is still under investigation, but the failure survives raw interface driving and is not explained by the normal sequencer/backpressure contract
-- Fix status: open
+  - the old boundary injector relied on ad-hoc raw interface pokes that did not survive the UVM driver scheduling path
+  - `X019` was therefore proving a stimulus hole, not a DUT loss of a legally presented boundary beat
+- Fix status: fixed and verified
 - Runtime / coverage context:
-  - reproduced by isolated case `X019` with direct raw hit driving on the Avalon-ST ingress
-  - failing evidence is published in `tb/uvm/logs/X019_default_p2_pipe4_s1.log` and `tb/uvm/cov_after/X019_s1.ucdb`
+  - fixed by adding ingress observability to the debug path and rewriting `X019` to use a sequencer-aligned bad-hit injection one cycle ahead of `CTRL_RUNNING`
+  - verified by clean isolated reruns of `X019` together with the surrounding flush-sensitive cases `X017` and `X055`
+- Commit: pending
+
+### BUG-029-H: `note_flush_reset()` cleared the resident model but not the scoreboard epoch counters
+- First seen in: `P118` on 2026-04-19 while bringing up rotating overwrite-pressure windows with a mid-case flush/restart
+- Symptom:
+  - multi-window cases that called `enter_run_prepare()` mid-test could never satisfy the final idle condition
+  - after the flush, the scoreboard still carried prior `total_ingress_accepted`, `total_written`, overwrite maps, and peak-residency data, so later windows were compared against a mixed epoch
+- Root cause:
+  - `scoreboard.note_flush_reset()` only invalidated slot state and pending queues
+  - it did not reset the per-epoch totals, overwrite ownership maps, or max-residency tracking that `wait_for_scoreboard_idle()` and the PERF cases treat as epoch-local
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - exposed by isolated case `P118`, which timed out after a legal flush/restart boundary with `accepted=1280` and `written=1232` even though the resident model was empty
+  - fixed by resetting the epoch counters/maps in `scoreboard.note_flush_reset()` and verified by clean reruns of `P118`, `P121`, `P124`, `X017`, `X019`, and `X055`
 - Commit: pending

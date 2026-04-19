@@ -12,6 +12,7 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
   virtual avst_hit_if.drv vif;
   virtual dut_debug_if.mon debug_vif;
   ring_buffer_cam_pkg::hit_seq_item pending_q[$];
+  bit manual_override;
 
   int unsigned offered_total;
   int unsigned offered_payload_total;
@@ -55,6 +56,7 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
 
   function void reset_stats();
     pending_q.delete();
+    manual_override = 1'b0;
     offered_total = 0;
     offered_payload_total = 0;
     offered_error_total = 0;
@@ -175,6 +177,29 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     seq_item_port.item_done();
   endtask
 
+  task automatic pulse_manual_hit(
+    ring_buffer_cam_pkg::hit_seq_item item,
+    int unsigned hold_cycles = 1
+  );
+    manual_override = 1'b1;
+    vif.data    <= item.is_empty_marker ? '0 : item.pack_hit();
+    vif.valid   <= 1'b1;
+    vif.channel <= item.input_channel();
+    vif.startofpacket <= item.is_empty_marker;
+    vif.endofpacket   <= item.is_empty_marker;
+    vif.empty   <= item.is_empty_marker;
+    vif.error   <= item.has_error;
+    repeat (hold_cycles) @(posedge vif.clk);
+    manual_override = 1'b0;
+    vif.data    <= '0;
+    vif.valid   <= 1'b0;
+    vif.channel <= '0;
+    vif.startofpacket <= 1'b0;
+    vif.endofpacket   <= 1'b0;
+    vif.empty   <= 1'b0;
+    vif.error   <= 1'b0;
+  endtask
+
   task automatic sample_first_pop_snapshot();
     if (debug_vif == null) begin
       return;
@@ -205,6 +230,12 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     forever begin
       @(posedge vif.clk);
       sampled_cycles++;
+
+      if (manual_override) begin
+        sample_first_pop_snapshot();
+        update_backlog_stats();
+        continue;
+      end
 
       if (pending_q.size() > 0) begin
         if (vif.ready === 1'b1) begin

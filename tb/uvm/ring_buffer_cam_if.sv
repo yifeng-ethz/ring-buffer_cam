@@ -82,6 +82,11 @@ endinterface
 
 // ── Internal DUT debug tap ───────────────────────────────────────
 interface dut_debug_if (input logic clk, input logic rst);
+  logic         ingress_valid;
+  logic         ingress_ready;
+  logic         ingress_error;
+  logic [3:0]   ingress_channel;
+  logic [38:0]  ingress_data;
   logic [2:0]   decision_reg;
   logic [3:0]   run_state_code;
   logic [2:0]   pop_engine_state_code;
@@ -147,7 +152,8 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [47:0]  dbg_cache_miss_cnt;
 
   modport mon (
-    input decision_reg, run_state_code, pop_engine_state_code, push_state_code,
+    input ingress_valid, ingress_ready, ingress_error, ingress_channel, ingress_data,
+          decision_reg, run_state_code, pop_engine_state_code, push_state_code,
           push_write_grant, push_erase_grant, pop_erase_grant, pop_flush_grant,
           run_mgmt_flush_memory_start, run_mgmt_flush_memory_done,
           pop_flush_ram_done, pop_flush_cam_done,

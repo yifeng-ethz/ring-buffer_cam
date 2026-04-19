@@ -98,6 +98,11 @@ module tb_top;
   assign hit_if.empty         = 1'b0;
 
   always_comb begin
+    dbg_if.ingress_valid       = hit_if.valid;
+    dbg_if.ingress_ready       = hit_if.ready;
+    dbg_if.ingress_error       = hit_if.error[0];
+    dbg_if.ingress_channel     = hit_if.channel;
+    dbg_if.ingress_data        = hit_if.data;
     dbg_if.decision_reg        = dut.v2_core.decision_reg;
     dbg_if.run_state_code      = dut.v2_core.dbg_run_state_code;
     dbg_if.pop_engine_state_code = dut.v2_core.dbg_pop_engine_state_code;

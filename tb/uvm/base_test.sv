@@ -163,6 +163,29 @@ class base_test extends uvm_test;
     @(posedge m_env.m_ctrl_drv.vif.clk);
   endtask
 
+  task automatic force_raw_hit(
+    ring_buffer_cam_pkg::hit_seq_item hit_item,
+    int unsigned hold_cycles = 1
+  );
+    m_env.m_hit_drv.manual_override = 1'b1;
+    m_env.m_hit_drv.vif.data    <= hit_item.is_empty_marker ? '0 : hit_item.pack_hit();
+    m_env.m_hit_drv.vif.valid   <= 1'b1;
+    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
+    m_env.m_hit_drv.vif.startofpacket <= hit_item.is_empty_marker;
+    m_env.m_hit_drv.vif.endofpacket   <= hit_item.is_empty_marker;
+    m_env.m_hit_drv.vif.empty   <= hit_item.is_empty_marker;
+    m_env.m_hit_drv.vif.error   <= (hit_item.has_error ? 1'b1 : 1'b0);
+    repeat (hold_cycles) @(posedge m_env.m_hit_drv.vif.clk);
+    m_env.m_hit_drv.vif.data    <= '0;
+    m_env.m_hit_drv.vif.valid   <= 1'b0;
+    m_env.m_hit_drv.vif.channel <= '0;
+    m_env.m_hit_drv.vif.startofpacket <= 1'b0;
+    m_env.m_hit_drv.vif.endofpacket   <= 1'b0;
+    m_env.m_hit_drv.vif.empty   <= 1'b0;
+    m_env.m_hit_drv.vif.error   <= 1'b0;
+    m_env.m_hit_drv.manual_override = 1'b0;
+  endtask
+
   task automatic enter_run_prepare();
     // RUN_PREPARE is acked immediately from IDLE/RUNNING. Re-issue it so the
     // driver waits on the DUT's real flush-complete handshake instead of a
@@ -3186,18 +3209,10 @@ class base_test extends uvm_test;
     hit_item.has_error = 1'b1;
     hit_item.is_empty_marker = 1'b0;
 
-    m_env.m_hit_drv.vif.data <= hit_item.pack_hit();
-    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
-    m_env.m_hit_drv.vif.error <= 1'b1;
-    m_env.m_hit_drv.vif.valid <= 1'b1;
     m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_RUN_PREPARE;
     m_env.m_ctrl_drv.vif.valid <= 1'b1;
-    @(posedge m_env.m_csr_drv.vif.clk);
+    force_raw_hit(hit_item, 1);
     m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
-    m_env.m_hit_drv.vif.valid <= 1'b0;
-    m_env.m_hit_drv.vif.data <= '0;
-    m_env.m_hit_drv.vif.channel <= '0;
-    m_env.m_hit_drv.vif.error <= '0;
     m_env.m_ctrl_drv.vif.valid <= 1'b0;
     m_env.m_ctrl_drv.vif.data <= '0;
     @(posedge m_env.m_csr_drv.vif.clk);
@@ -3217,50 +3232,92 @@ class base_test extends uvm_test;
   endtask
 
   task automatic run_x019_bad_hit_running_entry_boundary_case();
-    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    single_error_hit_seq   err_seq;
+    single_error_hit_seq   retry_err_seq;
     int unsigned         inerr_count;
     int unsigned         push_count;
+    int unsigned         retry_inerr_count;
+    int unsigned         ingress_valid_pulses_before;
+    int unsigned         ingress_err_pulses_before;
+    int unsigned         ingress_err_accepts_before;
+    int unsigned         boundary_valid_pulses;
+    int unsigned         boundary_err_pulses;
+    int unsigned         boundary_err_accepts;
+    int unsigned         retry_valid_pulses;
+    int unsigned         retry_err_pulses;
+    int unsigned         retry_err_accepts;
 
     enter_run_prepare();
     csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
     ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
     wait_clocks(2);
 
-    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x019_bad_hit");
-    hit_item.asic = 4'h1;
-    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
-    hit_item.channel = 5'd3;
-    hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
-    hit_item.tcc1n6 = 3'd1;
-    hit_item.tfine = 5'd6;
-    hit_item.et1n6 = 9'd9;
-    hit_item.has_error = 1'b1;
-    hit_item.is_empty_marker = 1'b0;
+    err_seq = single_error_hit_seq::type_id::create("x019_bad_hit");
+    err_seq.ingress_channel = m_cfg.interleaving_index[3:0];
+    err_seq.hit_channel = 5'd3;
+    err_seq.hit_tcc1n6 = 3'd1;
+    err_seq.hit_tfine = 5'd6;
+    err_seq.hit_et1n6 = 9'd9;
+    err_seq.use_raw_tcc8n = 1'b1;
+    err_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
 
-    m_env.m_hit_drv.vif.data <= hit_item.pack_hit();
-    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
-    m_env.m_hit_drv.vif.error <= 1'b1;
-    m_env.m_hit_drv.vif.valid <= 1'b1;
-    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_RUNNING;
-    m_env.m_ctrl_drv.vif.valid <= 1'b1;
-    @(posedge m_env.m_csr_drv.vif.clk);
-    m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_RUNNING);
-    m_env.m_hit_drv.vif.valid <= 1'b0;
-    m_env.m_hit_drv.vif.data <= '0;
-    m_env.m_hit_drv.vif.channel <= '0;
-    m_env.m_hit_drv.vif.error <= '0;
-    m_env.m_ctrl_drv.vif.valid <= 1'b0;
-    m_env.m_ctrl_drv.vif.data <= '0;
-    @(posedge m_env.m_csr_drv.vif.clk);
+    ingress_valid_pulses_before = m_env.m_dbg_mon.ingress_valid_pulse_count;
+    ingress_err_pulses_before = m_env.m_dbg_mon.ingress_error_pulse_count;
+    ingress_err_accepts_before = m_env.m_dbg_mon.ingress_error_accept_count;
+    fork
+      begin
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        // The hit driver presents a queued beat on the cycle after the item is
+        // accepted from the sequencer, so delay RUNNING by one cycle to sample
+        // the first bad beat exactly on the SYNC->RUNNING boundary.
+        wait_clocks(1);
+        ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUNNING);
+      end
+    join
 
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUNNING, 2_000, "X019 RUNNING entry");
     wait_clocks(4);
     read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    boundary_valid_pulses = m_env.m_dbg_mon.ingress_valid_pulse_count - ingress_valid_pulses_before;
+    boundary_err_pulses = m_env.m_dbg_mon.ingress_error_pulse_count - ingress_err_pulses_before;
+    boundary_err_accepts = m_env.m_dbg_mon.ingress_error_accept_count - ingress_err_accepts_before;
     if (inerr_count != 1 || push_count != 0) begin
+      if (inerr_count == 0 && push_count == 0) begin
+        // Diagnostic discriminator: if the same raw bad-hit pulse increments
+        // one cycle later, the loss is specific to the RUNNING-entry boundary
+        // rather than a testcase raw-drive artifact.
+        wait_clocks(1);
+        retry_err_seq = single_error_hit_seq::type_id::create("x019_retry_bad_hit");
+        retry_err_seq.ingress_channel = m_cfg.interleaving_index[3:0];
+        retry_err_seq.hit_channel = 5'd3;
+        retry_err_seq.hit_tcc1n6 = 3'd1;
+        retry_err_seq.hit_tfine = 5'd6;
+        retry_err_seq.hit_et1n6 = 9'd9;
+        retry_err_seq.use_raw_tcc8n = 1'b1;
+        retry_err_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
+        ingress_valid_pulses_before = m_env.m_dbg_mon.ingress_valid_pulse_count;
+        ingress_err_pulses_before = m_env.m_dbg_mon.ingress_error_pulse_count;
+        ingress_err_accepts_before = m_env.m_dbg_mon.ingress_error_accept_count;
+        retry_err_seq.start(m_env.m_hit_seqr);
+        wait_clocks(3);
+        read_counter_u32(CSR_INERR_COUNT_ADDR, retry_inerr_count);
+        retry_valid_pulses = m_env.m_dbg_mon.ingress_valid_pulse_count - ingress_valid_pulses_before;
+        retry_err_pulses = m_env.m_dbg_mon.ingress_error_pulse_count - ingress_err_pulses_before;
+        retry_err_accepts = m_env.m_dbg_mon.ingress_error_accept_count - ingress_err_accepts_before;
+      end else begin
+        retry_inerr_count = inerr_count;
+        retry_valid_pulses = boundary_valid_pulses;
+        retry_err_pulses = boundary_err_pulses;
+        retry_err_accepts = boundary_err_accepts;
+      end
       `uvm_error("X019", $sformatf(
-        "RUNNING-entry boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0",
-        inerr_count, push_count))
+        "RUNNING-entry boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0 boundary_valid=%0d boundary_pulse=%0d boundary_accept=%0d retry_inerr=%0d retry_valid=%0d retry_pulse=%0d retry_accept=%0d run_state=%0d ready=%0d",
+        inerr_count, push_count, boundary_valid_pulses, boundary_err_pulses, boundary_err_accepts,
+        retry_inerr_count, retry_valid_pulses, retry_err_pulses, retry_err_accepts,
+        m_env.m_dbg_mon.run_state_code, m_env.m_dbg_mon.ingress_ready))
     end
     expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
       "X019 INERR_COUNT backdoor/frontdoor agreement");
@@ -3746,6 +3803,125 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.first_pop_cycle), UVM_LOW)
   endtask
 
+  task automatic run_single_key_latency_extreme_case(
+    string       what,
+    int unsigned latency,
+    int unsigned num_hits,
+    int unsigned min_pre_service_pushes,
+    int unsigned max_pre_service_pushes,
+    int unsigned min_overwrites,
+    int unsigned max_overwrites,
+    bit          require_full_hotspot
+  );
+    overwrite_profile_seq pressure_seq;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned fill_level;
+    int unsigned pre_service_pushes;
+    int unsigned accepted_before_first_pop;
+    int unsigned focus_search_key;
+
+    configure_and_start(latency);
+
+    pressure_seq = overwrite_profile_seq::type_id::create({what, "_pressure"});
+    pressure_seq.num_hits = num_hits;
+    pressure_seq.lane_key_start_ord = 2;
+    pressure_seq.pool_keys = 1;
+    pressure_seq.hits_per_key_switch = 1;
+    pressure_seq.progress_stride = 128;
+    pressure_seq.progress_tag = what;
+    pressure_seq.start(m_env.m_hit_seqr);
+
+    terminate_and_drain((latency >= 16'h8000) ? 1_000_000 : 200_000, {what, " terminate drain"});
+    expect_service_model_accounting({what, " post-terminate"}, 1, 1);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    pre_service_pushes = m_env.m_dbg_mon.push_count_at_first_pop;
+    accepted_before_first_pop = m_env.m_hit_drv.accepted_payload_at_first_pop;
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+
+    if (push_count != num_hits) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s final push_count mismatch: observed=%0d expected=%0d",
+        what, push_count, num_hits))
+    end
+    if (fill_level != 0) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s expected a drained fill_level=0 after terminate, observed %0d",
+        what, fill_level))
+    end
+    if (m_env.m_dbg_mon.first_pop_cycle == 0) begin
+      `uvm_error("PRESSURE", $sformatf("%s never observed a pop event", what))
+    end
+    if (pre_service_pushes < min_pre_service_pushes ||
+        pre_service_pushes > max_pre_service_pushes) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s pushes_before_first_pop out of range: observed=%0d expected=[%0d,%0d]",
+        what, pre_service_pushes, min_pre_service_pushes, max_pre_service_pushes))
+    end
+    if (accepted_before_first_pop < min_pre_service_pushes ||
+        accepted_before_first_pop > max_pre_service_pushes) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s accepted_before_first_pop out of range: observed=%0d expected=[%0d,%0d]",
+        what, accepted_before_first_pop, min_pre_service_pushes, max_pre_service_pushes))
+    end
+    if (overwrite_count < min_overwrites || overwrite_count > max_overwrites) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s overwrite_count out of range: observed=%0d expected=[%0d,%0d]",
+        what, overwrite_count, min_overwrites, max_overwrites))
+    end
+    if (require_full_hotspot &&
+        m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PRESSURE", $sformatf(
+        "%s hotspot never saturated the full sector depth: key=%0d max_for_key=%0d ring_depth=%0d",
+        what, focus_search_key,
+        m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+        m_cfg.ring_buffer_n_entry))
+    end
+    `uvm_info("PRESSURE", $sformatf(
+      "%s latency summary: latency=%0d pushes_before_first_pop=%0d accepted_before_first_pop=%0d push=%0d pop=%0d overwrite=%0d max_hotspot=%0d",
+      what, latency, pre_service_pushes, accepted_before_first_pop,
+      push_count, pop_count, overwrite_count,
+      m_env.m_scb.max_remaining_entries_for_key(focus_search_key)), UVM_LOW)
+  endtask
+
+  task automatic emit_weighted_overwrite_epochs(
+    string       what,
+    int unsigned heavy_search_key,
+    int unsigned light_a_search_key,
+    int unsigned light_b_search_key,
+    int unsigned light_c_search_key,
+    int unsigned epochs
+  );
+    same_key_burst_seq burst_seq;
+
+    for (int epoch = 0; epoch < epochs; epoch++) begin
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("%s_heavy_%0d", what, epoch));
+      burst_seq.num_hits = 7;
+      burst_seq.search_key = heavy_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("%s_light_a_%0d", what, epoch));
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = light_a_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("%s_light_b_%0d", what, epoch));
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = light_b_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+
+      burst_seq = same_key_burst_seq::type_id::create($sformatf("%s_light_c_%0d", what, epoch));
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = light_c_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+    end
+  endtask
+
   task automatic run_same_key_epoch_count_case(
     string what,
     int unsigned num_hits,
@@ -3800,7 +3976,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd428;
+    version_word[11:0]  = 12'd429;
     return version_word;
   endfunction
 
@@ -4051,6 +4227,10 @@ class base_test extends uvm_test;
     int unsigned          ow20;
     int unsigned          ow24;
     int unsigned          ow28;
+    int unsigned          ow16_b;
+    int unsigned          ow20_b;
+    int unsigned          ow24_b;
+    int unsigned          ow28_b;
     int unsigned          ow_min;
     int unsigned          ow_max;
     int unsigned          push_count;
@@ -7481,6 +7661,128 @@ class base_test extends uvm_test;
         `uvm_error("P119", $sformatf(
           "Burst overwrite case never saturated the rbCAM: max_remaining=%0d ring_depth=%0d",
           m_env.m_scb.max_remaining_entries(), m_cfg.ring_buffer_n_entry))
+      end
+    end else if (case_id == "P123") begin
+      run_single_key_latency_extreme_case(
+        "P123 single-key overwrite max-latency",
+        16'hFFFF, 1024, 900, 1024, 480, 520, 1'b1);
+    end else if (case_id == "P124") begin
+      run_single_key_latency_extreme_case(
+        "P124 single-key overwrite min-latency",
+        16'd1, 1024, 128, 192, 384, 448, 1'b0);
+    end else if (case_id == "P117") begin
+      configure_and_start(2000);
+      emit_weighted_overwrite_epochs(
+        "P117 skewed overwrite",
+        m_cfg.lane_key_ord_to_search_key(4),
+        m_cfg.lane_key_ord_to_search_key(5),
+        m_cfg.lane_key_ord_to_search_key(6),
+        m_cfg.lane_key_ord_to_search_key(7),
+        64);
+      terminate_and_drain(150_000, "P117 skewed overwrite terminate drain");
+      expect_service_model_accounting("P117 skewed overwrite post-terminate", 1, 1);
+      if (m_env.m_scb.max_remaining_entries() < m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("P117", $sformatf(
+          "Skewed overwrite case never saturated the rbCAM: max_remaining=%0d ring_depth=%0d",
+          m_env.m_scb.max_remaining_entries(), m_cfg.ring_buffer_n_entry))
+      end
+      ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      ow20 = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      ow24 = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      ow28 = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      if (ow16 <= (ow20 + ow24 + ow28)) begin
+        `uvm_error("P117", $sformatf(
+          "Heavy-key overwrite did not dominate skewed traffic: key16=%0d key20=%0d key24=%0d key28=%0d",
+          ow16, ow20, ow24, ow28))
+      end
+      if (ow20 > (ow16 / 2) || ow24 > (ow16 / 2) || ow28 > (ow16 / 2)) begin
+        `uvm_error("P117", $sformatf(
+          "Minority-key overwrite was too large under 70/10/10/10 skew: key16=%0d key20=%0d key24=%0d key28=%0d",
+          ow16, ow20, ow24, ow28))
+      end
+    end else if (case_id == "P118") begin
+      configure_and_start(2000);
+      emit_weighted_overwrite_epochs(
+        "P118 phase_a",
+        m_cfg.lane_key_ord_to_search_key(4),
+        m_cfg.lane_key_ord_to_search_key(5),
+        m_cfg.lane_key_ord_to_search_key(6),
+        m_cfg.lane_key_ord_to_search_key(7),
+        64);
+      wait_clocks(32);
+      ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      ow20 = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      ow24 = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      ow28 = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      if (ow16 == 0 || ow16 <= (ow20 + ow24 + ow28)) begin
+        `uvm_error("P118", $sformatf(
+          "Phase-A overwrite did not concentrate on the first dominant key: key16=%0d key20=%0d key24=%0d key28=%0d",
+          ow16, ow20, ow24, ow28))
+      end
+
+      enter_run_prepare();
+      configure_and_start(2000);
+      emit_weighted_overwrite_epochs(
+        "P118 phase_b",
+        m_cfg.lane_key_ord_to_search_key(5),
+        m_cfg.lane_key_ord_to_search_key(4),
+        m_cfg.lane_key_ord_to_search_key(6),
+        m_cfg.lane_key_ord_to_search_key(7),
+        64);
+      wait_clocks(32);
+      terminate_and_drain(150_000, "P118 rotating overwrite terminate drain");
+      expect_service_model_accounting("P118 rotating overwrite post-terminate", 1, 1);
+      ow16_b = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      ow20_b = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      ow24_b = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      ow28_b = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      if (ow16_b == 0 || ow20_b == 0) begin
+        `uvm_error("P118", $sformatf(
+          "Rotating dominance did not produce overwrite on both second-window dominant candidates: key16_delta=%0d key20_delta=%0d key24_delta=%0d key28_delta=%0d",
+          ow16_b, ow20_b, ow24_b, ow28_b))
+      end
+      if (ow20_b <= (ow16_b + ow24_b + ow28_b)) begin
+        `uvm_error("P118", $sformatf(
+          "Phase-B overwrite did not rotate to the second dominant key: key16_delta=%0d key20_delta=%0d key24_delta=%0d key28_delta=%0d",
+          ow16_b, ow20_b, ow24_b, ow28_b))
+      end
+      if (ow24_b > (ow20_b / 2) || ow28_b > (ow20_b / 2)) begin
+        `uvm_error("P118", $sformatf(
+          "Non-dominant keys overwrote too often in phase-B rotating dominance: key16_delta=%0d key20_delta=%0d key24_delta=%0d key28_delta=%0d",
+          ow16_b, ow20_b, ow24_b, ow28_b))
+      end
+    end else if (case_id == "P121") begin
+      configure_and_start(2000);
+      pressure_seq = overwrite_profile_seq::type_id::create("p121_window_a");
+      pressure_seq.num_hits = 640;
+      pressure_seq.lane_key_start_ord = 4;
+      pressure_seq.pool_keys = 4;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.start(m_env.m_hit_seqr);
+      wait_clocks(32);
+      enter_run_prepare();
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (fill_level != 0 || push_count != 0 || pop_count != 0 || overwrite_count != 0) begin
+        `uvm_error("P121", $sformatf(
+          "FLUSH window did not reset the pressure epoch cleanly: fill=%0d push=%0d pop=%0d overwrite=%0d",
+          fill_level, push_count, pop_count, overwrite_count))
+      end
+
+      configure_and_start(2000);
+      pressure_seq = overwrite_profile_seq::type_id::create("p121_window_b");
+      pressure_seq.num_hits = 640;
+      pressure_seq.lane_key_start_ord = 4;
+      pressure_seq.pool_keys = 4;
+      pressure_seq.hits_per_key_switch = 1;
+      pressure_seq.start(m_env.m_hit_seqr);
+      terminate_and_drain(150_000, "P121 balanced overwrite terminate drain");
+      expect_service_model_accounting("P121 balanced overwrite post-terminate", 1, 1);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      if (overwrite_count == 0) begin
+        `uvm_error("P121", "Second overwrite-pressure window never accumulated overwrite after FLUSH restart")
       end
     end else if (case_id == "X001") begin
       run_x001_filter_inerr_case();

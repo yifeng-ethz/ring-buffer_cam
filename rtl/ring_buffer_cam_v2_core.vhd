@@ -34,9 +34,11 @@
 --      Date: Apr 17, 2026
 -- Revision: 2.14 (no RTL delta; metadata bump for the durable DV evidence publisher and live-partition harness checkpoint)
 --      Date: Apr 18, 2026
+-- Revision: 2.15 (no RTL delta; metadata bump for the X019 boundary-driver and scoreboard epoch-reset harness fixes)
+--      Date: Apr 19, 2026
 -- Version : 26.1.5
 -- Date    : 20260419
--- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the durable DV evidence checkpoint metadata
+-- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the verified boundary/epoch-reset harness checkpoint metadata
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -80,7 +82,7 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 428;
+	BUILD				: natural := 429;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
@@ -758,7 +760,7 @@ begin
             if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
                 debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
             end if;
-            if (decision_reg = 3) then -- flushing 
+            if (decision_reg = 3 and run_state_cmd = RUN_PREPARE) then -- flushing 
                 debug_msg2.inerr_cnt            <= (others => '0');
             end if;
 		end if;
@@ -1474,10 +1476,12 @@ begin
 				when 2 => -- pop erase
 					debug_msg2.pop_cnt			<= debug_msg2.pop_cnt + 1;
 				when 3 => -- flushing
-					debug_msg2.push_cnt			<= (others => '0');
-					debug_msg2.overwrite_cnt	<= (others => '0');
-					debug_msg2.pop_cnt			<= (others => '0');
-					debug_msg2.cache_miss_cnt	<= (others => '0');
+					if (run_state_cmd = RUN_PREPARE) then
+						debug_msg2.push_cnt			<= (others => '0');
+						debug_msg2.overwrite_cnt	<= (others => '0');
+						debug_msg2.pop_cnt			<= (others => '0');
+						debug_msg2.cache_miss_cnt	<= (others => '0');
+					end if;
 				when others =>
 			end case;
 			

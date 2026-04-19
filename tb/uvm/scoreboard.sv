@@ -188,12 +188,26 @@ class scoreboard extends uvm_scoreboard;
     for (int i = 0; i < slot_model.size(); i++) begin
       slot_model[i].valid = 1'b0;
     end
+    total_ingress_accepted = 0;
+    total_written = 0;
+    total_drained = 0;
+    total_expected_overwrites = 0;
+    total_unexpected_outputs = 0;
+    total_cache_miss_outputs = 0;
+    total_subheaders = 0;
+    total_zero_hit_subheaders = 0;
+    total_subheader_mismatches = 0;
+    max_remaining_seen = 0;
     current_remaining = 0;
     allow_nonempty_end = 1'b0;
     allowed_remaining_at_end = 0;
     current_remaining_by_key.delete();
+    max_remaining_seen_by_key.delete();
+    overwrite_new_key_count.delete();
+    overwrite_old_key_count.delete();
     pending_drain_q.delete();
     overlap_evicted_q.delete();
+    total_overlap_fallback_hits = 0;
     clear_epoch();
   endfunction
 

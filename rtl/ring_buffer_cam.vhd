@@ -21,7 +21,7 @@ entity ring_buffer_cam is
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
         VERSION_PATCH       : natural := 5;
-        BUILD               : natural := 428;
+        BUILD               : natural := 429;
         VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;

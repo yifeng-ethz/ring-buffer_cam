@@ -15,6 +15,9 @@ class debug_monitor extends uvm_monitor;
 
   int unsigned pop_cmd_wrreq_count;
   int unsigned pop_cmd_rdack_count;
+  int unsigned ingress_valid_pulse_count;
+  int unsigned ingress_error_pulse_count;
+  int unsigned ingress_error_accept_count;
   int unsigned push_write_grant_count;
   int unsigned push_erase_grant_count;
   int unsigned pop_erase_grant_count;
@@ -39,6 +42,11 @@ class debug_monitor extends uvm_monitor;
   logic [47:0] dbg_pop_cnt;
   logic [47:0] dbg_overwrite_cnt;
   logic [47:0] dbg_cache_miss_cnt;
+  logic        ingress_valid;
+  logic        ingress_ready;
+  logic        ingress_error;
+  logic [3:0]  ingress_channel;
+  logic [38:0] ingress_data;
   logic [3:0]  run_state_code;
   logic [2:0]  pop_engine_state_code;
   logic        push_state_code;
@@ -80,6 +88,9 @@ class debug_monitor extends uvm_monitor;
     super.new(name, parent);
     pop_cmd_wrreq_count = 0;
     pop_cmd_rdack_count = 0;
+    ingress_valid_pulse_count = 0;
+    ingress_error_pulse_count = 0;
+    ingress_error_accept_count = 0;
     push_write_grant_count = 0;
     push_erase_grant_count = 0;
     pop_erase_grant_count = 0;
@@ -102,6 +113,11 @@ class debug_monitor extends uvm_monitor;
     dbg_pop_cnt = '0;
     dbg_overwrite_cnt = '0;
     dbg_cache_miss_cnt = '0;
+    ingress_valid = 1'b0;
+    ingress_ready = 1'b0;
+    ingress_error = 1'b0;
+    ingress_channel = '0;
+    ingress_data = '0;
     run_state_code = '0;
     pop_engine_state_code = '0;
     push_state_code = '0;
@@ -166,6 +182,11 @@ class debug_monitor extends uvm_monitor;
       dbg_pop_cnt         = vif.dbg_pop_cnt;
       dbg_overwrite_cnt   = vif.dbg_overwrite_cnt;
       dbg_cache_miss_cnt  = vif.dbg_cache_miss_cnt;
+      ingress_valid       = vif.ingress_valid;
+      ingress_ready       = vif.ingress_ready;
+      ingress_error       = vif.ingress_error;
+      ingress_channel     = vif.ingress_channel;
+      ingress_data        = vif.ingress_data;
       run_state_code      = vif.run_state_code;
       pop_engine_state_code = vif.pop_engine_state_code;
       push_state_code     = vif.push_state_code;
@@ -229,6 +250,15 @@ class debug_monitor extends uvm_monitor;
         end
         last_overwrite_cycle = sampled_cycles;
       end
+
+      if (vif.ingress_valid === 1'b1)
+        ingress_valid_pulse_count++;
+      if (vif.ingress_valid === 1'b1 && vif.ingress_error === 1'b1)
+        ingress_error_pulse_count++;
+      if (vif.ingress_valid === 1'b1 &&
+          vif.ingress_ready === 1'b1 &&
+          vif.ingress_error === 1'b1)
+        ingress_error_accept_count++;
 
       if (vif.pop_cmd_fifo_wrreq === 1'b1)
         pop_cmd_wrreq_count++;

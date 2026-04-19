@@ -13,10 +13,10 @@
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
-| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=96.62, branch=87.39, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 |
+| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=96.19, branch=86.68, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 84 | stmt=96.06, branch=86.80, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 11 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.00 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 84 | stmt=95.94, branch=86.45, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 |
 
 ## Cross / continuous-frame runs
 
@@ -150,8 +150,8 @@
 | ❓ | [`P120`](cases/P120.md) | PROF | 0 | [growth](txn_growth/P120.md) |
 | ❓ | [`P121`](cases/P121.md) | PROF | 0 | [growth](txn_growth/P121.md) |
 | ❓ | [`P122`](cases/P122.md) | PROF | 0 | [growth](txn_growth/P122.md) |
-| ❓ | [`P123`](cases/P123.md) | PROF | 0 | [growth](txn_growth/P123.md) |
-| ❓ | [`P124`](cases/P124.md) | PROF | 0 | [growth](txn_growth/P124.md) |
+| ❓ | [`P123`](cases/P123.md) | PROF | 1024 | [growth](txn_growth/P123.md) |
+| ❓ | [`P124`](cases/P124.md) | PROF | 1024 | [growth](txn_growth/P124.md) |
 | ❓ | [`P125`](cases/P125.md) | PROF | 0 | [growth](txn_growth/P125.md) |
 | ❓ | [`P126`](cases/P126.md) | PROF | 0 | [growth](txn_growth/P126.md) |
 | ❓ | [`P127`](cases/P127.md) | PROF | 0 | [growth](txn_growth/P127.md) |
@@ -162,10 +162,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `237`
+- evidenced_cases = `239`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=96.97, branch=87.93, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.24`
-- functional coverage: `45.74% (236/516)`
+- merged total code coverage: `stmt=96.84, branch=87.57, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.24`
+- functional coverage: `46.32% (239/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_
