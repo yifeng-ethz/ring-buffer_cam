@@ -25,8 +25,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
 | ❓ | `BUG-028-R` | RTL | `2026-04-19` | The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost | `pending` |
-| ⚠️ | `BUG-027-R` | RTL | `2026-04-19` | MM CSR traffic masked same-cycle `INERR_COUNT` updates | `pending` |
-| ⚠️ | `BUG-026-H` | Harness | `2026-04-19` | The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain | `pending` |
+| ✅ | `BUG-027-R` | RTL | `2026-04-19` | MM CSR traffic masked same-cycle `INERR_COUNT` updates | `e182765` |
+| ✅ | `BUG-026-H` | Harness | `2026-04-19` | The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain | `e182765` |
 | ✅ | `BUG-025-R` | RTL | `2026-04-18` | Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged | `f575af8` |
 | ✅ | `BUG-024-H` | Harness | `2026-04-18` | X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion | `c2bcc79` |
 | ✅ | `BUG-023-R` | RTL | `2026-04-18` | TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen` | `b203a04` |

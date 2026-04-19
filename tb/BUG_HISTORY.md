@@ -92,7 +92,7 @@
 - Root cause:
   - `proc_fill_level_meter` compared 48-bit counters by converting them through `to_integer()`
   - VHDL integer is 32-bit signed in this toolchain, so the comparison is not width-safe for long runs
-- Fix status: fixed in working tree, not yet committed
+- Fix status: fixed and committed
 - Runtime / coverage context:
   - `cam_clean` now uses width-safe zero compares against `to_unsigned(0, counter'length)`
   - this is a control/counter correctness fix, not a datapath-beat fix
@@ -395,7 +395,7 @@
   - related harness logic:
     - `tb/uvm/base_test.sv`
     - `tb/DV_ERROR.md`
-- Commit: pending
+- Commit: e182765
 
 ### BUG-027-R: MM CSR traffic masked same-cycle `INERR_COUNT` updates
 - First seen in: `X113` on 2026-04-19 during the backdoor counter-observer ERROR tranche
@@ -405,13 +405,13 @@
 - Root cause:
   - `proc_avmm_csr` updated `debug_msg2.inerr_cnt` only in the MM-idle branch
   - any same-cycle `avs_csr_read='1'` or `avs_csr_write='1'` therefore skipped the `INERR_COUNT` increment path, even though the raw ingress error pulse was present on `asi_hit_type1_error`
-- Fix status: fixed in working tree, not yet committed
+- Fix status: fixed and committed
 - Runtime / coverage context:
   - `debug_msg2.inerr_cnt` accounting now runs after the MM read/write/idle decode so CSR bus traffic no longer masks the raw error observer
   - verified by clean isolated reruns of `X076`, `X113`, and `X114`, then by clean isolated reruns of `X022`, `X023`, `X024`, `X025`, and `X030`
   - related RTL logic:
     - `rtl/ring_buffer_cam_v2_core.vhd` `proc_avmm_csr`
-- Commit: pending
+- Commit: e182765
 
 ### BUG-028-R: The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost
 - First seen in: `X019` on 2026-04-19 while extending the same counter-observer/boundary ERROR tranche

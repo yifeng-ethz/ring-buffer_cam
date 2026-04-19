@@ -58,7 +58,7 @@
       "class": "RTL",
       "date": "2026-04-16",
       "title": "48-bit counter cleanup logic truncated through `to_integer()`",
-      "fix_status": "fixed in working tree, not yet committed",
+      "fix_status": "fixed and committed",
       "commit": "d412d7a"
     },
     {
@@ -211,15 +211,15 @@
       "date": "2026-04-19",
       "title": "The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain",
       "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "commit": "e182765"
     },
     {
       "bug_id": "BUG-027-R",
       "class": "RTL",
       "date": "2026-04-19",
       "title": "MM CSR traffic masked same-cycle `INERR_COUNT` updates",
-      "fix_status": "fixed in working tree, not yet committed",
-      "commit": "pending"
+      "fix_status": "fixed and committed",
+      "commit": "e182765"
     },
     {
       "bug_id": "BUG-028-R",
