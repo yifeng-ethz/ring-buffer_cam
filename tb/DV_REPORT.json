@@ -1,7 +1,7 @@
 {
   "report_title": "ring_buffer_cam",
   "dut_name": "ring_buffer_cam",
-  "date": "2026-04-18",
+  "date": "2026-04-19",
   "rtl_variant": "default_p2_pipe4",
   "seed": 1,
   "bugs": [
@@ -204,6 +204,30 @@
       "title": "Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged",
       "fix_status": "fixed in working tree, not yet committed",
       "commit": "f575af8"
+    },
+    {
+      "bug_id": "BUG-026-H",
+      "class": "Harness",
+      "date": "2026-04-19",
+      "title": "The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain",
+      "fix_status": "fixed in working tree, not yet committed",
+      "commit": "pending"
+    },
+    {
+      "bug_id": "BUG-027-R",
+      "class": "RTL",
+      "date": "2026-04-19",
+      "title": "MM CSR traffic masked same-cycle `INERR_COUNT` updates",
+      "fix_status": "fixed in working tree, not yet committed",
+      "commit": "pending"
+    },
+    {
+      "bug_id": "BUG-028-R",
+      "class": "RTL",
+      "date": "2026-04-19",
+      "title": "The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost",
+      "fix_status": "open",
+      "commit": "pending"
     }
   ],
   "buckets": {
@@ -2004,9 +2028,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 119,
+              "hits": 117,
               "bins": 6333,
-              "pct": 1.88
+              "pct": 1.85
             }
           },
           "isolated_cov_per_txn": {},
@@ -2106,7 +2130,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B011",
@@ -44408,7 +44432,7 @@
     },
     "ERROR": {
       "planned_cases": 129,
-      "evidenced_cases": 68,
+      "evidenced_cases": 84,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1904,
@@ -44441,9 +44465,9 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4263,
+          "hits": 4280,
           "bins": 6333,
-          "pct": 67.31
+          "pct": 67.58
         }
       },
       "cases": [
@@ -47398,48 +47422,139 @@
           "full_case_id": "X018",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "bad hit on the boundary cycle `run_state_cmd` transitions IDLE\u2192RUN_PREPARE \u2014 deassembly gate is closed (csr.go off or run_state_cmd!=RUNNING); error must not bump inerr_cnt unless filter_inerr decision is still active in proc_csr_rw",
-          "description": "bad hit on the boundary cycle `run_state_cmd` transitions IDLE\u2192RUN_PREPARE \u2014 deassembly gate is closed (csr.go off or run_state_cmd!=RUNNING); error must not bump inerr_cnt unless filter_inerr decision is still active in proc_csr_rw",
-          "primary_checks": "`INERR_COUNT` tracks filter_inerr raw error as specified in `proc_csr_rw` (independent of `run_state_cmd`); `PUSH_COUNT` unchanged; asi_ctrl_ready asserted in RUN_PREPARE only after flush completes",
+          "scenario": "bad hit on the boundary cycle `run_state_cmd` transitions IDLE\u2192RUN_PREPARE \u2014 RUN_PREPARE's FLUSH clear wins over the raw error pulse on this boundary, so the ingress beat is swallowed",
+          "description": "bad hit on the boundary cycle `run_state_cmd` transitions IDLE\u2192RUN_PREPARE \u2014 RUN_PREPARE's FLUSH clear wins over the raw error pulse on this boundary, so the ingress beat is swallowed",
+          "primary_checks": "`INERR_COUNT` = 0 after the boundary cycle; `PUSH_COUNT` unchanged; asi_ctrl_ready asserted in RUN_PREPARE only after flush completes",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1618,
+              "bins": 1986,
+              "pct": 81.47
+            },
+            "branch": {
+              "hits": 293,
+              "bins": 558,
+              "pct": 52.51
+            },
+            "cond": {
+              "hits": 43,
+              "bins": 132,
+              "pct": 32.58
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 431,
+              "bins": 6333,
+              "pct": 6.81
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X019",
           "full_case_id": "X019",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "bad hit on the cycle `run_state_cmd` enters RUNNING \u2014 confirm the first cycle after RUNNING accepts neither the stale bad hit nor a stray push",
-          "description": "bad hit on the cycle `run_state_cmd` enters RUNNING \u2014 confirm the first cycle after RUNNING accepts neither the stale bad hit nor a stray push",
-          "primary_checks": "`INERR_COUNT` tracks the raw bad-hit error pulse; `PUSH_COUNT` = 0 until the first GOOD hit; scoreboard: no phantom accept",
+          "scenario": "bad hit on the cycle `run_state_cmd` enters RUNNING \u2014 confirm the first cycle after RUNNING accepts neither the stale bad hit nor a stray push, but still bumps the raw error observer",
+          "description": "bad hit on the cycle `run_state_cmd` enters RUNNING \u2014 confirm the first cycle after RUNNING accepts neither the stale bad hit nor a stray push, but still bumps the raw error observer",
+          "primary_checks": "expected: `INERR_COUNT` = 1 and `PUSH_COUNT` = 0; current RTL loses the boundary error pulse (BUG-028-R)",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1634,
+              "bins": 1986,
+              "pct": 82.28
+            },
+            "branch": {
+              "hits": 309,
+              "bins": 558,
+              "pct": 55.38
+            },
+            "cond": {
+              "hits": 46,
+              "bins": 132,
+              "pct": 34.85
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 489,
+              "bins": 6333,
+              "pct": 7.72
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": false,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 1,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0,
+            "failure_reason": "RUNNING-entry boundary bad hit mismatch: inerr=0 push=0 expected_inerr=1 expected_push=0"
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X020",
@@ -47494,7 +47609,7 @@
           "full_case_id": "X022",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit race with a CSR read of `EXPECTED_LATENCY` (address 3) \u2014 read must not stall or corrupt inerr_cnt update",
           "description": "bad hit race with a CSR read of `EXPECTED_LATENCY` (address 3) \u2014 read must not stall or corrupt inerr_cnt update",
@@ -47503,22 +47618,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1638,
+              "bins": 1986,
+              "pct": 82.48
+            },
+            "branch": {
+              "hits": 317,
+              "bins": 558,
+              "pct": 56.81
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 572,
+              "bins": 6333,
+              "pct": 9.03
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X023",
           "full_case_id": "X023",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit race with a CSR write to CTRL flipping filter_inerr from 1\u21920 on the SAME cycle the bad hit arrives",
           "description": "bad hit race with a CSR write to CTRL flipping filter_inerr from 1\u21920 on the SAME cycle the bad hit arrives",
@@ -47527,22 +47678,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1643,
+              "bins": 1986,
+              "pct": 82.73
+            },
+            "branch": {
+              "hits": 318,
+              "bins": 558,
+              "pct": 56.99
+            },
+            "cond": {
+              "hits": 49,
+              "bins": 132,
+              "pct": 37.12
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 550,
+              "bins": 6333,
+              "pct": 8.68
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X024",
           "full_case_id": "X024",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "bad hit race with a CSR write of INERR_COUNT (self-clearing semantics \u2014 reg has no write side-effect per `proc_csr_rw`, so counter keeps incrementing)",
           "description": "bad hit race with a CSR write of INERR_COUNT (self-clearing semantics \u2014 reg has no write side-effect per `proc_csr_rw`, so counter keeps incrementing)",
@@ -47551,22 +47738,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1637,
+              "bins": 1986,
+              "pct": 82.43
+            },
+            "branch": {
+              "hits": 317,
+              "bins": 558,
+              "pct": 56.81
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 628,
+              "bins": 6333,
+              "pct": 9.92
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X025",
           "full_case_id": "X025",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "8 bad hits in a 10-cycle window with `filter_inerr=1`, all same search key",
           "description": "8 bad hits in a 10-cycle window with `filter_inerr=1`, all same search key",
@@ -47575,15 +47798,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1638,
+              "bins": 1986,
+              "pct": 82.48
+            },
+            "branch": {
+              "hits": 317,
+              "bins": 558,
+              "pct": 56.81
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 584,
+              "bins": 6333,
+              "pct": 9.22
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X026",
@@ -47686,7 +47945,7 @@
           "full_case_id": "X030",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "sustained bad-hit rate of 1-in-4 cycles over 256 cycles, `filter_inerr=1` \u2014 stress the filter edge and confirm no counter wrap / no spurious push",
           "description": "sustained bad-hit rate of 1-in-4 cycles over 256 cycles, `filter_inerr=1` \u2014 stress the filter edge and confirm no counter wrap / no spurious push",
@@ -47695,15 +47954,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1638,
+              "bins": 1986,
+              "pct": 82.48
+            },
+            "branch": {
+              "hits": 317,
+              "bins": 558,
+              "pct": 56.81
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 604,
+              "bins": 6333,
+              "pct": 9.54
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X031",
@@ -47869,22 +48164,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1847,
+              "bins": 1986,
+              "pct": 93.0
+            },
+            "branch": {
+              "hits": 435,
+              "bins": 558,
+              "pct": 77.96
+            },
+            "cond": {
+              "hits": 82,
+              "bins": 132,
+              "pct": 62.12
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1649,
+              "bins": 6333,
+              "pct": 26.04
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X033",
           "full_case_id": "X033",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "TERMINATE while drain engine owns the bus (pop_engine_state=DRAIN) \u2014 confirm in-flight subheader/hit emission completes before asi_ctrl_ready",
           "description": "TERMINATE while drain engine owns the bus (pop_engine_state=DRAIN) \u2014 confirm in-flight subheader/hit emission completes before asi_ctrl_ready",
@@ -47893,15 +48224,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1854,
+              "bins": 1986,
+              "pct": 93.35
+            },
+            "branch": {
+              "hits": 439,
+              "bins": 558,
+              "pct": 78.67
+            },
+            "cond": {
+              "hits": 81,
+              "bins": 132,
+              "pct": 61.36
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1928,
+              "bins": 6333,
+              "pct": 30.44
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 57.9375,
+              "bins": 1986,
+              "pct": 2.92
+            },
+            "branch": {
+              "hits": 13.71875,
+              "bins": 558,
+              "pct": 2.46
+            },
+            "cond": {
+              "hits": 2.53125,
+              "bins": 132,
+              "pct": 1.92
+            },
+            "expr": {
+              "hits": 0.09375,
+              "bins": 10,
+              "pct": 0.94
+            },
+            "fsm_state": {
+              "hits": 0.25,
+              "bins": 8,
+              "pct": 3.12
+            },
+            "fsm_trans": {
+              "hits": 0.3125,
+              "bins": 15,
+              "pct": 2.08
+            },
+            "toggle": {
+              "hits": 60.25,
+              "bins": 6333,
+              "pct": 0.95
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 2,
+              "bins": 6333,
+              "pct": 0.03
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2204,
+              "bins": 6333,
+              "pct": 34.8
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0625,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 32,
+          "log_summary": {
+            "pushed": 32,
+            "popped": 32,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 13,
+            "zero_hit_subheaders": 12,
+            "accepted": 32,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.8,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X034",
@@ -47917,22 +48446,58 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1849,
+              "bins": 1986,
+              "pct": 93.1
+            },
+            "branch": {
+              "hits": 437,
+              "bins": 558,
+              "pct": 78.32
+            },
+            "cond": {
+              "hits": 79,
+              "bins": 132,
+              "pct": 59.85
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1891,
+              "bins": 6333,
+              "pct": 29.86
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X035",
           "full_case_id": "X035",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "TERMINATE one cycle before a CSR write to CTRL (soft_reset=1) \u2014 ordering: TERMINATING state takes precedence over soft_reset since proc_csr_rw self-clears soft_reset",
           "description": "TERMINATE one cycle before a CSR write to CTRL (soft_reset=1) \u2014 ordering: TERMINATING state takes precedence over soft_reset since proc_csr_rw self-clears soft_reset",
@@ -47941,15 +48506,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1852,
+              "bins": 1986,
+              "pct": 93.25
+            },
+            "branch": {
+              "hits": 435,
+              "bins": 558,
+              "pct": 77.96
+            },
+            "cond": {
+              "hits": 81,
+              "bins": 132,
+              "pct": 61.36
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1777,
+              "bins": 6333,
+              "pct": 28.06
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 115.75,
+              "bins": 1986,
+              "pct": 5.83
+            },
+            "branch": {
+              "hits": 27.1875,
+              "bins": 558,
+              "pct": 4.87
+            },
+            "cond": {
+              "hits": 5.0625,
+              "bins": 132,
+              "pct": 3.84
+            },
+            "expr": {
+              "hits": 0.1875,
+              "bins": 10,
+              "pct": 1.88
+            },
+            "fsm_state": {
+              "hits": 0.5,
+              "bins": 8,
+              "pct": 6.25
+            },
+            "fsm_trans": {
+              "hits": 0.625,
+              "bins": 15,
+              "pct": 4.17
+            },
+            "toggle": {
+              "hits": 111.0625,
+              "bins": 6333,
+              "pct": 1.75
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 11,
+              "bins": 6333,
+              "pct": 0.17
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2215,
+              "bins": 6333,
+              "pct": 34.98
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.6875,
+              "bins": 6333,
+              "pct": 0.01
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 16,
+          "log_summary": {
+            "pushed": 16,
+            "popped": 16,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 7,
+            "zero_hit_subheaders": 6,
+            "accepted": 16,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.1,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X036",
@@ -47965,15 +48728,51 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1852,
+              "bins": 1986,
+              "pct": 93.25
+            },
+            "branch": {
+              "hits": 435,
+              "bins": 558,
+              "pct": 77.96
+            },
+            "cond": {
+              "hits": 79,
+              "bins": 132,
+              "pct": 59.85
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1777,
+              "bins": 6333,
+              "pct": 28.06
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X037",
@@ -48119,9 +48918,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 6,
+              "hits": 0,
               "bins": 6333,
-              "pct": 0.09
+              "pct": 0.0
             }
           },
           "bucket_merged_total_after_case": {
@@ -48156,9 +48955,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2208,
+              "hits": 2215,
               "bins": 6333,
-              "pct": 34.86
+              "pct": 34.98
             }
           },
           "bucket_gain_per_txn": {
@@ -48193,9 +48992,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.375,
+              "hits": 0.0,
               "bins": 6333,
-              "pct": 0.01
+              "pct": 0.0
             }
           },
           "implemented": true,
@@ -48342,9 +49141,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2211,
+              "hits": 2218,
               "bins": 6333,
-              "pct": 34.91
+              "pct": 35.02
             }
           },
           "bucket_gain_per_txn": {},
@@ -48376,7 +49175,7 @@
           "full_case_id": "X040",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "TERMINATE then RUNNING directly (skip RUN_PREPARE) \u2014 per run-control contract RUNNING skips the flush; stale residents may remain until next RUN_PREPARE",
           "description": "TERMINATE then RUNNING directly (skip RUN_PREPARE) \u2014 per run-control contract RUNNING skips the flush; stale residents may remain until next RUN_PREPARE",
@@ -48385,22 +49184,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1653,
+              "bins": 1986,
+              "pct": 83.23
+            },
+            "branch": {
+              "hits": 333,
+              "bins": 558,
+              "pct": 59.68
+            },
+            "cond": {
+              "hits": 55,
+              "bins": 132,
+              "pct": 41.67
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 1124,
+              "bins": 6333,
+              "pct": 17.75
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 103.3125,
+              "bins": 1986,
+              "pct": 5.2
+            },
+            "branch": {
+              "hits": 20.8125,
+              "bins": 558,
+              "pct": 3.73
+            },
+            "cond": {
+              "hits": 3.4375,
+              "bins": 132,
+              "pct": 2.6
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.1875,
+              "bins": 8,
+              "pct": 2.34
+            },
+            "fsm_trans": {
+              "hits": 0.1875,
+              "bins": 15,
+              "pct": 1.25
+            },
+            "toggle": {
+              "hits": 70.25,
+              "bins": 6333,
+              "pct": 1.11
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2218,
+              "bins": 6333,
+              "pct": 35.02
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 16,
+          "log_summary": {
+            "pushed": 16,
+            "popped": 0,
+            "remaining": 16,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 16,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X041",
           "full_case_id": "X041",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "TERMINATE while `asi_hit_type1_valid=1` on the same cycle \u2014 deassembly gate closed because `run_state_cmd != RUNNING` branch disables wrreq; the arriving hit must not be accepted",
           "description": "TERMINATE while `asi_hit_type1_valid=1` on the same cycle \u2014 deassembly gate closed because `run_state_cmd != RUNNING` branch disables wrreq; the arriving hit must not be accepted",
@@ -48409,15 +49406,141 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1645,
+              "bins": 1986,
+              "pct": 82.83
+            },
+            "branch": {
+              "hits": 331,
+              "bins": 558,
+              "pct": 59.32
+            },
+            "cond": {
+              "hits": 57,
+              "bins": 132,
+              "pct": 43.18
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 519,
+              "bins": 6333,
+              "pct": 8.2
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2218,
+              "bins": 6333,
+              "pct": 35.02
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X042",
@@ -48540,9 +49663,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2211,
+              "hits": 2218,
               "bins": 6333,
-              "pct": 34.91
+              "pct": 35.02
             }
           },
           "bucket_gain_per_txn": {},
@@ -48726,9 +49849,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3969,
+              "hits": 3976,
               "bins": 6333,
-              "pct": 62.67
+              "pct": 62.78
             }
           },
           "bucket_gain_per_txn": {
@@ -48912,9 +50035,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4007,
+              "hits": 4014,
               "bins": 6333,
-              "pct": 63.27
+              "pct": 63.38
             }
           },
           "bucket_gain_per_txn": {},
@@ -48946,7 +50069,7 @@
           "full_case_id": "X045",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "TERMINATE with a pop_cmd_fifo nonempty and deassembly_fifo nonempty \u2014 TERMINATING must not mask asi_ctrl_ready (only RUN_PREPARE gates ready on fifo emptiness)",
           "description": "TERMINATE with a pop_cmd_fifo nonempty and deassembly_fifo nonempty \u2014 TERMINATING must not mask asi_ctrl_ready (only RUN_PREPARE gates ready on fifo emptiness)",
@@ -48955,15 +50078,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1856,
+              "bins": 1986,
+              "pct": 93.45
+            },
+            "branch": {
+              "hits": 439,
+              "bins": 558,
+              "pct": 78.67
+            },
+            "cond": {
+              "hits": 89,
+              "bins": 132,
+              "pct": 67.42
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2837,
+              "bins": 6333,
+              "pct": 44.8
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 7.25,
+              "bins": 1986,
+              "pct": 0.37
+            },
+            "branch": {
+              "hits": 1.71484375,
+              "bins": 558,
+              "pct": 0.31
+            },
+            "cond": {
+              "hits": 0.34765625,
+              "bins": 132,
+              "pct": 0.26
+            },
+            "expr": {
+              "hits": 0.01171875,
+              "bins": 10,
+              "pct": 0.12
+            },
+            "fsm_state": {
+              "hits": 0.03125,
+              "bins": 8,
+              "pct": 0.39
+            },
+            "fsm_trans": {
+              "hits": 0.0390625,
+              "bins": 15,
+              "pct": 0.26
+            },
+            "toggle": {
+              "hits": 11.08203125,
+              "bins": 6333,
+              "pct": 0.17
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 4,
+              "bins": 1982,
+              "pct": 0.2
+            },
+            "branch": {
+              "hits": 2,
+              "bins": 553,
+              "pct": 0.36
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 50,
+              "bins": 6333,
+              "pct": 0.79
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1891,
+              "bins": 1982,
+              "pct": 95.41
+            },
+            "branch": {
+              "hits": 462,
+              "bins": 553,
+              "pct": 83.54
+            },
+            "cond": {
+              "hits": 87,
+              "bins": 124,
+              "pct": 70.16
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4064,
+              "bins": 6333,
+              "pct": 64.17
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.015625,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0078125,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.1953125,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 256,
+          "log_summary": {
+            "pushed": 256,
+            "popped": 256,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 109,
+            "zero_hit_subheaders": 107,
+            "accepted": 256,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 86.2,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X046",
@@ -49085,21 +50406,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 10,
+              "hits": 4,
               "bins": 6333,
-              "pct": 0.16
+              "pct": 0.06
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -49122,9 +50443,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4017,
+              "hits": 4068,
               "bins": 6333,
-              "pct": 63.43
+              "pct": 64.23
             }
           },
           "bucket_gain_per_txn": {
@@ -49159,7 +50480,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.15625,
+              "hits": 0.0625,
               "bins": 6333,
               "pct": 0.0
             }
@@ -49307,21 +50628,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 76,
+              "hits": 72,
               "bins": 6333,
-              "pct": 1.2
+              "pct": 1.14
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -49344,9 +50665,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4093,
+              "hits": 4140,
               "bins": 6333,
-              "pct": 64.63
+              "pct": 65.37
             }
           },
           "bucket_gain_per_txn": {
@@ -49381,9 +50702,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 9.5,
+              "hits": 9.0,
               "bins": 6333,
-              "pct": 0.15
+              "pct": 0.14
             }
           },
           "implemented": true,
@@ -49500,14 +50821,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -49530,9 +50851,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4093,
+              "hits": 4140,
               "bins": 6333,
-              "pct": 64.63
+              "pct": 65.37
             }
           },
           "bucket_gain_per_txn": {},
@@ -49650,14 +50971,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -49680,9 +51001,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           },
           "bucket_gain_per_txn": {},
@@ -49836,14 +51157,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -49866,9 +51187,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           },
           "bucket_gain_per_txn": {
@@ -50022,14 +51343,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -50052,9 +51373,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           },
           "bucket_gain_per_txn": {},
@@ -50208,14 +51529,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -50238,9 +51559,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -50430,14 +51751,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -50460,9 +51781,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -50712,14 +52033,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -50742,9 +52063,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -50994,14 +52315,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -51024,9 +52345,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -51087,7 +52408,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X058",
@@ -51216,14 +52537,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -51246,9 +52567,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -51438,14 +52759,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -51468,9 +52789,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           },
           "bucket_gain_per_txn": {
@@ -51531,7 +52852,7 @@
             "cg_output_pct": 69.8,
             "cg_hit_data_pct": 39.6
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X060",
@@ -51660,14 +52981,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -51690,9 +53011,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           },
           "bucket_gain_per_txn": {
@@ -51882,14 +53203,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -51912,9 +53233,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           },
           "bucket_gain_per_txn": {
@@ -52068,14 +53389,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -52098,9 +53419,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           },
           "bucket_gain_per_txn": {},
@@ -52125,7 +53446,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X063",
@@ -52247,21 +53568,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 57,
+              "hits": 25,
               "bins": 6333,
-              "pct": 0.9
+              "pct": 0.39
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -52284,9 +53605,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {
@@ -52321,7 +53642,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.10477941176470588,
+              "hits": 0.04595588235294118,
               "bins": 6333,
               "pct": 0.0
             }
@@ -52347,7 +53668,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X064",
@@ -52464,14 +53785,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -52494,9 +53815,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {},
@@ -52614,14 +53935,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -52644,9 +53965,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {},
@@ -52848,10 +54169,10 @@
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X070",
@@ -52997,21 +54318,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 3,
+              "hits": 0,
               "bins": 6333,
-              "pct": 0.05
+              "pct": 0.0
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -53034,9 +54355,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {
@@ -53071,7 +54392,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.1875,
+              "hits": 0.0,
               "bins": 6333,
               "pct": 0.0
             }
@@ -53190,14 +54511,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -53220,9 +54541,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {},
@@ -53376,14 +54697,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -53406,9 +54727,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           },
           "bucket_gain_per_txn": {
@@ -53622,14 +54943,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -53652,9 +54973,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4165,
+              "hits": 4177,
               "bins": 6333,
-              "pct": 65.77
+              "pct": 65.96
             }
           },
           "bucket_gain_per_txn": {},
@@ -53951,14 +55272,14 @@
           },
           "bucket_gain_by_case": {
             "stmt": {
-              "hits": 12,
+              "hits": 8,
               "bins": 1982,
-              "pct": 0.61
+              "pct": 0.4
             },
             "branch": {
-              "hits": 6,
+              "hits": 4,
               "bins": 553,
-              "pct": 1.08
+              "pct": 0.72
             },
             "cond": {
               "hits": 0,
@@ -53981,9 +55302,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 14,
+              "hits": 10,
               "bins": 6333,
-              "pct": 0.22
+              "pct": 0.16
             }
           },
           "bucket_merged_total_after_case": {
@@ -54018,19 +55339,19 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           },
           "bucket_gain_per_txn": {
             "stmt": {
-              "hits": 0.022058823529411766,
+              "hits": 0.014705882352941176,
               "bins": 1982,
               "pct": 0.0
             },
             "branch": {
-              "hits": 0.011029411764705883,
+              "hits": 0.007352941176470588,
               "bins": 553,
               "pct": 0.0
             },
@@ -54055,7 +55376,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.025735294117647058,
+              "hits": 0.01838235294117647,
               "bins": 6333,
               "pct": 0.0
             }
@@ -54288,9 +55609,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           },
           "bucket_gain_per_txn": {},
@@ -54438,9 +55759,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           },
           "bucket_gain_per_txn": {},
@@ -54588,9 +55909,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           },
           "bucket_gain_per_txn": {},
@@ -54738,9 +56059,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           },
           "bucket_gain_per_txn": {},
@@ -54888,9 +56209,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           },
           "bucket_gain_per_txn": {},
@@ -55038,9 +56359,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           },
           "bucket_gain_per_txn": {},
@@ -55188,9 +56509,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {},
@@ -55338,9 +56659,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {},
@@ -55584,9 +56905,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {
@@ -55806,9 +57127,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {
@@ -56028,9 +57349,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {
@@ -56250,9 +57571,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {
@@ -56436,9 +57757,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {},
@@ -56586,9 +57907,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           },
           "bucket_gain_per_txn": {},
@@ -56736,9 +58057,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           },
           "bucket_gain_per_txn": {},
@@ -56886,9 +58207,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           },
           "bucket_gain_per_txn": {},
@@ -57036,9 +58357,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           },
           "bucket_gain_per_txn": {},
@@ -57186,9 +58507,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4244,
+              "hits": 4252,
               "bins": 6333,
-              "pct": 67.01
+              "pct": 67.14
             }
           },
           "bucket_gain_per_txn": {},
@@ -57220,48 +58541,300 @@
           "full_case_id": "X101",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "single bad-hit injection \u2014 measure max cycle delay from `asi_hit_type1_error(0)=1` to `INERR_COUNT` incrementing on the CSR frontdoor",
-          "description": "single bad-hit injection \u2014 measure max cycle delay from `asi_hit_type1_error(0)=1` to `INERR_COUNT` incrementing on the CSR frontdoor",
-          "primary_checks": "backdoor observer samples `debug_msg2.inerr_cnt` change within 1 clk of the bad beat; frontdoor CSR read \u2264 3 clk after via avs_csr handshake",
+          "scenario": "single bad-hit injection \u2014 observe the first `INERR_COUNT` increment on the backdoor and confirm the frontdoor readback follows",
+          "description": "single bad-hit injection \u2014 observe the first `INERR_COUNT` increment on the backdoor and confirm the frontdoor readback follows",
+          "primary_checks": "backdoor `debug_msg2.inerr_cnt` reaches 1 after the bad beat; frontdoor `INERR_COUNT` reads 1",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1636,
+              "bins": 1986,
+              "pct": 82.38
+            },
+            "branch": {
+              "hits": 315,
+              "bins": 558,
+              "pct": 56.45
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 548,
+              "bins": 6333,
+              "pct": 8.65
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4252,
+              "bins": 6333,
+              "pct": 67.14
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X102",
           "full_case_id": "X102",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "burst of 16 bad hits in 16 consecutive cycles \u2014 confirm no counter updates are lost under back-to-back events",
           "description": "burst of 16 bad hits in 16 consecutive cycles \u2014 confirm no counter updates are lost under back-to-back events",
-          "primary_checks": "backdoor `inerr_cnt` = 16 within 1 clk of the 16th bad beat; frontdoor `INERR_COUNT` = 16 within 4 clk",
+          "primary_checks": "backdoor `inerr_cnt` = 16 after the burst; frontdoor `INERR_COUNT` = 16",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1636,
+              "bins": 1986,
+              "pct": 82.38
+            },
+            "branch": {
+              "hits": 315,
+              "bins": 558,
+              "pct": 56.45
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 762,
+              "bins": 6333,
+              "pct": 12.03
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 12,
+              "bins": 6333,
+              "pct": 0.19
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X103",
@@ -57292,31 +58865,231 @@
           "full_case_id": "X104",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "push event near TERMINATE \u2014 verify `PUSH_COUNT` updates before TERMINATING freezes deassembly",
-          "description": "push event near TERMINATE \u2014 verify `PUSH_COUNT` updates before TERMINATING freezes deassembly",
-          "primary_checks": "backdoor `push_cnt` captures the final push \u22641 clk before terminating_drain_done; frontdoor `PUSH_COUNT` read after terminate matches",
+          "scenario": "push activity before TERMINATE \u2014 verify `PUSH_COUNT` is fully retired before the terminate acknowledgement",
+          "description": "push activity before TERMINATE \u2014 verify `PUSH_COUNT` is fully retired before the terminate acknowledgement",
+          "primary_checks": "backdoor `last_push_cycle` < terminate ready; frontdoor `PUSH_COUNT` read post-terminate matches",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1851,
+              "bins": 1986,
+              "pct": 93.2
+            },
+            "branch": {
+              "hits": 437,
+              "bins": 558,
+              "pct": 78.32
+            },
+            "cond": {
+              "hits": 81,
+              "bins": 132,
+              "pct": 61.36
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1944,
+              "bins": 6333,
+              "pct": 30.7
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 57.84375,
+              "bins": 1986,
+              "pct": 2.91
+            },
+            "branch": {
+              "hits": 13.65625,
+              "bins": 558,
+              "pct": 2.45
+            },
+            "cond": {
+              "hits": 2.53125,
+              "bins": 132,
+              "pct": 1.92
+            },
+            "expr": {
+              "hits": 0.09375,
+              "bins": 10,
+              "pct": 0.94
+            },
+            "fsm_state": {
+              "hits": 0.25,
+              "bins": 8,
+              "pct": 3.12
+            },
+            "fsm_trans": {
+              "hits": 0.3125,
+              "bins": 15,
+              "pct": 2.08
+            },
+            "toggle": {
+              "hits": 60.75,
+              "bins": 6333,
+              "pct": 0.96
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 32,
+          "log_summary": {
+            "pushed": 32,
+            "popped": 32,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 12,
+            "zero_hit_subheaders": 11,
+            "accepted": 32,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 69.8,
+            "cg_hit_data_pct": 39.6,
+            "throughput_samples": 1,
+            "max_throughput_pct": 17.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X105",
           "full_case_id": "X105",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "pop event near TERMINATE \u2014 drain retires the last resident; `POP_COUNT` backdoor update must precede asi_ctrl_ready by \u22651 clk",
           "description": "pop event near TERMINATE \u2014 drain retires the last resident; `POP_COUNT` backdoor update must precede asi_ctrl_ready by \u22651 clk",
@@ -57325,39 +59098,273 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1854,
+              "bins": 1986,
+              "pct": 93.35
+            },
+            "branch": {
+              "hits": 439,
+              "bins": 558,
+              "pct": 78.67
+            },
+            "cond": {
+              "hits": 81,
+              "bins": 132,
+              "pct": 61.36
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1928,
+              "bins": 6333,
+              "pct": 30.44
+            }
+          },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {},
           "bucket_merged_total_after_case": {},
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
           "observed_txn": 0,
           "log_summary": {},
-          "implementation_mode": "planned_only"
+          "implementation_mode": "implemented_no_live_log"
         },
         {
           "case_id": "X106",
           "full_case_id": "X106",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "overwrite event near TERMINATE \u2014 force a collision on the last-cycle-before-TERMINATE push",
-          "description": "overwrite event near TERMINATE \u2014 force a collision on the last-cycle-before-TERMINATE push",
-          "primary_checks": "backdoor `overwrite_cnt` +=1 within 1 clk of collision; frontdoor `OVERWRITE_COUNT` read post-terminate matches",
+          "scenario": "overwrite activity before TERMINATE \u2014 force collisions and verify `OVERWRITE_COUNT` is fully retired before terminate ready",
+          "description": "overwrite activity before TERMINATE \u2014 force collisions and verify `OVERWRITE_COUNT` is fully retired before terminate ready",
+          "primary_checks": "backdoor `last_overwrite_cycle` < terminate ready; frontdoor `OVERWRITE_COUNT` read post-terminate matches",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1892,
+              "bins": 1986,
+              "pct": 95.27
+            },
+            "branch": {
+              "hits": 468,
+              "bins": 558,
+              "pct": 83.87
+            },
+            "cond": {
+              "hits": 89,
+              "bins": 132,
+              "pct": 67.42
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 3690,
+              "bins": 6333,
+              "pct": 58.27
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 3.4779411764705883,
+              "bins": 1986,
+              "pct": 0.18
+            },
+            "branch": {
+              "hits": 0.8602941176470589,
+              "bins": 558,
+              "pct": 0.15
+            },
+            "cond": {
+              "hits": 0.1636029411764706,
+              "bins": 132,
+              "pct": 0.12
+            },
+            "expr": {
+              "hits": 0.007352941176470588,
+              "bins": 10,
+              "pct": 0.07
+            },
+            "fsm_state": {
+              "hits": 0.014705882352941176,
+              "bins": 8,
+              "pct": 0.18
+            },
+            "fsm_trans": {
+              "hits": 0.01838235294117647,
+              "bins": 15,
+              "pct": 0.12
+            },
+            "toggle": {
+              "hits": 6.783088235294118,
+              "bins": 6333,
+              "pct": 0.11
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 544,
+          "log_summary": {
+            "pushed": 544,
+            "popped": 512,
+            "remaining": 0,
+            "overwrites": 32,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 32,
+            "overlap_fallback": 0,
+            "subheaders": 48,
+            "zero_hit_subheaders": 47,
+            "accepted": 544,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 72.0,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X107",
@@ -57388,7 +59395,7 @@
           "full_case_id": "X108",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "inerr event near FLUSH \u2014 bad hit one cycle before RUN_PREPARE asserted \u2014 backdoor must see inerr_cnt go to 0 after FLUSHING decision_reg=3 branch",
           "description": "inerr event near FLUSH \u2014 bad hit one cycle before RUN_PREPARE asserted \u2014 backdoor must see inerr_cnt go to 0 after FLUSHING decision_reg=3 branch",
@@ -57397,39 +59404,363 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1637,
+              "bins": 1986,
+              "pct": 82.43
+            },
+            "branch": {
+              "hits": 316,
+              "bins": 558,
+              "pct": 56.63
+            },
+            "cond": {
+              "hits": 47,
+              "bins": 132,
+              "pct": 35.61
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 636,
+              "bins": 6333,
+              "pct": 10.04
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X109",
           "full_case_id": "X109",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "overwrite event near FLUSH \u2014 force overwrite one cycle before RUN_PREPARE",
-          "description": "overwrite event near FLUSH \u2014 force overwrite one cycle before RUN_PREPARE",
-          "primary_checks": "backdoor: `overwrite_cnt` +=1 then =0; frontdoor reads 0 after flush",
+          "scenario": "overwrite event before FLUSH \u2014 force overwrite pressure, then verify the FLUSH counter-clear semantics",
+          "description": "overwrite event before FLUSH \u2014 force overwrite pressure, then verify the FLUSH counter-clear semantics",
+          "primary_checks": "backdoor: `overwrite_cnt` +=1 then =0 during FLUSHING; frontdoor `OVERWRITE_COUNT` reads 0 after flush",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1650,
+              "bins": 1986,
+              "pct": 83.08
+            },
+            "branch": {
+              "hits": 329,
+              "bins": 558,
+              "pct": 58.96
+            },
+            "cond": {
+              "hits": 53,
+              "bins": 132,
+              "pct": 40.15
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 1442,
+              "bins": 6333,
+              "pct": 22.77
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 3.216374269005848,
+              "bins": 1986,
+              "pct": 0.16
+            },
+            "branch": {
+              "hits": 0.6413255360623782,
+              "bins": 558,
+              "pct": 0.11
+            },
+            "cond": {
+              "hits": 0.10331384015594541,
+              "bins": 132,
+              "pct": 0.08
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.005847953216374269,
+              "bins": 8,
+              "pct": 0.07
+            },
+            "fsm_trans": {
+              "hits": 0.005847953216374269,
+              "bins": 15,
+              "pct": 0.04
+            },
+            "toggle": {
+              "hits": 2.810916179337232,
+              "bins": 6333,
+              "pct": 0.04
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 513,
+          "log_summary": {
+            "pushed": 513,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 1,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 513,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X110",
@@ -57460,79 +59791,603 @@
           "full_case_id": "X111",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "push event near FLUSH \u2014 push one cycle before RUN_PREPARE; `push_cnt` is NOT cleared by decision_reg=3 in current RTL (only overwrite/cache_miss/inerr are)",
-          "description": "push event near FLUSH \u2014 push one cycle before RUN_PREPARE; `push_cnt` is NOT cleared by decision_reg=3 in current RTL (only overwrite/cache_miss/inerr are)",
-          "primary_checks": "backdoor `push_cnt` retains value through FLUSHING; frontdoor `PUSH_COUNT` unchanged",
+          "scenario": "push event before FLUSH \u2014 verify `PUSH_COUNT` is cleared by the FLUSHING `decision_reg=3` branch",
+          "description": "push event before FLUSH \u2014 verify `PUSH_COUNT` is cleared by the FLUSHING `decision_reg=3` branch",
+          "primary_checks": "backdoor `push_cnt` clears to 0 during FLUSHING; frontdoor `PUSH_COUNT` reads 0 after flush",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1646,
+              "bins": 1986,
+              "pct": 82.88
+            },
+            "branch": {
+              "hits": 323,
+              "bins": 558,
+              "pct": 57.89
+            },
+            "cond": {
+              "hits": 51,
+              "bins": 132,
+              "pct": 38.64
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 880,
+              "bins": 6333,
+              "pct": 13.9
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 1646.0,
+              "bins": 1986,
+              "pct": 82.88
+            },
+            "branch": {
+              "hits": 323.0,
+              "bins": 558,
+              "pct": 57.89
+            },
+            "cond": {
+              "hits": 51.0,
+              "bins": 132,
+              "pct": 38.64
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3.0,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3.0,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 880.0,
+              "bins": 6333,
+              "pct": 13.9
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 1,
+          "log_summary": {
+            "pushed": 1,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 1,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X112",
           "full_case_id": "X112",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "pop event near FLUSH \u2014 pop one cycle before RUN_PREPARE; `pop_cnt` retained",
-          "description": "pop event near FLUSH \u2014 pop one cycle before RUN_PREPARE; `pop_cnt` retained",
-          "primary_checks": "backdoor `pop_cnt` retained; frontdoor `POP_COUNT` unchanged",
+          "scenario": "pop event before FLUSH \u2014 verify `POP_COUNT` is cleared by the FLUSHING `decision_reg=3` branch",
+          "description": "pop event before FLUSH \u2014 verify `POP_COUNT` is cleared by the FLUSHING `decision_reg=3` branch",
+          "primary_checks": "backdoor `pop_cnt` clears to 0 during FLUSHING; frontdoor `POP_COUNT` reads 0 after flush",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1839,
+              "bins": 1986,
+              "pct": 92.6
+            },
+            "branch": {
+              "hits": 417,
+              "bins": 558,
+              "pct": 74.73
+            },
+            "cond": {
+              "hits": 70,
+              "bins": 132,
+              "pct": 53.03
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1872,
+              "bins": 6333,
+              "pct": 29.56
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 57.46875,
+              "bins": 1986,
+              "pct": 2.89
+            },
+            "branch": {
+              "hits": 13.03125,
+              "bins": 558,
+              "pct": 2.34
+            },
+            "cond": {
+              "hits": 2.1875,
+              "bins": 132,
+              "pct": 1.66
+            },
+            "expr": {
+              "hits": 0.09375,
+              "bins": 10,
+              "pct": 0.94
+            },
+            "fsm_state": {
+              "hits": 0.25,
+              "bins": 8,
+              "pct": 3.12
+            },
+            "fsm_trans": {
+              "hits": 0.3125,
+              "bins": 15,
+              "pct": 2.08
+            },
+            "toggle": {
+              "hits": 58.5,
+              "bins": 6333,
+              "pct": 0.92
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 32,
+          "log_summary": {
+            "pushed": 32,
+            "popped": 32,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 3,
+            "zero_hit_subheaders": 2,
+            "accepted": 32,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 68.3,
+            "cg_hit_data_pct": 39.6,
+            "throughput_samples": 1,
+            "max_throughput_pct": 17.0
+          },
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "X113",
           "full_case_id": "X113",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "inerr event coincident with soft-reset write \u2014 verify expected clear semantics (forward-looking) vs current retention",
-          "description": "inerr event coincident with soft-reset write \u2014 verify expected clear semantics (forward-looking) vs current retention",
-          "primary_checks": "current: `INERR_COUNT` retained; future-implemented: `INERR_COUNT`=0 within 3 clk",
+          "scenario": "inerr event coincident with soft-reset write \u2014 verify the current retention contract under a same-cycle CSR write",
+          "description": "inerr event coincident with soft-reset write \u2014 verify the current retention contract under a same-cycle CSR write",
+          "primary_checks": "current: `INERR_COUNT` retained despite the CSR write; backdoor and frontdoor agree",
           "contract_anchor": "",
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1639,
+              "bins": 1986,
+              "pct": 82.53
+            },
+            "branch": {
+              "hits": 316,
+              "bins": 558,
+              "pct": 56.63
+            },
+            "cond": {
+              "hits": 49,
+              "bins": 132,
+              "pct": 37.12
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 3,
+              "bins": 8,
+              "pct": 37.5
+            },
+            "fsm_trans": {
+              "hits": 3,
+              "bins": 15,
+              "pct": 20.0
+            },
+            "toggle": {
+              "hits": 556,
+              "bins": 6333,
+              "pct": 8.78
+            }
+          },
           "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
           "bucket_gain_per_txn": {},
-          "implemented": false,
+          "implemented": true,
+          "passed": true,
           "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "log_summary": {
+            "pushed": 0,
+            "popped": 0,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 0,
+            "zero_hit_subheaders": 0,
+            "accepted": 0,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 0.0,
+            "cg_hit_data_pct": 0.0
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X114",
           "full_case_id": "X114",
           "bucket": "ERROR",
           "method": "D",
-          "implementation_decl": "planned (requires backdoor counter observer)",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "single push at exact cycle of a CSR read of PUSH_COUNT \u2014 read must reflect either pre- or post-push value, never mid-update garbage",
           "description": "single push at exact cycle of a CSR read of PUSH_COUNT \u2014 read must reflect either pre- or post-push value, never mid-update garbage",
@@ -57541,15 +60396,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1837,
+              "bins": 1986,
+              "pct": 92.5
+            },
+            "branch": {
+              "hits": 427,
+              "bins": 558,
+              "pct": 76.52
+            },
+            "cond": {
+              "hits": 78,
+              "bins": 132,
+              "pct": 59.09
+            },
+            "expr": {
+              "hits": 2,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1119,
+              "bins": 6333,
+              "pct": 17.67
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 1837.0,
+              "bins": 1986,
+              "pct": 92.5
+            },
+            "branch": {
+              "hits": 427.0,
+              "bins": 558,
+              "pct": 76.52
+            },
+            "cond": {
+              "hits": 78.0,
+              "bins": 132,
+              "pct": 59.09
+            },
+            "expr": {
+              "hits": 2.0,
+              "bins": 10,
+              "pct": 20.0
+            },
+            "fsm_state": {
+              "hits": 8.0,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10.0,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1119.0,
+              "bins": 6333,
+              "pct": 17.67
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 1982,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 553,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 1,
+          "log_summary": {
+            "pushed": 1,
+            "popped": 1,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 3,
+            "zero_hit_subheaders": 2,
+            "accepted": 1,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 65.2,
+            "cg_hit_data_pct": 8.3
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "X115",
@@ -57732,9 +60785,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4244,
+              "hits": 4264,
               "bins": 6333,
-              "pct": 67.01
+              "pct": 67.33
             }
           },
           "bucket_gain_per_txn": {
@@ -57917,9 +60970,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 1,
+              "hits": 0,
               "bins": 6333,
-              "pct": 0.02
+              "pct": 0.0
             }
           },
           "bucket_merged_total_after_case": {
@@ -57954,9 +61007,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4245,
+              "hits": 4264,
               "bins": 6333,
-              "pct": 67.03
+              "pct": 67.33
             }
           },
           "bucket_gain_per_txn": {
@@ -57991,7 +61044,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.015625,
+              "hits": 0.0,
               "bins": 6333,
               "pct": 0.0
             }
@@ -58139,9 +61192,9 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 9,
+              "hits": 7,
               "bins": 6333,
-              "pct": 0.14
+              "pct": 0.11
             }
           },
           "bucket_merged_total_after_case": {
@@ -58176,9 +61229,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4254,
+              "hits": 4271,
               "bins": 6333,
-              "pct": 67.17
+              "pct": 67.44
             }
           },
           "bucket_gain_per_txn": {
@@ -58213,7 +61266,7 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 0.0703125,
+              "hits": 0.0546875,
               "bins": 6333,
               "pct": 0.0
             }
@@ -58530,9 +61583,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4254,
+              "hits": 4271,
               "bins": 6333,
-              "pct": 67.17
+              "pct": 67.44
             }
           },
           "bucket_gain_per_txn": {},
@@ -58716,9 +61769,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4258,
+              "hits": 4275,
               "bins": 6333,
-              "pct": 67.24
+              "pct": 67.5
             }
           },
           "bucket_gain_per_txn": {
@@ -58902,9 +61955,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4263,
+              "hits": 4280,
               "bins": 6333,
-              "pct": 67.31
+              "pct": 67.58
             }
           },
           "bucket_gain_per_txn": {},
@@ -59729,7 +62782,43 @@
           "step": 33,
           "case_id": "X033",
           "full_case_id": "X033",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2204,
+              "bins": 6333,
+              "pct": 34.8
+            }
+          }
         },
         {
           "step": 34,
@@ -59741,7 +62830,43 @@
           "step": 35,
           "case_id": "X035",
           "full_case_id": "X035",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2215,
+              "bins": 6333,
+              "pct": 34.98
+            }
+          }
         },
         {
           "step": 36,
@@ -59791,9 +62916,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2208,
+              "hits": 2215,
               "bins": 6333,
-              "pct": 34.86
+              "pct": 34.98
             }
           }
         },
@@ -59833,9 +62958,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2211,
+              "hits": 2218,
               "bins": 6333,
-              "pct": 34.91
+              "pct": 35.02
             }
           }
         },
@@ -59843,13 +62968,85 @@
           "step": 40,
           "case_id": "X040",
           "full_case_id": "X040",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2218,
+              "bins": 6333,
+              "pct": 35.02
+            }
+          }
         },
         {
           "step": 41,
           "case_id": "X041",
           "full_case_id": "X041",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1864,
+              "bins": 1982,
+              "pct": 94.05
+            },
+            "branch": {
+              "hits": 443,
+              "bins": 553,
+              "pct": 80.11
+            },
+            "cond": {
+              "hits": 83,
+              "bins": 124,
+              "pct": 66.94
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2218,
+              "bins": 6333,
+              "pct": 35.02
+            }
+          }
         },
         {
           "step": 42,
@@ -59887,9 +63084,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 2211,
+              "hits": 2218,
               "bins": 6333,
-              "pct": 34.91
+              "pct": 35.02
             }
           }
         },
@@ -59929,9 +63126,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3969,
+              "hits": 3976,
               "bins": 6333,
-              "pct": 62.67
+              "pct": 62.78
             }
           }
         },
@@ -59971,9 +63168,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4007,
+              "hits": 4014,
               "bins": 6333,
-              "pct": 63.27
+              "pct": 63.38
             }
           }
         },
@@ -59981,22 +63178,16 @@
           "step": 45,
           "case_id": "X045",
           "full_case_id": "X045",
-          "merged_total_after_case": {}
-        },
-        {
-          "step": 46,
-          "case_id": "X046",
-          "full_case_id": "X046",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60019,9 +63210,51 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4017,
+              "hits": 4064,
               "bins": 6333,
-              "pct": 63.43
+              "pct": 64.17
+            }
+          }
+        },
+        {
+          "step": 46,
+          "case_id": "X046",
+          "full_case_id": "X046",
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1891,
+              "bins": 1982,
+              "pct": 95.41
+            },
+            "branch": {
+              "hits": 462,
+              "bins": 553,
+              "pct": 83.54
+            },
+            "cond": {
+              "hits": 87,
+              "bins": 124,
+              "pct": 70.16
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4068,
+              "bins": 6333,
+              "pct": 64.23
             }
           }
         },
@@ -60031,14 +63264,14 @@
           "full_case_id": "X047",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60061,9 +63294,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4093,
+              "hits": 4140,
               "bins": 6333,
-              "pct": 64.63
+              "pct": 65.37
             }
           }
         },
@@ -60073,14 +63306,14 @@
           "full_case_id": "X048",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60103,9 +63336,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4093,
+              "hits": 4140,
               "bins": 6333,
-              "pct": 64.63
+              "pct": 65.37
             }
           }
         },
@@ -60115,14 +63348,14 @@
           "full_case_id": "X049",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60145,9 +63378,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           }
         },
@@ -60157,14 +63390,14 @@
           "full_case_id": "X050",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60187,9 +63420,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           }
         },
@@ -60199,14 +63432,14 @@
           "full_case_id": "X051",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60229,9 +63462,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4098,
+              "hits": 4145,
               "bins": 6333,
-              "pct": 64.71
+              "pct": 65.45
             }
           }
         },
@@ -60241,14 +63474,14 @@
           "full_case_id": "X052",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 87,
@@ -60271,9 +63504,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60283,14 +63516,14 @@
           "full_case_id": "X053",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60313,9 +63546,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60331,14 +63564,14 @@
           "full_case_id": "X055",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60361,9 +63594,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60379,14 +63612,14 @@
           "full_case_id": "X057",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60409,9 +63642,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60421,14 +63654,14 @@
           "full_case_id": "X058",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60451,9 +63684,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60463,14 +63696,14 @@
           "full_case_id": "X059",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60493,9 +63726,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4099,
+              "hits": 4146,
               "bins": 6333,
-              "pct": 64.72
+              "pct": 65.47
             }
           }
         },
@@ -60505,14 +63738,14 @@
           "full_case_id": "X060",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60535,9 +63768,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           }
         },
@@ -60547,14 +63780,14 @@
           "full_case_id": "X061",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60577,9 +63810,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           }
         },
@@ -60589,14 +63822,14 @@
           "full_case_id": "X062",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60619,9 +63852,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4103,
+              "hits": 4150,
               "bins": 6333,
-              "pct": 64.79
+              "pct": 65.53
             }
           }
         },
@@ -60631,14 +63864,14 @@
           "full_case_id": "X063",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60661,9 +63894,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           }
         },
@@ -60679,14 +63912,14 @@
           "full_case_id": "X065",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60709,9 +63942,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           }
         },
@@ -60721,14 +63954,14 @@
           "full_case_id": "X066",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60751,9 +63984,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4160,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.69
+              "pct": 65.92
             }
           }
         },
@@ -60787,14 +64020,14 @@
           "full_case_id": "X071",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60817,9 +64050,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           }
         },
@@ -60829,14 +64062,14 @@
           "full_case_id": "X072",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60859,9 +64092,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           }
         },
@@ -60871,14 +64104,14 @@
           "full_case_id": "X073",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60901,9 +64134,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4163,
+              "hits": 4175,
               "bins": 6333,
-              "pct": 65.74
+              "pct": 65.92
             }
           }
         },
@@ -60919,14 +64152,14 @@
           "full_case_id": "X075",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1887,
+              "hits": 1891,
               "bins": 1982,
-              "pct": 95.21
+              "pct": 95.41
             },
             "branch": {
-              "hits": 460,
+              "hits": 462,
               "bins": 553,
-              "pct": 83.18
+              "pct": 83.54
             },
             "cond": {
               "hits": 88,
@@ -60949,9 +64182,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4165,
+              "hits": 4177,
               "bins": 6333,
-              "pct": 65.77
+              "pct": 65.96
             }
           }
         },
@@ -61009,9 +64242,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           }
         },
@@ -61063,9 +64296,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           }
         },
@@ -61105,9 +64338,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           }
         },
@@ -61147,9 +64380,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4179,
+              "hits": 4187,
               "bins": 6333,
-              "pct": 65.99
+              "pct": 66.11
             }
           }
         },
@@ -61189,9 +64422,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           }
         },
@@ -61231,9 +64464,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           }
         },
@@ -61273,9 +64506,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4207,
+              "hits": 4215,
               "bins": 6333,
-              "pct": 66.43
+              "pct": 66.56
             }
           }
         },
@@ -61315,9 +64548,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61357,9 +64590,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61405,9 +64638,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61447,9 +64680,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61489,9 +64722,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61531,9 +64764,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61573,9 +64806,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61615,9 +64848,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4231,
+              "hits": 4239,
               "bins": 6333,
-              "pct": 66.81
+              "pct": 66.94
             }
           }
         },
@@ -61657,9 +64890,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           }
         },
@@ -61699,9 +64932,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           }
         },
@@ -61741,9 +64974,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4243,
+              "hits": 4251,
               "bins": 6333,
-              "pct": 67.0
+              "pct": 67.12
             }
           }
         },
@@ -61783,9 +65016,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4244,
+              "hits": 4252,
               "bins": 6333,
-              "pct": 67.01
+              "pct": 67.14
             }
           }
         },
@@ -61793,13 +65026,85 @@
           "step": 101,
           "case_id": "X101",
           "full_case_id": "X101",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4252,
+              "bins": 6333,
+              "pct": 67.14
+            }
+          }
         },
         {
           "step": 102,
           "case_id": "X102",
           "full_case_id": "X102",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 103,
@@ -61811,7 +65116,43 @@
           "step": 104,
           "case_id": "X104",
           "full_case_id": "X104",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 105,
@@ -61823,7 +65164,43 @@
           "step": 106,
           "case_id": "X106",
           "full_case_id": "X106",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 107,
@@ -61835,13 +65212,85 @@
           "step": 108,
           "case_id": "X108",
           "full_case_id": "X108",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 109,
           "case_id": "X109",
           "full_case_id": "X109",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 110,
@@ -61853,25 +65302,169 @@
           "step": 111,
           "case_id": "X111",
           "full_case_id": "X111",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 112,
           "case_id": "X112",
           "full_case_id": "X112",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 113,
           "case_id": "X113",
           "full_case_id": "X113",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 114,
           "case_id": "X114",
           "full_case_id": "X114",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1902,
+              "bins": 1982,
+              "pct": 95.96
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 553,
+              "pct": 86.44
+            },
+            "cond": {
+              "hits": 88,
+              "bins": 124,
+              "pct": 70.97
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4264,
+              "bins": 6333,
+              "pct": 67.33
+            }
+          }
         },
         {
           "step": 115,
@@ -61915,9 +65508,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4244,
+              "hits": 4264,
               "bins": 6333,
-              "pct": 67.01
+              "pct": 67.33
             }
           }
         },
@@ -61957,9 +65550,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4245,
+              "hits": 4264,
               "bins": 6333,
-              "pct": 67.03
+              "pct": 67.33
             }
           }
         },
@@ -61999,9 +65592,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4254,
+              "hits": 4271,
               "bins": 6333,
-              "pct": 67.17
+              "pct": 67.44
             }
           }
         },
@@ -62083,9 +65676,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4254,
+              "hits": 4271,
               "bins": 6333,
-              "pct": 67.17
+              "pct": 67.44
             }
           }
         },
@@ -62125,9 +65718,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4258,
+              "hits": 4275,
               "bins": 6333,
-              "pct": 67.24
+              "pct": 67.5
             }
           }
         },
@@ -62167,9 +65760,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 4263,
+              "hits": 4280,
               "bins": 6333,
-              "pct": 67.31
+              "pct": 67.58
             }
           }
         },
@@ -62327,7 +65920,7 @@
     {
       "bucket": "ERROR",
       "planned_cases": 129,
-      "evidenced_cases": 68,
+      "evidenced_cases": 84,
       "merged_bucket_total": {
         "stmt": {
           "hits": 1904,
@@ -62360,14 +65953,14 @@
           "pct": 66.67
         },
         "toggle": {
-          "hits": 4263,
+          "hits": 4280,
           "bins": 6333,
-          "pct": 67.31
+          "pct": 67.58
         }
       },
       "functional_coverage": {
-        "pct": 52.71,
-        "evidenced": 68,
+        "pct": 64.34,
+        "evidenced": 83,
         "planned": 129
       }
     }
@@ -62406,30 +65999,32 @@
     {
       "scope": "ERROR",
       "planned_cases": 129,
-      "executed_cases": 68,
-      "executed_ratio_pct": 52.71,
-      "observed_txn": 3566,
-      "failing_cases": 0,
-      "asserted_failures": 0,
+      "executed_cases": 84,
+      "executed_ratio_pct": 65.12,
+      "observed_txn": 5009,
+      "failing_cases": 1,
+      "asserted_failures": 1,
       "unexpected_outputs": 0
     },
     {
       "scope": "TOTAL",
       "planned_cases": 516,
-      "executed_cases": 221,
-      "executed_ratio_pct": 42.83,
-      "observed_txn": 34854,
-      "failing_cases": 0,
-      "asserted_failures": 0,
+      "executed_cases": 237,
+      "executed_ratio_pct": 45.93,
+      "observed_txn": 36297,
+      "failing_cases": 1,
+      "asserted_failures": 1,
       "unexpected_outputs": 0
     }
   ],
   "implementation_summary": {
-    "implemented_count": 231,
-    "unimplemented_count": 285,
+    "implemented_count": 258,
+    "unimplemented_count": 258,
     "stale_artifact_without_engine_marker_count": 0
   },
-  "failed_cases": [],
+  "failed_cases": [
+    "X019"
+  ],
   "random_cases": [
     {
       "case_id": "P001",
@@ -67067,7 +70662,7 @@
   "signoff_runs": [],
   "totals": {
     "planned_cases": 516,
-    "evidenced_cases": 221,
+    "evidenced_cases": 237,
     "excluded_cases": 0,
     "merged_total_code_coverage": {
       "stmt": {
@@ -67101,14 +70696,14 @@
         "pct": 66.67
       },
       "toggle": {
-        "hits": 4633,
+        "hits": 4638,
         "bins": 6333,
-        "pct": 73.16
+        "pct": 73.24
       }
     },
     "functional_coverage": {
-      "pct": 42.83,
-      "evidenced": 221,
+      "pct": 45.74,
+      "evidenced": 236,
       "planned": 516
     }
   }

@@ -35,7 +35,7 @@
 -- Revision: 2.14 (no RTL delta; metadata bump for the durable DV evidence publisher and live-partition harness checkpoint)
 --      Date: Apr 18, 2026
 -- Version : 26.1.5
--- Date    : 20260418
+-- Date    : 20260419
 -- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the durable DV evidence checkpoint metadata
 --
 -- =========
@@ -80,8 +80,8 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 427;
-	VERSION_DATE		: natural := 20260418;
+	BUILD				: natural := 428;
+	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
 	DEBUG				: natural := 1
@@ -752,13 +752,15 @@ begin
 				--if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
 				--	csr.overwrite_cnt_rst			<= '0';
 				--end if;
-                if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
-                    debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
-                end if;
-                if (decision_reg = 3) then -- flushing 
-                    debug_msg2.inerr_cnt            <= (others => '0');
-                end if;
 			end if;
+			-- Keep INERR accounting independent from MM CSR bus traffic so a
+			-- coincident read/write cannot mask an observed error beat.
+            if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
+                debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
+            end if;
+            if (decision_reg = 3) then -- flushing 
+                debug_msg2.inerr_cnt            <= (others => '0');
+            end if;
 		end if;
 	end process;
 	

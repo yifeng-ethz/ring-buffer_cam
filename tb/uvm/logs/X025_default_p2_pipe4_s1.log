@@ -1,3 +1,3 @@
 X025 has no live log artifact.
-State: planned only
+State: implemented but not yet rerun
 Scenario: 8 bad hits in a 10-cycle window with `filter_inerr=1`, all same search key

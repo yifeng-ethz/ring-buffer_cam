@@ -1,3 +1,3 @@
 X023 has no live log artifact.
-State: planned only
+State: implemented but not yet rerun
 Scenario: bad hit race with a CSR write to CTRL flipping filter_inerr from 1→0 on the SAME cycle the bad hit arrives

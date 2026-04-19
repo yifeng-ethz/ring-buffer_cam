@@ -376,3 +376,53 @@
     - `terminating_drain_done` / quiescent detection in `rtl/ring_buffer_cam_v2_core.vhd`
     - `TERMINATING` ready gate in `rtl/ring_buffer_cam_v2_core.vhd`
 - Commit: f575af8
+
+## 2026-04-19
+
+### BUG-026-H: The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain
+- First seen in: `X111` / `X112` on 2026-04-19 during the next ERROR counter-observer tranche after `BUG-025-R`
+- Symptom:
+  - `X111` initially failed by expecting `PUSH_COUNT` to be retained across FLUSH even though the broader DV plan already required counters `6/7/8/9` to clear on `decision_reg=3`
+  - `X112` then failed with `31` scoreboard "Observed hit with no active subheader context" errors because the testcase called `note_flush_reset()` while the DUT was still legally finishing the already-issued drain payload
+- Root cause:
+  - the testcase intent drifted away from the canonical FLUSH contract documented elsewhere in the plan (`B030` and the existing FLUSH cleanup cases)
+  - `X112` also reused the flush-epoch reset helper in a situation where the scoreboard still needed the pre-FLUSH subheader context to retire in-flight hits cleanly
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `X111` now verifies that `PUSH_COUNT` clears to zero during FLUSHING
+  - `X112` now verifies `POP_COUNT` clear semantics without dropping the active subheader epoch
+  - verified by clean isolated reruns of `X101`, `X102`, `X104`, `X106`, `X109`, `X111`, and `X112`
+  - related harness logic:
+    - `tb/uvm/base_test.sv`
+    - `tb/DV_ERROR.md`
+- Commit: pending
+
+### BUG-027-R: MM CSR traffic masked same-cycle `INERR_COUNT` updates
+- First seen in: `X113` on 2026-04-19 during the backdoor counter-observer ERROR tranche
+- Symptom:
+  - a bad hit coincident with a `CSR_CTRL` soft-reset write left both the backdoor `debug_msg2.inerr_cnt` and the frontdoor `INERR_COUNT` at `0`
+  - the bad beat was filtered as expected (`PUSH_COUNT` stayed `0`), but the raw error observer event disappeared entirely
+- Root cause:
+  - `proc_avmm_csr` updated `debug_msg2.inerr_cnt` only in the MM-idle branch
+  - any same-cycle `avs_csr_read='1'` or `avs_csr_write='1'` therefore skipped the `INERR_COUNT` increment path, even though the raw ingress error pulse was present on `asi_hit_type1_error`
+- Fix status: fixed in working tree, not yet committed
+- Runtime / coverage context:
+  - `debug_msg2.inerr_cnt` accounting now runs after the MM read/write/idle decode so CSR bus traffic no longer masks the raw error observer
+  - verified by clean isolated reruns of `X076`, `X113`, and `X114`, then by clean isolated reruns of `X022`, `X023`, `X024`, `X025`, and `X030`
+  - related RTL logic:
+    - `rtl/ring_buffer_cam_v2_core.vhd` `proc_avmm_csr`
+- Commit: pending
+
+### BUG-028-R: The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost
+- First seen in: `X019` on 2026-04-19 while extending the same counter-observer/boundary ERROR tranche
+- Symptom:
+  - a raw one-cycle bad hit driven exactly with the `CTRL_RUNNING` entry pulse leaves both `INERR_COUNT` and `PUSH_COUNT` at `0`
+  - surrounding cases still behave correctly: `X018` now shows the expected RUN_PREPARE flush-clear swallow semantics, and `X022` / `X023` / `X024` / `X025` / `X030` all pass with the same observer infrastructure
+- Root cause:
+  - current evidence indicates the `SYNC -> RUNNING` boundary loses the first raw ingress error pulse instead of reporting it through `INERR_COUNT`
+  - the exact RTL priority path is still under investigation, but the failure survives raw interface driving and is not explained by the normal sequencer/backpressure contract
+- Fix status: open
+- Runtime / coverage context:
+  - reproduced by isolated case `X019` with direct raw hit driving on the Avalon-ST ingress
+  - failing evidence is published in `tb/uvm/logs/X019_default_p2_pipe4_s1.log` and `tb/uvm/cov_after/X019_s1.ucdb`
+- Commit: pending

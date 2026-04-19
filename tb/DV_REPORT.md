@@ -1,6 +1,6 @@
-# ⚠️ DV Report — ring_buffer_cam
+# ❌ DV Report — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-18` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-19` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 This page is the chief-architect dashboard. All per-case evidence lives under [`REPORT/`](REPORT/README.md).
@@ -13,9 +13,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | field | value |
 |:---:|---|---|
-| ✅ | failed_cases | `0` |
+| ❌ | failed_cases | `1` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `285` |
+| ⚠️ | unimplemented_cases | `258` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ❓ | `BUG-028-R` | RTL | `2026-04-19` | The first raw bad-hit pulse on the `SYNC -> RUNNING` boundary is lost | `pending` |
+| ⚠️ | `BUG-027-R` | RTL | `2026-04-19` | MM CSR traffic masked same-cycle `INERR_COUNT` updates | `pending` |
+| ⚠️ | `BUG-026-H` | Harness | `2026-04-19` | The first FLUSH counter-observer tranche encoded the wrong contract and reset scoreboard epoch under an active drain | `pending` |
 | ✅ | `BUG-025-R` | RTL | `2026-04-18` | Post-flush quiescent `TERMINATING` from `RUN_PREPARE` never acknowledged | `f575af8` |
 | ✅ | `BUG-024-H` | Harness | `2026-04-18` | X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion | `c2bcc79` |
 | ✅ | `BUG-023-R` | RTL | `2026-04-18` | TERMINATE from IDLE deadlocks `asi_ctrl_ready` because `terminating_drain_done` can never rise without `endofrun_seen` | `b203a04` |
 | ✅ | `BUG-022-H` | Harness | `2026-04-18` | META version smoke test hardcoded the previous build stamp and failed immediately after a legal VERSION bump | `84b13e9` |
 | ✅ | `BUG-021-H` | Harness | `2026-04-18` | FLUSHING cursor checks expected the terminal address to persist instead of validating the DUT's completion rollover | `84b13e9` |
-| ✅ | `BUG-020-H` | Harness | `2026-04-18` | B116 sampled FILL_LEVEL before the fourth/eighth/etc push grant had actually landed | `740adc0` |
-| ✅ | `BUG-019-H` | Harness | `2026-04-18` | E026 partition-walk harness observed the wrong partition index during skip logic | `63e3652` |
-| ✅ | `BUG-018-H` | Harness | `2026-04-18` | DV report publication linked evidence into volatile `work_uvm` paths and collapsed after targeted reruns | `cec8e58` |
 
 ## Formal / contract cases
 
@@ -46,8 +46,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | `BASIC` | 129 | 120 | 93.02% | 13577 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 24 | 18.60% | 9537 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 9 | 6.98% | 8174 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 68 | 52.71% | 3566 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 221 | 42.83% | 34854 | 0 | 0 | 0 |
+| ❌ | `ERROR` | 129 | 84 | 65.12% | 5009 | 1 | 1 | 0 |
+| ❌ | `TOTAL` | 516 | 237 | 45.93% | 36297 | 1 | 1 | 0 |
 
 ## Bucket summary
 
@@ -58,7 +58,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 120 | stmt=96.62, branch=87.39, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 | 93.02% (120/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 24 | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | 18.6% (24/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 9 | stmt=95.56, branch=84.99, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.84 | 6.98% (9/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 68 | stmt=96.06, branch=86.80, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.31 | 52.71% (68/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 84 | stmt=96.06, branch=86.80, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 | 64.34% (83/129) |
 
 ## Totals
 
@@ -70,9 +70,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 73.16 | 80.0 |
+| ⚠️ | toggle | 73.24 | 80.0 |
 
-- functional coverage: `42.83% (221/516)`
+- functional coverage: `45.74% (236/516)`
 
 ## Cross / continuous-frame signoff
 

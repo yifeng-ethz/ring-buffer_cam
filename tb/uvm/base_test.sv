@@ -401,6 +401,360 @@ class base_test extends uvm_test;
     expect_service_model_accounting("X031 empty terminate", 1, 0);
   endtask
 
+  task automatic run_x032_terminate_during_burst_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       focus_search_key;
+    int unsigned       push_at_endofrun;
+    int unsigned       push_after_drain;
+    int unsigned       pop_after_drain;
+    int unsigned       offered_at_endofrun;
+    int unsigned       cycles;
+    bit                traffic_done;
+    bit                saw_post_endofrun_offers;
+
+    configure_and_start(2000);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    traffic_done = 1'b0;
+    burst_seq = same_key_burst_seq::type_id::create("x032_same_key_burst");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = focus_search_key;
+    fork
+      begin
+        burst_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+    join_none
+
+    while (m_env.m_hit_drv.offered_payload_total < 4) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X032 TERMINATING entry");
+    send_endofrun_marker();
+    wait_clocks(2);
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      `uvm_error("X032", "Matching empty marker did not latch endofrun_seen during terminate burst")
+    end
+
+    push_at_endofrun = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+    offered_at_endofrun = m_env.m_hit_drv.offered_payload_total;
+    saw_post_endofrun_offers = 1'b0;
+    cycles = 0;
+    while (cycles < 128 &&
+           (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+      if (m_env.m_hit_drv.offered_payload_total > offered_at_endofrun) begin
+        saw_post_endofrun_offers = 1'b1;
+      end
+      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] != push_at_endofrun) begin
+        `uvm_error("X032", $sformatf(
+          "PUSH_COUNT advanced after endofrun_seen latched: before=%0d after=%0d offered_now=%0d pending_source=%0d",
+          push_at_endofrun, m_env.m_dbg_mon.dbg_push_cnt[31:0],
+          m_env.m_hit_drv.offered_payload_total,
+          m_env.m_hit_drv.pending_source_items()))
+        break;
+      end
+    end
+    if (!saw_post_endofrun_offers) begin
+      `uvm_error("X032", $sformatf(
+        "Terminate-burst case never observed additional offered traffic after endofrun_seen: offered_at_eor=%0d final_offered=%0d",
+        offered_at_endofrun, m_env.m_hit_drv.offered_payload_total))
+    end
+
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(120_000, "X032 terminate burst drain");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after_drain);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after_drain);
+    if (push_after_drain > 16) begin
+      `uvm_error("X032", $sformatf(
+        "PUSH_COUNT exceeded burst size after terminate burst: push=%0d expected_max=16",
+        push_after_drain))
+    end
+    if (pop_after_drain != push_after_drain) begin
+      `uvm_error("X032", $sformatf(
+        "Drain did not retire exactly the accepted terminate-burst residents: push=%0d pop=%0d",
+        push_after_drain, pop_after_drain))
+    end
+    expect_service_model_accounting("X032 terminate during burst", 1, 0);
+  endtask
+
+  task automatic run_x033_terminate_during_drain_case();
+    same_key_burst_seq               burst_seq;
+    ring_buffer_cam_pkg::out_seq_item last_hit;
+    int unsigned                     focus_search_key;
+    int unsigned                     pop_count;
+    int unsigned                     cycles;
+    bit                              saw_mid_epoch_hit;
+    bit                              ready_seen;
+    bit                              early_ready;
+
+    configure_and_start(0);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq = same_key_burst_seq::type_id::create("x033_drain_burst");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 40_000, "X033 DRAIN entry");
+    saw_mid_epoch_hit = 1'b0;
+    cycles = 0;
+    while (cycles < 60_000 && !saw_mid_epoch_hit) begin
+      if (m_env.m_out_mon.recent_hits.size() > 0) begin
+        last_hit = m_env.m_out_mon.recent_hits[$];
+        if (last_hit.active_search_key == focus_search_key[7:0] &&
+            last_hit.eop !== 1'b1) begin
+          saw_mid_epoch_hit = 1'b1;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    if (!saw_mid_epoch_hit) begin
+      `uvm_error("X033", "Did not observe a non-EOP drain beat before issuing TERMINATE")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    ready_seen = 1'b0;
+    early_ready = 1'b0;
+    cycles = 0;
+    while (cycles < 120_000 && !ready_seen) begin
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      cycles++;
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        ready_seen = 1'b1;
+        if (m_env.m_out_mon.recent_hits.size() == 0 ||
+            m_env.m_out_mon.recent_hits[$].eop !== 1'b1) begin
+          early_ready = 1'b1;
+        end
+      end
+    end
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+
+    if (!ready_seen) begin
+      `uvm_error("X033", "TERMINATING wait-for-ready never completed during active drain")
+    end
+    if (early_ready) begin
+      `uvm_error("X033", "asi_ctrl_ready asserted before the final drained hit carried EOP")
+    end
+    wait_for_scoreboard_idle(120_000, "X033 in-flight drain completion");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (pop_count != 32) begin
+      `uvm_error("X033", $sformatf(
+        "Active-drain TERMINATE did not retire all hits: pop=%0d expected=32",
+        pop_count))
+    end
+    expect_service_model_accounting("X033 terminate during drain", 1, 0);
+  endtask
+
+  task automatic run_x034_terminate_mid_subheader_case();
+    same_key_burst_seq                burst_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned                      focus_search_key;
+    int unsigned                      subheaders_before;
+    int unsigned                      cycles;
+    bit                               saw_subheader_window;
+
+    configure_and_start(0);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq = same_key_burst_seq::type_id::create("x034_subheader_burst");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = focus_search_key;
+    subheaders_before = m_env.m_out_mon.total_subheaders_seen;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 40_000, "X034 DRAIN entry");
+    saw_subheader_window = 1'b0;
+    cycles = 0;
+    while (cycles < 40_000 && !saw_subheader_window) begin
+      if (m_env.m_dbg_mon.vif.subheader_gen_done === 1'b0 &&
+          m_env.m_out_mon.total_subheaders_seen == subheaders_before) begin
+        saw_subheader_window = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    if (!saw_subheader_window) begin
+      `uvm_error("X034", "Did not observe the mid-subheader window before issuing TERMINATE")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_subheader_search_key(
+      focus_search_key[7:0], 80_000, "X034 completed subheader", matched_subheader);
+    if (matched_subheader == null ||
+        matched_subheader.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
+      `uvm_error("X034", $sformatf(
+        "Completed subheader was malformed after mid-subheader TERMINATE: raw=0x%09x expected_k237=0x%02x",
+        (matched_subheader == null) ? '0 : matched_subheader.raw_data,
+        ring_buffer_cam_pkg::K237))
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(120_000, "X034 completed subheader drain");
+    expect_service_model_accounting("X034 terminate mid-subheader", 1, 0);
+  endtask
+
+  task automatic run_x035_terminate_before_soft_reset_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       fill_level;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x035_terminate_soft_reset");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X035 resident precondition");
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X035 TERMINATING entry");
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    wait_clocks(2);
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X035 soft_reset self-clears after adjacent TERMINATING");
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_TERMINATING) begin
+      `uvm_error("X035", $sformatf(
+        "Adjacent soft_reset disturbed TERMINATING precedence: observed_state=%0d",
+        m_env.m_dbg_mon.run_state_code))
+    end
+
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(80_000, "X035 terminate precedence drain");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != 16 || pop_count != 16 || fill_level != 0) begin
+      `uvm_error("X035", $sformatf(
+        "Terminate-before-soft_reset accounting mismatch: push=%0d pop=%0d fill=%0d expected=16/16/0",
+        push_count, pop_count, fill_level))
+    end
+    expect_service_model_accounting("X035 terminate before soft_reset", 1, 0);
+  endtask
+
+  task automatic run_x036_terminate_after_soft_reset_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    bit                saw_waitrequest_high;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x036_soft_reset_then_terminate");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X036 resident precondition");
+
+    saw_waitrequest_high = 1'b0;
+    m_env.m_csr_drv.vif.address <= CSR_CTRL_ADDR[4:0];
+    m_env.m_csr_drv.vif.writedata <= 32'h0000_0002;
+    m_env.m_csr_drv.vif.write <= 1'b1;
+    @(posedge m_env.m_csr_drv.vif.clk);
+    if (m_env.m_csr_drv.vif.waitrequest === 1'b1) begin
+      saw_waitrequest_high = 1'b1;
+    end
+    while (m_env.m_csr_drv.vif.waitrequest === 1'b1) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (saw_waitrequest_high) begin
+      `uvm_error("X036", "CSR CTRL write stalled for more than one cycle before TERMINATE")
+    end
+    m_cfg.note_csr_write(CSR_CTRL_ADDR[4:0], 32'h0000_0002);
+    m_env.m_csr_drv.vif.write <= 1'b0;
+    m_env.m_csr_drv.vif.address <= '0;
+    m_env.m_csr_drv.vif.writedata <= '0;
+    @(posedge m_env.m_csr_drv.vif.clk);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X036 TERMINATING entry");
+    csr_expect_mask(
+      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
+      "X036 soft_reset self-clears before TERMINATING decode");
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(80_000, "X036 post-CSR terminate drain");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (push_count != 16 || pop_count != 16) begin
+      `uvm_error("X036", $sformatf(
+        "CSR-then-terminate disturbed accounting: push=%0d pop=%0d expected=16",
+        push_count, pop_count))
+    end
+    expect_service_model_accounting("X036 terminate after soft_reset write", 1, 0);
+  endtask
+
+  task automatic run_x041_terminate_with_valid_hit_case();
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    int unsigned                      push_before;
+    int unsigned                      push_after;
+    int unsigned                      inerr_before;
+    int unsigned                      inerr_after;
+    int unsigned                      accepted_before;
+    int unsigned                      accepted_after;
+
+    configure_and_start(2000);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    accepted_before = m_env.m_scb.total_ingress_accepted;
+
+    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x041_raw_hit");
+    hit_item.asic = 4'h1;
+    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    hit_item.channel = 5'd3;
+    hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h1, 1'b0);
+    hit_item.tcc1n6 = 3'd0;
+    hit_item.tfine = 5'd8;
+    hit_item.et1n6 = 9'd12;
+    hit_item.has_error = 1'b0;
+    hit_item.is_empty_marker = 1'b0;
+
+    m_env.m_hit_drv.vif.data <= hit_item.pack_hit();
+    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
+    m_env.m_hit_drv.vif.error <= 1'b0;
+    m_env.m_hit_drv.vif.valid <= 1'b1;
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    @(posedge m_env.m_csr_drv.vif.clk);
+    m_env.m_hit_drv.vif.valid <= 1'b0;
+    m_env.m_hit_drv.vif.data <= '0;
+    m_env.m_hit_drv.vif.channel <= '0;
+    m_env.m_hit_drv.vif.error <= '0;
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_csr_drv.vif.clk);
+
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_scoreboard_idle(80_000, "X041 terminate-vs-valid cleanup");
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    accepted_after = m_env.m_scb.total_ingress_accepted;
+    if (push_after != push_before) begin
+      `uvm_error("X041", $sformatf(
+        "Good hit concurrent with TERMINATING was unexpectedly accepted: push_before=%0d push_after=%0d",
+        push_before, push_after))
+    end
+    if (inerr_after != inerr_before) begin
+      `uvm_error("X041", $sformatf(
+        "Good hit concurrent with TERMINATING unexpectedly affected INERR_COUNT: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+    if (accepted_after != accepted_before) begin
+      `uvm_error("X041", $sformatf(
+        "Scoreboard recorded an accepted ingress beat during same-cycle TERMINATING: before=%0d after=%0d",
+        accepted_before, accepted_after))
+    end
+  endtask
+
   task automatic run_x053_flush_preempts_drain_case();
     same_key_burst_seq   burst_seq;
     int unsigned         pop_count_before;
@@ -948,6 +1302,49 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_x040_terminate_then_running_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       fill_before;
+    int unsigned       fill_after;
+    int unsigned       push_before;
+    int unsigned       push_after;
+    int unsigned       pop_after;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x040_prefill");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(16, 20_000, "X040 prefill");
+    wait_clocks(4);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X040 TERMINATING entry");
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUNNING);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUNNING, 2_000, "X040 RUNNING re-entry");
+    wait_clocks(4);
+
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after);
+    if (fill_after != fill_before) begin
+      `uvm_error("X040", $sformatf(
+        "TERMINATE->RUNNING boundary unexpectedly changed FILL_LEVEL without FLUSH: before=%0d after=%0d",
+        fill_before, fill_after))
+    end
+    if (push_after != push_before || pop_after != 0) begin
+      `uvm_error("X040", $sformatf(
+        "TERMINATE->RUNNING boundary unexpectedly changed accounting: push_before=%0d push_after=%0d pop_after=%0d",
+        push_before, push_after, pop_after))
+    end
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b0) begin
+      `uvm_error("X040", "RUNNING re-entry inherited endofrun_seen without an intervening FLUSH")
+    end
+    m_env.m_scb.note_intentional_nonempty_end(fill_after);
+  endtask
+
   task automatic run_x042_prelatched_endofrun_case();
     int unsigned fill_level;
 
@@ -991,6 +1388,75 @@ class base_test extends uvm_test;
         "INERR_COUNT did not survive TERMINATING: before=%0d after=%0d expected=8",
         inerr_before, inerr_after))
     end
+  endtask
+
+  task automatic run_x045_terminate_ready_with_backlog_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       cycles;
+    bit                saw_ready;
+    bit                saw_nonempty_at_ready;
+    bit                saw_deassembly_backlog;
+
+    configure_and_start(0);
+    set_sink_ready(1'b0);
+    burst_seq = same_key_burst_seq::type_id::create("x045_backlog_burst");
+    burst_seq.num_hits = 256;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 80_000, "X045 DRAIN entry");
+    wait_for_pop_cmd_fifo_usedw_at_least(1, 80_000, "X045 pop_cmd backlog");
+    saw_deassembly_backlog = 1'b0;
+    cycles = 0;
+    while (cycles < 80_000 && !saw_deassembly_backlog) begin
+      if (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+        saw_deassembly_backlog = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    if (!saw_deassembly_backlog) begin
+      `uvm_error("X045", "Did not observe deassembly backlog before TERMINATING")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    saw_ready = 1'b0;
+    saw_nonempty_at_ready = 1'b0;
+    for (cycles = 0; cycles < 40_000; cycles++) begin
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        saw_ready = 1'b1;
+        if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1 ||
+            m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+          saw_nonempty_at_ready = 1'b1;
+        end
+        break;
+      end
+    end
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+
+    if (!saw_ready) begin
+      `uvm_error("X045", "Held TERMINATING command never re-acknowledged under local backlog")
+    end
+    if (!saw_nonempty_at_ready) begin
+      `uvm_error("X045", $sformatf(
+        "asi_ctrl_ready stayed masked until local buffers emptied: pop_cmd_empty=%0d deassembly_empty=%0d term_done=%0d",
+        m_env.m_dbg_mon.vif.pop_cmd_fifo_empty,
+        m_env.m_dbg_mon.vif.deassembly_fifo_empty,
+        m_env.m_dbg_mon.terminating_drain_done))
+    end
+
+    set_sink_ready(1'b1);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X045 cleanup RUN_PREPARE");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_scoreboard_idle(120_000, "X045 cleanup flush");
   endtask
 
   task automatic run_x043_full_ring_terminate_case();
@@ -1992,7 +2458,7 @@ class base_test extends uvm_test;
     csr_read(CSR_META_ADDR, version_word);
     set_meta_sel(2'b01);
     csr_read(CSR_META_ADDR, date_word);
-    if (version_word != expected_meta_version() || date_word != 32'd20260418) begin
+    if (version_word != expected_meta_version() || date_word != 32'd20260419) begin
       `uvm_error("X090", $sformatf(
         "META selector write/read mismatch: version=0x%08x date=0x%08x",
         version_word, date_word))
@@ -2000,6 +2466,804 @@ class base_test extends uvm_test;
     if (version_word == date_word) begin
       `uvm_error("X090", "META selector did not change the returned bank")
     end
+  endtask
+
+  task automatic run_x105_pop_counter_before_terminate_ready_case();
+    same_key_burst_seq                burst_seq;
+    ring_buffer_cam_pkg::out_seq_item last_hit;
+    longint unsigned                  ready_cycle;
+    int unsigned                      pop_count;
+    int unsigned                      focus_search_key;
+    int unsigned                      cycles;
+    bit                               saw_mid_epoch_hit;
+
+    configure_and_start(0);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq = same_key_burst_seq::type_id::create("x105_drain_burst");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_pop_engine_state(3'd4, 40_000, "X105 DRAIN entry");
+    saw_mid_epoch_hit = 1'b0;
+    cycles = 0;
+    while (cycles < 60_000 && !saw_mid_epoch_hit) begin
+      if (m_env.m_out_mon.recent_hits.size() > 0) begin
+        last_hit = m_env.m_out_mon.recent_hits[$];
+        if (last_hit.active_search_key == focus_search_key[7:0] &&
+            last_hit.eop !== 1'b1) begin
+          saw_mid_epoch_hit = 1'b1;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    if (!saw_mid_epoch_hit) begin
+      `uvm_error("X105", "Did not reach an in-flight drain window before TERMINATING")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    ready_cycle = 0;
+    for (cycles = 0; cycles < 120_000; cycles++) begin
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        ready_cycle = m_env.m_dbg_mon.sampled_cycles;
+        break;
+      end
+    end
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+
+    if (ready_cycle == 0) begin
+      `uvm_error("X105", "Held TERMINATING command never re-acknowledged")
+    end
+    if (m_env.m_dbg_mon.last_pop_cycle == 0) begin
+      `uvm_error("X105", "No backdoor pop counter update was observed")
+    end
+    if (ready_cycle != 0 &&
+        m_env.m_dbg_mon.last_pop_cycle != 0 &&
+        ready_cycle <= m_env.m_dbg_mon.last_pop_cycle) begin
+      `uvm_error("X105", $sformatf(
+        "asi_ctrl_ready asserted before the final POP_COUNT update was safely retired: ready_cycle=%0d last_pop_cycle=%0d",
+        ready_cycle, m_env.m_dbg_mon.last_pop_cycle))
+    end
+    wait_for_scoreboard_idle(120_000, "X105 terminate drain completion");
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (pop_count != 32) begin
+      `uvm_error("X105", $sformatf(
+        "Final POP_COUNT mismatch after terminate drain: observed=%0d expected=32",
+        pop_count))
+    end
+    expect_backdoor_counter_matches(CSR_POP_COUNT_ADDR, m_env.m_dbg_mon.dbg_pop_cnt,
+      "X105 POP_COUNT backdoor/frontdoor agreement");
+    expect_service_model_accounting("X105 pop counter before terminate ready", 1, 0);
+  endtask
+
+  task automatic run_x108_inerr_near_flush_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    bit                  saw_inerr_increment;
+    bit                  saw_inerr_clear;
+
+    configure_and_start(2000);
+    err_seq = single_error_hit_seq::type_id::create("x108_bad_before_flush");
+    err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_seq.start(m_env.m_hit_seqr);
+
+    saw_inerr_increment = 1'b0;
+    for (int unsigned cycles = 0; cycles < 8; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] != 0) begin
+        saw_inerr_increment = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_inerr_increment) begin
+      `uvm_error("X108", "Backdoor INERR counter never incremented before FLUSH")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X108 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    saw_inerr_clear = 1'b0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] == 0 &&
+          m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1) begin
+        saw_inerr_clear = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (!saw_inerr_clear) begin
+      `uvm_error("X108", "Backdoor INERR counter never cleared during FLUSHING")
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (inerr_count != 0) begin
+      `uvm_error("X108", $sformatf(
+        "Frontdoor INERR_COUNT did not settle to zero after FLUSH: observed=%0d",
+        inerr_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X108 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x101_single_bad_hit_counter_observer_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    int unsigned         first_seen_cycle;
+
+    configure_and_start(2000);
+    err_seq = single_error_hit_seq::type_id::create("x101_single_bad");
+    err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_seq.start(m_env.m_hit_seqr);
+
+    first_seen_cycle = 0;
+    for (int unsigned cycles = 0; cycles < 16; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] == 1) begin
+        first_seen_cycle = cycles;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (first_seen_cycle == 0 && m_env.m_dbg_mon.dbg_inerr_cnt[31:0] != 1) begin
+      `uvm_error("X101", "Backdoor INERR counter never incremented after a single bad hit")
+    end
+
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (inerr_count != 1) begin
+      `uvm_error("X101", $sformatf(
+        "Frontdoor INERR_COUNT mismatch after single bad hit: observed=%0d expected=1",
+        inerr_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X101 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x102_bad_hit_burst_counter_observer_case();
+    error_burst_seq err_burst;
+    int unsigned    inerr_count;
+    bit             saw_target_count;
+
+    configure_and_start(2000);
+    err_burst = error_burst_seq::type_id::create("x102_bad_burst");
+    err_burst.num_hits = 16;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_burst.start(m_env.m_hit_seqr);
+
+    saw_target_count = 1'b0;
+    for (int unsigned cycles = 0; cycles < 64; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] == 16) begin
+        saw_target_count = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_target_count) begin
+      `uvm_error("X102", $sformatf(
+        "Backdoor INERR counter did not reach 16 after the bad-hit burst: observed=%0d",
+        m_env.m_dbg_mon.dbg_inerr_cnt[31:0]))
+    end
+
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (inerr_count != 16) begin
+      `uvm_error("X102", $sformatf(
+        "Frontdoor INERR_COUNT mismatch after 16 consecutive bad hits: observed=%0d expected=16",
+        inerr_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X102 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x104_push_counter_before_terminate_ready_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       ready_cycle;
+    int unsigned       push_count;
+    bit                saw_push_activity;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x104_terminate_burst");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    saw_push_activity = 1'b0;
+    for (int unsigned cycles = 0; cycles < 20_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] != 0) begin
+        saw_push_activity = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+    end
+    if (!saw_push_activity) begin
+      `uvm_error("X104", "Backdoor PUSH counter never incremented before TERMINATING")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    ready_cycle = 0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        ready_cycle = m_env.m_dbg_mon.sampled_cycles;
+        break;
+      end
+    end
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+
+    if (ready_cycle == 0) begin
+      `uvm_error("X104", "Held TERMINATING command never re-acknowledged")
+    end
+    if (m_env.m_dbg_mon.last_push_cycle == 0) begin
+      `uvm_error("X104", "No backdoor push counter update was observed")
+    end
+    if (ready_cycle != 0 &&
+        m_env.m_dbg_mon.last_push_cycle != 0 &&
+        ready_cycle <= m_env.m_dbg_mon.last_push_cycle) begin
+      `uvm_error("X104", $sformatf(
+        "asi_ctrl_ready asserted before the final PUSH_COUNT update was safely retired: ready_cycle=%0d last_push_cycle=%0d",
+        ready_cycle, m_env.m_dbg_mon.last_push_cycle))
+    end
+    wait_for_scoreboard_idle(120_000, "X104 terminate drain completion");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (push_count != 32) begin
+      `uvm_error("X104", $sformatf(
+        "Final PUSH_COUNT mismatch after terminate drain: observed=%0d expected=32",
+        push_count))
+    end
+    expect_backdoor_counter_matches(CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "X104 PUSH_COUNT backdoor/frontdoor agreement");
+    expect_service_model_accounting("X104 push counter before terminate ready", 1, 0);
+  endtask
+
+  task automatic run_x111_push_near_flush_case();
+    single_push_pop_seq single_seq;
+    int unsigned        push_count_before;
+    int unsigned        push_count_after;
+    bit                 saw_push_clear;
+
+    configure_and_start(2000);
+    single_seq = single_push_pop_seq::type_id::create("x111_push_before_flush");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    single_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(1, 10_000, "X111 pre-flush push");
+    push_count_before = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X111 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    saw_push_clear = 1'b0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] == 0 &&
+          m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1) begin
+        saw_push_clear = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (!saw_push_clear) begin
+      `uvm_error("X111", "Backdoor PUSH counter never cleared during FLUSHING")
+    end
+    push_count_after = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+    if (push_count_after != 0) begin
+      `uvm_error("X111", $sformatf(
+        "Backdoor PUSH counter did not clear across FLUSH: before=%0d after=%0d",
+        push_count_before, push_count_after))
+    end
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count_after);
+    if (push_count_after != 0) begin
+      `uvm_error("X111", $sformatf(
+        "Frontdoor PUSH_COUNT did not clear across FLUSH: before=%0d after=%0d",
+        push_count_before, push_count_after))
+    end
+    expect_backdoor_counter_matches(CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "X111 PUSH_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x109_overwrite_near_flush_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       overwrite_count;
+    bit                saw_overwrite_increment;
+    bit                saw_overwrite_clear;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x109_overwrite_before_flush");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 1;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    saw_overwrite_increment = 1'b0;
+    for (int unsigned cycles = 0; cycles < 80_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_overwrite_cnt[31:0] != 0) begin
+        saw_overwrite_increment = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_overwrite_increment) begin
+      `uvm_error("X109", "Backdoor OVERWRITE counter never incremented before FLUSH")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X109 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    saw_overwrite_clear = 1'b0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_overwrite_cnt[31:0] == 0 &&
+          m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1) begin
+        saw_overwrite_clear = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (!saw_overwrite_clear) begin
+      `uvm_error("X109", "Backdoor OVERWRITE counter never cleared during FLUSHING")
+    end
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    if (overwrite_count != 0) begin
+      `uvm_error("X109", $sformatf(
+        "Frontdoor OVERWRITE_COUNT did not settle to zero after FLUSH: observed=%0d",
+        overwrite_count))
+    end
+    expect_backdoor_counter_matches(CSR_OVERWRITE_ADDR, m_env.m_dbg_mon.dbg_overwrite_cnt,
+      "X109 OVERWRITE_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x112_pop_near_flush_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       pop_count_before;
+    int unsigned       pop_count_after;
+    bit                saw_pop_activity;
+    bit                saw_pop_clear;
+
+    configure_and_start(16);
+    burst_seq = same_key_burst_seq::type_id::create("x112_pop_before_flush");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    saw_pop_activity = 1'b0;
+    for (int unsigned cycles = 0; cycles < 400_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_pop_cnt[31:0] != 0) begin
+        saw_pop_activity = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    if (!saw_pop_activity) begin
+      `uvm_error("X112", "Backdoor POP counter never incremented before FLUSH")
+    end
+    pop_count_before = m_env.m_dbg_mon.dbg_pop_cnt[31:0];
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X112 RUN_PREPARE entry");
+    saw_pop_clear = 1'b0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_pop_cnt[31:0] == 0 &&
+          m_env.m_dbg_mon.run_mgmt_flush_memory_start === 1'b1) begin
+        saw_pop_clear = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    if (!saw_pop_clear) begin
+      `uvm_error("X112", "Backdoor POP counter never cleared during FLUSHING")
+    end
+    pop_count_after = m_env.m_dbg_mon.dbg_pop_cnt[31:0];
+    if (pop_count_after != 0) begin
+      `uvm_error("X112", $sformatf(
+        "Backdoor POP counter did not clear across FLUSH: before=%0d after=%0d",
+        pop_count_before, pop_count_after))
+    end
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count_after);
+    if (pop_count_after != 0) begin
+      `uvm_error("X112", $sformatf(
+        "Frontdoor POP_COUNT did not clear across FLUSH: before=%0d after=%0d",
+        pop_count_before, pop_count_after))
+    end
+    expect_backdoor_counter_matches(CSR_POP_COUNT_ADDR, m_env.m_dbg_mon.dbg_pop_cnt,
+      "X112 POP_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x106_overwrite_counter_before_terminate_ready_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       ready_cycle;
+    int unsigned       overwrite_count;
+    bit                saw_overwrite_activity;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x106_terminate_overwrite_burst");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+
+    saw_overwrite_activity = 1'b0;
+    for (int unsigned cycles = 0; cycles < 80_000; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_overwrite_cnt[31:0] != 0) begin
+        saw_overwrite_activity = 1'b1;
+        break;
+      end
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+    end
+    if (!saw_overwrite_activity) begin
+      `uvm_error("X106", "Backdoor OVERWRITE counter never incremented before TERMINATING")
+    end
+
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    ready_cycle = 0;
+    for (int unsigned cycles = 0; cycles < 120_000; cycles++) begin
+      @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
+        ready_cycle = m_env.m_dbg_mon.sampled_cycles;
+        break;
+      end
+    end
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_ctrl_drv.vif.clk);
+
+    if (ready_cycle == 0) begin
+      `uvm_error("X106", "Held TERMINATING command never re-acknowledged")
+    end
+    if (m_env.m_dbg_mon.last_overwrite_cycle == 0) begin
+      `uvm_error("X106", "No backdoor overwrite counter update was observed")
+    end
+    if (ready_cycle != 0 &&
+        m_env.m_dbg_mon.last_overwrite_cycle != 0 &&
+        ready_cycle <= m_env.m_dbg_mon.last_overwrite_cycle) begin
+      `uvm_error("X106", $sformatf(
+        "asi_ctrl_ready asserted before the final OVERWRITE_COUNT update was safely retired: ready_cycle=%0d last_overwrite_cycle=%0d",
+        ready_cycle, m_env.m_dbg_mon.last_overwrite_cycle))
+    end
+    wait_for_scoreboard_idle(120_000, "X106 terminate drain completion");
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    if (overwrite_count == 0) begin
+      `uvm_error("X106", "Final OVERWRITE_COUNT stayed zero after an overwrite-bearing terminate run")
+    end
+    expect_backdoor_counter_matches(CSR_OVERWRITE_ADDR, m_env.m_dbg_mon.dbg_overwrite_cnt,
+      "X106 OVERWRITE_COUNT backdoor/frontdoor agreement");
+    expect_service_model_accounting("X106 overwrite counter before terminate ready", 1, 1);
+  endtask
+
+  task automatic run_x113_inerr_coincident_soft_reset_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_before;
+    int unsigned         inerr_after;
+
+    configure_and_start(2000);
+    fork
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x113_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+      end
+    join
+
+    wait_clocks(8);
+    inerr_before = m_env.m_dbg_mon.dbg_inerr_cnt[31:0];
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (inerr_before == 0 || inerr_after == 0) begin
+      `uvm_error("X113", $sformatf(
+        "INERR_COUNT was unexpectedly cleared or never observed across coincident soft-reset: backdoor=%0d frontdoor=%0d",
+        inerr_before, inerr_after))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X113 INERR_COUNT retained across coincident soft-reset");
+  endtask
+
+  task automatic run_x114_push_count_read_race_case();
+    single_push_pop_seq single_seq;
+    logic [31:0]        sampled_read;
+    int unsigned        push_after;
+
+    configure_and_start(2000);
+    fork
+      begin
+        single_seq = single_push_pop_seq::type_id::create("x114_good_hit");
+        single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        single_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        csr_read(CSR_PUSH_COUNT_ADDR, sampled_read);
+      end
+    join
+
+    wait_for_push_count(1, 10_000, "X114 post-race push");
+    if (!(sampled_read == 32'd0 || sampled_read == 32'd1)) begin
+      `uvm_error("X114", $sformatf(
+        "PUSH_COUNT read returned a non-atomic value during the push race: observed=%0d",
+        sampled_read))
+    end
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    if (push_after != 1) begin
+      `uvm_error("X114", $sformatf(
+        "Final PUSH_COUNT mismatch after the read race: observed=%0d expected=1",
+        push_after))
+    end
+    expect_backdoor_counter_matches(CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "X114 PUSH_COUNT backdoor/frontdoor agreement");
+    terminate_and_drain(120_000, "X114 terminate drain");
+    expect_service_model_accounting("X114 terminate drain", 1, 0);
+  endtask
+
+  task automatic run_x022_inerr_with_expected_latency_read_case();
+    single_error_hit_seq err_seq;
+    logic [31:0]         latency_read;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+
+    configure_and_start(2000);
+    fork
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x022_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        csr_read(CSR_EXPECTED_LAT_ADDR, latency_read);
+      end
+    join
+
+    wait_clocks(4);
+    if (latency_read[15:0] != 16'd2000) begin
+      `uvm_error("X022", $sformatf(
+        "EXPECTED_LATENCY read was corrupted during the inerr race: observed=0x%08x expected=0x%08x",
+        latency_read, 32'd2000))
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (inerr_count != 1 || push_count != 0) begin
+      `uvm_error("X022", $sformatf(
+        "Bad-hit read race accounting mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0",
+        inerr_count, push_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X022 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x023_inerr_with_filter_disable_write_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+
+    configure_and_start(2000);
+    fork
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x023_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        csr_write(CSR_CTRL_ADDR, 32'h0000_0000);
+      end
+    join
+
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (inerr_count != 1 || push_count != 0) begin
+      `uvm_error("X023", $sformatf(
+        "Boundary write 1->0 filter disable corrupted the current bad hit: inerr=%0d push=%0d expected_inerr=1 expected_push=0",
+        inerr_count, push_count))
+    end
+    csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0000,
+      "X023 CTRL write settles to go=0/filter_inerr=0");
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X023 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x024_inerr_with_inerr_write_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+
+    configure_and_start(2000);
+    fork
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x024_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        csr_write(CSR_INERR_COUNT_ADDR, 32'hDEAD_BEEF);
+      end
+    join
+
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (inerr_count != 1 || push_count != 0) begin
+      `uvm_error("X024", $sformatf(
+        "Concurrent INERR_COUNT write disturbed bad-hit accounting: inerr=%0d push=%0d expected_inerr=1 expected_push=0",
+        inerr_count, push_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X024 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x025_bad_hit_window_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+    int unsigned         fill_level;
+
+    configure_and_start(2000);
+    for (int unsigned idx = 0; idx < 8; idx++) begin
+      err_seq = single_error_hit_seq::type_id::create($sformatf("x025_bad_%0d", idx));
+      err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      err_seq.ts_low = idx[3:0];
+      err_seq.start(m_env.m_hit_seqr);
+      if (idx == 3) begin
+        wait_clocks(2);
+      end
+    end
+
+    for (int unsigned cycles = 0; cycles < 32; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] == 8) begin
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (inerr_count != 8 || push_count != 0 || fill_level != 0) begin
+      `uvm_error("X025", $sformatf(
+        "8-in-10 bad-hit window accounting mismatch: inerr=%0d push=%0d fill=%0d expected=8/0/0",
+        inerr_count, push_count, fill_level))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X025 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x030_sustained_bad_hit_rate_case();
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+    int unsigned         fill_level;
+
+    configure_and_start(2000);
+    for (int unsigned idx = 0; idx < 64; idx++) begin
+      err_seq = single_error_hit_seq::type_id::create($sformatf("x030_bad_%0d", idx));
+      err_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      err_seq.ts_low = idx[3:0];
+      err_seq.start(m_env.m_hit_seqr);
+      if (idx != 63) begin
+        wait_clocks(3);
+      end
+    end
+
+    for (int unsigned cycles = 0; cycles < 320; cycles++) begin
+      if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] == 64) begin
+        break;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (inerr_count != 64 || push_count != 0 || fill_level != 0) begin
+      `uvm_error("X030", $sformatf(
+        "1-in-4 bad-hit soak accounting mismatch: inerr=%0d push=%0d fill=%0d expected=64/0/0",
+        inerr_count, push_count, fill_level))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X030 INERR_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x018_bad_hit_idle_to_prep_boundary_case();
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+
+    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x018_bad_hit");
+    hit_item.asic = 4'h1;
+    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    hit_item.channel = 5'd3;
+    hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h1, 1'b0);
+    hit_item.tcc1n6 = 3'd0;
+    hit_item.tfine = 5'd4;
+    hit_item.et1n6 = 9'd7;
+    hit_item.has_error = 1'b1;
+    hit_item.is_empty_marker = 1'b0;
+
+    m_env.m_hit_drv.vif.data <= hit_item.pack_hit();
+    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
+    m_env.m_hit_drv.vif.error <= 1'b1;
+    m_env.m_hit_drv.vif.valid <= 1'b1;
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_RUN_PREPARE;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    @(posedge m_env.m_csr_drv.vif.clk);
+    m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    m_env.m_hit_drv.vif.valid <= 1'b0;
+    m_env.m_hit_drv.vif.data <= '0;
+    m_env.m_hit_drv.vif.channel <= '0;
+    m_env.m_hit_drv.vif.error <= '0;
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_csr_drv.vif.clk);
+
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X018 RUN_PREPARE entry");
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (inerr_count != 0 || push_count != 0) begin
+      `uvm_error("X018", $sformatf(
+        "IDLE->RUN_PREPARE boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=0 expected_push=0",
+        inerr_count, push_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X018 INERR_COUNT clear-on-RUN_PREPARE agreement");
+  endtask
+
+  task automatic run_x019_bad_hit_running_entry_boundary_case();
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    int unsigned         inerr_count;
+    int unsigned         push_count;
+
+    enter_run_prepare();
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
+    ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
+    wait_clocks(2);
+
+    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x019_bad_hit");
+    hit_item.asic = 4'h1;
+    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    hit_item.channel = 5'd3;
+    hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
+    hit_item.tcc1n6 = 3'd1;
+    hit_item.tfine = 5'd6;
+    hit_item.et1n6 = 9'd9;
+    hit_item.has_error = 1'b1;
+    hit_item.is_empty_marker = 1'b0;
+
+    m_env.m_hit_drv.vif.data <= hit_item.pack_hit();
+    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
+    m_env.m_hit_drv.vif.error <= 1'b1;
+    m_env.m_hit_drv.vif.valid <= 1'b1;
+    m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_RUNNING;
+    m_env.m_ctrl_drv.vif.valid <= 1'b1;
+    @(posedge m_env.m_csr_drv.vif.clk);
+    m_cfg.note_ctrl_cmd(ring_buffer_cam_pkg::CTRL_RUNNING);
+    m_env.m_hit_drv.vif.valid <= 1'b0;
+    m_env.m_hit_drv.vif.data <= '0;
+    m_env.m_hit_drv.vif.channel <= '0;
+    m_env.m_hit_drv.vif.error <= '0;
+    m_env.m_ctrl_drv.vif.valid <= 1'b0;
+    m_env.m_ctrl_drv.vif.data <= '0;
+    @(posedge m_env.m_csr_drv.vif.clk);
+
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUNNING, 2_000, "X019 RUNNING entry");
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    if (inerr_count != 1 || push_count != 0) begin
+      `uvm_error("X019", $sformatf(
+        "RUNNING-entry boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0",
+        inerr_count, push_count))
+    end
+    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X019 INERR_COUNT backdoor/frontdoor agreement");
   endtask
 
   task automatic run_x076_soft_reset_retains_inerr_case();
@@ -2536,7 +3800,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd427;
+    version_word[11:0]  = 12'd428;
     return version_word;
   endfunction
 
@@ -2918,7 +4182,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260418, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260419, "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -3087,7 +4351,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260418, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260419, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -5170,7 +6434,7 @@ class base_test extends uvm_test;
       csr_read(CSR_META_ADDR, data_a);
       set_meta_sel(2'b01);
       csr_read(CSR_META_ADDR, data_b);
-      if (data_a != expected_meta_version() || data_b != 32'd20260418) begin
+      if (data_a != expected_meta_version() || data_b != 32'd20260419) begin
         `uvm_error("B123", $sformatf(
           "META walk mismatch in VERSION/DATE phase: version=0x%08x date=0x%08x",
           data_a, data_b))
@@ -6434,12 +7698,30 @@ class base_test extends uvm_test;
       run_x003_good_terminate_case();
     end else if (case_id == "X031") begin
       run_x031_terminate_empty_case();
+    end else if (case_id == "X032") begin
+      run_x032_terminate_during_burst_case();
+    end else if (case_id == "X033") begin
+      run_x033_terminate_during_drain_case();
+    end else if (case_id == "X034") begin
+      run_x034_terminate_mid_subheader_case();
+    end else if (case_id == "X035") begin
+      run_x035_terminate_before_soft_reset_case();
+    end else if (case_id == "X036") begin
+      run_x036_terminate_after_soft_reset_case();
     end else if (case_id == "X038") begin
       run_x038_double_terminate_case();
     end else if (case_id == "X039") begin
       run_x039_terminate_then_prep_case();
+    end else if (case_id == "X040") begin
+      run_x040_terminate_then_running_case();
+    end else if (case_id == "X069") begin
+      run_x069_flush_ready_latch_case();
+    end else if (case_id == "X041") begin
+      run_x041_terminate_with_valid_hit_case();
     end else if (case_id == "X043") begin
       run_x043_full_ring_terminate_case();
+    end else if (case_id == "X045") begin
+      run_x045_terminate_ready_with_backlog_case();
     end else if (case_id == "X049") begin
       run_x049_terminate_terminate_idle_case();
     end else if (case_id == "X046") begin
@@ -6622,6 +7904,42 @@ class base_test extends uvm_test;
         "X089 UID write must be inert");
     end else if (case_id == "X090") begin
       run_x090_meta_selector_case();
+    end else if (case_id == "X101") begin
+      run_x101_single_bad_hit_counter_observer_case();
+    end else if (case_id == "X102") begin
+      run_x102_bad_hit_burst_counter_observer_case();
+    end else if (case_id == "X018") begin
+      run_x018_bad_hit_idle_to_prep_boundary_case();
+    end else if (case_id == "X019") begin
+      run_x019_bad_hit_running_entry_boundary_case();
+    end else if (case_id == "X022") begin
+      run_x022_inerr_with_expected_latency_read_case();
+    end else if (case_id == "X023") begin
+      run_x023_inerr_with_filter_disable_write_case();
+    end else if (case_id == "X024") begin
+      run_x024_inerr_with_inerr_write_case();
+    end else if (case_id == "X025") begin
+      run_x025_bad_hit_window_case();
+    end else if (case_id == "X030") begin
+      run_x030_sustained_bad_hit_rate_case();
+    end else if (case_id == "X104") begin
+      run_x104_push_counter_before_terminate_ready_case();
+    end else if (case_id == "X105") begin
+      run_x105_pop_counter_before_terminate_ready_case();
+    end else if (case_id == "X106") begin
+      run_x106_overwrite_counter_before_terminate_ready_case();
+    end else if (case_id == "X108") begin
+      run_x108_inerr_near_flush_case();
+    end else if (case_id == "X109") begin
+      run_x109_overwrite_near_flush_case();
+    end else if (case_id == "X111") begin
+      run_x111_push_near_flush_case();
+    end else if (case_id == "X112") begin
+      run_x112_pop_near_flush_case();
+    end else if (case_id == "X113") begin
+      run_x113_inerr_coincident_soft_reset_case();
+    end else if (case_id == "X114") begin
+      run_x114_push_count_read_race_case();
     end else if (case_id == "X091") begin
       configure_and_start(2000);
       burst_seq = same_key_burst_seq::type_id::create("x091_filllevel_prefill");

@@ -1,7 +1,7 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
 -- Version : 26.1.5
--- Date    : 20260418
+-- Date    : 20260419
 -- Change  : align wrapper metadata with the active V2 core plus the durable DV evidence publisher checkpoint
 
 library ieee;
@@ -21,8 +21,8 @@ entity ring_buffer_cam is
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
         VERSION_PATCH       : natural := 5;
-        BUILD               : natural := 427;
-        VERSION_DATE        : natural := 20260418;
+        BUILD               : natural := 428;
+        VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;
         DEBUG               : natural := 1
