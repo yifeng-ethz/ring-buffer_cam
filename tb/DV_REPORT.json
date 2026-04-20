@@ -347,7 +347,7 @@
       "date": "2026-04-20",
       "title": "The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "97f956c"
     }
   ],
   "buckets": {

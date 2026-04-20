@@ -676,4 +676,4 @@ Normalization note:
 - Runtime / coverage context:
   - added an explicit `fingerprint_start_index` offset to the long-run profile generators, then rewrote `P042` as a calibrated two-phase profile: early keys only, then a combined eight-key phase at the original aggregate rate
   - verified by a clean isolated rerun of `P042` and a clean `P041-P045` batch rerun on `default_p2_pipe4`
-- Commit: pending
+- Commit: 97f956c
