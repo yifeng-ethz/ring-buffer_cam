@@ -45,6 +45,10 @@ class scoreboard extends uvm_scoreboard;
   int unsigned current_remaining;
   bit          allow_nonempty_end;
   int unsigned allowed_remaining_at_end;
+  int unsigned total_ingress_accepted_by_key[bit [7:0]];
+  int unsigned total_written_by_key[bit [7:0]];
+  int unsigned total_drained_by_key[bit [7:0]];
+  int unsigned total_data_subheaders_by_key[bit [7:0]];
   int unsigned current_remaining_by_key[bit [7:0]];
   int unsigned max_remaining_seen;
   int unsigned max_remaining_seen_by_key[bit [7:0]];
@@ -53,6 +57,7 @@ class scoreboard extends uvm_scoreboard;
   hit_fingerprint_t pending_drain_q[$];
   hit_fingerprint_t overlap_evicted_q[$];
   int unsigned total_overlap_fallback_hits;
+  int unsigned total_pop_observations;
 
   bit          epoch_active;
   bit [7:0]    active_search_key;
@@ -75,6 +80,7 @@ class scoreboard extends uvm_scoreboard;
     allowed_remaining_at_end = 0;
     max_remaining_seen = 0;
     total_overlap_fallback_hits = 0;
+    total_pop_observations = 0;
     epoch_active = 1'b0;
     active_search_key = '0;
     active_expected_hits = 0;
@@ -111,9 +117,27 @@ class scoreboard extends uvm_scoreboard;
       fp.channel    == item.channel;
   endfunction
 
+  function bit fp_matches(hit_fingerprint_t lhs, hit_fingerprint_t rhs);
+    return
+      lhs.search_key == rhs.search_key &&
+      lhs.et1n6      == rhs.et1n6 &&
+      lhs.ts50p      == rhs.ts50p &&
+      lhs.asic       == rhs.asic &&
+      lhs.channel    == rhs.channel;
+  endfunction
+
   function int find_match_index(ring_buffer_cam_pkg::out_seq_item item);
     for (int i = 0; i < slot_model.size(); i++) begin
       if (slot_model[i].valid && output_matches_fp(item, slot_model[i].fp)) begin
+        return i;
+      end
+    end
+    return -1;
+  endfunction
+
+  function int find_model_fp_index(hit_fingerprint_t fp);
+    for (int i = 0; i < slot_model.size(); i++) begin
+      if (slot_model[i].valid && fp_matches(slot_model[i].fp, fp)) begin
         return i;
       end
     end
@@ -129,6 +153,34 @@ class scoreboard extends uvm_scoreboard;
       return 0;
     end
     return current_remaining_by_key[search_key];
+  endfunction
+
+  function int unsigned accepted_hits_for_key(bit [7:0] search_key);
+    if (!total_ingress_accepted_by_key.exists(search_key)) begin
+      return 0;
+    end
+    return total_ingress_accepted_by_key[search_key];
+  endfunction
+
+  function int unsigned written_hits_for_key(bit [7:0] search_key);
+    if (!total_written_by_key.exists(search_key)) begin
+      return 0;
+    end
+    return total_written_by_key[search_key];
+  endfunction
+
+  function int unsigned drained_hits_for_key(bit [7:0] search_key);
+    if (!total_drained_by_key.exists(search_key)) begin
+      return 0;
+    end
+    return total_drained_by_key[search_key];
+  endfunction
+
+  function int unsigned data_subheaders_for_key(bit [7:0] search_key);
+    if (!total_data_subheaders_by_key.exists(search_key)) begin
+      return 0;
+    end
+    return total_data_subheaders_by_key[search_key];
   endfunction
 
   function void update_peak_residency();
@@ -201,6 +253,10 @@ class scoreboard extends uvm_scoreboard;
     current_remaining = 0;
     allow_nonempty_end = 1'b0;
     allowed_remaining_at_end = 0;
+    total_ingress_accepted_by_key.delete();
+    total_written_by_key.delete();
+    total_drained_by_key.delete();
+    total_data_subheaders_by_key.delete();
     current_remaining_by_key.delete();
     max_remaining_seen_by_key.delete();
     overwrite_new_key_count.delete();
@@ -208,6 +264,7 @@ class scoreboard extends uvm_scoreboard;
     pending_drain_q.delete();
     overlap_evicted_q.delete();
     total_overlap_fallback_hits = 0;
+    total_pop_observations = 0;
     clear_epoch();
   endfunction
 
@@ -224,10 +281,16 @@ class scoreboard extends uvm_scoreboard;
   endfunction
 
   function void write(ring_buffer_cam_pkg::hit_seq_item item);
+    bit [7:0] key;
     if (item.is_empty_marker) begin
       return;
     end
     total_ingress_accepted++;
+    key = item.search_key();
+    if (!total_ingress_accepted_by_key.exists(key)) begin
+      total_ingress_accepted_by_key[key] = 0;
+    end
+    total_ingress_accepted_by_key[key]++;
   endfunction
 
   function hit_fingerprint_t debug_item_to_fp(ring_buffer_cam_pkg::debug_push_item item);
@@ -294,6 +357,10 @@ class scoreboard extends uvm_scoreboard;
 
     slot_model[slot_addr].valid = 1'b1;
     slot_model[slot_addr].fp    = fp;
+    if (!total_written_by_key.exists(fp.search_key)) begin
+      total_written_by_key[fp.search_key] = 0;
+    end
+    total_written_by_key[fp.search_key]++;
     if (!old_valid || old_key != fp.search_key) begin
       if (!current_remaining_by_key.exists(fp.search_key)) begin
         current_remaining_by_key[fp.search_key] = 0;
@@ -326,6 +393,7 @@ class scoreboard extends uvm_scoreboard;
     int unsigned slot_addr;
     bit [7:0] key;
     hit_fingerprint_t pop_fp;
+    int model_match_idx;
 
     slot_addr = item.slot_addr;
     if (slot_addr >= slot_model.size()) begin
@@ -339,18 +407,32 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
+    total_pop_observations++;
     pop_fp = debug_pop_item_to_fp(item);
+    model_match_idx = -1;
+    if (slot_model[slot_addr].valid &&
+        fp_matches(slot_model[slot_addr].fp, pop_fp)) begin
+      model_match_idx = slot_addr;
+    end else begin
+      model_match_idx = find_model_fp_index(pop_fp);
+    end
 
-    if (!slot_model[slot_addr].valid) begin
+    if (model_match_idx < 0) begin
       pending_drain_q.push_back(pop_fp);
       `uvm_info("SCB", $sformatf(
-        "Recovered pop_erase from slot %0d using raw side-ram payload after the slot model was already clear",
+        "Recovered pop_erase from slot %0d using raw side-ram payload without a matching live-slot fingerprint",
         slot_addr), UVM_LOW)
       return;
     end
 
-    pending_drain_q.push_back(slot_model[slot_addr].fp);
-    key = slot_model[slot_addr].fp.search_key;
+    if (model_match_idx != slot_addr) begin
+      `uvm_info("SCB", $sformatf(
+        "Recovered pop_erase payload from slot %0d by matching live fingerprint in slot %0d",
+        slot_addr, model_match_idx), UVM_LOW)
+    end
+
+    pending_drain_q.push_back(slot_model[model_match_idx].fp);
+    key = slot_model[model_match_idx].fp.search_key;
     if (!current_remaining_by_key.exists(key)) begin
       current_remaining_by_key[key] = 0;
     end
@@ -360,7 +442,7 @@ class scoreboard extends uvm_scoreboard;
     if (current_remaining_by_key[key] > 0) begin
       current_remaining_by_key[key]--;
     end
-    slot_model[slot_addr].valid = 1'b0;
+    slot_model[model_match_idx].valid = 1'b0;
   endfunction
 
   function void write_out(ring_buffer_cam_pkg::out_seq_item item);
@@ -381,6 +463,12 @@ class scoreboard extends uvm_scoreboard;
       active_search_key = item.search_key;
       active_expected_hits = item.hit_count;
       active_seen_hits = 0;
+      if (item.hit_count != 0) begin
+        if (!total_data_subheaders_by_key.exists(item.search_key)) begin
+          total_data_subheaders_by_key[item.search_key] = 0;
+        end
+        total_data_subheaders_by_key[item.search_key]++;
+      end
 
       if (item.hit_count == 0 && item.eop) begin
         total_zero_hit_subheaders++;
@@ -415,6 +503,11 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
+    if (!total_drained_by_key.exists(item.active_search_key)) begin
+      total_drained_by_key[item.active_search_key] = 0;
+    end
+    total_drained_by_key[item.active_search_key]++;
+
     pending_match_idx = find_pending_match_index(item);
     live_match_idx = -1;
     overlap_match_idx = -1;
@@ -435,8 +528,14 @@ class scoreboard extends uvm_scoreboard;
     if (pending_match_idx < 0 && live_match_idx < 0 && overlap_match_idx < 0) begin
       total_unexpected_outputs++;
       `uvm_error("SCB", $sformatf(
-        "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h",
-        item.active_search_key, item.asic, item.channel, item.ts50p, item.et1n6))
+        "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h pending=%0d overlap=%0d remaining=%0d remaining_key=%0d accepted_key=%0d written_key=%0d drained_key=%0d pop_obs=%0d",
+        item.active_search_key, item.asic, item.channel, item.ts50p, item.et1n6,
+        pending_drain_entries(), overlap_evicted_entries(),
+        remaining_entries(), remaining_entries_for_key(item.active_search_key),
+        accepted_hits_for_key(item.active_search_key),
+        written_hits_for_key(item.active_search_key),
+        drained_hits_for_key(item.active_search_key),
+        total_pop_observations))
     end else if (live_match_idx >= 0) begin
       if (slot_model[live_match_idx].valid) begin
         if (current_remaining > 0) begin

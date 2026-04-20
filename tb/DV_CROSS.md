@@ -128,7 +128,7 @@ Each row replays one promoted random case with an orthogonal LCG seed. Seeds `0x
 | CROSS-021 | `seed_sweep` | P003 | `0x5` | random deep same-key throughput, 200k txn | P003 currently fails; this is the reproducible-failure seed gate |
 | CROSS-022 | `seed_sweep` | P003 | `0x6` | same, orthogonal seed | confirms P003 fix stable across seeds |
 | CROSS-023 | `seed_sweep` | P031 | `0x14` | adversarial arbiter interleave, 200k txn | overlap monitor histogram populated; covers BUG-001 + arbiter |
-| CROSS-024 | `seed_sweep` | P034 | `0x15` | silent-key search 10%, 200k txn | `CACHE_MISS_COUNT` saturation; BUG-003 anchor |
+| CROSS-024 | `seed_sweep` | P034 | `0x15` | silent-key search 10%, 200k txn | zero-hit silent-key subheader saturation without `CACHE_MISS_COUNT` drift; BUG-031 anchor |
 | CROSS-025 | `seed_sweep` | P091 | `0x6` | λ=0.9 with EXPECTED_LATENCY swept every 50k, 500k txn | `EXPECTED_LATENCY × FILL_LEVEL` cross bin saturated |
 | CROSS-026 | `seed_sweep` | P092 | `0x7` | TERM every 100k cyc, 500k txn | BUG-005 anchor across a long frame |
 | CROSS-027 | `seed_sweep` | P093 | `0x8` | FLUSH every 100k cyc, 500k txn | flush-state coverage × counter-clear semantics |

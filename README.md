@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.1.6.0419
+**Version:** 26.1.7.0419
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,11 +96,11 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.1.6.0419` carries the verified same-key overwrite-tail RTL fix plus the
-corrected MMDD build stamp and a patch bump so Platform Designer picks up the refreshed
-IP image. The live dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
-and [`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh includes the promoted PERF
-evidence through `P117/P118/P121` and the new subheader EDGE tranche `E031/E033/E035/E036/E037`.
+Version `26.1.7.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
+locked MMDD build stamp, and packages the refreshed PROF multi-key evidence so Platform
+Designer picks up the latest verified IP image. The live dashboard state is maintained in
+[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh
+adds the promoted PROF evidence through `P026/P027/P030/P032/P033/P034/P035/P039`.
 
 ---
 

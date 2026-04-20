@@ -61,7 +61,7 @@ proc ::mu3e::cmsis::spec::build_device {} {
             -fields [list [::mu3e::cmsis::svd::field value 0 32 -description "Cache-miss or empty-search count." -access read-only]]]]
 
     return [::mu3e::cmsis::svd::device MU3E_RING_BUFFER_CAM \
-        -version 26.1.6.0419 \
+        -version 26.1.7.0419 \
         -description "CMSIS-SVD description of the ring_buffer_cam CSR window." \
         -peripherals [list \
             [::mu3e::cmsis::svd::peripheral RING_BUFFER_CAM_CSR 0x0 \

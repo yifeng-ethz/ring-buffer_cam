@@ -2,7 +2,7 @@ package require -exact qsys 16.1
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
-set_module_property VERSION 26.1.6.0419
+set_module_property VERSION 26.1.7.0419
 set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, adds the common CSR identity header, fixes long-run counter cleanup plus same-key overwrite tail visibility in the active partitioned V2 core, and hardens the nightly DV harness against boundary-hit stimulus loss and stale scoreboard epoch accounting across flush/restart windows."
 set_module_property GROUP "Mu3e Data Plane/Modules"
 set_module_property AUTHOR "Yifeng Wang"
@@ -41,7 +41,7 @@ set IP_UID_DEFAULT_CONST        1380074317
 set BUILD_DEFAULT_CONST         419
 set VERSION_MAJOR_DEFAULT_CONST 26
 set VERSION_MINOR_DEFAULT_CONST 1
-set VERSION_PATCH_DEFAULT_CONST 6
+set VERSION_PATCH_DEFAULT_CONST 7
 set VERSION_DATE_DEFAULT_CONST  20260419
 set VERSION_GIT_DEFAULT_CONST   0
 set INSTANCE_ID_DEFAULT_CONST   0
@@ -394,7 +394,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.1.6.0419</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the corrected `BUILD=419` / `VERSION_DATE=20260419` metadata, and the active partitioned V2 CAM core with the verified same-key overwrite-tail and long-run counter-cleanup fixes.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
+add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.1.7.0419</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked `BUILD=419` / `VERSION_DATE=20260419` metadata, and the verified PROF multi-key closure refresh with the corrected rotating-burst pacing plus explicit silent-key coverage.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
 add_html_text "Versioning" versioning_html {<html><b>Common identity header</b><br/>Word <b>0</b> is <b>UID</b>.<br/>Word <b>1</b> is <b>META</b>: write 0=VERSION, 1=DATE, 2=GIT, 3=INSTANCE_ID.<br/><br/><b>VERSION encoding</b><br/>VERSION[31:24] = MAJOR, VERSION[23:16] = MINOR, VERSION[15:12] = PATCH, VERSION[11:0] = BUILD.</html>}
 add_display_item "Versioning" IP_UID parameter
 add_display_item "Versioning" VERSION_MAJOR parameter

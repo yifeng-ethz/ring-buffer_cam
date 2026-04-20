@@ -1,6 +1,6 @@
 # ⚠️ PROF bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `37` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `45` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -52,20 +52,20 @@
 | ✅ | 23 | `P023` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.40 | [case](../cases/P023.md) |
 | ✅ | 24 | `P024` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P024.md) |
 | ❓ | 25 | `P025` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P025.md) |
-| ❓ | 26 | `P026` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P026.md) |
-| ❓ | 27 | `P027` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P027.md) |
+| ✅ | 26 | `P026` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P026.md) |
+| ✅ | 27 | `P027` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P027.md) |
 | ❓ | 28 | `P028` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P028.md) |
 | ❓ | 29 | `P029` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P029.md) |
-| ❓ | 30 | `P030` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P030.md) |
+| ✅ | 30 | `P030` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P030.md) |
 | ❓ | 31 | `P031` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P031.md) |
-| ❓ | 32 | `P032` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P032.md) |
-| ❓ | 33 | `P033` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P033.md) |
-| ❓ | 34 | `P034` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P034.md) |
-| ❓ | 35 | `P035` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P035.md) |
+| ✅ | 32 | `P032` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P032.md) |
+| ✅ | 33 | `P033` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P033.md) |
+| ✅ | 34 | `P034` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P034.md) |
+| ✅ | 35 | `P035` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P035.md) |
 | ❓ | 36 | `P036` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P036.md) |
 | ❓ | 37 | `P037` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P037.md) |
 | ❓ | 38 | `P038` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P038.md) |
-| ❓ | 39 | `P039` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P039.md) |
+| ✅ | 39 | `P039` | stmt=95.25, branch=84.67, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=66.49 | [case](../cases/P039.md) |
 | ❓ | 40 | `P040` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P040.md) |
 | ❓ | 41 | `P041` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P041.md) |
 | ❓ | 42 | `P042` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P042.md) |

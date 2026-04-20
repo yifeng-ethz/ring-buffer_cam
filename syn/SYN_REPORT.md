@@ -8,7 +8,7 @@ This file is the detailed standalone synthesis and timing report for the active 
 
 ## Build Intent
 
-- compile the delivered `Default P4` configuration after the `26.1.6.0419` metadata alignment and the `2026-04-20` DV/dashboard refresh
+- compile the delivered `Default P4` configuration after the `26.1.7.0419` metadata alignment and the `2026-04-20` DV/dashboard refresh
 - use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
@@ -42,7 +42,7 @@ The old standalone project was not compiling the delivered release cleanly after
    - scalar `asi_hit_type1_error`
    - scalar `aso_hit_type2_error`
 4. The standalone tops and harness were normalized from an oversized `1024`-entry build back to the delivered `512`-entry depth.
-5. `rtl/ring_buffer_cam.vhd` metadata defaults were aligned to `26.1.6.0419` / `20260419`, and `script/ring_buffer_cam_hw.tcl` now carries the same packaged META DATE default.
+5. `rtl/ring_buffer_cam.vhd` metadata defaults were aligned to `26.1.7.0419` / `20260419`, and `script/ring_buffer_cam_hw.tcl` now carries the same packaged META DATE default.
 
 ## Timing Summary
 

@@ -4289,12 +4289,315 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
   endtask
 
+  task automatic check_per_key_drain_conservation(
+    string       what,
+    int unsigned lane_key_start_ord,
+    int unsigned pool_keys,
+    int unsigned min_active_keys = 1
+  );
+    int unsigned active_keys;
+    int unsigned search_key;
+    int unsigned accepted_hits;
+    int unsigned written_hits;
+    int unsigned drained_hits;
+    int unsigned data_subheaders;
+
+    active_keys = 0;
+    for (int idx = 0; idx < pool_keys; idx++) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(lane_key_start_ord + idx);
+      accepted_hits = m_env.m_scb.accepted_hits_for_key(search_key[7:0]);
+      written_hits = m_env.m_scb.written_hits_for_key(search_key[7:0]);
+      drained_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      data_subheaders = m_env.m_scb.data_subheaders_for_key(search_key[7:0]);
+      if (accepted_hits != 0) begin
+        active_keys++;
+        if (data_subheaders == 0) begin
+          `uvm_error("PROF", $sformatf(
+            "%s accepted hits for key=0x%02x but never emitted a data-bearing subheader",
+            what, search_key[7:0]))
+        end
+      end
+      if (accepted_hits != written_hits || written_hits != drained_hits) begin
+        `uvm_error("PROF", $sformatf(
+          "%s per-key conservation mismatch key=0x%02x accepted=%0d written=%0d drained=%0d subheaders=%0d",
+          what, search_key[7:0], accepted_hits, written_hits, drained_hits, data_subheaders))
+      end
+    end
+    if (active_keys < min_active_keys) begin
+      `uvm_error("PROF", $sformatf(
+        "%s activated too few keys: active=%0d expected_at_least=%0d",
+        what, active_keys, min_active_keys))
+    end
+  endtask
+
+  task automatic run_weighted_multi_key_case(
+    string       what,
+    int unsigned latency,
+    int unsigned lane_key_start_ord,
+    int unsigned key0_hits_per_epoch,
+    int unsigned key1_hits_per_epoch,
+    int unsigned key2_hits_per_epoch,
+    int unsigned key3_hits_per_epoch,
+    int unsigned num_epochs,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned inter_epoch_gap_cycles,
+    int unsigned timeout_cycles
+  );
+    weighted_profile_seq weighted_seq;
+    int unsigned expected_hits[4];
+    int unsigned observed_hits[4];
+    int unsigned search_key;
+    int unsigned total_hits;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+    int unsigned fill_level;
+    int unsigned weights[4];
+
+    weights[0] = key0_hits_per_epoch;
+    weights[1] = key1_hits_per_epoch;
+    weights[2] = key2_hits_per_epoch;
+    weights[3] = key3_hits_per_epoch;
+    total_hits = (key0_hits_per_epoch + key1_hits_per_epoch +
+                  key2_hits_per_epoch + key3_hits_per_epoch) * num_epochs;
+
+    configure_and_start(latency);
+    weighted_seq = weighted_profile_seq::type_id::create({what, "_weighted"});
+    weighted_seq.lane_key_start_ord = lane_key_start_ord;
+    weighted_seq.key_hits_per_epoch.delete();
+    weighted_seq.key_hits_per_epoch.push_back(key0_hits_per_epoch);
+    weighted_seq.key_hits_per_epoch.push_back(key1_hits_per_epoch);
+    weighted_seq.key_hits_per_epoch.push_back(key2_hits_per_epoch);
+    weighted_seq.key_hits_per_epoch.push_back(key3_hits_per_epoch);
+    weighted_seq.num_epochs = num_epochs;
+    weighted_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+    weighted_seq.inter_epoch_gap_cycles = inter_epoch_gap_cycles;
+    weighted_seq.progress_stride = (total_hits >= 2048) ? (total_hits / 4) : ((total_hits == 0) ? 0 : total_hits);
+    weighted_seq.progress_tag = what;
+    weighted_seq.start(m_env.m_hit_seqr);
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != total_hits || pop_count != total_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        total_hits, total_hits))
+    end
+
+    check_per_key_drain_conservation(what, lane_key_start_ord, 4, 4);
+    for (int idx = 0; idx < 4; idx++) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(lane_key_start_ord + idx);
+      expected_hits[idx] = weights[idx] * num_epochs;
+      observed_hits[idx] = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      if (observed_hits[idx] != expected_hits[idx]) begin
+        `uvm_error("PROF", $sformatf(
+          "%s per-key hit-count mismatch key=0x%02x observed=%0d expected=%0d",
+          what, search_key[7:0], observed_hits[idx], expected_hits[idx]))
+      end
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: total_hits=%0d key_counts=[%0d,%0d,%0d,%0d] max_live_fill=%0d max_remaining=%0d",
+      what, total_hits,
+      observed_hits[0], observed_hits[1], observed_hits[2], observed_hits[3],
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
+  task automatic run_randomized_multi_key_integrity_case(
+    string       what,
+    int unsigned latency,
+    int unsigned num_hits,
+    int unsigned lane_key_start_ord,
+    int unsigned pool_keys,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned timeout_cycles
+  );
+    profile_traffic_seq prof_seq;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+    int unsigned fill_level;
+    int unsigned min_hits;
+    int unsigned max_hits;
+    int unsigned search_key;
+    int unsigned observed_hits;
+
+    configure_and_start(latency);
+    prof_seq = profile_traffic_seq::type_id::create({what, "_randomized"});
+    prof_seq.num_hits = num_hits;
+    prof_seq.lane_key_start_ord = lane_key_start_ord;
+    prof_seq.pool_keys = pool_keys;
+    prof_seq.hits_per_key_switch = 1;
+    prof_seq.randomize_key_order = 1'b1;
+    prof_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+    prof_seq.progress_stride = (num_hits >= 4096) ? (num_hits / 4) : (num_hits / 2);
+    prof_seq.progress_tag = what;
+    prof_seq.start(m_env.m_hit_seqr);
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != num_hits || pop_count != num_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        num_hits, num_hits))
+    end
+
+    check_per_key_drain_conservation(what, lane_key_start_ord, pool_keys, pool_keys);
+    min_hits = num_hits;
+    max_hits = 0;
+    for (int idx = 0; idx < pool_keys; idx++) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(lane_key_start_ord + idx);
+      observed_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      if (observed_hits < min_hits) min_hits = observed_hits;
+      if (observed_hits > max_hits) max_hits = observed_hits;
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: num_hits=%0d pool_keys=%0d min_hits_per_key=%0d max_hits_per_key=%0d max_live_fill=%0d",
+      what, num_hits, pool_keys, min_hits, max_hits, m_env.m_dbg_mon.max_live_fill), UVM_LOW)
+  endtask
+
+  task automatic run_silent_key_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned num_hits,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned active_lane_key_ords[$],
+    int unsigned silent_lane_key_ords[$],
+    int unsigned timeout_cycles
+  );
+    profile_traffic_seq              prof_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned                     push_count;
+    int unsigned                     pop_count;
+    int unsigned                     overwrite_count;
+    int unsigned                     cache_miss_count;
+    int unsigned                     fill_level;
+    int unsigned                     search_key;
+    int unsigned                     active_total;
+    int unsigned                     accepted_hits;
+    int unsigned                     written_hits;
+    int unsigned                     drained_hits;
+
+    configure_and_start(latency);
+    prof_seq = profile_traffic_seq::type_id::create({what, "_silent"});
+    prof_seq.num_hits = num_hits;
+    prof_seq.lane_key_ord_list.delete();
+    foreach (active_lane_key_ords[idx]) begin
+      prof_seq.lane_key_ord_list.push_back(active_lane_key_ords[idx]);
+    end
+    prof_seq.pool_keys = active_lane_key_ords.size();
+    prof_seq.hits_per_key_switch = 1;
+    prof_seq.randomize_key_order = 1'b0;
+    prof_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+    prof_seq.progress_stride = (num_hits >= 4096) ? (num_hits / 4) : ((num_hits == 0) ? 0 : num_hits);
+    prof_seq.progress_tag = what;
+    prof_seq.start(m_env.m_hit_seqr);
+
+    foreach (silent_lane_key_ords[idx]) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(silent_lane_key_ords[idx]);
+      wait_for_subheader_search_key(
+        search_key[7:0],
+        timeout_cycles,
+        {what, " silent-key search"},
+        matched_subheader);
+      if (matched_subheader == null) begin
+        `uvm_error("PROF", $sformatf(
+          "%s did not observe a subheader for silent key=0x%02x",
+          what, search_key[7:0]))
+      end else begin
+        if (matched_subheader.hit_count != 0) begin
+          `uvm_error("PROF", $sformatf(
+            "%s silent key=0x%02x emitted non-zero hit_count=%0d",
+            what, search_key[7:0], matched_subheader.hit_count))
+        end
+        if (!(matched_subheader.sop && matched_subheader.eop)) begin
+          `uvm_error("PROF", $sformatf(
+            "%s silent key=0x%02x did not emit a single-beat zero-hit subheader",
+            what, search_key[7:0]))
+        end
+      end
+    end
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != num_hits || pop_count != num_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        num_hits, num_hits))
+    end
+
+    active_total = 0;
+    foreach (active_lane_key_ords[idx]) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(active_lane_key_ords[idx]);
+      accepted_hits = m_env.m_scb.accepted_hits_for_key(search_key[7:0]);
+      written_hits = m_env.m_scb.written_hits_for_key(search_key[7:0]);
+      drained_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      active_total += drained_hits;
+      if (accepted_hits == 0 || accepted_hits != written_hits || written_hits != drained_hits) begin
+        `uvm_error("PROF", $sformatf(
+          "%s active key conservation mismatch key=0x%02x accepted=%0d written=%0d drained=%0d",
+          what, search_key[7:0], accepted_hits, written_hits, drained_hits))
+      end
+    end
+
+    foreach (silent_lane_key_ords[idx]) begin
+      search_key = m_cfg.lane_key_ord_to_search_key(silent_lane_key_ords[idx]);
+      accepted_hits = m_env.m_scb.accepted_hits_for_key(search_key[7:0]);
+      written_hits = m_env.m_scb.written_hits_for_key(search_key[7:0]);
+      drained_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      if (accepted_hits != 0 || written_hits != 0 || drained_hits != 0) begin
+        `uvm_error("PROF", $sformatf(
+          "%s silent key accounting mismatch key=0x%02x accepted=%0d written=%0d drained=%0d",
+          what, search_key[7:0], accepted_hits, written_hits, drained_hits))
+      end
+    end
+
+    if (active_total != num_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s drained total across active keys did not close: drained=%0d expected=%0d",
+        what, active_total, num_hits))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: num_hits=%0d active_keys=%0d silent_keys=%0d zero_hit_subheaders=%0d cache_miss=%0d max_live_fill=%0d",
+      what, num_hits, active_lane_key_ords.size(), silent_lane_key_ords.size(),
+      m_env.m_scb.total_zero_hit_subheaders, cache_miss_count,
+      m_env.m_dbg_mon.max_live_fill), UVM_LOW)
+  endtask
+
   function automatic logic [31:0] expected_meta_version();
     logic [31:0] version_word;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd6;
+    version_word[15:12] = 4'd7;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -4529,6 +4832,7 @@ class base_test extends uvm_test;
     sequential_keys_seq   seq_keys;
     overwrite_stress_seq  ow_seq;
     overwrite_profile_seq pressure_seq;
+    weighted_profile_seq  weighted_seq;
     random_push_pop_seq   rand_same;
     random_multi_key_seq  rand_multi;
     random_throughput_seq rand_tp;
@@ -8208,6 +8512,61 @@ class base_test extends uvm_test;
       run_profile_exact_depth_boundary_case(
         "P024 exact-depth boundary",
         16'd2000, 2);
+    end else if (case_id == "P026") begin
+      run_weighted_multi_key_case(
+        "P026 equal-weight four-key",
+        16'd128, 2,
+        1, 1, 1, 1,
+        1024, 13, 0, 750_000);
+    end else if (case_id == "P027") begin
+      run_weighted_multi_key_case(
+        "P027 skewed four-key",
+        16'd128, 2,
+        7, 2, 1, 1,
+        256, 13, 0, 750_000);
+    end else if (case_id == "P030") begin
+      run_weighted_multi_key_case(
+        "P030 rotating 256-hit bursts",
+        16'd128, 2,
+        256, 256, 256, 256,
+        2, 13, 176, 1_500_000);
+    end else if (case_id == "P032") begin
+      run_randomized_multi_key_integrity_case(
+        "P032 randomized eight-key reuse-50",
+        16'd128, 4096, 2, 8, 13, 1_000_000);
+    end else if (case_id == "P033") begin
+      run_randomized_multi_key_integrity_case(
+        "P033 randomized sixteen-key reuse-80",
+        16'd128, 4096, 2, 16, 13, 1_000_000);
+    end else if (case_id == "P034") begin
+      int unsigned active_lane_key_ords[$];
+      int unsigned silent_lane_key_ords[$];
+      active_lane_key_ords.push_back(2);
+      active_lane_key_ords.push_back(3);
+      active_lane_key_ords.push_back(4);
+      silent_lane_key_ords.push_back(5);
+      run_silent_key_profile_case(
+        "P034 one silent key amid three active",
+        16'd128, 3072, 13,
+        active_lane_key_ords, silent_lane_key_ords, 1_000_000);
+    end else if (case_id == "P035") begin
+      int unsigned active_lane_key_ords[$];
+      int unsigned silent_lane_key_ords[$];
+      active_lane_key_ords.push_back(2);
+      active_lane_key_ords.push_back(4);
+      active_lane_key_ords.push_back(6);
+      silent_lane_key_ords.push_back(3);
+      silent_lane_key_ords.push_back(5);
+      run_silent_key_profile_case(
+        "P035 interleaved active-silent five-key window",
+        16'd128, 3072, 13,
+        active_lane_key_ords, silent_lane_key_ords, 1_000_000);
+    end else if (case_id == "P039") begin
+      run_weighted_multi_key_case(
+        "P039 heavy-key 2x fairness profile",
+        16'd128, 2,
+        2, 1, 1, 1,
+        1024, 13, 0, 1_000_000);
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);
     end else if (case_id == "P112") begin

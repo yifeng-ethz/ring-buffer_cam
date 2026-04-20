@@ -440,3 +440,47 @@
   - exposed by isolated case `P118`, which timed out after a legal flush/restart boundary with `accepted=1280` and `written=1232` even though the resident model was empty
   - fixed by resetting the epoch counters/maps in `scoreboard.note_flush_reset()` and verified by clean reruns of `P118`, `P121`, `P124`, `X017`, `X019`, and `X055`
 - Commit: e85f536
+
+## 2026-04-20
+
+### BUG-030-H: `P030`'s original zero-gap 256-hit burst profile ran above the calibrated no-overwrite envelope
+- First seen in: `P030` on 2026-04-20 during the next PROF multi-key bring-up tranche
+- Symptom:
+  - the new rotating-burst profile produced hundreds of scoreboard `Unexpected drained hit` errors as soon as the third burst arrived
+  - local diagnostics showed the case was already recycling occupied residents while key `8` was still draining, which violated the testcase's own `OVERWRITE_COUNT==0` contract
+- Root cause:
+  - the original case definition used `inter_hit_gap_cycles=0` for 256-hit same-key bursts
+  - that traffic shape exceeded the sustainable no-overwrite service envelope for the delivered `EXPECTED_LATENCY=128` / `512`-entry configuration, so the testcase was proving a self-induced overload instead of a legal lossless burst regime
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - `P030` was recalibrated to keep the 256-hit burst packetization focus while pacing the bursts with a 13-cycle ingress gap and a 176-cycle epoch gap
+  - verified by clean isolated reruns of `P030`, then by a clean PROF slice rerun of `P026`, `P027`, `P030`, `P032`, and `P033`
+- Commit: pending
+
+### BUG-031-H: The PROF silent-key plan text encoded the wrong contract for zero-hit searches
+- First seen in: `P034` planning review on 2026-04-20 while wiring the silent-key PROF cases
+- Symptom:
+  - the plan text for `P034` / `P035` required `CACHE_MISS_COUNT` to increment on silent-key searches
+  - that contradicted the already-verified directed evidence (`B059`, `B060`, `B118`, `E001`, `E031`), which showed that empty searches emit zero-hit subheaders while `CACHE_MISS_COUNT` remains `0`
+- Root cause:
+  - the PROF spec drifted from the live zero-hit fast-path contract and conflated "silent-key search" with the stale-snapshot cache-miss datapath
+  - the stale wording would have forced new PROF checks to claim failures against a legal DUT behavior
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - `P034` / `P035` were implemented against the true contract: zero-hit SOP+EOP subheaders for silent keys with `CACHE_MISS_COUNT==0`
+  - verified by clean isolated reruns of `P034` and `P035`, both of which observed hundreds of zero-hit subheaders while preserving lossless active-key drain accounting
+- Commit: pending
+
+### BUG-032-H: `profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully
+- First seen in: `P035` implementation on 2026-04-20 while trying to model three active keys interleaved with two silent searched keys
+- Symptom:
+  - the existing profile generator only derived keys as `lane_key_start_ord + key_idx`
+  - that made it impossible to generate the intended active set `{2,4,6}` while leaving `{3,5}` silent, so the testcase would have had to either violate the scenario or silently test a different key pattern
+- Root cause:
+  - `profile_traffic_seq` lacked an explicit key-list mode and assumed every profile traffic family was a contiguous key range
+  - the sequence infrastructure therefore could not represent the interleaved active/silent-key window required by the PROF plan
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - `profile_traffic_seq` now accepts an explicit `lane_key_ord_list[$]`, and `P035` uses that mode to drive only the intended active keys while the silent keys are still searched by the DUT
+  - verified by clean isolated reruns of `P034`, `P035`, and `P039`
+- Commit: pending

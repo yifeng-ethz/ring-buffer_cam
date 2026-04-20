@@ -83,6 +83,8 @@ class debug_monitor extends uvm_monitor;
   logic [3:0]  pop_cmd_fifo_usedw;
   logic [7:0]  deassembly_fifo_usedw;
   logic        terminating_drain_done;
+  bit          pending_pop_sample_valid;
+  logic [15:0] pending_pop_slot_addr;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
@@ -154,6 +156,8 @@ class debug_monitor extends uvm_monitor;
     pop_cmd_fifo_usedw = '0;
     deassembly_fifo_usedw = '0;
     terminating_drain_done = 1'b0;
+    pending_pop_sample_valid = 1'b0;
+    pending_pop_slot_addr = '0;
   endfunction
 
   function void build_phase(uvm_phase phase);
@@ -285,13 +289,24 @@ class debug_monitor extends uvm_monitor;
         push_ap.write(item);
       end
 
-      if (vif.pop_erase_grant === 1'b1) begin
+      if (pending_pop_sample_valid &&
+          vif.pop_hit_valid === 1'b1 &&
+          vif.decision_reg == 3'd2) begin
         pop_item = ring_buffer_cam_pkg::debug_pop_item::type_id::create("pop_evt");
-        pop_item.slot_addr = vif.pop_issue_addr;
+        pop_item.slot_addr = pending_pop_slot_addr;
         pop_item.raw_hit = vif.side_ram_dout[38:0];
         pop_item.occupied = vif.side_ram_dout[39];
         pop_item.pop_count = vif.dbg_pop_cnt;
         pop_ap.write(pop_item);
+      end
+
+      if (vif.pop_erase_grant === 1'b1) begin
+        pending_pop_sample_valid = 1'b1;
+        pending_pop_slot_addr = vif.pop_issue_addr;
+      end else if (pending_pop_sample_valid &&
+                   vif.pop_hit_valid === 1'b1 &&
+                   vif.decision_reg == 3'd2) begin
+        pending_pop_sample_valid = 1'b0;
       end
 
       prev_push_cnt = dbg_push_cnt;

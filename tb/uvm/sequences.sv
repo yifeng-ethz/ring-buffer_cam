@@ -396,6 +396,7 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
 
   int unsigned num_hits = 2048;
   int unsigned lane_key_start_ord = 0;
+  int unsigned lane_key_ord_list[$];
   int unsigned pool_keys = 1;
   int unsigned hits_per_key_switch = 1;
   bit          randomize_key_order = 0;
@@ -458,7 +459,9 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
     int unsigned gap_cycles;
     logic [31:0] lfsr;
 
-    effective_pool_keys = (pool_keys == 0) ? 1 : pool_keys;
+    effective_pool_keys = (lane_key_ord_list.size() > 0) ?
+                          lane_key_ord_list.size() :
+                          ((pool_keys == 0) ? 1 : pool_keys);
     key_switch = (hits_per_key_switch == 0) ? 1 : hits_per_key_switch;
     lfsr = (lfsr_seed == '0) ? 32'h1ace_b00c : lfsr_seed;
 
@@ -469,7 +472,11 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
       end else begin
         key_idx = (i / key_switch) % effective_pool_keys;
       end
-      lane_key_ord = lane_key_start_ord + key_idx;
+      if (lane_key_ord_list.size() > 0) begin
+        lane_key_ord = lane_key_ord_list[key_idx];
+      end else begin
+        lane_key_ord = lane_key_start_ord + key_idx;
+      end
       actual_key = (lane_key_ord * ring_buffer_cam_pkg::INTERLEAVING_FACTOR) +
                    ring_buffer_cam_pkg::INTERLEAVING_INDEX;
 
@@ -502,6 +509,78 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
     `uvm_info("SEQ", $sformatf(
       "%s completed: sent=%0d/%0d",
       (progress_tag == "") ? get_name() : progress_tag, num_hits, num_hits), UVM_LOW)
+  endtask
+endclass
+
+class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_item);
+  `uvm_object_utils(weighted_profile_seq)
+
+  int unsigned lane_key_start_ord = 0;
+  int unsigned key_hits_per_epoch[$];
+  int unsigned num_epochs = 1;
+  int unsigned inter_hit_gap_cycles = 0;
+  int unsigned inter_epoch_gap_cycles = 0;
+  int unsigned progress_stride = 0;
+  string       progress_tag = "";
+
+  function new(string name = "weighted_profile_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    ring_buffer_cam_pkg::hit_seq_item hit;
+    int unsigned total_hits;
+    int unsigned sent_hits;
+    int unsigned actual_key;
+
+    total_hits = 0;
+    foreach (key_hits_per_epoch[idx]) begin
+      total_hits += key_hits_per_epoch[idx];
+    end
+    total_hits *= ((num_epochs == 0) ? 1 : num_epochs);
+    sent_hits = 0;
+
+    if (key_hits_per_epoch.size() == 0) begin
+      `uvm_fatal("SEQ", $sformatf(
+        "%s requires at least one weighted key slot",
+        (progress_tag == "") ? get_name() : progress_tag))
+    end
+
+    for (int epoch = 0; epoch < ((num_epochs == 0) ? 1 : num_epochs); epoch++) begin
+      foreach (key_hits_per_epoch[idx]) begin
+        actual_key = ((lane_key_start_ord + idx) * ring_buffer_cam_pkg::INTERLEAVING_FACTOR) +
+                     ring_buffer_cam_pkg::INTERLEAVING_INDEX;
+        for (int hit_idx = 0; hit_idx < key_hits_per_epoch[idx]; hit_idx++) begin
+          hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("weighted_hit");
+          start_item(hit);
+          hit.asic      = sent_hits & 4'hf;
+          hit.ingress_channel = (sent_hits >> 1) & 4'hf;
+          hit.channel   = (sent_hits >> 4) & 5'h1f;
+          hit.tcc8n     = 13'(actual_key * 16);
+          hit.tcc1n6    = (sent_hits >> 9) & 3'h7;
+          hit.tfine     = (sent_hits >> 4) & 5'h1f;
+          hit.et1n6     = sent_hits[8:0];
+          hit.has_error = 1'b0;
+          hit.is_empty_marker = 1'b0;
+          finish_item(hit);
+
+          sent_hits++;
+          if (progress_stride > 0 && ((sent_hits % progress_stride) == 0)) begin
+            `uvm_info("SEQ", $sformatf(
+              "%s progress: sent=%0d/%0d",
+              (progress_tag == "") ? get_name() : progress_tag, sent_hits, total_hits), UVM_LOW)
+          end
+          if (inter_hit_gap_cycles > 0)
+            #(inter_hit_gap_cycles * 8ns);
+        end
+      end
+      if (inter_epoch_gap_cycles > 0)
+        #(inter_epoch_gap_cycles * 8ns);
+    end
+
+    `uvm_info("SEQ", $sformatf(
+      "%s completed: sent=%0d/%0d",
+      (progress_tag == "") ? get_name() : progress_tag, sent_hits, total_hits), UVM_LOW)
   endtask
 endclass
 
