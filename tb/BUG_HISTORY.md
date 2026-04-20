@@ -728,4 +728,4 @@ Normalization note:
 - Runtime / coverage context:
   - the clean terminate helper now waits for both the source queue and the DUT-visible `deassembly_fifo_empty` condition before pulsing `CTRL_TERMINATING`, then gives the push path a short settle window before sending the end-of-run marker
   - verified by clean isolated reruns of `P004`, `P005`, and `P006`, followed by a clean `P001-P006` regression slice on `default_p2_pipe4`
-- Commit: pending
+- Commit: cb365cf

@@ -5,8 +5,8 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also fixes the equal-load partition round-robin bug, republishes the delivered package as `26.1.13.0419`, and extends the active-build partition evidence through `B099`, `P058`, and `P061-P063`.
-- Sign-off status: the current isolated DV dashboard passes on the live RTL; the standalone `ring_buffer_cam_syn_p4` timing/resource numbers are still inherited from the prior clean compile because synthesis was not rerun after `BUG-045`; gate-level simulation and full DV-plan closure remain open.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also fixes the clean terminate/deassembly-drain harness bug, republishes the delivered package as `26.1.14.0419`, and extends the PROF bring-up evidence through `P006`.
+- Sign-off status: the current isolated DV dashboard passes on the live RTL; the standalone `ring_buffer_cam_syn_p4` timing/resource numbers are still inherited from the prior clean compile because synthesis was not rerun after `BUG-046`; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
@@ -15,12 +15,12 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,364` ALMs, `2,825` registers, slow-85C setup slack `+0.450 ns`, worst hold slack `+0.162 ns`, slow-corner Fmax `146.56 MHz`
-  - current DV dashboard: `314/516` cases evidenced (`60.85%`) with `0` active failed implemented cases on `default_p2_pipe4`
-  - latest BUG-045 rerun slices: clean isolated reruns of `B010`, `B011`, `B080`, `B099-B103`, `B123`, `P050-P053`, `P058`, and `P061-P063`; the earlier `P018-P020`, `P041-P045`, and `P059/P060/P064` evidence remains part of the inherited dashboard basis
-  - delivered package metadata: `26.1.13.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
+  - current DV dashboard: `316/516` cases evidenced (`61.24%`) with `0` active failed implemented cases on `default_p2_pipe4`
+  - latest BUG-046 rerun slices: clean isolated reruns of `P004`, `P005`, and `P006`, followed by a clean `P001-P006` regression slice; the earlier `B010`, `B011`, `B080`, `B099-B103`, `B123`, `P050-P053`, `P058`, `P061-P063`, `P018-P020`, `P041-P045`, and `P059/P060/P064` evidence remains part of the inherited dashboard basis
+  - delivered package metadata: `26.1.14.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
-  - the current release now has refreshed DV evidence on top of the earlier architectural refactor, while standalone timing/resource evidence is still inherited from the prior clean compile rather than rerun for `BUG-045`
+  - the current release now has refreshed DV evidence on top of the earlier architectural refactor, while standalone timing/resource evidence is still inherited from the prior clean compile rather than rerun for `BUG-046`
   - the detailed historical sweep below is still useful background, but the authoritative current status lives in [`doc/SIGNOFF.md`](SIGNOFF.md) and [`syn/SYN_REPORT.md`](../syn/SYN_REPORT.md)
 
 ## 1. Targets
@@ -192,7 +192,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - current delivered version `26.1.13.0419`
+  - current delivered version `26.1.14.0419`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`

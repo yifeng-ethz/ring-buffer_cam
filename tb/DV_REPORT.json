@@ -371,7 +371,7 @@
       "date": "2026-04-20",
       "title": "Clean terminate/drain only waited for the source queue, not for the internal deassembly FIFO, and could wedge heavy overwrite soaks",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "cb365cf"
     }
   ],
   "buckets": {
