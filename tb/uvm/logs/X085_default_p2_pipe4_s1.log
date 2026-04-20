@@ -3,7 +3,7 @@ Reading pref.tcl
 # 2022.4
 
 # vsim -modelsimini modelsim.ini -c -quiet -coverage -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=X085" -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/X085_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
-# Start time: 21:24:34 on Apr 18,2026
+# Start time: 18:04:55 on Apr 20,2026
 # ** Note: (vsim-8009) Loading existing optimized design _opt
 # //  Questa Intel Starter FPGA Edition-64
 # //  Version 2022.4 linux_x86_64 Oct 18 2022
@@ -22,8 +22,6 @@ Reading pref.tcl
 # ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
 # This also means that later if you turn on UVM-aware debugging your debug simulations may have
 # different random seeds from your non-debug simulations.
-# ** Warning: register_cover_flop: Failed to find flop reset statement in du ring_buffer_cam_v2_core(rtl) file 147 line -1 tok -1 scope_ident 0
-# ** Warning: register_cover_flop: Failed to find a coverage flop in du ring_buffer_cam_v2_core(rtl), scope 0, path /tb_top/dut/v2_core. Not collecting coverage data for it.
 # coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/X085_s1.ucdb
 #  run -all
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
@@ -90,80 +88,16 @@ Reading pref.tcl
 #    Time: 0 ps  Iteration: 2  Instance: /tb_top/dut/v2_core
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 0 ps  Iteration: 3  Instance: /tb_top/dut/v2_core
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_traversal.svh(279) @ 0: reporter [UVM/COMP/NAMECHECK] This implementation of the component name checks requires DPI to be enabled
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(6544) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X085 mode=isolated
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(6546) @ 188000: uvm_test_top [CASE] CASE_END id=X085 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(10379) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X085 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(10381) @ 188000: uvm_test_top [CASE] CASE_END id=X085 mode=isolated
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 188000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 188000: uvm_test_top.m_env.m_cov [COV] cg_output=0.0% cg_hit_data=0.0%
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(491) @ 188000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=0 popped=0 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=0 zero_hit_subheaders=0 accepted=0 cache_miss_outputs=0
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(499) @ 188000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=0 ring_depth=512
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(6253) @ 188000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(609) @ 188000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=0 popped=0 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=0 zero_hit_subheaders=0 accepted=0 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(617) @ 188000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=0 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(10088) @ 188000: uvm_test_top [TEST] *** TEST PASSED ***
 # UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 188000: reporter [UVM/REPORT/SERVER] 
 # --- UVM Report Summary ---
 # 
@@ -185,5 +119,5 @@ Reading pref.tcl
 # 
 # ** Note: $finish    : /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
 #    Time: 188 ns  Iteration: 75  Instance: /tb_top
-# End time: 21:24:35 on Apr 18,2026, Elapsed time: 0:00:01
-# Errors: 0, Warnings: 55
+# End time: 18:04:56 on Apr 20,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 21

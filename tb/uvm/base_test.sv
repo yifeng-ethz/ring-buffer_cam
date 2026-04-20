@@ -195,6 +195,57 @@ class base_test extends uvm_test;
     m_env.m_scb.note_flush_reset();
   endtask
 
+  task automatic expect_soft_reset_abort(
+    string       what,
+    logic [31:0] ctrl_mask = 32'h0000_0002,
+    logic [31:0] ctrl_expected = 32'h0000_0000,
+    int unsigned settle_clocks = 8,
+    bit          reset_scoreboard = 1'b1
+  );
+    int unsigned inerr_count;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+    int unsigned fill_level;
+
+    wait_clocks(settle_clocks);
+    csr_expect_mask(CSR_CTRL_ADDR, ctrl_mask, ctrl_expected, {what, " CTRL soft_reset readback"});
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_IDLE) begin
+      `uvm_error("SOFT_RST", $sformatf(
+        "%s did not return the DUT to IDLE: observed_run_state=%0d",
+        what, m_env.m_dbg_mon.run_state_code))
+    end
+    if (m_env.m_dbg_mon.pop_engine_state_code != 3'd0) begin
+      `uvm_error("SOFT_RST", $sformatf(
+        "%s left the pop engine active: observed_pop_state=%0d",
+        what, m_env.m_dbg_mon.pop_engine_state_code))
+    end
+
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (inerr_count != 0 || push_count != 0 || pop_count != 0 ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("SOFT_RST", $sformatf(
+        "%s did not clear the live accounting state: inerr=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d",
+        what, inerr_count, push_count, pop_count, overwrite_count, cache_miss_count, fill_level))
+    end
+    if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1 ||
+        m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+      `uvm_error("SOFT_RST", $sformatf(
+        "%s did not leave the datapath FIFOs idle: pop_cmd_empty=%0d deassembly_empty=%0d",
+        what, m_env.m_dbg_mon.vif.pop_cmd_fifo_empty, m_env.m_dbg_mon.vif.deassembly_fifo_empty))
+    end
+
+    if (reset_scoreboard) begin
+      m_env.m_scb.note_flush_reset();
+    end
+  endtask
+
   task automatic configure_and_start_full(int unsigned latency = 128);
     enter_run_prepare();
     csr_write(CSR_EXPECTED_LAT_ADDR, latency);
@@ -624,9 +675,6 @@ class base_test extends uvm_test;
 
   task automatic run_x035_terminate_before_soft_reset_case();
     same_key_burst_seq burst_seq;
-    int unsigned       push_count;
-    int unsigned       pop_count;
-    int unsigned       fill_level;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x035_terminate_soft_reset");
@@ -638,35 +686,11 @@ class base_test extends uvm_test;
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X035 TERMINATING entry");
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X035 soft_reset self-clears after adjacent TERMINATING");
-    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_TERMINATING) begin
-      `uvm_error("X035", $sformatf(
-        "Adjacent soft_reset disturbed TERMINATING precedence: observed_state=%0d",
-        m_env.m_dbg_mon.run_state_code))
-    end
-
-    send_endofrun_marker();
-    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
-    wait_for_scoreboard_idle(80_000, "X035 terminate precedence drain");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
-    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
-    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
-    if (push_count != 16 || pop_count != 16 || fill_level != 0) begin
-      `uvm_error("X035", $sformatf(
-        "Terminate-before-soft_reset accounting mismatch: push=%0d pop=%0d fill=%0d expected=16/16/0",
-        push_count, pop_count, fill_level))
-    end
-    expect_service_model_accounting("X035 terminate before soft_reset", 1, 0);
+    expect_soft_reset_abort("X035 terminate then soft_reset");
   endtask
 
   task automatic run_x036_terminate_after_soft_reset_case();
     same_key_burst_seq burst_seq;
-    int unsigned       push_count;
-    int unsigned       pop_count;
-    bit                saw_waitrequest_high;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x036_soft_reset_then_terminate");
@@ -675,42 +699,13 @@ class base_test extends uvm_test;
     burst_seq.start(m_env.m_hit_seqr);
     wait_for_push_count(16, 20_000, "X036 resident precondition");
 
-    saw_waitrequest_high = 1'b0;
-    m_env.m_csr_drv.vif.address <= CSR_CTRL_ADDR[4:0];
-    m_env.m_csr_drv.vif.writedata <= 32'h0000_0002;
-    m_env.m_csr_drv.vif.write <= 1'b1;
-    @(posedge m_env.m_csr_drv.vif.clk);
-    if (m_env.m_csr_drv.vif.waitrequest === 1'b1) begin
-      saw_waitrequest_high = 1'b1;
-    end
-    while (m_env.m_csr_drv.vif.waitrequest === 1'b1) begin
-      @(posedge m_env.m_csr_drv.vif.clk);
-    end
-    if (saw_waitrequest_high) begin
-      `uvm_error("X036", "CSR CTRL write stalled for more than one cycle before TERMINATE")
-    end
-    m_cfg.note_csr_write(CSR_CTRL_ADDR[4:0], 32'h0000_0002);
-    m_env.m_csr_drv.vif.write <= 1'b0;
-    m_env.m_csr_drv.vif.address <= '0;
-    m_env.m_csr_drv.vif.writedata <= '0;
-    @(posedge m_env.m_csr_drv.vif.clk);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    expect_soft_reset_abort("X036 soft_reset before terminate");
 
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X036 TERMINATING entry");
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X036 soft_reset self-clears before TERMINATING decode");
     send_endofrun_marker();
     ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
-    wait_for_scoreboard_idle(80_000, "X036 post-CSR terminate drain");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
-    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
-    if (push_count != 16 || pop_count != 16) begin
-      `uvm_error("X036", $sformatf(
-        "CSR-then-terminate disturbed accounting: push=%0d pop=%0d expected=16",
-        push_count, pop_count))
-    end
-    expect_service_model_accounting("X036 terminate after soft_reset write", 1, 0);
   endtask
 
   task automatic run_x041_terminate_with_valid_hit_case();
@@ -2323,22 +2318,13 @@ class base_test extends uvm_test;
     configure_and_start(2000);
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE, 2_000, "X072 RUN_PREPARE entry");
-    m_env.m_scb.note_flush_reset();
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X072 soft_reset self-clears during RUN_PREPARE");
-    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
-    if (m_env.m_dbg_mon.run_mgmt_flushed !== 1'b1) begin
-      `uvm_error("X072", "RUN_PREPARE flush did not complete after soft_reset write")
-    end
+    expect_soft_reset_abort("X072 soft_reset during RUN_PREPARE");
+    enter_run_prepare();
   endtask
 
   task automatic run_x073_soft_reset_in_terminate_case();
     same_key_burst_seq burst_seq;
-    int unsigned       push_count;
-    int unsigned       pop_count;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x073_terminate_burst");
@@ -2349,20 +2335,7 @@ class base_test extends uvm_test;
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X073 TERMINATING entry");
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X073 soft_reset self-clears during TERMINATING");
-    send_endofrun_marker();
-    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
-    wait_for_scoreboard_idle(80_000, "X073 terminate drain with soft_reset");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
-    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
-    if (push_count != 16 || pop_count != 16) begin
-      `uvm_error("X073", $sformatf(
-        "TERMINATING + soft_reset disturbed drain accounting: push=%0d pop=%0d expected=16",
-        push_count, pop_count))
-    end
+    expect_soft_reset_abort("X073 soft_reset during TERMINATING");
   endtask
 
   task automatic run_x075_soft_reset_with_latency_write_case();
@@ -2415,8 +2388,6 @@ class base_test extends uvm_test;
     same_key_burst_seq burst_seq;
     int unsigned       push_before;
     int unsigned       fill_before;
-    int unsigned       push_after;
-    int unsigned       fill_after;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x071_running_burst");
@@ -2426,26 +2397,17 @@ class base_test extends uvm_test;
     wait_for_push_count(16, 20_000, "X071 RUNNING traffic");
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
-    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X071 soft_reset self-clears during RUNNING");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
-    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
-    if (push_after != push_before || fill_after != fill_before) begin
+    if (push_before != 16 || fill_before == 0) begin
       `uvm_error("X071", $sformatf(
-        "RUNNING soft_reset caused immediate functional side effects: push %0d->%0d fill %0d->%0d",
-        push_before, push_after, fill_before, fill_after))
+        "Precondition failed before RUNNING soft_reset: push=%0d fill=%0d",
+        push_before, fill_before))
     end
-    terminate_and_drain(80_000, "X071 running soft_reset drain");
-    expect_service_model_accounting("X071 running soft_reset drain", 1, 0);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    expect_soft_reset_abort("X071 soft_reset during RUNNING");
   endtask
 
   task automatic run_x074_soft_reset_during_drain_case();
     same_key_burst_seq burst_seq;
-    int unsigned       push_count;
-    int unsigned       pop_count;
 
     configure_and_start(0);
     burst_seq = same_key_burst_seq::type_id::create("x074_drain_burst");
@@ -2454,23 +2416,7 @@ class base_test extends uvm_test;
     burst_seq.start(m_env.m_hit_seqr);
     wait_for_pop_engine_state(3'd4, 40_000, "X074 active DRAIN");
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X074 soft_reset self-clears during DRAIN");
-    wait_for_scoreboard_idle(80_000, "X074 drain completion");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
-    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
-    if (push_count != 32 || pop_count != 32) begin
-      `uvm_error("X074", $sformatf(
-        "Active-drain soft_reset disturbed accounting: push=%0d pop=%0d expected=32",
-        push_count, pop_count))
-    end
-    if (m_env.m_scb.total_unexpected_outputs != 0) begin
-      `uvm_error("X074", $sformatf(
-        "Active-drain soft_reset produced unexpected outputs=%0d",
-        m_env.m_scb.total_unexpected_outputs))
-    end
+    expect_soft_reset_abort("X074 soft_reset during DRAIN");
   endtask
 
   task automatic run_x090_meta_selector_case();
@@ -2966,8 +2912,6 @@ class base_test extends uvm_test;
 
   task automatic run_x113_inerr_coincident_soft_reset_case();
     single_error_hit_seq err_seq;
-    int unsigned         inerr_before;
-    int unsigned         inerr_after;
 
     configure_and_start(2000);
     fork
@@ -2981,16 +2925,12 @@ class base_test extends uvm_test;
       end
     join
 
-    wait_clocks(8);
-    inerr_before = m_env.m_dbg_mon.dbg_inerr_cnt[31:0];
-    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
-    if (inerr_before == 0 || inerr_after == 0) begin
+    expect_soft_reset_abort("X113 coincident bad-hit soft_reset");
+    if (m_env.m_dbg_mon.dbg_inerr_cnt[31:0] != 0) begin
       `uvm_error("X113", $sformatf(
-        "INERR_COUNT was unexpectedly cleared or never observed across coincident soft-reset: backdoor=%0d frontdoor=%0d",
-        inerr_before, inerr_after))
+        "INERR_COUNT backdoor was not cleared by coincident soft-reset: backdoor=%0d",
+        m_env.m_dbg_mon.dbg_inerr_cnt[31:0]))
     end
-    expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
-      "X113 INERR_COUNT retained across coincident soft-reset");
   endtask
 
   task automatic run_x114_push_count_read_race_case();
@@ -3326,7 +3266,6 @@ class base_test extends uvm_test;
   task automatic run_x076_soft_reset_retains_inerr_case();
     error_burst_seq err_burst;
     int unsigned    inerr_before;
-    int unsigned    inerr_after;
 
     configure_and_start(2000);
     err_burst = error_burst_seq::type_id::create("x076_inerr_burst");
@@ -3341,22 +3280,12 @@ class base_test extends uvm_test;
         inerr_before))
     end
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X076 soft_reset self-clears while INERR_COUNT is non-zero");
-    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
-    if (inerr_after != inerr_before) begin
-      `uvm_error("X076", $sformatf(
-        "soft_reset unexpectedly changed INERR_COUNT: before=%0d after=%0d",
-        inerr_before, inerr_after))
-    end
+    expect_soft_reset_abort("X076 soft_reset clears INERR_COUNT");
   endtask
 
   task automatic run_x077_soft_reset_retains_push_case();
     same_key_burst_seq burst_seq;
     int unsigned       push_before;
-    int unsigned       push_after;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x077_push_burst");
@@ -3365,25 +3294,18 @@ class base_test extends uvm_test;
     burst_seq.start(m_env.m_hit_seqr);
     wait_for_push_count(8, 20_000, "X077 RUNNING traffic");
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
-    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X077 soft_reset self-clears while PUSH_COUNT is non-zero");
-    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
-    if (push_after != push_before) begin
+    if (push_before != 8) begin
       `uvm_error("X077", $sformatf(
-        "soft_reset unexpectedly changed PUSH_COUNT: before=%0d after=%0d",
-        push_before, push_after))
+        "Precondition failed: expected PUSH_COUNT=8 before soft_reset, observed %0d",
+        push_before))
     end
-    terminate_and_drain(80_000, "X077 push-count retention drain");
-    expect_service_model_accounting("X077 push-count retention drain", 1, 0);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    expect_soft_reset_abort("X077 soft_reset clears PUSH_COUNT");
   endtask
 
   task automatic run_x078_soft_reset_retains_pop_case();
     same_key_burst_seq burst_seq;
     int unsigned       pop_before;
-    int unsigned       pop_after;
 
     configure_and_start(0);
     burst_seq = same_key_burst_seq::type_id::create("x078_pop_burst");
@@ -3398,22 +3320,12 @@ class base_test extends uvm_test;
         pop_before))
     end
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X078 soft_reset self-clears after drain activity");
-    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after);
-    if (pop_after != pop_before) begin
-      `uvm_error("X078", $sformatf(
-        "soft_reset unexpectedly changed POP_COUNT: before=%0d after=%0d",
-        pop_before, pop_after))
-    end
+    expect_soft_reset_abort("X078 soft_reset clears POP_COUNT");
   endtask
 
   task automatic run_x079_soft_reset_retains_overwrite_case();
     same_key_burst_seq burst_seq;
     int unsigned       overwrite_before;
-    int unsigned       overwrite_after;
     int unsigned       cycles;
 
     configure_and_start(2000);
@@ -3432,24 +3344,12 @@ class base_test extends uvm_test;
       `uvm_error("X079", "Precondition failed: overwrite counter never became non-zero before soft_reset")
     end
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X079 soft_reset self-clears while OVERWRITE_COUNT is non-zero");
-    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_after);
-    if (overwrite_after < overwrite_before) begin
-      `uvm_error("X079", $sformatf(
-        "soft_reset unexpectedly reduced OVERWRITE_COUNT: before=%0d after=%0d",
-        overwrite_before, overwrite_after))
-    end
-    terminate_and_drain(120_000, "X079 overwrite retention drain");
-    expect_service_model_accounting("X079 overwrite retention drain", 1, 1);
+    expect_soft_reset_abort("X079 soft_reset clears OVERWRITE_COUNT");
   endtask
 
   task automatic run_x081_soft_reset_retains_fill_case();
     same_key_burst_seq burst_seq;
     int unsigned       fill_before;
-    int unsigned       fill_after;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x081_fill_burst");
@@ -3464,18 +3364,7 @@ class base_test extends uvm_test;
         fill_before))
     end
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
-    wait_clocks(2);
-    csr_expect_mask(
-      CSR_CTRL_ADDR, 32'h0000_0002, 32'h0000_0000,
-      "X081 soft_reset self-clears while FILL_LEVEL is non-zero");
-    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
-    if (fill_after != fill_before) begin
-      `uvm_error("X081", $sformatf(
-        "soft_reset unexpectedly changed FILL_LEVEL: before=%0d after=%0d",
-        fill_before, fill_after))
-    end
-    terminate_and_drain(80_000, "X081 fill retention drain");
-    expect_service_model_accounting("X081 fill retention drain", 1, 0);
+    expect_soft_reset_abort("X081 soft_reset clears FILL_LEVEL");
   endtask
 
   task automatic run_cross_curated_all_bucket_mix();
@@ -4958,7 +4847,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd9;
+    version_word[15:12] = 4'd10;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -7614,7 +7503,6 @@ class base_test extends uvm_test;
     end else if (case_id == "B124") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
-      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
       burst_seq = same_key_burst_seq::type_id::create("b124_soft_reset_mid_drain");
       burst_seq.num_hits = 16;
       burst_seq.search_key = focus_search_key;
@@ -7624,25 +7512,10 @@ class base_test extends uvm_test;
         @(posedge m_env.m_csr_drv.vif.clk);
       end
       csr_write(CSR_CTRL_ADDR, 32'h0000_0013);
-      wait_clocks(2);
-      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "B124 soft_reset self-clears during DRAIN");
-      if (m_env.m_dbg_mon.run_state_code != 4'd3) begin
-        `uvm_error("B124", $sformatf(
-          "soft_reset write during DRAIN glitched run_state: observed=%0d expected RUNNING",
-          m_env.m_dbg_mon.run_state_code))
-      end
-      wait_for_scoreboard_idle(120_000, "B124 mid-drain soft_reset cleanup");
-      expect_service_model_accounting("B124 mid-drain soft_reset cleanup", 1, 0);
-      if (m_env.m_out_mon.total_data_subheaders_seen <= subhdr_before) begin
-        `uvm_error("B124", "Mid-drain soft_reset aborted the in-flight data subheader")
-      end
-      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
-      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
-      if (push_count != 16 || pop_count != 16) begin
-        `uvm_error("B124", $sformatf(
-          "Mid-drain soft_reset accounting mismatch: push=%0d pop=%0d expected=16",
-          push_count, pop_count))
-      end
+      expect_soft_reset_abort(
+        "B124 mid-drain soft_reset",
+        32'h0000_0013,
+        32'h0000_0011);
     end else if (case_id == "B125") begin
       configure_and_start(2000);
       for (int idx = 0; idx < 32; idx++) begin
@@ -8685,6 +8558,64 @@ class base_test extends uvm_test;
           "Steady-state backlog escaped the expected bounded window: max_remaining=%0d expected_range=[32,128]",
           m_env.m_scb.max_remaining_entries()))
       end
+    end else if (case_id == "E124") begin
+      profile_traffic_seq e124_seq;
+      int unsigned outstanding;
+      int unsigned max_outstanding;
+      int unsigned max_usedw;
+      bit          saw_saturation;
+      bit          traffic_done;
+
+      configure_and_start(128);
+      max_outstanding = 0;
+      max_usedw = 0;
+      saw_saturation = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin : e124_traffic
+          e124_seq = profile_traffic_seq::type_id::create("e124_fixed_point");
+          e124_seq.num_hits = 15_000;
+          e124_seq.lane_key_start_ord = 2;
+          e124_seq.pool_keys = 1;
+          e124_seq.hits_per_key_switch = 1;
+          e124_seq.inter_hit_gap_cycles = 16;
+          e124_seq.progress_stride = 3_750;
+          e124_seq.progress_tag = "E124";
+          e124_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin : e124_monitor
+          search_cycles = 0;
+          while (search_cycles < 2_500_000 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            outstanding = m_env.m_dbg_mon.pop_cmd_wrreq_count -
+                          m_env.m_dbg_mon.pop_cmd_rdack_count;
+            if (outstanding > max_outstanding)
+              max_outstanding = outstanding;
+            if (int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw) > max_usedw)
+              max_usedw = int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw);
+            if (int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw) >= 14)
+              saw_saturation = 1'b1;
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+
+      wait_for_scoreboard_idle(2_500_000, "E124 fixed-point descriptor backlog drain");
+      expect_service_model_accounting("E124 fixed-point descriptor backlog drain", 1, 0);
+      if (!saw_saturation) begin
+        `uvm_error("E124", $sformatf(
+          "Low-latency descriptor stress never reached the fifo saturation band: max_usedw=%0d",
+          max_usedw))
+      end
+      if (max_outstanding > 16) begin
+        `uvm_error("E124", $sformatf(
+          "Descriptor fifo outstanding count exceeded the 16-entry depth: max_outstanding=%0d max_usedw=%0d wrreq=%0d rdack=%0d",
+          max_outstanding, max_usedw,
+          m_env.m_dbg_mon.pop_cmd_wrreq_count,
+          m_env.m_dbg_mon.pop_cmd_rdack_count))
+      end
     end else if (case_id == "P001") begin
       configure_and_start();
       rand_same = random_push_pop_seq::type_id::create("rand_same");
@@ -9546,6 +9477,27 @@ class base_test extends uvm_test;
           "Restart should only retain post-flush traffic, observed push_count=%0d",
           push_count))
       end
+    end else if (case_id == "X005") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("x005_prefill");
+      burst_seq.num_hits = 16;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(16, 20_000, "X005 active-traffic precondition");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 16 || fill_level == 0) begin
+        `uvm_error("X005", $sformatf(
+          "Precondition failed before soft_reset: push=%0d fill=%0d expected_push=16 expected_fill>0",
+          push_count, fill_level))
+      end
+
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0013);
+      expect_soft_reset_abort(
+        "X005 active-traffic soft_reset",
+        32'h0000_0013,
+        32'h0000_0011);
     end else if (case_id == "X006") begin
       configure_and_start(2000);
       data_a = 0;

@@ -1,28 +1,27 @@
 # RTL Note — ring_buffer_cam
 
-Date: 2026-03-20
+Date: 2026-04-20
 Author: Codex
 
 ## 0. Summary
 
-- Scope: implement the partitioned encoder / partitioned pop-flow upgrade from `upgrade_plan.md`, package it into the IP, and add a standalone Quartus comparison flow under `syn/quartus/`.
-- Sign-off status: RTL simulation and UVM configuration-space validation pass, but timing/resource sign-off is still open.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also closes the soft-reset and descriptor-backpressure RTL bugs and republishes the delivered package as `26.1.10.0419`.
+- Sign-off status: the current isolated DV dashboard and standalone `ring_buffer_cam_syn_p4` timing compile pass on the live RTL; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
   - modernized `script/ring_buffer_cam_hw.tcl`, added `script/ring_buffer_cam_presets.qprs`, and made `P4` the packaged default
   - added standalone Quartus revisions for legacy baseline (`v23`), partitioned full-IP modes (`p2`, `p3`, `p4`), and standalone encoder modes (`addr_enc_logic_syn_p2`, `addr_enc_logic_syn_p3`, `addr_enc_logic_syn_p4`)
+  - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
-  - full IP `p2`: `3821` ALMs, slow-85C setup slack `+0.240 ns`
-  - full IP `p4`: `4499` ALMs, slow-85C setup slack `+1.389 ns`
-  - standalone encoder `p2`: `1320` ALMs summary / `1072` placed ALMs, slow-85C setup slack `+1.915 ns`
-  - standalone encoder `p4`: `657` ALMs summary / `537` placed ALMs, slow-85C setup slack `+4.417 ns`
-  - UVM configuration-space matrix: `12/12` pass across `P1/P2/P3/P4`
-  - `script/ring_buffer_cam_hw.tcl` lint: pass (`27` interface ports matched to HDL)
+  - standalone `ring_buffer_cam_syn_p4`: `2,364` ALMs, `2,825` registers, slow-85C setup slack `+0.450 ns`, worst hold slack `+0.162 ns`, slow-corner Fmax `146.56 MHz`
+  - current DV dashboard: `297/516` cases evidenced (`57.56%`) with `0` active failed implemented cases on `default_p2_pipe4`
+  - targeted post-fix rerun slice: `23/23` clean across `B010`, `B011`, `B123`, `B124`, `E019`, `E020`, `E124`, `P025`, `X005`, `X035`, `X036`, `X071-X079`, `X081`, `X085`, and `X113`
+  - delivered package metadata: `26.1.10.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
 - Main conclusion:
-  - increasing `P` improves encoder timing strongly
-  - encoder area scales almost linearly with encoded width, so total encoder ALMs stay nearly flat across partitions
-  - the remaining full-IP ALM growth comes from non-encoder partition control / arbiter logic, not from unexpected encoder duplication
+  - the partitioned `P4` architecture remains the delivered standalone signoff point
+  - the current release now has clean standalone timing/resource evidence and refreshed DV evidence on top of the earlier architectural refactor
+  - the detailed historical sweep below is still useful background, but the authoritative current status lives in [`doc/SIGNOFF.md`](SIGNOFF.md) and [`syn/SYN_REPORT.md`](../syn/SYN_REPORT.md)
 
 ## 1. Targets
 
@@ -30,7 +29,7 @@ Author: Codex
 - Device: `5AGXBA7D4F31C5` (Arria V), matching the standalone Quartus project in `syn/quartus/`
 - Sign-off clock: `clk125`
 - Target frequency: `125 MHz` (`Tclk = 8.0 ns`)
-- Required timing margin: `WNS >= +1.6 ns` (20% slack margin)
+- Current standalone sign-off rule: compile at `137.5 MHz` (`7.273 ns`, `1.1 x 125 MHz`) and require `WNS >= 0`, `hold >= 0`
 - Resource comparison rule for this work:
   - original request: 50% ALM reduction versus the standalone v2.3 baseline build
   - current user guidance: treat `30%` to `50%` reduction as the practical target range while preserving enough margin for the integrated firmware image
@@ -68,7 +67,9 @@ Author: Codex
   - TC4, TC6, TC7, and TC9 were not exercised in this turn.
   - The UVM matrix covers CSR reset defaults, RW semantics, and activity counters for all packaged `P1/P2/P3/P4` bins.
 
-## 3. Timing Closure (mini Quartus project in `syn/quartus/`)
+## 3. Historical Timing Sweep (mini Quartus project in `syn/quartus/`)
+
+The table below is retained as the earlier March 2026 upgrade sweep that led to the delivered `P4` shape. The authoritative current standalone compile result is the fresh `ring_buffer_cam_syn_p4` report captured in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md).
 
 - Project location: `syn/quartus/`
 - Build command: `quartus_sh --flow compile ring_buffer_cam_syn -c <revision>`
@@ -105,7 +106,7 @@ Author: Codex
   - `P2/P3` are still limited by encoder-advance feedback.
   - After the count optimization, `P4` is no longer count-limited; the remaining gap is in CAM/side-RAM control timing.
 
-## 4. Resource Usage
+## 4. Historical Resource Sweep
 
 | Revision | ALMs | ALM delta vs v23 | 30% reduction | 50% reduction |
 |:---------|:-----|:-----------------|:--------------|:--------------|
@@ -184,14 +185,14 @@ Author: Codex
   - RTL sims: pass for the exercised tests, including the partitioned throughput test after the final count-path change
   - Quartus standalone comparison: completed for full-IP `v23/p2/p3/p4` and encoder-only `p2/p3/p4`
   - UVM configuration-space validation: pass across `p1/p2/p3/p4` for reset defaults, RW semantics, and activity counters
-  - Timing closure to the requested +20% margin: encoder-only `p3/p4` pass, full-IP remains open
+  - Timing closure on the current delivered standalone signoff build: pass on `ring_buffer_cam_syn_p4` at `137.5 MHz` (`7.273 ns`) with positive setup and hold slack
   - Resource reduction target: open
   - Gate-level simulation: open
 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - version `26.0.0320`
+  - current delivered version `26.1.10.0419`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`

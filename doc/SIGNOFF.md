@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-20` &nbsp;
-**Release under check:** `26.1.9.0419` &nbsp; **Evidence basis:** `ca1b044`
+**Release under check:** `26.1.10.0419` &nbsp; **Evidence basis:** `pending`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -15,7 +15,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
 | ✅ | standalone_syn_p4_512 | `pass` |
-| ⚠️ | dv_closure | `288/516` planned cases evidenced |
+| ⚠️ | dv_closure | `297/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `55.81% (288/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `207` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `57.56% (297/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `205` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -36,11 +36,11 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
-| ✅ | slow 85C WNS / TNS | `+1.097 ns` / `0.000 ns` |
-| ✅ | worst hold slack | `+0.148 ns` |
-| ✅ | slow 85C Fmax | `161.92 MHz` |
-| ✅ | nominal 125 MHz headroom | `29.5%` |
-| ✅ | fitted resources | `2,375 ALMs`, `2,844 regs`, `19 RAM blocks`, `161,536` bits |
+| ✅ | slow 85C WNS / TNS | `+0.450 ns` / `0.000 ns` |
+| ✅ | worst hold slack | `+0.162 ns` |
+| ✅ | slow 85C Fmax | `146.56 MHz` |
+| ✅ | nominal 125 MHz headroom | `17.2%` |
+| ✅ | fitted resources | `2,364 ALMs`, `2,825 regs`, `19 RAM blocks`, `161,536` bits |
 | ⚠️ | TimeQuest caveat | internal `clk125` domain closes, but `probe_out[31:0]` is left unconstrained in the standalone harness |
 | ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
 
@@ -48,14 +48,12 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | class | summary |
 |:---:|---|---|
-| ✅ | RTL | `BUG-007` width-safe 48-bit cleanup compares verified in the signoff build |
-| ✅ | RTL | `BUG-008` same-key overwrite tail suppression verified in the signoff build |
-| ✅ | Harness | `BUG-036` fixed wrapped-256 data-subheader accounting so long packetized drains are no longer undercounted in PROF evidence |
-| ✅ | Harness | `BUG-037` normalized the default-build DV plan/report text to the live `default_p2_pipe4` partition geometry |
-| ✅ | Harness | `BUG-038` redefined `P047` around the verified `p0->p1` partition handoff contract instead of a false partition-1-only claim |
-| ✅ | Harness | standalone Quartus source list repaired to compile the live `rtl/` tree and active V2 core |
-| ✅ | Harness | synthesis harness updated to the live wrapper contract and normalized to the delivered `512`-entry depth |
-| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.9.0419` / `20260419` |
+| ✅ | RTL | `BUG-039` gates pop descriptor generation on `pop_cmd_fifo_full` so the 16-entry command FIFO cannot be overrun under sustained backlog |
+| ✅ | RTL | `BUG-040` turns CSR `soft_reset` into a real abort-to-`IDLE` path that clears live counters, fill level, FIFOs, and internal state |
+| ✅ | RTL | `BUG-041` blocks stale descriptor consumption after soft-reset has already returned the DUT to `IDLE` |
+| ✅ | RTL | `BUG-042` blocks stale buffered push / overwrite retirement after soft-reset by requiring an active run state |
+| ✅ | DV | promoted `X005`, `X036`, and `E124` to live UVM and refreshed the soft-reset / descriptor-backpressure evidence slice with `23/23` clean isolated reruns |
+| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.10.0419` / `20260419` |
 
 ## Evidence Index
 

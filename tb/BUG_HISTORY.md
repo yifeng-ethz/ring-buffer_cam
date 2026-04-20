@@ -597,3 +597,67 @@ Normalization note:
   - rewrote `P047` and its downstream report text as a partition-handoff profile with expected mask `0x3` instead of a partition-1-only saturation claim
   - verified by a clean isolated rerun of `P047`, then by the refreshed `P046/P047` publication batch with zero UVM errors
 - Commit: ca1b044
+
+### BUG-039-R: The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog
+- Severity: `soft error`
+- Encounter sim-time: `n/a (directed-only low-latency descriptor-backpressure repro)`
+- First seen in: `E124` on 2026-04-20 during the new fixed-point descriptor-backpressure implementation
+- Symptom:
+  - the low-latency descriptor stress could keep asserting `pop_cmd_fifo_wrreq` after the FIFO had already entered the saturation band
+  - under that condition the DUT risked silently outrunning the 16-entry descriptor queue and losing timestamp-search work even though the steady-state ingress accounting still looked legal at the front door
+- Root cause:
+  - `proc_pop_descriptor_generator` gated descriptor issuance on run state, interleaving, and terminate timing, but never masked the write request with `pop_cmd_fifo_full`
+  - once drain latency lagged the 16-cycle descriptor cadence, the generator could continue enqueue attempts past the physical FIFO capacity
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added explicit `pop_cmd_fifo_full /= '1'` gating in both `RUNNING` and `TERMINATING`, then verified with clean isolated reruns of `E019`, `E020`, `E124`, and `P025`
+  - the `E124` monitor now observes real FIFO saturation while keeping outstanding descriptors bounded to the legal 16-entry depth
+- Commit: pending
+
+### BUG-040-R: CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs
+- Severity: `hard stuck error`
+- Encounter sim-time: `n/a (directed-only control-path repro)`
+- First seen in: `X005` on 2026-04-20 during the active-traffic soft-reset closure run
+- Symptom:
+  - a host `CTRL.soft_reset` write acknowledged and read back as self-clearing, but the DUT stayed live with non-zero counters, resident fill, and active push/pop state
+  - that violated the product reset contract and left the testcase unable to rely on soft-reset as a clean abort-to-IDLE boundary
+- Root cause:
+  - `proc_avmm_csr` only cleared `csr.soft_reset` itself; the rest of the sequential state owners still ignored that pulse
+  - run control, counters, fill-level accounting, push/pop engines, FIFOs, and the memory cleanup paths therefore kept executing their pre-reset state as if no reset had been requested
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added explicit `csr.soft_reset` handling across the live state owners so the DUT returns to `IDLE`, clears counters/fill/FIFOs, and resets the internal push/pop bookkeeping
+  - verified by clean isolated reruns of `X005`, `X035`, `X036`, `X071`, `X072`, `X073`, `X074`, `X075`, `X076`, `X077`, `X078`, `X079`, `X081`, `X085`, `X113`, and `B124`
+- Commit: pending
+
+### BUG-041-R: The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE`
+- Severity: `hard stuck error`
+- Encounter sim-time: `n/a (directed-only soft-reset mid-drain repro)`
+- First seen in: `B124` on 2026-04-20 while closing the mid-drain soft-reset end-to-end case
+- Symptom:
+  - after soft-reset had already cleared the visible run state and counters, the pop engine could still wake back up from `IDLE` and continue working a stale descriptor
+  - that left post-reset drain activity observable after the testcase had already asked for a clean abort boundary
+- Root cause:
+  - the `proc_pop_engine` `IDLE` path still consumed `pop_cmd_fifo_rdack` whenever the descriptor FIFO was non-empty, regardless of whether the DUT was still in an active `RUNNING` / `TERMINATING` state
+  - clearing run control alone was therefore insufficient if a stale descriptor remained queued at the soft-reset boundary
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - restricted `IDLE` descriptor consumption to active `RUNNING` / `TERMINATING` states, then verified with clean isolated reruns of `B124` and `X005`
+  - the later full soft-reset rerun slice stayed clean with no residual pop-engine activity after reset
+- Commit: pending
+
+### BUG-042-R: The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state
+- Severity: `soft error`
+- Encounter sim-time: `n/a (directed-only overwrite-bearing soft-reset repro)`
+- First seen in: `X079` on 2026-04-20 after the initial soft-reset cleanup had already landed
+- Symptom:
+  - a same-key overwrite-bearing testcase could still observe non-zero post-reset push/overwrite state even after the main soft-reset handlers had cleared the visible counters and run state
+  - that meant one buffered push-side transaction could slip through the reset boundary and corrupt the supposedly clean restart state
+- Root cause:
+  - `proc_push_engine_comb` still generated `push_write_req` / `push_erase_req` from buffered ingress state without checking that the DUT remained in an active run state after soft-reset
+  - the buffered request therefore survived long enough to retire once arbitration reopened, even though the host had already requested a local reset
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - gated push request generation on both `csr.soft_reset /= '1'` and an active run-state condition, then verified with clean isolated reruns of `X077`, `X079`, and `X081`
+  - the later full soft-reset rerun slice stayed clean with zero post-reset push/overwrite accounting
+- Commit: pending

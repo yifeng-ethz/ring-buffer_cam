@@ -44,9 +44,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.19 (no RTL delta; package the calibrated steady-state, overlap, and partition-profile PROF closure)
 --      Date: Apr 20, 2026
--- Version : 26.1.9
+-- Revision: 2.20 (gate descriptor issuance on pop_cmd_fifo_full and make soft_reset abort active state cleanly)
+--      Date: Apr 20, 2026
+-- Version : 26.1.10
 -- Date    : 20260419
--- Change  : keep the verified overwrite / counter fixes and package the next PROF closure tranche as release 26.1.9.0419
+-- Change  : close soft-reset abort-to-IDLE cleanup and descriptor-backpressure handling for release 26.1.10.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -89,7 +91,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 9;
+	VERSION_PATCH		: natural := 10;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
@@ -628,7 +630,7 @@ begin
 		-- needs to be 48 bit at 125 MHz
 	begin
 		if rising_edge(i_clk) then
-			if (gts_counter_rst = '1') then 
+			if (gts_counter_rst = '1' or csr.soft_reset = '1') then 
 				 -- reset counter
 				gts_8n		<= (others => '0');
 			else
@@ -687,90 +689,97 @@ begin
 		elsif (rising_edge(i_clk)) then 
 			-- default
 			avs_csr_readdata		<= (others => '0');
-			-- host read local
-			if (avs_csr_read = '1') then 
-				avs_csr_waitrequest		<= '0';
-				case to_integer(unsigned(avs_csr_address)) is 
-					when CSR_WORD_UID_CONST =>
-						avs_csr_readdata		<= std_logic_vector(to_unsigned(IP_UID, avs_csr_readdata'length));
-					when CSR_WORD_META_CONST =>
-						case csr.meta_sel is
-							when META_SEL_VERSION_CONST =>
-								avs_csr_readdata	<= pack_version_func(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, BUILD);
-							when META_SEL_DATE_CONST =>
-								avs_csr_readdata	<= std_logic_vector(to_unsigned(VERSION_DATE, avs_csr_readdata'length));
-							when META_SEL_GIT_CONST =>
-								avs_csr_readdata	<= std_logic_vector(to_unsigned(VERSION_GIT, avs_csr_readdata'length));
-							when others =>
-								avs_csr_readdata	<= std_logic_vector(to_unsigned(INSTANCE_ID, avs_csr_readdata'length));
-						end case;
-					when CSR_WORD_CTRL_CONST =>
-						avs_csr_readdata(0)					<= csr.go;
-						avs_csr_readdata(1)					<= csr.soft_reset;
-						avs_csr_readdata(4)					<= csr.filter_inerr;
-					when CSR_WORD_EXPECTED_LAT_CONST =>
-						avs_csr_readdata(15 downto 0)		<= csr.expected_latency;
-					when CSR_WORD_FILL_LEVEL_CONST =>
-						avs_csr_readdata(31 downto 0)		<= csr.fill_level;
-					-- below is for debug only (as the reading might overflow)
-					when CSR_WORD_INERR_COUNT_CONST =>
-						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.inerr_cnt(31 downto 0));
-					when CSR_WORD_PUSH_COUNT_CONST =>
-						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.push_cnt(31 downto 0));
-					when CSR_WORD_POP_COUNT_CONST =>
-						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.pop_cnt(31 downto 0));
-					when CSR_WORD_OVERWRITE_CONST =>
-						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0));
-					when CSR_WORD_CACHE_MISS_CONST =>
-						avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.cache_miss_cnt(31 downto 0));
-					when others =>
-				end case;
-			-- host write local
-			elsif (avs_csr_write = '1') then 
-				avs_csr_waitrequest		<= '0';
-				case to_integer(unsigned(avs_csr_address)) is 
-					when CSR_WORD_META_CONST =>
-						csr.meta_sel				<= avs_csr_writedata(1 downto 0);
-					when CSR_WORD_CTRL_CONST =>
-						csr.go						<= avs_csr_writedata(0);
-						csr.soft_reset				<= avs_csr_writedata(1);
-						csr.filter_inerr			<= avs_csr_writedata(4);
-					when CSR_WORD_EXPECTED_LAT_CONST =>
-						csr.expected_latency		<= avs_csr_writedata(15 downto 0);
-					when CSR_WORD_FILL_LEVEL_CONST => 
-						-- do nothing
-					when CSR_WORD_INERR_COUNT_CONST =>
-						-- do nothing
-					when CSR_WORD_PUSH_COUNT_CONST =>
-						-- do nothing
-					when CSR_WORD_POP_COUNT_CONST =>
-						-- do nothing
-					when CSR_WORD_OVERWRITE_CONST => -- write side effect: reset overwrite counter 
-						-- csr.overwrite_cnt_rst		<= avs_csr_writedata(0);
-					when CSR_WORD_CACHE_MISS_CONST =>
-						-- do nothing
-					when others =>
-				end case;
-			else -- idle, update the csr registers
+			if (csr.soft_reset = '1') then
 				avs_csr_waitrequest		<= '1';
-				-- soft reset
-				csr.soft_reset			<= '0'; -- TODO: implement this
-				-- fill level and ow cnt
-				fill_level_tmp				<= debug_msg2.push_cnt - debug_msg2.pop_cnt - debug_msg2.overwrite_cnt;
-				csr.fill_level				<= std_logic_vector(fill_level_tmp(31 downto 0)); -- direct mapped
-				--csr.overwrite_cnt			<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0) - ow_cnt_tmp); -- this only shows the incremental amount after csr reset
-				--if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
-				--	csr.overwrite_cnt_rst			<= '0';
-				--end if;
+				csr.soft_reset			<= '0';
+				fill_level_tmp			<= (others => '0');
+				csr.fill_level			<= (others => '0');
+				debug_msg2.inerr_cnt	<= (others => '0');
+			else
+				-- host read local
+				if (avs_csr_read = '1') then 
+					avs_csr_waitrequest		<= '0';
+					case to_integer(unsigned(avs_csr_address)) is 
+						when CSR_WORD_UID_CONST =>
+							avs_csr_readdata		<= std_logic_vector(to_unsigned(IP_UID, avs_csr_readdata'length));
+						when CSR_WORD_META_CONST =>
+							case csr.meta_sel is
+								when META_SEL_VERSION_CONST =>
+									avs_csr_readdata	<= pack_version_func(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, BUILD);
+								when META_SEL_DATE_CONST =>
+									avs_csr_readdata	<= std_logic_vector(to_unsigned(VERSION_DATE, avs_csr_readdata'length));
+								when META_SEL_GIT_CONST =>
+									avs_csr_readdata	<= std_logic_vector(to_unsigned(VERSION_GIT, avs_csr_readdata'length));
+								when others =>
+									avs_csr_readdata	<= std_logic_vector(to_unsigned(INSTANCE_ID, avs_csr_readdata'length));
+							end case;
+						when CSR_WORD_CTRL_CONST =>
+							avs_csr_readdata(0)					<= csr.go;
+							avs_csr_readdata(1)					<= csr.soft_reset;
+							avs_csr_readdata(4)					<= csr.filter_inerr;
+						when CSR_WORD_EXPECTED_LAT_CONST =>
+							avs_csr_readdata(15 downto 0)		<= csr.expected_latency;
+						when CSR_WORD_FILL_LEVEL_CONST =>
+							avs_csr_readdata(31 downto 0)		<= csr.fill_level;
+						-- below is for debug only (as the reading might overflow)
+						when CSR_WORD_INERR_COUNT_CONST =>
+							avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.inerr_cnt(31 downto 0));
+						when CSR_WORD_PUSH_COUNT_CONST =>
+							avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.push_cnt(31 downto 0));
+						when CSR_WORD_POP_COUNT_CONST =>
+							avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.pop_cnt(31 downto 0));
+						when CSR_WORD_OVERWRITE_CONST =>
+							avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0));
+						when CSR_WORD_CACHE_MISS_CONST =>
+							avs_csr_readdata(31 downto 0)		<= std_logic_vector(debug_msg2.cache_miss_cnt(31 downto 0));
+						when others =>
+					end case;
+				-- host write local
+				elsif (avs_csr_write = '1') then 
+					avs_csr_waitrequest		<= '0';
+					case to_integer(unsigned(avs_csr_address)) is 
+						when CSR_WORD_META_CONST =>
+							csr.meta_sel				<= avs_csr_writedata(1 downto 0);
+						when CSR_WORD_CTRL_CONST =>
+							csr.go						<= avs_csr_writedata(0);
+							csr.soft_reset				<= avs_csr_writedata(1);
+							csr.filter_inerr			<= avs_csr_writedata(4);
+						when CSR_WORD_EXPECTED_LAT_CONST =>
+							csr.expected_latency		<= avs_csr_writedata(15 downto 0);
+						when CSR_WORD_FILL_LEVEL_CONST => 
+							-- do nothing
+						when CSR_WORD_INERR_COUNT_CONST =>
+							-- do nothing
+						when CSR_WORD_PUSH_COUNT_CONST =>
+							-- do nothing
+						when CSR_WORD_POP_COUNT_CONST =>
+							-- do nothing
+						when CSR_WORD_OVERWRITE_CONST => -- write side effect: reset overwrite counter 
+							-- csr.overwrite_cnt_rst		<= avs_csr_writedata(0);
+						when CSR_WORD_CACHE_MISS_CONST =>
+							-- do nothing
+						when others =>
+					end case;
+				else -- idle, update the csr registers
+					avs_csr_waitrequest		<= '1';
+					csr.soft_reset			<= '0';
+					-- fill level and ow cnt
+					fill_level_tmp				<= debug_msg2.push_cnt - debug_msg2.pop_cnt - debug_msg2.overwrite_cnt;
+					csr.fill_level				<= std_logic_vector(fill_level_tmp(31 downto 0)); -- direct mapped
+					--csr.overwrite_cnt			<= std_logic_vector(debug_msg2.overwrite_cnt(31 downto 0) - ow_cnt_tmp); -- this only shows the incremental amount after csr reset
+					--if (csr.overwrite_cnt_rst_done = '1' and csr.overwrite_cnt_rst = '1') then -- ack the agent
+					--	csr.overwrite_cnt_rst			<= '0';
+					--end if;
+				end if;
+				-- Keep INERR accounting independent from MM CSR bus traffic so a
+				-- coincident read/write cannot mask an observed error beat.
+	            if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
+	                debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
+	            end if;
+	            if (decision_reg = 3 and run_state_cmd = RUN_PREPARE) then -- flushing 
+	                debug_msg2.inerr_cnt            <= (others => '0');
+	            end if;
 			end if;
-			-- Keep INERR accounting independent from MM CSR bus traffic so a
-			-- coincident read/write cannot mask an observed error beat.
-            if (csr.filter_inerr = '1' and asi_hit_type1_error(0) = '1') then 
-                debug_msg2.inerr_cnt            <= debug_msg2.inerr_cnt + 1;
-            end if;
-            if (decision_reg = 3 and run_state_cmd = RUN_PREPARE) then -- flushing 
-                debug_msg2.inerr_cnt            <= (others => '0');
-            end if;
 		end if;
 	end process;
 	
@@ -853,32 +862,40 @@ begin
 		if (i_rst = '1') then 
 --			debug_msg.push_cnt			<= (others => '0');
 --			debug_msg.overwrite_cnt		<= (others => '0');
+			push_write_grant_reg	<= '0';
 			push_write_sk_reg		<= (others => '0');
+			write_pointer			<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
-			-- latch the grant comb for switching to erase
-			push_write_grant_reg	<= push_write_grant;
-			if (push_write_grant = '1') then
-				push_write_sk_reg	<= in_hit_sk;
+			if (csr.soft_reset = '1') then
+				push_write_grant_reg	<= '0';
+				push_write_sk_reg		<= (others => '0');
+				write_pointer			<= (others => '0');
+			else
+				-- latch the grant comb for switching to erase
+				push_write_grant_reg	<= push_write_grant;
+				if (push_write_grant = '1') then
+					push_write_sk_reg	<= in_hit_sk;
+				end if;
+				case push_state is		
+					when ERASE => -- erase
+						if (push_erase_grant = '1') then -- this must be granted (highest priority after push_write)!
+--							debug_msg.overwrite_cnt		<= debug_msg.overwrite_cnt + 1;
+						end if;
+					when WRITE_AND_CHECK => -- write 
+						if (push_write_grant = '1') then -- incr ptr and cnt
+							write_pointer				<= write_pointer + 1; 
+--							debug_msg.push_cnt			<= debug_msg.push_cnt + 1;
+						elsif (pop_flush_cam_done = '1') then -- reset when pop has flushed
+							-- reset in this push state, not in ERASE, because push should in this state while flush has been executed
+--							debug_msg.push_cnt			<= (others => '0');
+--							debug_msg.overwrite_cnt		<= (others => '0');
+							write_pointer				<= (others => '0');
+						else -- maybe pop erase in action
+							-- idle
+						end if;
+					when others =>
+				end case;
 			end if;
-			case push_state is		
-				when ERASE => -- erase
-					if (push_erase_grant = '1') then -- this must be granted (highest priority after push_write)!
---						debug_msg.overwrite_cnt		<= debug_msg.overwrite_cnt + 1;
-					end if;
-				when WRITE_AND_CHECK => -- write 
-					if (push_write_grant = '1') then -- incr ptr and cnt
-						write_pointer				<= write_pointer + 1; 
---						debug_msg.push_cnt			<= debug_msg.push_cnt + 1;
-					elsif (pop_flush_cam_done = '1') then -- reset when pop has flushed
-						-- reset in this push state, not in ERASE, because push should in this state while flush has been executed
---						debug_msg.push_cnt			<= (others => '0');
---						debug_msg.overwrite_cnt		<= (others => '0');
-						write_pointer				<= (others => '0');
-					else -- maybe pop erase in action
-						-- idle
-					end if;
-				when others =>
-			end case;
 		end if;
 	end process;
 	
@@ -895,17 +912,21 @@ begin
 		-- default
 		push_erase_req 		<= '0';
 		push_write_req 		<= '0';
-		case push_state is		
-			when ERASE => -- erase
-				push_erase_req 		<= '1'; -- the grant is derived in comb
-			when WRITE_AND_CHECK => -- write (write through while no show stopper (addr_occupied) is seen) 
-				if (in_payload_valid = '1') then -- always ask for grant access when new data 
-					push_write_req 		<= '1';
-				else
-					push_write_req 		<= '0';
-				end if;
-			when others =>
-		end case;
+		if (csr.soft_reset /= '1' and
+			(run_state_cmd = RUNNING or
+			 (run_state_cmd = TERMINATING and endofrun_seen = '0'))) then
+			case push_state is		
+				when ERASE => -- erase
+					push_erase_req 		<= '1'; -- the grant is derived in comb
+				when WRITE_AND_CHECK => -- write (write through while no show stopper (addr_occupied) is seen) 
+					if (in_payload_valid = '1') then -- always ask for grant access when new data 
+						push_write_req 		<= '1';
+					else
+						push_write_req 		<= '0';
+					end if;
+				when others =>
+			end case;
+		end if;
 	end process;
 	
 
@@ -917,26 +938,35 @@ begin
 		if (i_rst = '1') then 
 			pop_cmd_fifo_wrreq		<= '0';
 			pop_cmd_fifo_din		<= (others => '0');
+			read_time_ptr			<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
 			-- default
 			pop_cmd_fifo_wrreq		<= '0';
 			pop_cmd_fifo_din		<= (others => '0');
-			if (run_state_cmd = RUNNING) then -- normal pop
-				if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX) then -- generate read command every 16 cycle 
-					-- only generate when interleaving condition is met (see input deassembly)
-					pop_cmd_fifo_wrreq		<= '1';
-					pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
-				end if;
-			elsif (run_state_cmd = TERMINATING) then -- end of run pop 
-				if (terminating_drain_done = '0') then -- keep walking descriptor time until every locally buffered hit has drained
-					if (read_time_ptr(3 downto 0) = "0000" and to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
+			if (csr.soft_reset = '1') then
+				read_time_ptr			<= (others => '0');
+			else
+				if (run_state_cmd = RUNNING) then -- normal pop
+					if (pop_cmd_fifo_full /= '1' and
+						read_time_ptr(3 downto 0) = "0000" and
+						to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX) then -- generate read command every 16 cycle 
+						-- only generate when interleaving condition is met (see input deassembly)
 						pop_cmd_fifo_wrreq		<= '1';
 						pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
 					end if;
+				elsif (run_state_cmd = TERMINATING) then -- end of run pop 
+					if (terminating_drain_done = '0') then -- keep walking descriptor time until every locally buffered hit has drained
+						if (pop_cmd_fifo_full /= '1' and
+							read_time_ptr(3 downto 0) = "0000" and
+							to_integer(unsigned(read_time_ptr(TCC8N_INTERLEAVING_BITS+3 downto 4))) = INTERLEAVING_INDEX ) then -- generate read command every 16 cycle 
+							pop_cmd_fifo_wrreq		<= '1';
+							pop_cmd_fifo_din		<= std_logic_vector(read_time_ptr(SK_RANGE_HI+1 downto SK_RANGE_LO)); -- NOTE: search key also controls the subheader gen cmd
+						end if;
+					end if;
 				end if;
+
+	            read_time_ptr       <= read_time_ptr_comb;
 			end if;
-            
-            read_time_ptr       <= read_time_ptr_comb;
             
 			
 		end if;
@@ -1001,26 +1031,57 @@ begin
 			flush_ram_wraddr			<= (others => '0');
 			flush_cam_wrdata			<= (others => '0');
 			flush_cam_wraddr			<= (others => '0');
+			pop_current_sk				<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
-			pop_partition_load			<= (others => '0');
-			pop_partition_advance		<= (others => '0');
-			pop_cmd_fifo_rdack			<= '0';
-			pop_last_hit_pending		<= '0';
-			if (pop_rr_idx = N_PARTITIONS-1) then
-				next_rr_idx_v			:= 0;
+			if (csr.soft_reset = '1') then
+				pop_engine_state			<= IDLE;
+				pop_flush_ram_done			<= '0';
+				pop_flush_cam_done			<= '0';
+				run_mgmt_flush_memory_done	<= '0';
+				pop_pipeline_start			<= '0';
+				pop_search_wait_cnt			<= (others => '0');
+				pop_partition_snapshot		<= (others => (others => '0'));
+				pop_partition_load			<= (others => '0');
+				pop_partition_advance		<= (others => '0');
+				pop_partition_pending		<= (others => '0');
+				pop_total_hits				<= (others => '0');
+				pop_last_hit_pending		<= '0';
+				pop_count_partition_idx		<= 0;
+				pop_count_chunk_idx			<= 0;
+				pop_count_total_acc			<= (others => '0');
+				pop_count_done				<= '0';
+				pop_rr_idx					<= 0;
+				pop_load_idx				<= 0;
+				pop_hits_count				<= (others => '0');
+				pop_issue_valid				<= '0';
+				pop_issue_partition_idx		<= 0;
+				pop_issue_addr				<= (others => '0');
+				pop_cmd_fifo_rdack			<= '0';
+				flush_ram_wraddr			<= (others => '0');
+				flush_cam_wrdata			<= (others => '0');
+				flush_cam_wraddr			<= (others => '0');
+				pop_current_sk				<= (others => '0');
 			else
-				next_rr_idx_v			:= pop_rr_idx + 1;
-			end if;
-			if (pop_issue_partition_idx = N_PARTITIONS-1) then
-				issue_next_rr_idx_v	:= 0;
-			else
-				issue_next_rr_idx_v	:= pop_issue_partition_idx + 1;
-			end if;
-			-- pop command executor
-			case pop_engine_state is 
+				pop_partition_load			<= (others => '0');
+				pop_partition_advance		<= (others => '0');
+				pop_cmd_fifo_rdack			<= '0';
+				pop_last_hit_pending		<= '0';
+				if (pop_rr_idx = N_PARTITIONS-1) then
+					next_rr_idx_v			:= 0;
+				else
+					next_rr_idx_v			:= pop_rr_idx + 1;
+				end if;
+				if (pop_issue_partition_idx = N_PARTITIONS-1) then
+					issue_next_rr_idx_v	:= 0;
+				else
+					issue_next_rr_idx_v	:= pop_issue_partition_idx + 1;
+				end if;
+				-- pop command executor
+				case pop_engine_state is 
 				-- ============= IDLE ==============
 				when IDLE =>
-					if (pop_cmd_fifo_empty /= '1') then -- if not empty, read the showahead word
+					if ((run_state_cmd = RUNNING or run_state_cmd = TERMINATING) and
+						pop_cmd_fifo_empty /= '1') then -- only pop descriptors while the DUT is in an active drain state
 						pop_current_sk		<= pop_cmd_fifo_dout; -- latch pop search key for this round, ts[11:4]
 						pop_engine_state	<= SEARCH;
 							pop_total_hits		<= (others => '0');
@@ -1233,7 +1294,8 @@ begin
 					flush_cam_wraddr			<= (others => '0');
 					
 				when others =>
-			end case;
+				end case;
+			end if;
 		end if;
 	end process;
 	
@@ -1475,26 +1537,33 @@ begin
 			debug_msg2.overwrite_cnt    <= (others => '0');
 			debug_msg2.pop_cnt          <= (others => '0');
 			debug_msg2.cache_miss_cnt   <= (others => '0');
-        elsif (rising_edge(i_clk)) then 
-			case decision_reg is 
-				when 0 => -- push write
-					debug_msg2.push_cnt			<= debug_msg2.push_cnt + 1;
-				when 1 => -- push erase
-					debug_msg2.overwrite_cnt	<= debug_msg2.overwrite_cnt + 1;
-				when 2 => -- pop erase
-					debug_msg2.pop_cnt			<= debug_msg2.pop_cnt + 1;
-				when 3 => -- flushing
-					if (run_state_cmd = RUN_PREPARE) then
-						debug_msg2.push_cnt			<= (others => '0');
-						debug_msg2.overwrite_cnt	<= (others => '0');
-						debug_msg2.pop_cnt			<= (others => '0');
-						debug_msg2.cache_miss_cnt	<= (others => '0');
-					end if;
-				when others =>
-			end case;
-			
-			if (pop_cache_miss_pulse = '1') then -- cache miss aligned to output beat
-				debug_msg2.cache_miss_cnt		<= debug_msg2.cache_miss_cnt + 1;
+	        elsif (rising_edge(i_clk)) then 
+			if (csr.soft_reset = '1') then
+				debug_msg2.push_cnt         <= (others => '0');
+				debug_msg2.overwrite_cnt    <= (others => '0');
+				debug_msg2.pop_cnt          <= (others => '0');
+				debug_msg2.cache_miss_cnt   <= (others => '0');
+			else
+				case decision_reg is 
+					when 0 => -- push write
+						debug_msg2.push_cnt			<= debug_msg2.push_cnt + 1;
+					when 1 => -- push erase
+						debug_msg2.overwrite_cnt	<= debug_msg2.overwrite_cnt + 1;
+					when 2 => -- pop erase
+						debug_msg2.pop_cnt			<= debug_msg2.pop_cnt + 1;
+					when 3 => -- flushing
+						if (run_state_cmd = RUN_PREPARE) then
+							debug_msg2.push_cnt			<= (others => '0');
+							debug_msg2.overwrite_cnt	<= (others => '0');
+							debug_msg2.pop_cnt			<= (others => '0');
+							debug_msg2.cache_miss_cnt	<= (others => '0');
+						end if;
+					when others =>
+				end case;
+				
+				if (pop_cache_miss_pulse = '1') then -- cache miss aligned to output beat
+					debug_msg2.cache_miss_cnt		<= debug_msg2.cache_miss_cnt + 1;
+				end if;
 			end if;
 		end if;
 	
@@ -1506,7 +1575,11 @@ begin
 		if (i_rst = '1') then 
 			decision_reg		<= 4; -- reset the arbiter to idle
 		elsif (rising_edge(i_clk)) then 
-			decision_reg		<= decision; -- latch the decision to do bang-bang
+			if (csr.soft_reset = '1') then
+				decision_reg	<= 4;
+			else
+				decision_reg	<= decision; -- latch the decision to do bang-bang
+			end if;
 		end if;
 	end process;
 	
@@ -1527,9 +1600,13 @@ begin
 	-- latch the data valid from side ram
 	begin
 		if (i_rst = '1') then 
-			
+			side_ram_dout_valid		<= '0';
 		elsif (rising_edge(i_clk)) then -- 
-			side_ram_dout_valid		<= side_ram_dout_valid_comb;
+			if (csr.soft_reset = '1') then
+				side_ram_dout_valid	<= '0';
+			else
+				side_ram_dout_valid	<= side_ram_dout_valid_comb;
+			end if;
 		end if;
 	end process;
 	
@@ -1541,70 +1618,83 @@ begin
 		if (i_rst = '1') then 
 			-- it is handled by pop engine -> RESET
 			subheader_gen_done			<= '0';
+			pop_hit_valid				<= '0';
 			aso_hit_type2_valid			<= '0';
 			aso_hit_type2_data			<= (others => '0');
+			aso_hit_type2_error(0)		<= '0';
 			aso_hit_type2_startofpacket	<= '0';
 			aso_hit_type2_endofpacket	<= '0';
 			pop_cache_miss_pulse		<= '0';
 		elsif (rising_edge(i_clk)) then 
-			pop_hit_valid		<= pop_hit_valid_comb; -- latched so, high in the cycle after DRAIN, come together with the cam/ram's q
-			
-            -- 0) default 
-            aso_hit_type2_error(0)              <= '0';
-            aso_hit_type2_valid			        <= '0';
-            aso_hit_type2_data			        <= (others => '0');
-            aso_hit_type2_startofpacket	        <= '0';
-			aso_hit_type2_endofpacket	        <= '0';
-			pop_cache_miss_pulse		        <= '0';
-            -- 1) generate sub header (w/ sop or sop+eop)
-			if ((pop_pipeline_start = '1' or pop_cmd_fifo_rdack = '1') and subheader_gen_done = '0') then 
-                -- 1) generate only one sub-header at the start of DRAIN or 2) generate sub-header for empty subframe
-				-- Streaming
-				aso_hit_type2_valid		<= '1';
-				-- assemble sub-header
-				aso_hit_type2_data(35 downto 32)	<= "0001"; -- byte is k
-				aso_hit_type2_data(31 downto 24)	<= pop_current_sk(7 downto 0); -- this is ts[11:4] in the scope of this subheader
-				aso_hit_type2_data(23 downto 16)	<= (others => '0'); -- free space, TBD
-				aso_hit_type2_data(15 downto 8)		<= std_logic_vector(pop_total_hits(7 downto 0));
-				aso_hit_type2_data(7 downto 0)		<= K237; -- identifier for sub-header (ref: specbook)
-				-- misc.
-				subheader_gen_done 					<= '1'; -- marks sop to avoid repetitive generation 
-				-- channel 
-				aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length));
-				-- packet
-				aso_hit_type2_startofpacket			<= '1';
-				if (to_integer(pop_total_hits) = 0) then -- gen eop for no hit scenario, or last hit
-					aso_hit_type2_endofpacket			<= '1';
-				end if;
-            -- 2) generate hits (w/ eop)
-			elsif (pop_pipeline_start = '1' and subheader_gen_done = '1') then -- after DRAIN starts, hits should be available
-				if (pop_hit_valid = '1' and decision_reg = 2) then -- this co-validate this hit is not from push_write (0) . push can win arb in bubbles of pop
+			if (csr.soft_reset = '1') then
+				pop_hit_valid				<= '0';
+				subheader_gen_done			<= '0';
+	            aso_hit_type2_error(0)      <= '0';
+	            aso_hit_type2_valid			<= '0';
+	            aso_hit_type2_data			<= (others => '0');
+	            aso_hit_type2_startofpacket	<= '0';
+				aso_hit_type2_endofpacket	<= '0';
+				pop_cache_miss_pulse		<= '0';
+			else
+				pop_hit_valid		<= pop_hit_valid_comb; -- latched so, high in the cycle after DRAIN, come together with the cam/ram's q
+				
+	            -- 0) default 
+	            aso_hit_type2_error(0)              <= '0';
+	            aso_hit_type2_valid			        <= '0';
+	            aso_hit_type2_data			        <= (others => '0');
+	            aso_hit_type2_startofpacket	        <= '0';
+				aso_hit_type2_endofpacket	        <= '0';
+				pop_cache_miss_pulse		        <= '0';
+	            -- 1) generate sub header (w/ sop or sop+eop)
+				if ((pop_pipeline_start = '1' or pop_cmd_fifo_rdack = '1') and subheader_gen_done = '0') then 
+	                -- 1) generate only one sub-header at the start of DRAIN or 2) generate sub-header for empty subframe
 					-- Streaming
 					aso_hit_type2_valid		<= '1';
-					-- assemble hit type 2
-					aso_hit_type2_data(35 downto 32)	<= (others => '0'); -- byte is k
-					aso_hit_type2_data(31 downto 28)	<= hit_pop_data_comb(TCC8N_LO+3 downto TCC8N_LO); -- ts[3:0], check ts[12] below
-					aso_hit_type2_data(27 downto 22)	<= "00" & hit_pop_data_comb(ASIC_HI downto ASIC_LO);
-					aso_hit_type2_data(21 downto 17)	<= hit_pop_data_comb(CHANNEL_HI downto CHANNEL_LO);
-					aso_hit_type2_data(16 downto 9)		<= hit_pop_data_comb(TCC1n6_HI downto TFINE_LO); -- tcc1.6(1.6ns) & tfine(50ps) = ts50p
-					aso_hit_type2_data(8 downto 0)		<= hit_pop_data_comb(ET1n6_HI downto ET1n6_LO);
-					-- channel
-					aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length)); -- re-assemble the channel
-						-- equivalent alternative: hit_pop_data_comb(ASIC_HI downto ASIC_LO); 
-					-- packet 
-					if (pop_last_hit_pending = '1') then -- gen eop for last hit 
+					-- assemble sub-header
+					aso_hit_type2_data(35 downto 32)	<= "0001"; -- byte is k
+					aso_hit_type2_data(31 downto 24)	<= pop_current_sk(7 downto 0); -- this is ts[11:4] in the scope of this subheader
+					aso_hit_type2_data(23 downto 16)	<= (others => '0'); -- free space, TBD
+					aso_hit_type2_data(15 downto 8)		<= std_logic_vector(pop_total_hits(7 downto 0));
+					aso_hit_type2_data(7 downto 0)		<= K237; -- identifier for sub-header (ref: specbook)
+					-- misc.
+					subheader_gen_done 					<= '1'; -- marks sop to avoid repetitive generation 
+					-- channel 
+					aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length));
+					-- packet
+					aso_hit_type2_startofpacket			<= '1';
+					if (to_integer(pop_total_hits) = 0) then -- gen eop for no hit scenario, or last hit
 						aso_hit_type2_endofpacket			<= '1';
 					end if;
-                    -- error {tsglitcherr}
-                    if (hit_pop_data_comb(TCC8N_LO+12) /= pop_current_sk(8)) then -- ts[12] from ram matches ts[12] from search key
-                        aso_hit_type2_error(0)              <= '1';
-                    end if;
-					if (side_ram_dout(side_ram_dout'high) = '0') then
-						pop_cache_miss_pulse		<= '1';
+	            -- 2) generate hits (w/ eop)
+				elsif (pop_pipeline_start = '1' and subheader_gen_done = '1') then -- after DRAIN starts, hits should be available
+					if (pop_hit_valid = '1' and decision_reg = 2) then -- this co-validate this hit is not from push_write (0) . push can win arb in bubbles of pop
+						-- Streaming
+						aso_hit_type2_valid		<= '1';
+						-- assemble hit type 2
+						aso_hit_type2_data(35 downto 32)	<= (others => '0'); -- byte is k
+						aso_hit_type2_data(31 downto 28)	<= hit_pop_data_comb(TCC8N_LO+3 downto TCC8N_LO); -- ts[3:0], check ts[12] below
+						aso_hit_type2_data(27 downto 22)	<= "00" & hit_pop_data_comb(ASIC_HI downto ASIC_LO);
+						aso_hit_type2_data(21 downto 17)	<= hit_pop_data_comb(CHANNEL_HI downto CHANNEL_LO);
+						aso_hit_type2_data(16 downto 9)		<= hit_pop_data_comb(TCC1n6_HI downto TFINE_LO); -- tcc1.6(1.6ns) & tfine(50ps) = ts50p
+						aso_hit_type2_data(8 downto 0)		<= hit_pop_data_comb(ET1n6_HI downto ET1n6_LO);
+						-- channel
+						aso_hit_type2_channel				<= std_logic_vector(to_unsigned(INTERLEAVING_INDEX,aso_hit_type2_channel'length)); -- re-assemble the channel
+							-- equivalent alternative: hit_pop_data_comb(ASIC_HI downto ASIC_LO); 
+						-- packet 
+						if (pop_last_hit_pending = '1') then -- gen eop for last hit 
+							aso_hit_type2_endofpacket			<= '1';
+						end if;
+	                    -- error {tsglitcherr}
+	                    if (hit_pop_data_comb(TCC8N_LO+12) /= pop_current_sk(8)) then -- ts[12] from ram matches ts[12] from search key
+	                        aso_hit_type2_error(0)              <= '1';
+	                    end if;
+						if (side_ram_dout(side_ram_dout'high) = '0') then
+							pop_cache_miss_pulse		<= '1';
+						end if;
 					end if;
+				elsif (pop_pipeline_start = '0') then 
+					subheader_gen_done			<= '0';
 				end if;
-			elsif (pop_pipeline_start = '0') then 
-				subheader_gen_done			<= '0';
 			end if;
 	
 		end if;
@@ -1623,6 +1713,9 @@ begin
 		if (i_rst = '1') then 
 --			ow_cnt_tmp					<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
+			if (csr.soft_reset = '1') then
+				debug_msg2.cam_clean				<= '1';
+			else
 			-- sclr the csr overwrite_cnt
 --			if (csr.overwrite_cnt_rst = '1' and csr.overwrite_cnt_rst_done = '0') then -- latch the current value
 --				ow_cnt_tmp					<= debug_msg2.overwrite_cnt(31 downto 0);
@@ -1642,6 +1735,7 @@ begin
 				debug_msg2.cam_clean				<= '1';
 			else 
 				debug_msg2.cam_clean				<= '0';
+			end if;
 			end if;
 		end if;
 	end process;
@@ -1683,143 +1777,156 @@ begin
 			terminating_entry_quiescent		<= '0';
 			run_state_cmd						<= IDLE;
 		elsif (rising_edge(i_clk)) then 
-			run_state_cmd_next_v := run_state_cmd;
-			if (asi_ctrl_valid = '1') then 
-				-- payload of run control to run cmd
-				case asi_ctrl_data is 
-					when "000000001" =>
-						run_state_cmd_next_v := IDLE;
-					when "000000010" => 
-						run_state_cmd_next_v := RUN_PREPARE;
-					when "000000100" =>
-						run_state_cmd_next_v := SYNC;
-					when "000001000" =>
-						run_state_cmd_next_v := RUNNING;
-					when "000010000" =>
-						run_state_cmd_next_v := TERMINATING;
-					when "000100000" => 
-						run_state_cmd_next_v := LINK_TEST;
-					when "001000000" =>
-						run_state_cmd_next_v := SYNC_TEST;
-					when "010000000" =>
-						run_state_cmd_next_v := RESET;
-					when "100000000" =>
-						run_state_cmd_next_v := OUT_OF_DAQ;
+			if (csr.soft_reset = '1') then
+				run_mgmt_flush_memory_start	<= '0';
+				run_mgmt_flushed			<= '0';
+				terminating_entry_quiescent	<= '0';
+				run_state_cmd				<= IDLE;
+				gts_end_of_run				<= (others => '0');
+				endofrun_seen				<= '0';
+				pop_cmd_fifo_sclr			<= '1';
+				deassembly_fifo_sclr		<= '1';
+				gts_counter_rst				<= '1';
+				asi_ctrl_ready				<= '0';
+			else
+				run_state_cmd_next_v := run_state_cmd;
+				if (asi_ctrl_valid = '1') then 
+					-- payload of run control to run cmd
+					case asi_ctrl_data is 
+						when "000000001" =>
+							run_state_cmd_next_v := IDLE;
+						when "000000010" => 
+							run_state_cmd_next_v := RUN_PREPARE;
+						when "000000100" =>
+							run_state_cmd_next_v := SYNC;
+						when "000001000" =>
+							run_state_cmd_next_v := RUNNING;
+						when "000010000" =>
+							run_state_cmd_next_v := TERMINATING;
+						when "000100000" => 
+							run_state_cmd_next_v := LINK_TEST;
+						when "001000000" =>
+							run_state_cmd_next_v := SYNC_TEST;
+						when "010000000" =>
+							run_state_cmd_next_v := RESET;
+						when "100000000" =>
+							run_state_cmd_next_v := OUT_OF_DAQ;
+						when others =>
+							run_state_cmd_next_v := ERROR;
+					end case;
+				end if;
+				run_state_cmd <= run_state_cmd_next_v;
+				
+				-- register the global timestamp when transition to TERMINATING
+				if (run_state_cmd /= TERMINATING and run_state_cmd_next_v = TERMINATING) then 
+					gts_end_of_run	<= gts_8n;
+				else
+					gts_end_of_run	<= gts_end_of_run;
+				end if;
+				
+				-- Remember whether the current TERMINATING episode started from a
+				-- quiescent state. This keeps non-running states such as IDLE or
+				-- RUN_PREPARE from wedging on endofrun_seen='0' when there is no
+				-- live traffic to drain.
+				if (run_state_cmd /= TERMINATING and run_state_cmd_next_v = TERMINATING) then
+					terminating_entry_quiescent <= terminating_quiescent;
+				elsif (run_state_cmd_next_v /= TERMINATING) then
+					terminating_entry_quiescent <= '0';
+				end if;
+				
+				-- packet support (hit type 1: mu3e run)
+				if (asi_hit_type1_valid = '1' and asi_hit_type1_endofpacket = '1') then 
+	                if (asi_hit_type1_empty = '1') then
+	                    if (to_integer(unsigned(asi_hit_type1_channel(1 downto 0))) = INTERLEAVING_INDEX) then
+						endofrun_seen 		<= '1';
+	                    end if;
+	                elsif (to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX) then
+					endofrun_seen 		<= '1';
+	                end if;
+				elsif (run_state_cmd_next_v = IDLE or run_state_cmd_next_v = RUN_PREPARE) then -- reset it here
+					endofrun_seen		<= '0';
+				end if;
+				
+				pop_cmd_fifo_sclr			<= '0';
+				deassembly_fifo_sclr		<= '0';
+				gts_counter_rst				<= '0';
+				asi_ctrl_ready				<= '0';
+				
+				-- mgmt main state machine
+				case run_state_cmd_next_v is 
+					when IDLE => -- this is the default state, after cmd=stop reset, you should end up here.
+						run_mgmt_flush_memory_start	<= '0';
+						run_mgmt_flushed			<= '0';
+						if (asi_ctrl_valid = '1') then 
+							asi_ctrl_ready			<= '1';
+						else
+							asi_ctrl_ready			<= '0';
+						end if;
+					when RUN_PREPARE =>
+						-- flush the fifo
+						pop_cmd_fifo_sclr		<= '1';
+						deassembly_fifo_sclr	<= '1';
+						-- Keep the flush request asserted until the pop engine reports
+						-- completion. Then latch the flushed state so PREP ready stays
+						-- visible even if cam_clean lags by a cycle.
+						if (run_mgmt_flushed = '0') then
+							if (run_mgmt_flush_memory_start = '0') then
+								run_mgmt_flush_memory_start	<= '1';
+							elsif (run_mgmt_flush_memory_done = '1') then
+								run_mgmt_flush_memory_start	<= '0';
+								run_mgmt_flushed			<= '1';
+							end if;
+						else
+							run_mgmt_flush_memory_start	<= '0';
+						end if;
+						-- ack the run state 
+						if (pop_cmd_fifo_empty = '1' and deassembly_fifo_empty = '1' and debug_msg2.cam_clean = '1' and run_mgmt_flushed = '1') then 
+							asi_ctrl_ready			<= '1';
+						else
+							asi_ctrl_ready			<= '0';
+						end if;
+						-- counters were reset by pop engine
+					when SYNC => 
+						run_mgmt_flush_memory_start	<= '0';
+						gts_counter_rst			<= '1';
+						if (asi_ctrl_valid = '1') then -- ack the host immediately 
+							asi_ctrl_ready			<= '1';
+						else
+							asi_ctrl_ready			<= '0';
+						end if;
+					when RUNNING =>
+						-- release the reset and sclr
+						run_mgmt_flush_memory_start	<= '0';
+						gts_counter_rst			<= '0';
+						pop_cmd_fifo_sclr		<= '0';
+						deassembly_fifo_sclr	<= '0';
+						if (asi_ctrl_valid = '1') then -- ack the host immediately 
+							asi_ctrl_ready			<= '1';
+						else
+							asi_ctrl_ready			<= '0';
+						end if;
+						run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
+					when TERMINATING => 
+						run_mgmt_flush_memory_start	<= '0';
+						if (terminating_drain_done = '1' or terminating_entry_quiescent = '1') then
+							asi_ctrl_ready			<= '1';
+						else
+							asi_ctrl_ready			<= '0';
+						end if;
+						run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
+	                when RESET => 
+	                    run_mgmt_flush_memory_start <= '0';
+	                    -- this is similar to flush everything, TODO: add also register clear here
+	                    asi_ctrl_ready          <= '1'; -- for now just ack it. otherwise the swb can be stuck.
+	                    
 					when others =>
-						run_state_cmd_next_v := ERROR;
+						run_mgmt_flush_memory_start	<= '0';
+						pop_cmd_fifo_sclr		<= '0';
+						deassembly_fifo_sclr	<= '0';
+						asi_ctrl_ready			<= '0'; -- not supported yet
+						run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
 				end case;
 			end if;
-			run_state_cmd <= run_state_cmd_next_v;
-			
-			-- register the global timestamp when transition to TERMINATING
-			if (run_state_cmd /= TERMINATING and run_state_cmd_next_v = TERMINATING) then 
-				gts_end_of_run	<= gts_8n;
-			else
-				gts_end_of_run	<= gts_end_of_run;
-			end if;
-			
-			-- Remember whether the current TERMINATING episode started from a
-			-- quiescent state. This keeps non-running states such as IDLE or
-			-- RUN_PREPARE from wedging on endofrun_seen='0' when there is no
-			-- live traffic to drain.
-			if (run_state_cmd /= TERMINATING and run_state_cmd_next_v = TERMINATING) then
-				terminating_entry_quiescent <= terminating_quiescent;
-			elsif (run_state_cmd_next_v /= TERMINATING) then
-				terminating_entry_quiescent <= '0';
-			end if;
-			
-			-- packet support (hit type 1: mu3e run)
-			if (asi_hit_type1_valid = '1' and asi_hit_type1_endofpacket = '1') then 
-                if (asi_hit_type1_empty = '1') then
-                    if (to_integer(unsigned(asi_hit_type1_channel(1 downto 0))) = INTERLEAVING_INDEX) then
-					endofrun_seen 		<= '1';
-                    end if;
-                elsif (to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX) then
-				endofrun_seen 		<= '1';
-                end if;
-			elsif (run_state_cmd_next_v = IDLE or run_state_cmd_next_v = RUN_PREPARE) then -- reset it here
-				endofrun_seen		<= '0';
-			end if;
-			
-			pop_cmd_fifo_sclr			<= '0';
-			deassembly_fifo_sclr		<= '0';
-			gts_counter_rst				<= '0';
-			asi_ctrl_ready				<= '0';
-			
-			-- mgmt main state machine
-			case run_state_cmd_next_v is 
-				when IDLE => -- this is the default state, after cmd=stop reset, you should end up here.
-					run_mgmt_flush_memory_start	<= '0';
-					run_mgmt_flushed			<= '0';
-					if (asi_ctrl_valid = '1') then 
-						asi_ctrl_ready			<= '1';
-					else
-						asi_ctrl_ready			<= '0';
-					end if;
-				when RUN_PREPARE =>
-					-- flush the fifo
-					pop_cmd_fifo_sclr		<= '1';
-					deassembly_fifo_sclr	<= '1';
-					-- Keep the flush request asserted until the pop engine reports
-					-- completion. Then latch the flushed state so PREP ready stays
-					-- visible even if cam_clean lags by a cycle.
-					if (run_mgmt_flushed = '0') then
-						if (run_mgmt_flush_memory_start = '0') then
-							run_mgmt_flush_memory_start	<= '1';
-						elsif (run_mgmt_flush_memory_done = '1') then
-							run_mgmt_flush_memory_start	<= '0';
-							run_mgmt_flushed			<= '1';
-						end if;
-					else
-						run_mgmt_flush_memory_start	<= '0';
-					end if;
-					-- ack the run state 
-					if (pop_cmd_fifo_empty = '1' and deassembly_fifo_empty = '1' and debug_msg2.cam_clean = '1' and run_mgmt_flushed = '1') then 
-						asi_ctrl_ready			<= '1';
-					else
-						asi_ctrl_ready			<= '0';
-					end if;
-					-- counters were reset by pop engine
-				when SYNC => 
-					run_mgmt_flush_memory_start	<= '0';
-					gts_counter_rst			<= '1';
-					if (asi_ctrl_valid = '1') then -- ack the host immediately 
-						asi_ctrl_ready			<= '1';
-					else
-						asi_ctrl_ready			<= '0';
-					end if;
-				when RUNNING =>
-					-- release the reset and sclr
-					run_mgmt_flush_memory_start	<= '0';
-					gts_counter_rst			<= '0';
-					pop_cmd_fifo_sclr		<= '0';
-					deassembly_fifo_sclr	<= '0';
-					if (asi_ctrl_valid = '1') then -- ack the host immediately 
-						asi_ctrl_ready			<= '1';
-					else
-						asi_ctrl_ready			<= '0';
-					end if;
-					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
-				when TERMINATING => 
-					run_mgmt_flush_memory_start	<= '0';
-					if (terminating_drain_done = '1' or terminating_entry_quiescent = '1') then
-						asi_ctrl_ready			<= '1';
-					else
-						asi_ctrl_ready			<= '0';
-					end if;
-					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
-                when RESET => 
-                    run_mgmt_flush_memory_start <= '0';
-                    -- this is similar to flush everything, TODO: add also register clear here
-                    asi_ctrl_ready          <= '1'; -- for now just ack it. otherwise the swb can be stuck.
-                    
-				when others =>
-					run_mgmt_flush_memory_start	<= '0';
-					pop_cmd_fifo_sclr		<= '0';
-					deassembly_fifo_sclr	<= '0';
-					asi_ctrl_ready			<= '0'; -- not supported yet
-					run_mgmt_flushed		<= '0'; -- unset this flag so flush must be once
-			end case;
 		end if;
 		
 	end process;
