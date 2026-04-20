@@ -267,7 +267,7 @@
       "date": "2026-04-20",
       "title": "Long-run PROF generators reused overlapping low-order bits, so deep integrity runs could alias their own evidence",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "1c8118b"
     },
     {
       "bug_id": "BUG-034-H",
@@ -275,7 +275,7 @@
       "date": "2026-04-20",
       "title": "The seeded random PROF promotion helpers did not actually propagate distinct per-case seeds",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "1c8118b"
     },
     {
       "bug_id": "BUG-035-H",
@@ -283,7 +283,7 @@
       "date": "2026-04-20",
       "title": "The promoted PROF ordering audit encoded a stronger FIFO contract than the product actually guarantees",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "1c8118b"
     }
   ],
   "buckets": {

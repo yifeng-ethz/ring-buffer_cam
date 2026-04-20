@@ -516,7 +516,7 @@ Normalization note:
 - Runtime / coverage context:
   - added `fill_long_run_fingerprint()` in `ring_buffer_cam_pkg.sv` and switched the long-run profile generators to that helper so the fingerprint fields use non-overlapping slices of the long-run index
   - verified by a clean isolated rerun of `P028` plus the later clean closure batch `B010`, `B011`, `B123`, `P029`, `P036`, `P037`, `P038`, and `P040`
-- Commit: pending
+- Commit: 1c8118b
 
 ### BUG-034-H: The seeded random PROF promotion helpers did not actually propagate distinct per-case seeds
 - Severity: `non-datapath-refactor`
@@ -532,7 +532,7 @@ Normalization note:
 - Runtime / coverage context:
   - `run_multi_key_profile_case()` now carries the case-local `lfsr_seed` explicitly into `profile_traffic_seq`, and the seeded profile summaries publish the exact seed used for each run
   - verified by clean isolated reruns of `P036`, `P037`, `P038`, and `P040`
-- Commit: pending
+- Commit: 1c8118b
 
 ### BUG-035-H: The promoted PROF ordering audit encoded a stronger FIFO contract than the product actually guarantees
 - Severity: `non-datapath-refactor`
@@ -548,4 +548,4 @@ Normalization note:
 - Runtime / coverage context:
   - removed the unsupported strict-FIFO checker path, rewrote `P029` around deterministic exact per-key integrity, and rewrote `P040` as a seeded four-key integrity audit instead of a false FIFO claim
   - verified by a clean isolated rerun batch of `B010`, `B011`, `B123`, `P029`, `P036`, `P037`, `P038`, and `P040`
-- Commit: pending
+- Commit: 1c8118b

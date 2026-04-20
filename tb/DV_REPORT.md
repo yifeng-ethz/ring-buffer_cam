@@ -24,9 +24,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-035-H` | Harness | `2026-04-20` | The promoted PROF ordering audit encoded a stronger FIFO contract than the product actually guarantees | `pending` |
-| ⚠️ | `BUG-034-H` | Harness | `2026-04-20` | The seeded random PROF promotion helpers did not actually propagate distinct per-case seeds | `pending` |
-| ⚠️ | `BUG-033-H` | Harness | `2026-04-20` | Long-run PROF generators reused overlapping low-order bits, so deep integrity runs could alias their own evidence | `pending` |
+| ✅ | `BUG-035-H` | Harness | `2026-04-20` | The promoted PROF ordering audit encoded a stronger FIFO contract than the product actually guarantees | `1c8118b` |
+| ✅ | `BUG-034-H` | Harness | `2026-04-20` | The seeded random PROF promotion helpers did not actually propagate distinct per-case seeds | `1c8118b` |
+| ✅ | `BUG-033-H` | Harness | `2026-04-20` | Long-run PROF generators reused overlapping low-order bits, so deep integrity runs could alias their own evidence | `1c8118b` |
 | ✅ | `BUG-032-H` | Harness | `2026-04-20` | `profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully | `d7ce37a` |
 | ✅ | `BUG-031-H` | Harness | `2026-04-20` | The PROF silent-key plan text encoded the wrong contract for zero-hit searches | `d7ce37a` |
 | ✅ | `BUG-030-H` | Harness | `2026-04-20` | `P030`'s original zero-gap 256-hit burst profile ran above the calibrated no-overwrite envelope | `d7ce37a` |
