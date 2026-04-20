@@ -24,9 +24,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-032-H` | Harness | `2026-04-20` | `profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully | `pending` |
-| ⚠️ | `BUG-031-H` | Harness | `2026-04-20` | The PROF silent-key plan text encoded the wrong contract for zero-hit searches | `pending` |
-| ⚠️ | `BUG-030-H` | Harness | `2026-04-20` | `P030`'s original zero-gap 256-hit burst profile ran above the calibrated no-overwrite envelope | `pending` |
+| ✅ | `BUG-032-H` | Harness | `2026-04-20` | `profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully | `d7ce37a` |
+| ✅ | `BUG-031-H` | Harness | `2026-04-20` | The PROF silent-key plan text encoded the wrong contract for zero-hit searches | `d7ce37a` |
+| ✅ | `BUG-030-H` | Harness | `2026-04-20` | `P030`'s original zero-gap 256-hit burst profile ran above the calibrated no-overwrite envelope | `d7ce37a` |
 | ✅ | `BUG-029-H` | Harness | `2026-04-19` | `note_flush_reset()` cleared the resident model but not the scoreboard epoch counters | `e85f536` |
 | ✅ | `BUG-028-H` | Harness | `2026-04-19` | The original `X019` raw boundary injector did not actually drive an ingress beat | `e85f536` |
 | ✅ | `BUG-027-R` | RTL | `2026-04-19` | MM CSR traffic masked same-cycle `INERR_COUNT` updates | `e182765` |

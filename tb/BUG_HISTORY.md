@@ -455,7 +455,7 @@
 - Runtime / coverage context:
   - `P030` was recalibrated to keep the 256-hit burst packetization focus while pacing the bursts with a 13-cycle ingress gap and a 176-cycle epoch gap
   - verified by clean isolated reruns of `P030`, then by a clean PROF slice rerun of `P026`, `P027`, `P030`, `P032`, and `P033`
-- Commit: pending
+- Commit: d7ce37a
 
 ### BUG-031-H: The PROF silent-key plan text encoded the wrong contract for zero-hit searches
 - First seen in: `P034` planning review on 2026-04-20 while wiring the silent-key PROF cases
@@ -469,7 +469,7 @@
 - Runtime / coverage context:
   - `P034` / `P035` were implemented against the true contract: zero-hit SOP+EOP subheaders for silent keys with `CACHE_MISS_COUNT==0`
   - verified by clean isolated reruns of `P034` and `P035`, both of which observed hundreds of zero-hit subheaders while preserving lossless active-key drain accounting
-- Commit: pending
+- Commit: d7ce37a
 
 ### BUG-032-H: `profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully
 - First seen in: `P035` implementation on 2026-04-20 while trying to model three active keys interleaved with two silent searched keys
@@ -483,4 +483,4 @@
 - Runtime / coverage context:
   - `profile_traffic_seq` now accepts an explicit `lane_key_ord_list[$]`, and `P035` uses that mode to drive only the intended active keys while the silent keys are still searched by the DUT
   - verified by clean isolated reruns of `P034`, `P035`, and `P039`
-- Commit: pending
+- Commit: d7ce37a

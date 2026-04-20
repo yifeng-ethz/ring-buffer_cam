@@ -243,7 +243,7 @@
       "date": "2026-04-20",
       "title": "`P030`'s original zero-gap 256-hit burst profile ran above the calibrated no-overwrite envelope",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "d7ce37a"
     },
     {
       "bug_id": "BUG-031-H",
@@ -251,7 +251,7 @@
       "date": "2026-04-20",
       "title": "The PROF silent-key plan text encoded the wrong contract for zero-hit searches",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "d7ce37a"
     },
     {
       "bug_id": "BUG-032-H",
@@ -259,7 +259,7 @@
       "date": "2026-04-20",
       "title": "`profile_traffic_seq` could only model contiguous key windows, so interleaved active/silent-key profiles were not expressible faithfully",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "d7ce37a"
     }
   ],
   "buckets": {
