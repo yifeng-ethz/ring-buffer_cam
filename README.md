@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.1.12.0419
+**Version:** 26.1.13.0419
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,15 +96,14 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.1.12.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
+Version `26.1.13.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
 locked MMDD build stamp, carries forward the soft-reset abort-to-`IDLE` cleanup plus
-descriptor / stale-request guards, repairs the sustained-backpressure helper so drain
-windows stay stressed through residual backlog, and packages the next PROF closure tranche
-so Platform Designer picks up the current verified IP image. The live dashboard state is
-maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md);
-this refresh adds clean `P059`, `P060`, and `P064` active-build partition/backpressure
-evidence on top of the earlier `P041-P045`, `P050-P053`, steady-state, adversarial
-overlap, and partition-profile closure tranches.
+descriptor / stale-request guards, repairs the equal-load partition round-robin scheduler,
+and republishes the active-build partition evidence so Platform Designer picks up the
+current verified IP image. The live dashboard state is maintained in
+[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh
+adds clean `B099`, `P058`, and `P061-P063` partition-handoff / equal-load evidence on top
+of the earlier `P041-P045`, `P050-P053`, `P059`, `P060`, and `P064` closure tranches.
 
 ---
 

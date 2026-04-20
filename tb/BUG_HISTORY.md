@@ -697,3 +697,19 @@ Normalization note:
     - `P060` now reports `sink_low_cycles=14428`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=768`, `pop=768`
     - `P064` now reports `sink_low_cycles=9408`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=1024`, `pop=1024`
 - Commit: 8b9ad49
+
+### BUG-045-R: The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending
+- Severity: `soft error`
+- Encounter sim-time: `1115780000 ns (first B099 equal-load round-robin repro)`
+- First seen in: `B099` on 2026-04-20 during the first exactly-two-partitions equal-load promotion, then cross-checked against `B080`, `B100-B103`, `P050-P053`, and `P058/P061-P063`
+- Symptom:
+  - the new equal-load partition audit observed repeated grants from the same partition instead of the planned `0,1,0,1,0,1,0,1` alternation, even though the run still closed cleanly at `push=260`, `pop=260`, `overwrite=0`, `cache_miss=0`, and `remaining=0`
+  - that meant the full-DUT drain path could starve an equally loaded pending peer until the current partition had already consumed multiple hits, violating the intended round-robin fairness contract
+- Root cause:
+  - in `proc_pop_engine`, the `DRAIN` state kept `pop_rr_idx` parked on `pop_issue_partition_idx` whenever `pop_partition_has_more(...)='1'`
+  - the scheduler therefore re-entered the same partition after every successful erase, even when another partition was already marked pending and ready to issue
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the pop scheduler now advances to the next pending partition when the just-issued partition still has more matches and a peer partition is already pending, while preserving the old stay-local behavior when the current partition is the only pending source
+  - verified by clean isolated reruns of `B080`, `B099`, `B100`, `B101`, `B102`, `B103`, `P050`, `P051`, `P052`, `P053`, `P058`, `P061`, `P062`, and `P063`
+- Commit: pending

@@ -20,7 +20,7 @@
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
 | B009 | D | live UVM | none | CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity | UID CSR word 0 equals IP_UID generic across reset, RUNNING, TERMINATING reads; catches accidental writability or mux swap with META |
-| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,12,419) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
+| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,13,419) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
 | B011 | D | live UVM | none | CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260419) | META word 1 reads the 32-bit date integer; catches a stale META mux leftover after meta_sel write |
 | B012 | D | live UVM | none | CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic | META reads git hash constant; catches mis-decoded 2-bit selector |
 | B013 | D | live UVM | none | CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic | META reads instance id constant; catches default-branch fallthrough when other selectors are live |
@@ -109,7 +109,7 @@
 | B096 | D | planned | none | partitioned encoder PIPE_STAGES=3 baseline: single-hit latency = 3 cycles | same as B094/B095 with PIPE_STAGES=3; catches mis-mapped stage3 flag/lsb assignments |
 | B097 | D | planned | none | partitioned encoder PIPE_STAGES=4 baseline (default): single-hit latency = 4 cycles with eval_match_stage0 register | observe eval_match_stage0 intermediate; catches lost stage0 register |
 | B098 | D | live UVM | none | partitioned encoder exactly-one-partition-active: only one active partition carries matches while the other active partition stays empty | only the matching partition's flag/result-valid path pulses; catches spurious flag assertion from an empty partition |
-| B099 | D | planned | none | partitioned encoder exactly-two-partitions-equal-load: each has 4 matches, drain alternates via round-robin | 8 total drains interleave 1-1-1-1-1-1-1-1; catches imbalanced RR |
+| B099 | D | live UVM | none | partitioned encoder exactly-two-partitions-equal-load: each has 4 matches, drain alternates via round-robin | 8 total drains interleave 1-1-1-1-1-1-1-1; catches imbalanced RR |
 | B100 | D | live UVM | none | partitioned encoder idle-on-one-while-another-drains: partition 0 carries the full drain epoch while the other active partition stays empty | `pop_rr_idx` stays on the active partition until exhaustion; catches unnecessary idle visits |
 | B101 | D | live UVM | none | partitioned encoder full-round-robin rotation across all active partitions in the current build | verify `pop_issue_partition_idx` walks `0..N_PARTITIONS-1` without skipping an active partition |
 | B102 | D | live UVM | none | partitioned encoder clear_onehot_bit: after `i_advance`, the reported LSB address is removed from the active match vector | second reported address must differ from the first; catches stale reporting of the same leaf bit |

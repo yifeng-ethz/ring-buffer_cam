@@ -50,9 +50,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.22 (no RTL logic delta; package the sustained-backpressure harness cleanup and active-build PROF P059/P060/P064 closure)
 --      Date: Apr 20, 2026
--- Version : 26.1.12
+-- Revision: 2.23 (advance the pop round-robin scheduler to the next pending partition when equal-load peers are waiting)
+--      Date: Apr 20, 2026
+-- Version : 26.1.13
 -- Date    : 20260419
--- Change  : align delivered metadata with the sustained-backpressure harness cleanup and active-build PROF P059/P060/P064 closure for release 26.1.12.0419
+-- Change  : fix the equal-load partition drain scheduler so pending peers receive true round-robin service in release 26.1.13.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -95,7 +97,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 12;
+	VERSION_PATCH       : natural := 13;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
@@ -1002,6 +1004,9 @@ begin
 	-- Search results are staged into partition encoders, then drained round-robin.
 		variable next_rr_idx_v	: natural;
 		variable issue_next_rr_idx_v : natural;
+		variable rr_scan_idx_v	: natural;
+		variable next_pending_idx_v : natural;
+		variable other_pending_v : boolean;
 		variable all_ready_v	: boolean;
 		variable total_hits_v	: unsigned(MAIN_CAM_ADDR_WIDTH downto 0);
 			variable chunk_vec_v	: std_logic_vector(MATCH_COUNT_CHUNK_WIDTH_CONST-1 downto 0);
@@ -1080,6 +1085,19 @@ begin
 				else
 					issue_next_rr_idx_v	:= pop_issue_partition_idx + 1;
 				end if;
+				next_pending_idx_v	:= pop_issue_partition_idx;
+				other_pending_v		:= false;
+				for rr_offset in 1 to N_PARTITIONS-1 loop
+					rr_scan_idx_v := pop_issue_partition_idx + rr_offset;
+					if (rr_scan_idx_v >= N_PARTITIONS) then
+						rr_scan_idx_v := rr_scan_idx_v - N_PARTITIONS;
+					end if;
+					if (pop_partition_pending(rr_scan_idx_v) = '1') then
+						next_pending_idx_v	:= rr_scan_idx_v;
+						other_pending_v		:= true;
+						exit;
+					end if;
+				end loop;
 				-- pop command executor
 				case pop_engine_state is 
 				-- ============= IDLE ==============
@@ -1200,6 +1218,9 @@ begin
 									pop_last_hit_pending	<= '1';
 									pop_engine_state		<= RESET;
 									pop_cmd_fifo_rdack		<= '1';
+								elsif (pop_partition_has_more(pop_issue_partition_idx) = '1' and
+									other_pending_v = true) then
+									pop_rr_idx				<= next_pending_idx_v;
 								elsif (pop_partition_has_more(pop_issue_partition_idx) = '0') then
 									pop_rr_idx				<= issue_next_rr_idx_v;
 								else
