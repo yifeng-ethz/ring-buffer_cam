@@ -3979,7 +3979,8 @@ class base_test extends uvm_test;
     int unsigned  min_max_fill,
     int unsigned  max_max_fill,
     int unsigned  min_data_subheaders,
-    bit           check_latency_readback = 1'b0
+    bit           check_latency_readback = 1'b0,
+    logic [31:0]  lfsr_seed = 32'h1ace_b00c
   );
     profile_traffic_seq prof_seq;
     int unsigned push_count;
@@ -4049,6 +4050,7 @@ class base_test extends uvm_test;
         prof_seq.random_gap_max_cycles = random_gap_max_cycles;
         prof_seq.use_bernoulli_arrival = use_bernoulli_arrival;
         prof_seq.bernoulli_arrival_threshold = bernoulli_arrival_threshold;
+        prof_seq.lfsr_seed = lfsr_seed;
         prof_seq.burst_len = burst_len;
         prof_seq.burst_idle_cycles = burst_idle_cycles;
         prof_seq.progress_stride = (num_hits >= 4096) ? (num_hits / 4) : (num_hits / 2);
@@ -4704,6 +4706,214 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.max_live_fill), UVM_LOW)
   endtask
 
+  task automatic run_staggered_multi_key_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned early_num_hits,
+    int unsigned late_num_hits,
+    int unsigned early_lane_key_start_ord,
+    int unsigned early_pool_keys,
+    int unsigned late_lane_key_start_ord,
+    int unsigned late_pool_keys,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned late_start_min_fill,
+    int unsigned timeout_cycles,
+    logic [31:0] early_lfsr_seed = 32'h0420_a11e,
+    logic [31:0] late_lfsr_seed = 32'h0420_b22e
+  );
+    profile_traffic_seq early_seq;
+    profile_traffic_seq late_seq;
+    int unsigned        push_count;
+    int unsigned        pop_count;
+    int unsigned        overwrite_count;
+    int unsigned        cache_miss_count;
+    int unsigned        fill_level;
+    int unsigned        late_start_fill;
+    int unsigned        combined_lane_key_ords[$];
+
+    configure_and_start(latency);
+    late_start_fill = 0;
+
+    early_seq = profile_traffic_seq::type_id::create({what, "_early_profile"});
+    early_seq.num_hits = early_num_hits;
+    early_seq.lane_key_start_ord = early_lane_key_start_ord;
+    early_seq.pool_keys = early_pool_keys;
+    early_seq.hits_per_key_switch = 1;
+    early_seq.randomize_key_order = 1'b1;
+    early_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+    early_seq.lfsr_seed = early_lfsr_seed;
+    early_seq.fingerprint_start_index = 0;
+    early_seq.progress_stride = (early_num_hits >= 4096) ? (early_num_hits / 4) : early_num_hits;
+    early_seq.progress_tag = {what, " early"};
+    early_seq.start(m_env.m_hit_seqr);
+
+    late_start_fill = m_env.m_scb.remaining_entries();
+    if (late_start_fill < late_start_min_fill) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never reached the staged-fill precondition before launching late keys: observed_fill=%0d expected_at_least=%0d",
+        what, late_start_fill, late_start_min_fill))
+    end
+
+    combined_lane_key_ords.delete();
+    for (int idx = 0; idx < early_pool_keys; idx++) begin
+      combined_lane_key_ords.push_back(early_lane_key_start_ord + idx);
+    end
+    for (int idx = 0; idx < late_pool_keys; idx++) begin
+      combined_lane_key_ords.push_back(late_lane_key_start_ord + idx);
+    end
+
+    late_seq = profile_traffic_seq::type_id::create({what, "_late_profile"});
+    late_seq.num_hits = late_num_hits;
+    late_seq.lane_key_ord_list.delete();
+    foreach (combined_lane_key_ords[idx]) begin
+      late_seq.lane_key_ord_list.push_back(combined_lane_key_ords[idx]);
+    end
+    late_seq.pool_keys = combined_lane_key_ords.size();
+    late_seq.hits_per_key_switch = 1;
+    late_seq.randomize_key_order = 1'b1;
+    late_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+    late_seq.lfsr_seed = late_lfsr_seed;
+    late_seq.fingerprint_start_index = early_num_hits;
+    late_seq.progress_stride = (late_num_hits >= 4096) ? (late_num_hits / 4) : late_num_hits;
+    late_seq.progress_tag = {what, " late"};
+    late_seq.start(m_env.m_hit_seqr);
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != (early_num_hits + late_num_hits) ||
+        pop_count != (early_num_hits + late_num_hits) ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        early_num_hits + late_num_hits, early_num_hits + late_num_hits))
+    end
+
+    check_per_key_drain_conservation(
+      {what, " early-key conservation"},
+      early_lane_key_start_ord,
+      early_pool_keys,
+      early_pool_keys);
+    check_per_key_drain_conservation(
+      {what, " late-key conservation"},
+      late_lane_key_start_ord,
+      late_pool_keys,
+      late_pool_keys);
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: early_hits=%0d late_hits=%0d late_start_fill=%0d max_live_fill=%0d max_remaining=%0d",
+      what, early_num_hits, late_num_hits, late_start_fill,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
+  task automatic run_latency_reprogrammed_multi_key_case(
+    string       what,
+    int unsigned initial_latency,
+    int unsigned num_hits,
+    int unsigned lane_key_start_ord,
+    int unsigned pool_keys,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned timeout_cycles,
+    logic [31:0] lfsr_seed = 32'h0430_c33f
+  );
+    profile_traffic_seq prof_seq;
+    int unsigned        push_count;
+    int unsigned        pop_count;
+    int unsigned        overwrite_count;
+    int unsigned        cache_miss_count;
+    int unsigned        fill_level;
+    int unsigned        push_milestones[3];
+    int unsigned        latency_values[3];
+    logic [31:0]        latency_readback;
+    bit                 saw_active_reprogram;
+
+    push_milestones[0] = 2048;
+    push_milestones[1] = 12_000;
+    push_milestones[2] = 22_000;
+    latency_values[0] = 16'd1;
+    latency_values[1] = 16'd2000;
+    latency_values[2] = 16'd128;
+    saw_active_reprogram = 1'b0;
+
+    configure_and_start(initial_latency);
+
+    fork
+      begin : latency_profile_thread
+        prof_seq = profile_traffic_seq::type_id::create({what, "_profile"});
+        prof_seq.num_hits = num_hits;
+        prof_seq.lane_key_start_ord = lane_key_start_ord;
+        prof_seq.pool_keys = pool_keys;
+        prof_seq.hits_per_key_switch = 1;
+        prof_seq.randomize_key_order = 1'b1;
+        prof_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+        prof_seq.lfsr_seed = lfsr_seed;
+        prof_seq.progress_stride = (num_hits >= 4096) ? (num_hits / 4) : num_hits;
+        prof_seq.progress_tag = what;
+        prof_seq.start(m_env.m_hit_seqr);
+      end
+      begin : latency_reprogram_thread
+        for (int idx = 0; idx < 3; idx++) begin
+          wait_for_push_count(
+            push_milestones[idx],
+            timeout_cycles,
+            $sformatf("%s push milestone %0d", what, idx));
+          if (m_env.m_scb.remaining_entries() != 0 ||
+              m_env.m_hit_drv.pending_source_items() != 0) begin
+            saw_active_reprogram = 1'b1;
+          end
+          csr_write(CSR_EXPECTED_LAT_ADDR, latency_values[idx]);
+          wait_clocks(2);
+          csr_read(CSR_EXPECTED_LAT_ADDR, latency_readback);
+          if (latency_readback != latency_values[idx][31:0]) begin
+            `uvm_error("PROF", $sformatf(
+              "%s latency reprogram readback mismatch at step=%0d: observed=%0d expected=%0d",
+              what, idx, latency_readback, latency_values[idx]))
+          end
+        end
+      end
+    join
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    csr_read(CSR_EXPECTED_LAT_ADDR, latency_readback);
+
+    if (push_count != num_hits || pop_count != num_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        num_hits, num_hits))
+    end
+    if (!saw_active_reprogram) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never observed an EXPECTED_LATENCY rewrite while traffic or residency was still active",
+        what))
+    end
+    if (latency_readback != latency_values[2][31:0]) begin
+      `uvm_error("PROF", $sformatf(
+        "%s final latency readback mismatch: observed=%0d expected=%0d",
+        what, latency_readback, latency_values[2]))
+    end
+
+    check_per_key_drain_conservation(what, lane_key_start_ord, pool_keys, pool_keys);
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: num_hits=%0d pool_keys=%0d final_latency=%0d max_live_fill=%0d max_remaining=%0d",
+      what, num_hits, pool_keys, latency_readback,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
   task automatic run_randomized_multi_key_integrity_case(
     string       what,
     int unsigned latency,
@@ -4847,7 +5057,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd10;
+    version_word[15:12] = 4'd11;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -8972,6 +9182,94 @@ class base_test extends uvm_test;
         13,
         4_000_000,
         32'h0400_f10f);
+    end else if (case_id == "P041") begin
+      run_profile_integrity_case(
+        "P041 four-key random backpressure profile",
+        16'd128,
+        30_000,
+        2,
+        4,
+        1,
+        13,
+        0,
+        0,
+        1'b1,
+        1'b0,
+        8'd0,
+        0,
+        0,
+        3,
+        6_000_000,
+        128,
+        0,
+        64,
+        1'b1,
+        32'h0410_70af);
+      check_per_key_drain_conservation(
+        "P041 four-key random backpressure profile",
+        2,
+        4,
+        4);
+    end else if (case_id == "P042") begin
+      run_staggered_multi_key_profile_case(
+        "P042 eight-key staged late-arrival profile",
+        16'd128,
+        15_000,
+        15_000,
+        2,
+        4,
+        6,
+        4,
+        13,
+        96,
+        6_000_000,
+        32'h0420_1a2b,
+        32'h0420_3c4d);
+    end else if (case_id == "P043") begin
+      run_latency_reprogrammed_multi_key_case(
+        "P043 eight-key latency sweep profile",
+        16'd128,
+        30_000,
+        2,
+        8,
+        13,
+        8_000_000,
+        32'h0430_5e6f);
+    end else if (case_id == "P044") begin
+      int unsigned lane_key_ords[$];
+      int unsigned expected_hits[$];
+      for (int idx = 0; idx < 4; idx++) begin
+        lane_key_ords.push_back(2 + idx);
+        expected_hits.push_back(10_000);
+      end
+      run_multi_key_profile_case(
+        "P044 long four-key continuous reuse profile",
+        16'd128,
+        40_000,
+        2,
+        4,
+        1,
+        1'b0,
+        13,
+        6_000_000,
+        32'h0440_0001);
+      check_exact_key_counts(
+        "P044 long four-key continuous reuse profile",
+        lane_key_ords,
+        expected_hits,
+        4);
+    end else if (case_id == "P045") begin
+      run_multi_key_profile_case(
+        "P045 random sixteen-key arbitration profile",
+        16'd128,
+        50_000,
+        2,
+        16,
+        1,
+        1'b1,
+        13,
+        8_000_000,
+        32'h0450_7f91);
     end else if (case_id == "P046") begin
       run_partition_local_profile_case(
         "P046 default-build partition0-local profile",

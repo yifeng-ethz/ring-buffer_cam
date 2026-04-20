@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.10
+-- Version : 26.1.11
 -- Date    : 20260419
--- Change  : package the soft-reset abort cleanup and descriptor-backpressure fixes as release 26.1.10.0419
+-- Change  : package the staged late-arrival harness cleanup and next PROF closure tranche as release 26.1.11.0419
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 10;
+        VERSION_PATCH       : natural := 11;
         BUILD               : natural := 419;
         VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;

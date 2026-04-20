@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.1.10.0419
+**Version:** 26.1.11.0419
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,14 +96,15 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.1.10.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
-locked MMDD build stamp, adds the soft-reset abort-to-`IDLE` cleanup plus descriptor /
-stale-request guards, and packages the latest PROF closure tranche so Platform Designer
-picks up the current verified IP image. The live dashboard state is maintained in
-[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh
-adds the clean `23/23` soft-reset / descriptor-backpressure rerun slice and refreshed
-standalone P4 synthesis evidence on top of the earlier calibrated steady-state,
-adversarial overlap, and partition-profile closure tranches.
+Version `26.1.11.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
+locked MMDD build stamp, carries forward the soft-reset abort-to-`IDLE` cleanup plus
+descriptor / stale-request guards, and packages the next PROF closure tranche so
+Platform Designer picks up the current verified IP image. The live dashboard state is
+maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md);
+this refresh adds the clean `P041-P045` multi-key PROF slice, including the calibrated
+staged late-arrival harness fix, the mid-run `EXPECTED_LATENCY` sweep case, and the
+long four-key / sixteen-key arbitration profiles on top of the earlier soft-reset,
+steady-state, adversarial overlap, and partition-profile closure tranches.
 
 ---
 

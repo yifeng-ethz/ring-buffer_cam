@@ -46,9 +46,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.20 (gate descriptor issuance on pop_cmd_fifo_full and make soft_reset abort active state cleanly)
 --      Date: Apr 20, 2026
--- Version : 26.1.10
+-- Revision: 2.21 (no RTL logic delta; align delivered metadata with the staged late-arrival harness cleanup and PROF P041-P045 closure)
+--      Date: Apr 20, 2026
+-- Version : 26.1.11
 -- Date    : 20260419
--- Change  : close soft-reset abort-to-IDLE cleanup and descriptor-backpressure handling for release 26.1.10.0419
+-- Change  : align delivered metadata with the staged late-arrival harness cleanup and PROF P041-P045 closure for release 26.1.11.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -91,7 +93,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 10;
+	VERSION_PATCH		: natural := 11;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;

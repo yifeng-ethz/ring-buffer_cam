@@ -398,6 +398,7 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
   bit          use_bernoulli_arrival = 0;
   byte unsigned bernoulli_arrival_threshold = 8'd128;
   logic [31:0] lfsr_seed = 32'h1ace_b00c;
+  int unsigned fingerprint_start_index = 0;
   int unsigned burst_len = 0;
   int unsigned burst_idle_cycles = 0;
   int unsigned progress_stride = 0;
@@ -474,7 +475,7 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
 
       hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("profile_hit");
       start_item(hit);
-      ring_buffer_cam_pkg::fill_long_run_fingerprint(i, hit);
+      ring_buffer_cam_pkg::fill_long_run_fingerprint(fingerprint_start_index + i, hit);
       hit.tcc8n     = 13'(actual_key * 16);
       hit.has_error = 1'b0;
       hit.is_empty_marker = 1'b0;
@@ -508,6 +509,7 @@ class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
   int unsigned num_epochs = 1;
   int unsigned inter_hit_gap_cycles = 0;
   int unsigned inter_epoch_gap_cycles = 0;
+  int unsigned fingerprint_start_index = 0;
   int unsigned progress_stride = 0;
   string       progress_tag = "";
 
@@ -554,7 +556,7 @@ class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
         for (int hit_idx = 0; hit_idx < key_hits_per_epoch[idx]; hit_idx++) begin
           hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("weighted_hit");
           start_item(hit);
-          ring_buffer_cam_pkg::fill_long_run_fingerprint(sent_hits, hit);
+          ring_buffer_cam_pkg::fill_long_run_fingerprint(fingerprint_start_index + sent_hits, hit);
           hit.tcc8n     = 13'(actual_key * 16);
           hit.has_error = 1'b0;
           hit.is_empty_marker = 1'b0;

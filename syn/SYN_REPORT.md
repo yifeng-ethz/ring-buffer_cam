@@ -2,13 +2,13 @@
 
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-20` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Evidence basis:** `08ad68b`
+**Evidence basis:** `pending`
 
 This file is the detailed standalone synthesis and timing report for the active `ring_buffer_cam` bug-fix release. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
-- compile the delivered `Default P4` configuration after the `26.1.10.0419` metadata alignment and the `2026-04-20` DV/dashboard refresh
+- compile the delivered `Default P4` configuration after the `26.1.11.0419` metadata alignment and the `2026-04-20` DV/dashboard refresh
 - use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
@@ -37,7 +37,8 @@ The standalone project already compiled the live wrapper cleanly; this refresh r
 3. `CTRL.soft_reset` now aborts active state back to `IDLE` and clears live counters, fill level, FIFOs, and internal push/pop bookkeeping instead of merely self-clearing bit1.
 4. `proc_pop_engine` no longer consumes stale descriptors once the DUT has already left the active `RUNNING` / `TERMINATING` states.
 5. `proc_push_engine_comb` now blocks stale buffered push / overwrite retirement after soft-reset by requiring both an active run state and `csr.soft_reset /= '1'`.
-6. Delivered metadata defaults and Platform Designer packaging are aligned to `26.1.10.0419` / `20260419`.
+6. Delivered metadata defaults and Platform Designer packaging are aligned to `26.1.11.0419` / `20260419`.
+7. This metadata-only refresh kept the standalone P4 timing/resource result unchanged while aligning the packaged image with the verified `P041-P045` PROF evidence slice.
 
 ## Timing Summary
 

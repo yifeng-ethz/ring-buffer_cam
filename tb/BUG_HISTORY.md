@@ -661,3 +661,19 @@ Normalization note:
   - gated push request generation on both `csr.soft_reset /= '1'` and an active run-state condition, then verified with clean isolated reruns of `X077`, `X079`, and `X081`
   - the later full soft-reset rerun slice stayed clean with zero post-reset push/overwrite accounting
 - Commit: 08ad68b
+
+### BUG-043-H: The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch
+- Severity: `soft error`
+- Encounter sim-time: `1180084000 ns (first staged-helper repro in P042)`
+- First seen in: `P042` on 2026-04-20 during the first live staged late-arrival PROF promotion
+- Symptom:
+  - the first `P042` implementation produced scoreboard `Unexpected drained hit` failures even though the DUT counters remained in a nominal no-overwrite regime
+  - after the initial identity-space fix, the case still over-drove the DUT relative to the planned `gap=13` contract because the late phase injected a second full-rate source on top of the early source
+- Root cause:
+  - the helper modeled the early and late populations with two independent `profile_traffic_seq` instances launched against the same hit sequencer, each starting its `fill_long_run_fingerprint()` stream at index `0`
+  - that created two harness defects: the scoreboard identity tuple aliased across the phases, and the combined sequencer traffic silently halved the effective aggregate inter-hit gap after the late phase started
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added an explicit `fingerprint_start_index` offset to the long-run profile generators, then rewrote `P042` as a calibrated two-phase profile: early keys only, then a combined eight-key phase at the original aggregate rate
+  - verified by a clean isolated rerun of `P042` and a clean `P041-P045` batch rerun on `default_p2_pipe4`
+- Commit: pending
