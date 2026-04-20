@@ -1,5 +1,22 @@
 # BUG_HISTORY.md — ring_buffer_cam DV bug ledger
 
+Class legend:
+- `R` = RTL / DUT bug
+- `H` = harness / testcase / reporting bug
+
+Severity legend:
+- `soft error` = a contract mismatch that corrupts one case window but does not poison later case behavior after the testcase naturally drains/restarts
+- `hard stuck error` = the bug can wedge later traffic or control handshakes until the DUT/testcase forces a fresh restart or reset
+- `non-datapath-refactor` = observability, reporting, testcase, or accounting consistency work with no direct payload-contract corruption
+
+Encounter sim-time legend:
+- `min / p50 / max` = first encounter in simulation time under a still-traceable randomized screen with multiple seeded reruns
+- `n/a (...)` = promotion-audit, directed-only, reporting-only, or otherwise not honestly measurable in the current randomized harness
+
+Normalization note:
+- `BUG-033` onward follows the `packet_scheduler` severity / encounter-sim-time style explicitly.
+- Earlier entries remain valid historical content and are being backfilled incrementally instead of rewritten in one opaque bulk edit.
+
 ## 2026-04-16
 
 ### BUG-001-H: Search-key decode and interleaving model in UVM harness were wrong
@@ -484,3 +501,51 @@
   - `profile_traffic_seq` now accepts an explicit `lane_key_ord_list[$]`, and `P035` uses that mode to drive only the intended active keys while the silent keys are still searched by the DUT
   - verified by clean isolated reruns of `P034`, `P035`, and `P039`
 - Commit: d7ce37a
+
+### BUG-033-H: Long-run PROF generators reused overlapping low-order bits, so deep integrity runs could alias their own evidence
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (promotion audit before the refreshed isolated reruns)`
+- First seen in: `P028` / `P029` / `P036-P040` implementation review on 2026-04-20 while preparing the next PROF closure tranche
+- Symptom:
+  - the long-run profile sequences derived `asic`, `channel`, `ts50p`, and `et1n6` from overlapping low-order slices of the same loop index
+  - deep runs would therefore recycle the same scoreboard fingerprint long before the case completed, weakening the ability of the promoted integrity cases to prove long-span no-loss behavior honestly
+- Root cause:
+  - the sequence helpers hand-packed multiple fingerprint fields from the same low bits instead of assigning non-overlapping bit ranges across the long-run index
+  - this was a testcase/evidence-quality bug, not a DUT datapath corruption
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added `fill_long_run_fingerprint()` in `ring_buffer_cam_pkg.sv` and switched the long-run profile generators to that helper so the fingerprint fields use non-overlapping slices of the long-run index
+  - verified by a clean isolated rerun of `P028` plus the later clean closure batch `B010`, `B011`, `B123`, `P029`, `P036`, `P037`, `P038`, and `P040`
+- Commit: pending
+
+### BUG-034-H: The seeded random PROF promotion helpers did not actually propagate distinct per-case seeds
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (promotion audit before the refreshed seeded reruns)`
+- First seen in: `P036-P038` implementation review on 2026-04-20 while wiring the seeded four-key random tranche
+- Symptom:
+  - the new seeded cases were documented as orthogonal evidence runs, but the helper path had no reliable end-to-end seed handoff from the case declaration into `profile_traffic_seq`
+  - without a seed-carrying helper interface, the published seeded tranche risked collapsing into duplicated evidence under cosmetic case IDs
+- Root cause:
+  - the multi-key profile helper contract was still shaped around the earlier non-seeded callers and had not been promoted into an explicit seed-bearing API for the PROF closure tranche
+  - that made the intended `P036/P037/P038` seed axis under-specified in the harness implementation
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - `run_multi_key_profile_case()` now carries the case-local `lfsr_seed` explicitly into `profile_traffic_seq`, and the seeded profile summaries publish the exact seed used for each run
+  - verified by clean isolated reruns of `P036`, `P037`, `P038`, and `P040`
+- Commit: pending
+
+### BUG-035-H: The promoted PROF ordering audit encoded a stronger FIFO contract than the product actually guarantees
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (isolated-only repro; first mismatch at 1.117284 ms in pre-fix P029)`
+- First seen in: `P029` on 2026-04-20 during the first promoted deterministic four-key interleave rerun
+- Symptom:
+  - the first `P029` promotion attempt produced `19,436` strict FIFO mismatch errors even though the DUT still closed the core accounting contract cleanly with `push=20000`, `pop=20000`, `overwrite=0`, `cache_miss=0`, and `remaining=0`
+  - the same failure mode would have poisoned `P040`, turning a testcase/reporting assumption into a false DUT regression
+- Root cause:
+  - the new scoreboard path compared drained hits against accepted-ingress order and treated any same-key reordering as illegal
+  - the live product contract for `ring_buffer_cam` guarantees timestamp-bucketed drain integrity and explicit loss accounting, not stable same-key FIFO retirement order at the egress beat level
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - removed the unsupported strict-FIFO checker path, rewrote `P029` around deterministic exact per-key integrity, and rewrote `P040` as a seeded four-key integrity audit instead of a false FIFO claim
+  - verified by a clean isolated rerun batch of `B010`, `B011`, `B123`, `P029`, `P036`, `P037`, `P038`, and `P040`
+- Commit: pending

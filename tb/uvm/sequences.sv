@@ -359,16 +359,8 @@ class overwrite_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_
 
       hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("pressure_hit");
       start_item(hit);
-      // Keep long-running pressure traffic uniquely identifiable to the scoreboard.
-      // The older mapping repeated the full fingerprint tuple every 2048 hits,
-      // which made deep overwrite soaks ambiguous under pop/drain reordering.
-      hit.asic      = i & 4'hf;
-      hit.ingress_channel = (i >> 1) & 4'hf;
-      hit.channel   = (i >> 4) & 5'h1f;
+      ring_buffer_cam_pkg::fill_long_run_fingerprint(i, hit);
       hit.tcc8n     = 13'(actual_key * 16);
-      hit.tcc1n6    = (i >> 9) & 3'h7;
-      hit.tfine     = (i >> 4) & 5'h1f;
-      hit.et1n6     = i[8:0];
       hit.has_error = 0;
       hit.is_empty_marker = 1'b0;
       finish_item(hit);
@@ -482,13 +474,8 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
 
       hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("profile_hit");
       start_item(hit);
-      hit.asic      = i & 4'hf;
-      hit.ingress_channel = (i >> 1) & 4'hf;
-      hit.channel   = (i >> 4) & 5'h1f;
+      ring_buffer_cam_pkg::fill_long_run_fingerprint(i, hit);
       hit.tcc8n     = 13'(actual_key * 16);
-      hit.tcc1n6    = (i >> 9) & 3'h7;
-      hit.tfine     = (i >> 4) & 5'h1f;
-      hit.et1n6     = i[8:0];
       hit.has_error = 1'b0;
       hit.is_empty_marker = 1'b0;
       finish_item(hit);
@@ -516,6 +503,7 @@ class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
   `uvm_object_utils(weighted_profile_seq)
 
   int unsigned lane_key_start_ord = 0;
+  int unsigned lane_key_ord_list[$];
   int unsigned key_hits_per_epoch[$];
   int unsigned num_epochs = 1;
   int unsigned inter_hit_gap_cycles = 0;
@@ -532,6 +520,7 @@ class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
     int unsigned total_hits;
     int unsigned sent_hits;
     int unsigned actual_key;
+    int unsigned lane_key_ord;
 
     total_hits = 0;
     foreach (key_hits_per_epoch[idx]) begin
@@ -545,21 +534,28 @@ class weighted_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_i
         "%s requires at least one weighted key slot",
         (progress_tag == "") ? get_name() : progress_tag))
     end
+    if (lane_key_ord_list.size() > 0 &&
+        lane_key_ord_list.size() != key_hits_per_epoch.size()) begin
+      `uvm_fatal("SEQ", $sformatf(
+        "%s key-list size (%0d) must match weight-vector size (%0d)",
+        (progress_tag == "") ? get_name() : progress_tag,
+        lane_key_ord_list.size(), key_hits_per_epoch.size()))
+    end
 
     for (int epoch = 0; epoch < ((num_epochs == 0) ? 1 : num_epochs); epoch++) begin
       foreach (key_hits_per_epoch[idx]) begin
-        actual_key = ((lane_key_start_ord + idx) * ring_buffer_cam_pkg::INTERLEAVING_FACTOR) +
+        if (lane_key_ord_list.size() > 0) begin
+          lane_key_ord = lane_key_ord_list[idx];
+        end else begin
+          lane_key_ord = lane_key_start_ord + idx;
+        end
+        actual_key = (lane_key_ord * ring_buffer_cam_pkg::INTERLEAVING_FACTOR) +
                      ring_buffer_cam_pkg::INTERLEAVING_INDEX;
         for (int hit_idx = 0; hit_idx < key_hits_per_epoch[idx]; hit_idx++) begin
           hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("weighted_hit");
           start_item(hit);
-          hit.asic      = sent_hits & 4'hf;
-          hit.ingress_channel = (sent_hits >> 1) & 4'hf;
-          hit.channel   = (sent_hits >> 4) & 5'h1f;
+          ring_buffer_cam_pkg::fill_long_run_fingerprint(sent_hits, hit);
           hit.tcc8n     = 13'(actual_key * 16);
-          hit.tcc1n6    = (sent_hits >> 9) & 3'h7;
-          hit.tfine     = (sent_hits >> 4) & 5'h1f;
-          hit.et1n6     = sent_hits[8:0];
           hit.has_error = 1'b0;
           hit.is_empty_marker = 1'b0;
           finish_item(hit);

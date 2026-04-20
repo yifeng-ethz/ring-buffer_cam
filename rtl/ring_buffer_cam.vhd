@@ -1,6 +1,6 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.7
+-- Version : 26.1.8
 -- Date    : 20260419
 -- Change  : package the PROF multi-key closure refresh and bump the patch so Platform Designer picks up the latest verified image
 
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 7;
+        VERSION_PATCH       : natural := 8;
         BUILD               : natural := 419;
         VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;

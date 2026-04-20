@@ -261,6 +261,20 @@ package ring_buffer_cam_pkg;
     endfunction
   endclass
 
+  function automatic void fill_long_run_fingerprint(
+    longint unsigned unique_idx,
+    ref hit_seq_item hit
+  );
+    // Keep long random/profile traffic unique well past 4k events so the
+    // scoreboard can audit deep no-overwrite runs without fingerprint aliasing.
+    hit.asic            = unique_idx[3:0];
+    hit.ingress_channel = unique_idx[7:4];
+    hit.channel         = unique_idx[12:8];
+    hit.tfine           = unique_idx[17:13];
+    hit.tcc1n6          = unique_idx[20:18];
+    hit.et1n6           = unique_idx[29:21];
+  endfunction
+
   // ── egress hit (monitored) ────────────────────────────────────
   class out_seq_item extends uvm_sequence_item;
     `uvm_object_utils(out_seq_item)

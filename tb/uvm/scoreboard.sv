@@ -598,6 +598,7 @@ class scoreboard extends uvm_scoreboard;
         pending_drain_entries(), total_ingress_accepted, total_written,
         total_drained, total_unexpected_outputs))
     end
+
   endfunction
 
   function void report_phase(uvm_phase phase);
