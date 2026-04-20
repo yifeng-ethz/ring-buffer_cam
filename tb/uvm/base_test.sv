@@ -4638,6 +4638,165 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
   endtask
 
+  task automatic run_partition_share_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned target_lane_key_ord,
+    int unsigned target_hits,
+    input int unsigned expected_partition_hits[$],
+    int unsigned timeout_cycles,
+    int unsigned expected_early_partition_idx = 32'hffff_ffff,
+    int unsigned max_grants_before_early_partition = 0
+  );
+    same_key_burst_seq burst_seq;
+    int unsigned       partition_size;
+    int unsigned       target_search_key;
+    int unsigned       expected_total_hits;
+    int unsigned       partition_grants[4];
+    int unsigned       first_grant_idx[4];
+    int unsigned       total_grants;
+    int unsigned       visit_idx;
+    int unsigned       hit_before;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       overwrite_count;
+    int unsigned       cache_miss_count;
+    int unsigned       fill_level;
+    int unsigned       search_cycles;
+    logic [3:0]        expected_partition_mask;
+    logic [3:0]        observed_partition_mask;
+
+    if (expected_partition_hits.size() != m_cfg.n_partitions) begin
+      `uvm_fatal("PROF", $sformatf(
+        "%s expected_partition_hits size mismatch: observed=%0d expected=%0d",
+        what, expected_partition_hits.size(), m_cfg.n_partitions))
+    end
+
+    partition_size = (m_cfg.n_partitions == 0) ? m_cfg.ring_buffer_n_entry :
+                     (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
+    expected_total_hits = 0;
+    expected_partition_mask = '0;
+    observed_partition_mask = '0;
+    total_grants = 0;
+    for (int idx = 0; idx < 4; idx++) begin
+      partition_grants[idx] = 0;
+      first_grant_idx[idx] = 0;
+    end
+    foreach (expected_partition_hits[idx]) begin
+      expected_total_hits += expected_partition_hits[idx];
+      if (expected_partition_hits[idx] > partition_size) begin
+        `uvm_fatal("PROF", $sformatf(
+          "%s expected partition occupancy exceeds partition size: partition=%0d hits=%0d partition_size=%0d",
+          what, idx, expected_partition_hits[idx], partition_size))
+      end
+      if (expected_partition_hits[idx] != 0) begin
+        expected_partition_mask[idx[1:0]] = 1'b1;
+      end
+    end
+    if (target_hits != expected_total_hits) begin
+      `uvm_fatal("PROF", $sformatf(
+        "%s target hit mismatch: target_hits=%0d expected_total=%0d",
+        what, target_hits, expected_total_hits))
+    end
+
+    configure_and_start(latency);
+    target_search_key = m_cfg.lane_key_ord_to_search_key(target_lane_key_ord);
+    burst_seq = same_key_burst_seq::type_id::create({what, "_partition_share"});
+    burst_seq.num_hits = target_hits;
+    burst_seq.search_key = target_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(target_hits, timeout_cycles / 4, {what, " fill"});
+    if (m_env.m_scb.max_remaining_entries_for_key(target_search_key) < target_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never accumulated the requested occupancy: key=0x%02x max_for_key=%0d expected=%0d",
+        what, target_search_key[7:0],
+        m_env.m_scb.max_remaining_entries_for_key(target_search_key), target_hits))
+    end
+
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+    wait_clocks(4);
+    wait_for_pop_engine_state(3'd4, 80_000, {what, " DRAIN entry"});
+
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    search_cycles = 0;
+    while (search_cycles < timeout_cycles &&
+           (m_env.m_out_mon.total_hits_seen - hit_before) < target_hits) begin
+      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+        visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+        if (visit_idx >= m_cfg.n_partitions) begin
+          `uvm_error("PROF", $sformatf(
+            "%s issued from partition outside active build range: partition=%0d n_partitions=%0d addr=%0d",
+            what, visit_idx, m_cfg.n_partitions, m_env.m_dbg_mon.vif.pop_issue_addr))
+        end else begin
+          observed_partition_mask[visit_idx[1:0]] = 1'b1;
+          if (partition_grants[visit_idx] == 0) begin
+            first_grant_idx[visit_idx] = total_grants + 1;
+          end
+          partition_grants[visit_idx]++;
+          total_grants++;
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+
+    wait_for_hit_output_count(hit_before + target_hits, timeout_cycles, {what, " hit drain"});
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != target_hits || pop_count != target_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        target_hits, target_hits))
+    end
+    if ((observed_partition_mask & expected_partition_mask) != expected_partition_mask) begin
+      `uvm_error("PROF", $sformatf(
+        "%s partition visit mask mismatch: observed=0x%0h expected=0x%0h",
+        what, observed_partition_mask, expected_partition_mask))
+    end
+    foreach (expected_partition_hits[idx]) begin
+      if (partition_grants[idx] != expected_partition_hits[idx]) begin
+        `uvm_error("PROF", $sformatf(
+          "%s partition grant mismatch: partition=%0d observed=%0d expected=%0d",
+          what, idx, partition_grants[idx], expected_partition_hits[idx]))
+      end
+    end
+    if (expected_early_partition_idx < m_cfg.n_partitions &&
+        max_grants_before_early_partition != 0 &&
+        expected_partition_hits[expected_early_partition_idx] != 0) begin
+      if (first_grant_idx[expected_early_partition_idx] == 0 ||
+          first_grant_idx[expected_early_partition_idx] > max_grants_before_early_partition) begin
+        `uvm_error("PROF", $sformatf(
+          "%s early-service partition did not appear soon enough: partition=%0d first_grant=%0d required_at_or_before=%0d",
+          what,
+          expected_early_partition_idx,
+          first_grant_idx[expected_early_partition_idx],
+          max_grants_before_early_partition))
+      end
+    end
+    if (m_env.m_scb.drained_hits_for_key(target_search_key[7:0]) != target_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s target-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+        what, target_search_key[7:0],
+        m_env.m_scb.drained_hits_for_key(target_search_key[7:0]), target_hits))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: target_hits=%0d observed_partition_mask=0x%0h grants=[%0d,%0d,%0d,%0d] first_grant=[%0d,%0d,%0d,%0d] max_live_fill=%0d max_remaining=%0d",
+      what, target_hits, observed_partition_mask,
+      partition_grants[0], partition_grants[1], partition_grants[2], partition_grants[3],
+      first_grant_idx[0], first_grant_idx[1], first_grant_idx[2], first_grant_idx[3],
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
   task automatic run_multi_key_profile_case(
     string       what,
     int unsigned latency,
@@ -9292,6 +9451,84 @@ class base_test extends uvm_test;
         2,
         partition_size - (partition_size / 4),
         4'b0011,
+        2_500_000);
+    end else if (case_id == "P050") begin
+      int unsigned expected_partition_hits[$];
+      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(partition_size);
+      end
+      run_partition_share_profile_case(
+        "P050 active-build partition balance profile",
+        16'd2000,
+        2,
+        m_cfg.ring_buffer_n_entry,
+        expected_partition_hits,
+        3_000_000);
+    end else if (case_id == "P051") begin
+      int unsigned expected_partition_hits[$];
+      int unsigned target_hits;
+      if (m_cfg.n_partitions == 2) begin
+        expected_partition_hits.push_back(partition_size);
+        expected_partition_hits.push_back((partition_size + 7) / 8);
+      end else begin
+        expected_partition_hits.push_back(partition_size);
+        for (int idx = 1; idx < m_cfg.n_partitions; idx++) begin
+          expected_partition_hits.push_back((partition_size + 6) / 7);
+        end
+      end
+      target_hits = 0;
+      foreach (expected_partition_hits[idx]) begin
+        target_hits += expected_partition_hits[idx];
+      end
+      run_partition_share_profile_case(
+        "P051 active-build partition skew profile",
+        16'd2000,
+        2,
+        target_hits,
+        expected_partition_hits,
+        2_500_000);
+    end else if (case_id == "P052") begin
+      int unsigned expected_partition_hits[$];
+      int unsigned target_hits;
+      if (m_cfg.n_partitions == 2) begin
+        expected_partition_hits.push_back(partition_size);
+        expected_partition_hits.push_back(partition_size - 1);
+      end else begin
+        expected_partition_hits.push_back(partition_size);
+        expected_partition_hits.push_back(partition_size);
+        for (int idx = 2; idx < m_cfg.n_partitions; idx++) begin
+          expected_partition_hits.push_back(partition_size / 4);
+        end
+      end
+      target_hits = 0;
+      foreach (expected_partition_hits[idx]) begin
+        target_hits += expected_partition_hits[idx];
+      end
+      run_partition_share_profile_case(
+        "P052 active-build partition contention profile",
+        16'd2000,
+        2,
+        target_hits,
+        expected_partition_hits,
+        3_000_000);
+    end else if (case_id == "P053") begin
+      int unsigned expected_partition_hits[$];
+      int unsigned target_hits;
+      expected_partition_hits.push_back(partition_size);
+      expected_partition_hits.push_back(1);
+      for (int idx = 2; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(0);
+      end
+      target_hits = 0;
+      foreach (expected_partition_hits[idx]) begin
+        target_hits += expected_partition_hits[idx];
+      end
+      run_partition_share_profile_case(
+        "P053 active-build adversarial partition skew profile",
+        16'd2000,
+        2,
+        target_hits,
+        expected_partition_hits,
         2_500_000);
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);

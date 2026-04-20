@@ -5,7 +5,7 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also closes the soft-reset and descriptor-backpressure RTL bugs, fixes the staged late-arrival PROF harness, and republishes the delivered package as `26.1.11.0419`.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also closes the soft-reset and descriptor-backpressure RTL bugs, fixes the staged late-arrival PROF harness, extends the active-build partition-share PROF coverage through `P050-P053`, and republishes the delivered package as `26.1.11.0419`.
 - Sign-off status: the current isolated DV dashboard and standalone `ring_buffer_cam_syn_p4` timing compile pass on the live RTL; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
@@ -15,8 +15,8 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,364` ALMs, `2,825` registers, slow-85C setup slack `+0.450 ns`, worst hold slack `+0.162 ns`, slow-corner Fmax `146.56 MHz`
-  - current DV dashboard: `302/516` cases evidenced (`58.53%`) with `0` active failed implemented cases on `default_p2_pipe4`
-  - targeted post-fix rerun slices: `23/23` clean across `B010`, `B011`, `B123`, `B124`, `E019`, `E020`, `E124`, `P025`, `X005`, `X035`, `X036`, `X071-X079`, `X081`, `X085`, and `X113`; plus a clean `B010`, `B011`, `P041-P045` rerun after the staged late-arrival harness fix
+  - current DV dashboard: `306/516` cases evidenced (`59.30%`) with `0` active failed implemented cases on `default_p2_pipe4`
+  - targeted post-fix rerun slices: `23/23` clean across `B010`, `B011`, `B123`, `B124`, `E019`, `E020`, `E124`, `P025`, `X005`, `X035`, `X036`, `X071-X079`, `X081`, `X085`, and `X113`; plus clean isolated reruns of `B010`, `B011`, `P041-P045` after the staged late-arrival harness fix and `P050-P053` after the partition-share PROF promotion
   - delivered package metadata: `26.1.11.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point

@@ -15,7 +15,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
 | ✅ | standalone_syn_p4_512 | `pass` |
-| ⚠️ | dv_closure | `302/516` planned cases evidenced |
+| ⚠️ | dv_closure | `306/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `58.53% (302/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `200` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `59.30% (306/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `196` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -53,7 +53,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-041` blocks stale descriptor consumption after soft-reset has already returned the DUT to `IDLE` |
 | ✅ | RTL | `BUG-042` blocks stale buffered push / overwrite retirement after soft-reset by requiring an active run state |
 | ✅ | Harness | `BUG-043` fixes the staged `P042` late-arrival helper so the fingerprint space stays unique and the aggregate ingress rate remains calibrated to the planned `gap=13` profile |
-| ✅ | DV | promoted `P041-P045` to live UVM and refreshed the metadata + PROF evidence slice with `B010`, `B011`, and `P041-P045` all clean in one isolated rerun |
+| ✅ | DV | promoted `P041-P045` and `P050-P053` to live UVM, then refreshed the active PROF evidence slice with clean isolated reruns on `B010`, `B011`, `P041-P045`, and `P050-P053` |
 | ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.11.0419` / `20260419` |
 
 ## Evidence Index
@@ -69,6 +69,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
+- The latest refresh was DV-only: `P050-P053` are now evidenced in the active `default_p2_pipe4` build, while the standalone synthesis result remains the last clean `ring_buffer_cam_syn_p4` compile reported in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md).
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
 - Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete even though the standalone timing/resource gate for the active P4 build is now green.

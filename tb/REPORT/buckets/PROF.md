@@ -1,6 +1,6 @@
 # ⚠️ PROF bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `60` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `64` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -76,10 +76,10 @@
 | ✅ | 47 | `P047` | stmt=94.60, branch=83.47, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.38 | [case](../cases/P047.md) |
 | ❓ | 48 | `P048` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P048.md) |
 | ❓ | 49 | `P049` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P049.md) |
-| ❓ | 50 | `P050` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P050.md) |
-| ❓ | 51 | `P051` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P051.md) |
-| ❓ | 52 | `P052` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P052.md) |
-| ❓ | 53 | `P053` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P053.md) |
+| ✅ | 50 | `P050` | stmt=94.60, branch=83.47, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.38 | [case](../cases/P050.md) |
+| ✅ | 51 | `P051` | stmt=94.60, branch=83.47, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.38 | [case](../cases/P051.md) |
+| ✅ | 52 | `P052` | stmt=94.60, branch=83.47, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.38 | [case](../cases/P052.md) |
+| ✅ | 53 | `P053` | stmt=94.60, branch=83.47, cond=67.74, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.38 | [case](../cases/P053.md) |
 | ❓ | 54 | `P054` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P054.md) |
 | ❓ | 55 | `P055` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P055.md) |
 | ❓ | 56 | `P056` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P056.md) |
