@@ -24,10 +24,10 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-042-R` | RTL | `2026-04-20` | The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state | `pending` |
-| ⚠️ | `BUG-041-R` | RTL | `2026-04-20` | The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE` | `pending` |
-| ⚠️ | `BUG-040-R` | RTL | `2026-04-20` | CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs | `pending` |
-| ⚠️ | `BUG-039-R` | RTL | `2026-04-20` | The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog | `pending` |
+| ✅ | `BUG-042-R` | RTL | `2026-04-20` | The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state | `08ad68b` |
+| ✅ | `BUG-041-R` | RTL | `2026-04-20` | The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE` | `08ad68b` |
+| ✅ | `BUG-040-R` | RTL | `2026-04-20` | CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs | `08ad68b` |
+| ✅ | `BUG-039-R` | RTL | `2026-04-20` | The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog | `08ad68b` |
 | ✅ | `BUG-038-H` | Harness | `2026-04-20` | The first partition-profile promotion assumed exact-partition prefill isolated the next epoch to partition 1, but the live contract exposes a `p0->p1` handoff window instead | `ca1b044` |
 | ✅ | `BUG-037-H` | Harness | `2026-04-20` | The default-build DV plan and report text drifted to `N_PARTITIONS=4` semantics even though the active dashboard build is `default_p2_pipe4` | `ca1b044` |
 | ✅ | `BUG-036-H` | Harness | `2026-04-20` | Data-bearing 256-hit packet subheaders were misclassified as zero-hit headers when the 8-bit hit-count field wrapped | `ca1b044` |

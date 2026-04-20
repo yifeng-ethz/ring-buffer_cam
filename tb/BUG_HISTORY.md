@@ -612,7 +612,7 @@ Normalization note:
 - Runtime / coverage context:
   - added explicit `pop_cmd_fifo_full /= '1'` gating in both `RUNNING` and `TERMINATING`, then verified with clean isolated reruns of `E019`, `E020`, `E124`, and `P025`
   - the `E124` monitor now observes real FIFO saturation while keeping outstanding descriptors bounded to the legal 16-entry depth
-- Commit: pending
+- Commit: 08ad68b
 
 ### BUG-040-R: CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs
 - Severity: `hard stuck error`
@@ -628,7 +628,7 @@ Normalization note:
 - Runtime / coverage context:
   - added explicit `csr.soft_reset` handling across the live state owners so the DUT returns to `IDLE`, clears counters/fill/FIFOs, and resets the internal push/pop bookkeeping
   - verified by clean isolated reruns of `X005`, `X035`, `X036`, `X071`, `X072`, `X073`, `X074`, `X075`, `X076`, `X077`, `X078`, `X079`, `X081`, `X085`, `X113`, and `B124`
-- Commit: pending
+- Commit: 08ad68b
 
 ### BUG-041-R: The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE`
 - Severity: `hard stuck error`
@@ -644,7 +644,7 @@ Normalization note:
 - Runtime / coverage context:
   - restricted `IDLE` descriptor consumption to active `RUNNING` / `TERMINATING` states, then verified with clean isolated reruns of `B124` and `X005`
   - the later full soft-reset rerun slice stayed clean with no residual pop-engine activity after reset
-- Commit: pending
+- Commit: 08ad68b
 
 ### BUG-042-R: The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state
 - Severity: `soft error`
@@ -660,4 +660,4 @@ Normalization note:
 - Runtime / coverage context:
   - gated push request generation on both `csr.soft_reset /= '1'` and an active run-state condition, then verified with clean isolated reruns of `X077`, `X079`, and `X081`
   - the later full soft-reset rerun slice stayed clean with zero post-reset push/overwrite accounting
-- Commit: pending
+- Commit: 08ad68b

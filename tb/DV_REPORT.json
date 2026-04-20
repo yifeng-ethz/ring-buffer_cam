@@ -315,7 +315,7 @@
       "date": "2026-04-20",
       "title": "The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "08ad68b"
     },
     {
       "bug_id": "BUG-040-R",
@@ -323,7 +323,7 @@
       "date": "2026-04-20",
       "title": "CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "08ad68b"
     },
     {
       "bug_id": "BUG-041-R",
@@ -331,7 +331,7 @@
       "date": "2026-04-20",
       "title": "The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE`",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "08ad68b"
     },
     {
       "bug_id": "BUG-042-R",
@@ -339,7 +339,7 @@
       "date": "2026-04-20",
       "title": "The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "08ad68b"
     }
   ],
   "buckets": {
