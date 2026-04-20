@@ -746,7 +746,7 @@ Normalization note:
 - Runtime / coverage context:
   - the scoreboard now recovers the matching live fingerprint from the raw pop payload even when `occupied=0`, retires the resident immediately, and leaves the later output beat to classify the drain as `cache_miss`
   - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
-- Commit: pending
+- Commit: 2fd3115
 
 ### BUG-048-H: Cache-miss output beats left the scoreboard pending-drain queue uncleared
 - Severity: `signoff block`
@@ -762,7 +762,7 @@ Normalization note:
 - Runtime / coverage context:
   - the cache-miss output path now consumes the matching pending-drain fingerprint before final packet-accounting checks run
   - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
-- Commit: pending
+- Commit: 2fd3115
 
 ### BUG-049-H: The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase
 - Severity: `signoff block`
@@ -778,4 +778,4 @@ Normalization note:
 - Runtime / coverage context:
   - replaced the live-bus force with a dedicated debug patch lane in `alt_simple_dpram` / `ring_buffer_cam_v2_core`, then rewrote the BASIC stale-slot helpers to patch exactly one written side-RAM entry for one clock
   - verified by clean isolated reruns of `B029`, `B030`, and `B067`, with `B027` remaining clean as the overwrite-path control
-- Commit: pending
+- Commit: 2fd3115

@@ -379,7 +379,7 @@
       "date": "2026-04-21",
       "title": "Cache-miss pop observations with `occupied=0` did not retire the live resident in the scoreboard",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "2fd3115"
     },
     {
       "bug_id": "BUG-048-H",
@@ -387,7 +387,7 @@
       "date": "2026-04-21",
       "title": "Cache-miss output beats left the scoreboard pending-drain queue uncleared",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "2fd3115"
     },
     {
       "bug_id": "BUG-049-H",
@@ -395,7 +395,7 @@
       "date": "2026-04-21",
       "title": "The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "2fd3115"
     }
   ],
   "buckets": {
