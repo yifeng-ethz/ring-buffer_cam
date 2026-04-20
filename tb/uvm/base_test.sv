@@ -3472,6 +3472,7 @@ class base_test extends uvm_test;
     string what = "terminate drain"
   );
     int unsigned source_wait_cycles;
+    int unsigned deassembly_wait_cycles;
     int unsigned term_wait_cycles;
     source_wait_cycles = 0;
     while (m_env.m_hit_drv.pending_source_items() != 0 && source_wait_cycles < max_cycles) begin
@@ -3488,6 +3489,23 @@ class base_test extends uvm_test;
         what, source_wait_cycles,
         m_env.m_hit_drv.offered_payload_total, m_env.m_hit_drv.accepted_payload_total), UVM_LOW)
     end
+    deassembly_wait_cycles = 0;
+    while (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1 &&
+           deassembly_wait_cycles < max_cycles) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      deassembly_wait_cycles++;
+    end
+    if (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+      `uvm_error("TERM", $sformatf(
+        "%s: deassembly fifo did not drain before TERMINATING: deassm_empty=%0d deassm_usedw=%0d after %0d cycles",
+        what, m_env.m_dbg_mon.vif.deassembly_fifo_empty,
+        m_env.m_dbg_mon.vif.deassembly_fifo_usedw, deassembly_wait_cycles))
+    end else begin
+      `uvm_info("TERM", $sformatf(
+        "%s: deassembly fifo drained before TERMINATING after %0d cycles (usedw=%0d)",
+        what, deassembly_wait_cycles, m_env.m_dbg_mon.vif.deassembly_fifo_usedw), UVM_LOW)
+    end
+    wait_clocks(4);
     `uvm_info("TERM", $sformatf("%s: issue TERMINATING entry pulse", what), UVM_LOW)
     ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
     `uvm_info("TERM", $sformatf("%s: send end-of-run marker", what), UVM_LOW)
@@ -4152,6 +4170,265 @@ class base_test extends uvm_test;
       m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries(),
       subhdr_delta, m_env.m_dbg_mon.push_count_at_first_pop, sink_low_cycles,
       observed_partition_mask), UVM_LOW)
+  endtask
+
+  task automatic check_window_service_rate(
+    string           what,
+    int unsigned     push_before,
+    int unsigned     pop_before,
+    int unsigned     overwrite_before,
+    longint unsigned traffic_start_cycle,
+    int unsigned     max_cycles_per_accepted_hit,
+    int unsigned     min_accepted_hits = 1
+  );
+    int unsigned     push_after;
+    int unsigned     pop_after;
+    int unsigned     overwrite_after;
+    int unsigned     push_delta;
+    int unsigned     pop_delta;
+    int unsigned     overwrite_delta;
+    longint unsigned effective_start_cycle;
+    longint unsigned active_span_cycles;
+    longint unsigned max_allowed_span_cycles;
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_after);
+
+    push_delta = push_after - push_before;
+    pop_delta = pop_after - pop_before;
+    overwrite_delta = overwrite_after - overwrite_before;
+
+    if (push_delta < min_accepted_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accepted too little traffic for a throughput audit: push_delta=%0d expected_at_least=%0d",
+        what, push_delta, min_accepted_hits))
+    end
+    if (push_delta != (pop_delta + overwrite_delta)) begin
+      `uvm_error("PROF", $sformatf(
+        "%s post-window accounting mismatch: push_delta=%0d pop_delta=%0d overwrite_delta=%0d",
+        what, push_delta, pop_delta, overwrite_delta))
+    end
+    if (push_delta == 0) begin
+      return;
+    end
+    effective_start_cycle = traffic_start_cycle;
+    if (effective_start_cycle == 0) begin
+      effective_start_cycle = m_env.m_hit_drv.first_accept_cycle;
+    end
+    if (effective_start_cycle == 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never observed an accepted hit before the throughput audit",
+        what))
+      return;
+    end
+    if (m_env.m_dbg_mon.last_pop_cycle < effective_start_cycle) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never observed a post-start pop event: traffic_start=%0d last_pop=%0d",
+        what, effective_start_cycle, m_env.m_dbg_mon.last_pop_cycle))
+      return;
+    end
+
+    active_span_cycles = m_env.m_dbg_mon.last_pop_cycle - effective_start_cycle + 1;
+    max_allowed_span_cycles = longint'(push_delta) * max_cycles_per_accepted_hit;
+    if (active_span_cycles > max_allowed_span_cycles) begin
+      `uvm_error("PROF", $sformatf(
+        "%s service span exceeded the conservative throughput floor: span=%0d max_allowed=%0d push_delta=%0d cycles_per_hit_limit=%0d",
+        what, active_span_cycles, max_allowed_span_cycles, push_delta, max_cycles_per_accepted_hit))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s service-rate summary: push_delta=%0d pop_delta=%0d overwrite_delta=%0d span_cycles=%0d cycles_per_hit_x100=%0d limit=%0d",
+      what, push_delta, pop_delta, overwrite_delta, active_span_cycles,
+      (push_delta == 0) ? 0 : int'((active_span_cycles * 100) / push_delta),
+      max_cycles_per_accepted_hit), UVM_LOW)
+  endtask
+
+  task automatic run_frequent_terminate_mixed_profile_case(
+    string       what,
+    int unsigned windows,
+    int unsigned timeout_cycles
+  );
+    same_key_burst_seq burst_seq;
+    single_push_pop_seq single_seq;
+    int unsigned hot_key_ord;
+    int unsigned single_key_ord;
+    int unsigned latency;
+    int unsigned rounds;
+    int unsigned burst_hits;
+    int unsigned singles_per_round;
+    int unsigned push_before;
+    int unsigned pop_before;
+    int unsigned overwrite_before;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+    int unsigned fill_level;
+    int unsigned total_push_delta;
+    int unsigned total_pop_delta;
+    int unsigned total_overwrite_delta;
+    longint unsigned traffic_start_cycle;
+
+    total_push_delta = 0;
+    total_pop_delta = 0;
+    total_overwrite_delta = 0;
+
+    for (int window = 0; window < windows; window++) begin
+      case (window % 3)
+        0: latency = 16'd128;
+        1: latency = 16'd2000;
+        default: latency = 16'd1;
+      endcase
+
+      configure_and_start(latency);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_before);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_before);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_before);
+      traffic_start_cycle = m_env.m_dbg_mon.sampled_cycles;
+
+      hot_key_ord = 2 + ((window * 5) % 16);
+      rounds = 4 + $urandom_range(0, 2);
+      for (int round = 0; round < rounds; round++) begin
+        burst_hits = 16 + $urandom_range(0, 24);
+        burst_seq = same_key_burst_seq::type_id::create($sformatf("%s_hot_%0d_%0d", what, window, round));
+        burst_seq.num_hits = burst_hits;
+        burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(hot_key_ord);
+        burst_seq.start(m_env.m_hit_seqr);
+
+        singles_per_round = 1 + $urandom_range(0, 2);
+        for (int single_idx = 0; single_idx < singles_per_round; single_idx++) begin
+          single_key_ord = 18 + ((window + round + single_idx) % 12);
+          if (single_key_ord == hot_key_ord) begin
+            single_key_ord++;
+          end
+          single_seq = single_push_pop_seq::type_id::create($sformatf("%s_single_%0d_%0d_%0d", what, window, round, single_idx));
+          single_seq.search_key = m_cfg.lane_key_ord_to_search_key(single_key_ord);
+          single_seq.hit_asic = (window + round + single_idx) & 4'hf;
+          single_seq.ingress_channel = (window + single_idx) & 4'hf;
+          single_seq.hit_channel = 5'd3;
+          single_seq.ts_low = (round + single_idx) & 4'hf;
+          single_seq.hit_tcc1n6 = (window + round + single_idx) & 3'h7;
+          single_seq.hit_tfine = ((window * 3) + round + single_idx) & 5'h1f;
+          single_seq.hit_et1n6 = 9'(32 + (window * 16) + (round * 4) + single_idx);
+          single_seq.start(m_env.m_hit_seqr);
+        end
+
+        wait_clocks($urandom_range(0, m_cfg.encoder_pipe_stages + 2));
+      end
+
+      terminate_and_drain(timeout_cycles, $sformatf("%s window_%0d terminate drain", what, window));
+      expect_service_model_accounting($sformatf("%s window_%0d post-terminate", what, window), 1, 0);
+      check_window_service_rate(
+        $sformatf("%s window_%0d", what, window),
+        push_before,
+        pop_before,
+        overwrite_before,
+        traffic_start_cycle,
+        96,
+        80);
+
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      total_push_delta += (push_count - push_before);
+      total_pop_delta += (pop_count - pop_before);
+      total_overwrite_delta += (overwrite_count - overwrite_before);
+    end
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (total_push_delta < (windows * 80)) begin
+      `uvm_error("PROF", $sformatf(
+        "%s total accepted traffic stayed below the planned floor: cumulative_push=%0d expected_at_least=%0d",
+        what, total_push_delta, windows * 80))
+    end
+    if (total_push_delta != total_pop_delta + total_overwrite_delta) begin
+      `uvm_error("PROF", $sformatf(
+        "%s cumulative accounting mismatch: cumulative_push=%0d cumulative_pop=%0d cumulative_overwrite=%0d",
+        what, total_push_delta, total_pop_delta, total_overwrite_delta))
+    end
+    if (push_count != pop_count || overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s final window accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: windows=%0d cumulative_push=%0d cumulative_pop=%0d cumulative_overwrite=%0d final_cache_miss=%0d max_live_fill=%0d max_source_backlog=%0d",
+      what, windows, total_push_delta, total_pop_delta, total_overwrite_delta, cache_miss_count,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_hit_drv.max_source_backlog), UVM_LOW)
+  endtask
+
+  task automatic run_config_aware_encoder_stress_case(
+    string       what,
+    int unsigned timeout_cycles
+  );
+    int unsigned    active_pool_keys;
+    int unsigned    num_hits;
+    int unsigned    inter_hit_gap_cycles;
+    int unsigned    min_data_subheaders;
+    int unsigned    min_max_fill;
+    int unsigned    max_cycles_per_hit;
+    logic [3:0]     expected_partition_mask;
+    longint unsigned traffic_start_cycle;
+
+    active_pool_keys = (m_cfg.n_partitions < 2) ? 4 : (m_cfg.n_partitions * 4);
+    if (active_pool_keys > 16) begin
+      active_pool_keys = 16;
+    end
+    num_hits = active_pool_keys * 128;
+    if (num_hits < 512) begin
+      num_hits = 512;
+    end
+    inter_hit_gap_cycles = 9 + m_cfg.encoder_pipe_stages;
+    min_data_subheaders = (active_pool_keys < 4) ? active_pool_keys : 4;
+    min_max_fill = m_cfg.ring_buffer_n_entry / 4;
+    max_cycles_per_hit = 32 + (m_cfg.encoder_pipe_stages * 8);
+    expected_partition_mask = (1 << m_cfg.n_partitions) - 1;
+    traffic_start_cycle = m_env.m_dbg_mon.sampled_cycles;
+
+    run_profile_integrity_case(
+      what,
+      16'd128,
+      num_hits,
+      2,
+      active_pool_keys,
+      1,
+      inter_hit_gap_cycles,
+      0,
+      0,
+      1'b1,
+      1'b0,
+      8'd0,
+      0,
+      0,
+      0,
+      timeout_cycles,
+      min_max_fill,
+      m_cfg.ring_buffer_n_entry,
+      min_data_subheaders,
+      1'b1,
+      32'h0060_0a11,
+      expected_partition_mask);
+
+    check_window_service_rate(
+      what,
+      0,
+      0,
+      0,
+      0,
+      max_cycles_per_hit,
+      num_hits);
+
+    `uvm_info("PROF", $sformatf(
+      "%s config summary: n_partitions=%0d encoder_pipe_stages=%0d pool_keys=%0d num_hits=%0d gap=%0d cycles_per_hit_limit=%0d",
+      what, m_cfg.n_partitions, m_cfg.encoder_pipe_stages,
+      active_pool_keys, num_hits, inter_hit_gap_cycles, max_cycles_per_hit), UVM_LOW)
   endtask
 
   task automatic run_profile_exact_depth_boundary_case(
@@ -5450,7 +5727,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd13;
+    version_word[15:12] = 4'd14;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -9350,6 +9627,15 @@ class base_test extends uvm_test;
       pressure_seq.start(m_env.m_hit_seqr);
       terminate_and_drain(350_000, "P004 overwrite soak terminate drain");
       expect_service_model_accounting("P004 overwrite soak post-terminate", 1, 1);
+    end else if (case_id == "P005") begin
+      run_frequent_terminate_mixed_profile_case(
+        "P005 mixed terminate/restart hotspot profile",
+        4,
+        250_000);
+    end else if (case_id == "P006") begin
+      run_config_aware_encoder_stress_case(
+        "P006 configuration-aware encoder stress profile",
+        3_000_000);
     end else if (case_id == "P007") begin
       run_profile_integrity_case(
         "P007 low-fill single-key",

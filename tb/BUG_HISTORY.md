@@ -713,3 +713,19 @@ Normalization note:
   - the pop scheduler now advances to the next pending partition when the just-issued partition still has more matches and a peer partition is already pending, while preserving the old stay-local behavior when the current partition is the only pending source
   - verified by clean isolated reruns of `B080`, `B099`, `B100`, `B101`, `B102`, `B103`, `P050`, `P051`, `P052`, `P053`, `P058`, `P061`, `P062`, and `P063`
 - Commit: 7c2beb7
+
+### BUG-046-H: Clean terminate/drain only waited for the source queue, not for the internal deassembly FIFO, and could wedge heavy overwrite soaks
+- Severity: `signoff block`
+- Encounter sim-time: `3906956000 ns (first P004 terminate-timeout repro in the post-P005/P006 P001-P006 regression rerun)`
+- First seen in: `P004` on 2026-04-20 during the first post-P005/P006 `P001-P006` regression slice, after `P005` and `P006` had already passed in isolation
+- Symptom:
+  - the overwrite soak reached a clean scoreboard end state (`remaining=0`, `pending_drain=0`, `epoch_idle=1`) but `terminating_drain_done` never asserted, so the helper timed out waiting for a terminate acknowledgement
+  - debug at timeout showed `accepted=4096` while only `push=3842`, with `deassembly_fifo_empty=0`, `deassembly_fifo_usedw=254`, and `endofrun_seen=1`, meaning accepted hits were stranded in the DUT's local deassembly buffer behind the end-of-run gate
+- Root cause:
+  - `terminate_and_drain()` only waited for `pending_source_items()==0` before issuing `CTRL_TERMINATING` and the end-of-run marker
+  - under deep overwrite pressure, accepted hits can still be buffered in the DUT's internal `deassembly_fifo` after the source queue is empty; once `endofrun_seen=1`, the push path stops draining that fifo, so the helper could wedge `terminating_drain_done` behind self-inflicted residual buffered traffic
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the clean terminate helper now waits for both the source queue and the DUT-visible `deassembly_fifo_empty` condition before pulsing `CTRL_TERMINATING`, then gives the push path a short settle window before sending the end-of-run marker
+  - verified by clean isolated reruns of `P004`, `P005`, and `P006`, followed by a clean `P001-P006` regression slice on `default_p2_pipe4`
+- Commit: pending

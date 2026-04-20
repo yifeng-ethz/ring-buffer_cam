@@ -52,9 +52,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.23 (advance the pop round-robin scheduler to the next pending partition when equal-load peers are waiting)
 --      Date: Apr 20, 2026
--- Version : 26.1.13
+-- Revision: 2.24 (no RTL logic delta; package the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure)
+--      Date: Apr 20, 2026
+-- Version : 26.1.14
 -- Date    : 20260419
--- Change  : fix the equal-load partition drain scheduler so pending peers receive true round-robin service in release 26.1.13.0419
+-- Change  : publish the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure as release 26.1.14.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -97,7 +99,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH       : natural := 13;
+	VERSION_PATCH       : natural := 14;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;

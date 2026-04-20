@@ -1,6 +1,6 @@
 # ring_buffer_cam — REPORT index
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-20` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 ## Legend
@@ -15,7 +15,7 @@
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 121 | stmt=95.69, branch=86.18, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 71 | stmt=94.54, branch=82.92, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.29 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 73 | stmt=91.91, branch=82.33, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.12 |
 | ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 |
 
 ## Cross / continuous-frame runs
@@ -32,8 +32,8 @@
 | ❓ | [`P001`](cases/P001.md) | PROF | 83 | [growth](txn_growth/P001.md) |
 | ❓ | [`P002`](cases/P002.md) | PROF | 105 | [growth](txn_growth/P002.md) |
 | ❓ | [`P003`](cases/P003.md) | PROF | 146 | [growth](txn_growth/P003.md) |
-| ❓ | [`P005`](cases/P005.md) | PROF | 0 | [growth](txn_growth/P005.md) |
-| ❓ | [`P006`](cases/P006.md) | PROF | 0 | [growth](txn_growth/P006.md) |
+| ❓ | [`P005`](cases/P005.md) | PROF | 190 | [growth](txn_growth/P005.md) |
+| ❓ | [`P006`](cases/P006.md) | PROF | 1024 | [growth](txn_growth/P006.md) |
 | ❓ | [`P007`](cases/P007.md) | PROF | 4096 | [growth](txn_growth/P007.md) |
 | ❓ | [`P008`](cases/P008.md) | PROF | 4096 | [growth](txn_growth/P008.md) |
 | ❓ | [`P009`](cases/P009.md) | PROF | 4096 | [growth](txn_growth/P009.md) |
@@ -158,10 +158,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `314`
+- evidenced_cases = `316`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=96.14, branch=84.98, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.63`
-- functional coverage: `60.85% (314/516)`
+- merged total code coverage: `stmt=96.02, branch=84.69, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.65`
+- functional coverage: `61.24% (316/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

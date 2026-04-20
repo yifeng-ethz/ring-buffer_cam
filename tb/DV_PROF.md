@@ -10,8 +10,8 @@
 | P002 | R | live UVM | `test_random_multi_key` | randomized multi-key traffic over several key groups | all keys eventually drain and no starvation |
 | P003 | R | live UVM | `test_random_throughput` | randomized deep same-key throughput run | sustained drain with no silent loss |
 | P004 | D | live UVM | old `test_overwrite_stress` intent | long overwrite-pressure soak in legal config | continuous legal overwrite with explicit loss accounting |
-| P005 | R | planned | derived from `test_overwrite_stress` intent | mixed same-key + single-key pipeline with random terminations | throughput remains measurable under frequent reset/terminate events |
-| P006 | R | planned | historical cfg sweep intent | partitioned encoder stress across configurations | no throughput cliff in alternative encoder settings |
+| P005 | R | live UVM | derived from `test_overwrite_stress` intent | mixed same-key hotspot plus single-hit inserts across repeated random-length terminate/restart windows | each window drains cleanly and the per-window service span stays above a conservative throughput floor |
+| P006 | R | live UVM | historical cfg sweep intent | configuration-aware partitioned encoder stress scaled to the active partition / pipe-stage build | all active partitions are exercised and the observed service span stays above a conservative configuration-aware throughput floor |
 
 # Canonical Planned Cases (P007-P129)
 

@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.13
+-- Version : 26.1.14
 -- Date    : 20260419
--- Change  : package the equal-load partition round-robin fix and refreshed active-build partition evidence as release 26.1.13.0419
+-- Change  : publish the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure as release 26.1.14.0419
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 13;
+        VERSION_PATCH       : natural := 14;
         BUILD               : natural := 419;
         VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;

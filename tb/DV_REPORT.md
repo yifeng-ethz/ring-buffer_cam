@@ -1,6 +1,6 @@
 # ⚠️ DV Report — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-20` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
 
 This page is the chief-architect dashboard. All per-case evidence lives under [`REPORT/`](REPORT/README.md).
@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `187` |
+| ⚠️ | unimplemented_cases | `185` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,6 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-046-H` | Harness | `2026-04-20` | Clean terminate/drain only waited for the source queue, not for the internal deassembly FIFO, and could wedge heavy overwrite soaks | `pending` |
 | ✅ | `BUG-045-R` | RTL | `2026-04-20` | The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending | `7c2beb7` |
 | ✅ | `BUG-044-H` | Harness | `2026-04-20` | Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished | `8b9ad49` |
 | ✅ | `BUG-043-H` | Harness | `2026-04-20` | The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch | `97f956c` |
@@ -31,7 +32,6 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ✅ | `BUG-041-R` | RTL | `2026-04-20` | The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE` | `08ad68b` |
 | ✅ | `BUG-040-R` | RTL | `2026-04-20` | CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs | `08ad68b` |
 | ✅ | `BUG-039-R` | RTL | `2026-04-20` | The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog | `08ad68b` |
-| ✅ | `BUG-038-H` | Harness | `2026-04-20` | The first partition-profile promotion assumed exact-partition prefill isolated the next epoch to partition 1, but the live contract exposes a `p0->p1` handoff window instead | `ca1b044` |
 
 ## Formal / contract cases
 
@@ -45,9 +45,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
 | ⚠️ | `BASIC` | 129 | 121 | 93.80% | 13821 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 30 | 23.26% | 25561 | 0 | 0 | 0 |
-| ⚠️ | `PROF` | 129 | 71 | 55.04% | 553360 | 0 | 0 | 0 |
+| ⚠️ | `PROF` | 129 | 73 | 56.59% | 554574 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 92 | 71.32% | 4353 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 314 | 60.85% | 597095 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 316 | 61.24% | 598309 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -57,22 +57,22 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---:|---:|---|---|
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 121 | stmt=95.69, branch=86.18, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | 93.8% (121/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 | 23.26% (30/129) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 71 | stmt=94.54, branch=82.92, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.29 | 55.04% (71/129) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 73 | stmt=91.91, branch=82.33, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.12 | 56.59% (73/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 | 71.32% (92/129) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 96.14 | 95.0 |
-| ⚠️ | branch | 84.98 | 90.0 |
+| ✅ | stmt | 96.02 | 95.0 |
+| ⚠️ | branch | 84.69 | 90.0 |
 | ℹ️ | cond | 72.52 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 73.63 | 80.0 |
+| ⚠️ | toggle | 73.65 | 80.0 |
 
-- functional coverage: `60.85% (314/516)`
+- functional coverage: `61.24% (316/516)`
 
 ## Cross / continuous-frame signoff
 

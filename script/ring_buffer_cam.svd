@@ -4,7 +4,7 @@
   <vendorID>MU3E</vendorID>
   <name>MU3E_RING_BUFFER_CAM</name>
   <series>MU3E_FPGA_IP</series>
-  <version>26.1.13.0419</version>
+  <version>26.1.14.0419</version>
   <description>CMSIS-SVD description of the ring_buffer_cam CSR window.</description>
   <addressUnitBits>8</addressUnitBits>
   <width>32</width>
