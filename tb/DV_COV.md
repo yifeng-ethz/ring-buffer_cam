@@ -24,7 +24,7 @@ This page is the coverage summary only. Per-case incremental coverage lives unde
 |:---:|---|---|---|---|---|---|---|---|
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 95.81 | 85.81 | 70.23 | 40.00 | 100.00 | 66.67 | 71.83 |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 95.31 | 84.01 | 69.35 | 40.00 | 100.00 | 66.67 | 67.09 |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 95.44 | 84.67 | 68.55 | 40.00 | 100.00 | 66.67 | 67.55 |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 95.31 | 84.36 | 68.55 | 40.00 | 100.00 | 66.67 | 67.55 |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 95.94 | 86.45 | 70.97 | 40.00 | 100.00 | 66.67 | 67.58 |
 
 ## Continuous-frame baselines by build

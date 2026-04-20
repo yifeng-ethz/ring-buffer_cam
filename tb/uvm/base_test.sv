@@ -4070,6 +4070,225 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_profile_integrity_case(
+    string        what,
+    int unsigned  latency,
+    int unsigned  num_hits,
+    int unsigned  lane_key_start_ord,
+    int unsigned  pool_keys,
+    int unsigned  hits_per_key_switch,
+    int unsigned  inter_hit_gap_cycles,
+    int unsigned  random_gap_min_cycles,
+    int unsigned  random_gap_max_cycles,
+    bit           randomize_key_order,
+    bit           use_bernoulli_arrival,
+    byte unsigned bernoulli_arrival_threshold,
+    int unsigned  burst_len,
+    int unsigned  burst_idle_cycles,
+    int unsigned  sink_ready_mode,
+    int unsigned  timeout_cycles,
+    int unsigned  min_max_fill,
+    int unsigned  max_max_fill,
+    int unsigned  min_data_subheaders,
+    bit           check_latency_readback = 1'b0
+  );
+    profile_traffic_seq prof_seq;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+    int unsigned fill_level;
+    int unsigned subhdr_before;
+    int unsigned subhdr_delta;
+    int unsigned sink_low_cycles;
+    int unsigned sink_cycles;
+    logic [31:0] latency_readback;
+    logic [31:0] ready_lfsr;
+    bit          traffic_done;
+    bit          ready_now;
+
+    subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+    sink_low_cycles = 0;
+    traffic_done = 1'b0;
+    ready_lfsr = 32'h1bad_cafe;
+
+    configure_and_start(latency);
+    if (check_latency_readback) begin
+      csr_read(CSR_EXPECTED_LAT_ADDR, latency_readback);
+      if (latency_readback != latency[31:0]) begin
+        `uvm_error("PROF", $sformatf(
+          "%s latency readback mismatch: observed=%0d expected=%0d",
+          what, latency_readback, latency))
+      end
+    end
+
+    fork
+      begin : sink_ready_thread
+        if (sink_ready_mode != 0) begin
+          sink_cycles = 0;
+          while (sink_cycles < timeout_cycles &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            case (sink_ready_mode)
+              1: ready_now = ((sink_cycles & 2'b11) != 2'b11); // 75% ready
+              2: ready_now = ((sink_cycles & 1'b1) == 1'b0);   // 50% ready
+              3: begin
+                ready_lfsr = {ready_lfsr[30:0],
+                              ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+                ready_now = (ready_lfsr[7:0] < 8'd179);        // ~70% ready
+              end
+              default: ready_now = 1'b1;
+            endcase
+            set_sink_ready(ready_now);
+            if (!ready_now) begin
+              sink_low_cycles++;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            sink_cycles++;
+          end
+          set_sink_ready(1'b1);
+        end
+      end
+      begin : traffic_thread
+        prof_seq = profile_traffic_seq::type_id::create({what, "_profile"});
+        prof_seq.num_hits = num_hits;
+        prof_seq.lane_key_start_ord = lane_key_start_ord;
+        prof_seq.pool_keys = pool_keys;
+        prof_seq.hits_per_key_switch = hits_per_key_switch;
+        prof_seq.randomize_key_order = randomize_key_order;
+        prof_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+        prof_seq.random_gap_min_cycles = random_gap_min_cycles;
+        prof_seq.random_gap_max_cycles = random_gap_max_cycles;
+        prof_seq.use_bernoulli_arrival = use_bernoulli_arrival;
+        prof_seq.bernoulli_arrival_threshold = bernoulli_arrival_threshold;
+        prof_seq.burst_len = burst_len;
+        prof_seq.burst_idle_cycles = burst_idle_cycles;
+        prof_seq.progress_stride = (num_hits >= 4096) ? (num_hits / 4) : (num_hits / 2);
+        prof_seq.progress_tag = what;
+        prof_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+    join
+
+    set_sink_ready(1'b1);
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    subhdr_delta = m_env.m_out_mon.total_data_subheaders_seen - subhdr_before;
+
+    if (push_count != num_hits || pop_count != num_hits ||
+        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        num_hits, num_hits))
+    end
+    if (sink_ready_mode != 0 && sink_low_cycles == 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never forced sink-ready low despite a backpressure-enabled case",
+        what))
+    end
+    if (min_data_subheaders > 0 && subhdr_delta < min_data_subheaders) begin
+      `uvm_error("PROF", $sformatf(
+        "%s produced too few data-bearing subheaders: observed=%0d expected_at_least=%0d",
+        what, subhdr_delta, min_data_subheaders))
+    end
+    if (min_max_fill > 0 && m_env.m_dbg_mon.max_live_fill < min_max_fill) begin
+      `uvm_error("PROF", $sformatf(
+        "%s fill envelope stayed too low: max_live_fill=%0d expected_at_least=%0d",
+        what, m_env.m_dbg_mon.max_live_fill, min_max_fill))
+    end
+    if (max_max_fill > 0 && m_env.m_dbg_mon.max_live_fill > max_max_fill) begin
+      `uvm_error("PROF", $sformatf(
+        "%s fill envelope exceeded the allowed bound: max_live_fill=%0d expected_at_most=%0d",
+        what, m_env.m_dbg_mon.max_live_fill, max_max_fill))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: latency=%0d num_hits=%0d pool_keys=%0d gap=%0d rand_gap=[%0d,%0d] bernoulli=%0d/%0d burst=%0d/%0d sink_mode=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d max_live_fill=%0d max_remaining=%0d data_subheaders=%0d pushes_before_first_pop=%0d sink_low_cycles=%0d",
+      what, latency, num_hits, pool_keys, inter_hit_gap_cycles,
+      random_gap_min_cycles, random_gap_max_cycles,
+      use_bernoulli_arrival, bernoulli_arrival_threshold,
+      burst_len, burst_idle_cycles, sink_ready_mode,
+      push_count, pop_count, overwrite_count, cache_miss_count,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries(),
+      subhdr_delta, m_env.m_dbg_mon.push_count_at_first_pop, sink_low_cycles), UVM_LOW)
+  endtask
+
+  task automatic run_profile_exact_depth_boundary_case(
+    string       what,
+    int unsigned latency,
+    int unsigned key_ord
+  );
+    same_key_burst_seq burst_seq;
+    single_push_pop_seq single_seq;
+    int unsigned focus_search_key;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned fill_level;
+
+    configure_and_start(latency);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(key_ord);
+
+    burst_seq = same_key_burst_seq::type_id::create({what, "_prefill"});
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, {what, " exact-depth fill"});
+    wait_clocks(4);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != m_cfg.ring_buffer_n_entry || overwrite_count != 0 ||
+        fill_level != m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PROF", $sformatf(
+        "%s exact-depth precondition mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_fill=%0d",
+        what, push_count, pop_count, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry))
+    end
+
+    single_seq = single_push_pop_seq::type_id::create({what, "_overflow"});
+    single_seq.search_key = focus_search_key;
+    single_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(m_cfg.ring_buffer_n_entry + 1, 80_000, {what, " depth-plus-one push"});
+    wait_clocks(4);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (overwrite_count != 1 || fill_level != m_cfg.ring_buffer_n_entry) begin
+      `uvm_error("PROF", $sformatf(
+        "%s depth+1 overwrite mismatch: overwrite=%0d fill=%0d expected=1/%0d",
+        what, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry))
+    end
+
+    terminate_and_drain(200_000, {what, " terminate drain"});
+    expect_service_model_accounting({what, " terminate drain"}, 1, 1);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != (m_cfg.ring_buffer_n_entry + 1) ||
+        pop_count != m_cfg.ring_buffer_n_entry ||
+        overwrite_count != 1 ||
+        fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s final accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected=%0d/%0d/1/0",
+        what, push_count, pop_count, overwrite_count, fill_level,
+        m_cfg.ring_buffer_n_entry + 1, m_cfg.ring_buffer_n_entry))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: push=%0d pop=%0d overwrite=%0d fill=%0d max_live_fill=%0d max_remaining=%0d",
+      what, push_count, pop_count, overwrite_count, fill_level,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
   function automatic logic [31:0] expected_meta_version();
     logic [31:0] version_word;
     version_word = '0;
@@ -4352,6 +4571,7 @@ class base_test extends uvm_test;
     int unsigned          error_hit_count;
     int unsigned          partition_size;
     int unsigned          prefill_hits;
+    int unsigned          latency_choice;
     logic [3:0]           load_mask;
     logic [1:0]           rr_before;
     int unsigned          last_partition_idx;
@@ -7828,6 +8048,166 @@ class base_test extends uvm_test;
       pressure_seq.start(m_env.m_hit_seqr);
       terminate_and_drain(350_000, "P004 overwrite soak terminate drain");
       expect_service_model_accounting("P004 overwrite soak post-terminate", 1, 1);
+    end else if (case_id == "P007") begin
+      run_profile_integrity_case(
+        "P007 low-fill single-key",
+        16'd128, 4_096, 2, 1, 1,
+        31, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 1, 1'b1);
+    end else if (case_id == "P008") begin
+      run_profile_integrity_case(
+        "P008 medium-fill single-key",
+        16'd128, 4_096, 2, 1, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 1, 1'b1);
+    end else if (case_id == "P009") begin
+      run_profile_integrity_case(
+        "P009 high-fill single-key",
+        16'd128, 4_096, 2, 1, 1,
+        13, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 1, 1'b1);
+    end else if (case_id == "P010") begin
+      run_profile_integrity_case(
+        "P010 two-key round-robin",
+        16'd128, 4_096, 2, 2, 1,
+        11, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 2, 1'b1);
+    end else if (case_id == "P011") begin
+      run_profile_integrity_case(
+        "P011 four-key round-robin",
+        16'd128, 4_096, 2, 4, 1,
+        13, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 4, 1'b1);
+    end else if (case_id == "P012") begin
+      run_profile_integrity_case(
+        "P012 eight-key round-robin",
+        16'd128, 4_096, 2, 8, 1,
+        13, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 8, 1'b1);
+    end else if (case_id == "P013") begin
+      run_profile_integrity_case(
+        "P013 sixteen-key round-robin",
+        16'd128, 4_096, 2, 16, 1,
+        13, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 16, 1'b1);
+    end else if (case_id == "P014") begin
+      run_profile_integrity_case(
+        "P014 full lane-local keyspace",
+        16'd128, 4_096, 0, 64, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 900_000,
+        0, 0, 64, 1'b1);
+    end else if (case_id == "P015") begin
+      run_profile_integrity_case(
+        "P015 burst-gap four-key",
+        16'd128, 4_096, 2, 4, 1,
+        0, 0, 0, 1'b0, 1'b0, 8'd0,
+        16, 176, 0, 600_000,
+        0, 0, 8, 1'b1);
+    end else if (case_id == "P016") begin
+      run_profile_integrity_case(
+        "P016 bernoulli-lambda-0p5",
+        16'd128, 4_096, 2, 4, 1,
+        0, 0, 0, 1'b1, 1'b1, 8'd24,
+        0, 0, 0, 600_000,
+        0, 0, 8, 1'b1);
+    end else if (case_id == "P017") begin
+      run_profile_integrity_case(
+        "P017 bernoulli-lambda-0p9",
+        16'd128, 4_096, 2, 4, 1,
+        0, 0, 0, 1'b1, 1'b1, 8'd28,
+        0, 0, 0, 600_000,
+        0, 0, 8, 1'b1);
+    end else if (case_id == "P018") begin
+      run_profile_integrity_case(
+        "P018 fixed-75-ready",
+        16'd128, 4_096, 2, 4, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 1, 700_000,
+        0, 0, 4, 1'b1);
+    end else if (case_id == "P019") begin
+      run_profile_integrity_case(
+        "P019 fixed-50-ready",
+        16'd128, 4_096, 2, 4, 1,
+        23, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 2, 900_000,
+        0, 0, 4, 1'b1);
+    end else if (case_id == "P020") begin
+      run_profile_integrity_case(
+        "P020 prng-70-ready",
+        16'd128, 4_096, 2, 4, 1,
+        17, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 3, 800_000,
+        0, 0, 8, 1'b1);
+    end else if (case_id == "P021") begin
+      latency_choice = $urandom_range(0, 2);
+      case (latency_choice)
+        0: latency_choice = 1;
+        1: latency_choice = 128;
+        default: latency_choice = 2000;
+      endcase
+      run_profile_integrity_case(
+        $sformatf("P021 latency-choice-%0d", latency_choice),
+        latency_choice, 4_096, 2, 4, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 1_200_000,
+        0, 0, 4, 1'b1);
+      if (latency_choice == 1 && m_env.m_dbg_mon.push_count_at_first_pop > 4) begin
+        `uvm_error("P021", $sformatf(
+          "Min-latency selection admitted too many pushes before first pop: observed=%0d expected_at_most=4",
+          m_env.m_dbg_mon.push_count_at_first_pop))
+      end
+      if (latency_choice == 128 &&
+          (m_env.m_dbg_mon.push_count_at_first_pop < 8 ||
+           m_env.m_dbg_mon.push_count_at_first_pop > 24)) begin
+        `uvm_error("P021", $sformatf(
+          "Default-latency selection escaped the expected pre-service window: observed=%0d expected=[8,24]",
+          m_env.m_dbg_mon.push_count_at_first_pop))
+      end
+      if (latency_choice == 2000 &&
+          (m_env.m_dbg_mon.push_count_at_first_pop < 96 ||
+           m_env.m_dbg_mon.push_count_at_first_pop > 160)) begin
+        `uvm_error("P021", $sformatf(
+          "Long-latency selection escaped the expected pre-service window: observed=%0d expected=[96,160]",
+          m_env.m_dbg_mon.push_count_at_first_pop))
+      end
+    end else if (case_id == "P022") begin
+      run_profile_integrity_case(
+        "P022 min-latency profile",
+        16'd1, 4_096, 2, 4, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 500_000,
+        0, 0, 4, 1'b1);
+      if (m_env.m_dbg_mon.first_pop_cycle == 0 ||
+          m_env.m_dbg_mon.push_count_at_first_pop > 24) begin
+        `uvm_error("P022", $sformatf(
+          "Min-latency profile delayed the first pop too much: first_pop=%0d pushes_before_first_pop=%0d expected_pushes_at_most=24",
+          m_env.m_dbg_mon.first_pop_cycle, m_env.m_dbg_mon.push_count_at_first_pop))
+      end
+    end else if (case_id == "P023") begin
+      run_profile_integrity_case(
+        "P023 long-latency profile",
+        16'd2000, 4_096, 2, 4, 1,
+        15, 0, 0, 1'b0, 1'b0, 8'd0,
+        0, 0, 0, 1_200_000,
+        0, 0, 4, 1'b1);
+      if (m_env.m_dbg_mon.first_pop_cycle == 0 ||
+          m_env.m_dbg_mon.push_count_at_first_pop < 96) begin
+        `uvm_error("P023", $sformatf(
+          "Long-latency profile did not hold enough traffic before first pop: first_pop=%0d pushes_before_first_pop=%0d expected_at_least=96",
+          m_env.m_dbg_mon.first_pop_cycle, m_env.m_dbg_mon.push_count_at_first_pop))
+      end
+    end else if (case_id == "P024") begin
+      run_profile_exact_depth_boundary_case(
+        "P024 exact-depth boundary",
+        16'd2000, 2);
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);
     end else if (case_id == "P112") begin

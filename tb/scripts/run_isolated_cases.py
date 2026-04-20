@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 from collections import OrderedDict
@@ -14,6 +15,9 @@ from pathlib import Path
 TB = Path(__file__).resolve().parents[1]
 UVM_DIR = TB / "uvm"
 BASE_TEST = UVM_DIR / "base_test.sv"
+WORK_LOGS = UVM_DIR / "work_uvm" / "logs"
+PUB_LOGS = UVM_DIR / "logs"
+PUB_COV = UVM_DIR / "cov_after"
 BUCKET_FILES = OrderedDict(
     [
         ("BASIC", TB / "DV_BASIC.md"),
@@ -87,6 +91,21 @@ def run_case(case_id: str, args: argparse.Namespace) -> tuple[int, str]:
     return result.returncode, result.stdout
 
 
+def publish_case_artifacts(case_id: str, args: argparse.Namespace) -> None:
+    work_log = WORK_LOGS / f"test_case_engine_{case_id}_s{args.seed}.log"
+    pub_log = PUB_LOGS / f"{case_id}_{args.rtl_variant}_s{args.seed}.log"
+    work_ucdb = UVM_DIR / f"cov_{args.rtl_variant}" / f"{case_id}_s{args.seed}.ucdb"
+    pub_ucdb = PUB_COV / f"{case_id}_s{args.seed}.ucdb"
+
+    PUB_LOGS.mkdir(parents=True, exist_ok=True)
+    PUB_COV.mkdir(parents=True, exist_ok=True)
+
+    if work_log.exists():
+        shutil.copy2(work_log, pub_log)
+    if work_ucdb.exists() and work_ucdb.stat().st_size > 0:
+        shutil.copy2(work_ucdb, pub_ucdb)
+
+
 def main() -> int:
     args = parse_args()
     ordered = doc_case_order()
@@ -123,6 +142,8 @@ def main() -> int:
             print(f"[isolated] fail {case_id}\n{tail}", flush=True)
             if not args.continue_on_fail:
                 break
+        else:
+            publish_case_artifacts(case_id, args)
 
     print(
         f"[isolated] done total={total} executed={executed} skipped={skipped} failures={len(failures)}",

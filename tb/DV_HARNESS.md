@@ -17,7 +17,7 @@ The harness must make these properties observable:
 
 The live harness under `tb/uvm/` currently contains:
 
-- `tb_top.sv`: clock/reset, mixed-language DUT instantiation, always-ready egress sink
+- `tb_top.sv`: clock/reset, mixed-language DUT instantiation, default-ready egress sink with testcase-controlled ready override through `set_sink_ready()`
 - `hit_driver.sv`, `ctrl_driver.sv`, `csr_driver.sv`: active drivers
 - `hit_monitor.sv`, `out_monitor.sv`: passive ingress / egress monitors
 - `debug_monitor.sv`: DUT-side observer for push/pop/overwrite/cache-miss counters and push-write grants
@@ -27,7 +27,7 @@ The live harness under `tb/uvm/` currently contains:
 
 ## 3. Current Live Findings
 
-The 2026-04-16 rerun established:
+The current 2026-04-20 evidence set establishes:
 
 - the real CSR map is:
   - `0 = UID`
@@ -46,6 +46,12 @@ The 2026-04-16 rerun established:
   - `RUN_PREPARE` is re-issued so the second command waits on flush completion
   - `TERMINATING` is re-issued after the end-of-run marker so the driver waits on the real drain-complete path
 - several directed and error smoke cases now drain correctly, including `X007`, `X008`, and `X013`
+- the profile tranche `P007-P024` now runs through the isolated case engine with real log and UCDB evidence:
+  - same-key and multi-key integrity windows had to be calibrated against the DUT's real service rate rather than the older placeholder fill/txn prose
+  - the live no-overwrite profiles are therefore defined by measured ingress gaps and sink-ready patterns, not by the superseded nominal `10k/20k/30k` traffic counts in the early PROF draft
+- sink backpressure is now a real harness capability rather than a paper plan item:
+  - `P018-P020` drive 75%, 50%, and PRNG-shaped ready gating through `set_sink_ready()`
+  - those cases now provide real no-overwrite backpressure evidence instead of a blocked placeholder
 - overwrite-pressure closure now follows the resequencing-buffer service model:
   - `rbCAM` is a bounded per-sector service element, not an unbounded queue
   - with `RING_BUFFER_N_ENTRY=512` and default `EXPECTED_LATENCY=2000`, a burst that injects more than 512 hits of the same timestamp before the first pop window opens must overwrite legally
@@ -81,7 +87,7 @@ Current state:
 - cache-miss hit beats are tagged separately instead of being misclassified as impossible outputs
 - overwrite-aware expectations are still incomplete for the long overwrite and random throughput cases
 - same-ts hotspot pressure cases now use observed service-envelope checks instead of fixed overwrite counts
-- the multi-key cases still need better drain-completion sequencing or a stronger per-key retire model
+- the calibrated profile tranche closes the directed integrity windows for `P007-P024`, but the broader random multi-key / long-soak PROF space still needs a stronger per-key retire model before it can anchor signoff
 
 ## 5. Monitor And Observer Requirements
 
@@ -120,22 +126,22 @@ The harness does not close this today. It needs a dedicated run composer plus sc
 
 ## 7. Coverage And Artifact Requirements
 
-The current bench prints functional covergroup percentages into logs, but it does not yet save standalone UCDBs or checkpoint UCDBs. For full workflow closure it must:
+The harness now saves one isolated UCDB per rerun case under `tb/uvm/cov_after/`, and the report generator publishes matching isolated case logs under `tb/uvm/logs/`. The remaining closure gaps are:
 
-- save one isolated UCDB per case under `tb/uvm/cov_after/`
-- save checkpoint UCDBs for promoted random cases under `tb/uvm/cov_after/txn_growth/`
-- save merged UCDBs for `bucket_frame` and `all_buckets_frame`
-- expose code-coverage totals for statement, branch, condition, expression, FSM, and toggle coverage
+- checkpoint UCDBs for promoted random cases under `tb/uvm/cov_after/txn_growth/`
+- merged UCDBs for `bucket_frame` and `all_buckets_frame`
+- explicit continuous-frame coverage evidence for the future bucket / cross signoff runs
+- broader code-coverage growth beyond the current isolated case set
 
-Until that is implemented, the report generator writes explicit placeholder artifacts and marks the coverage pages as incomplete by design.
+Until those continuous-frame artifacts exist, the report generator keeps the bucket/cross growth pages partially populated and marks the missing checkpoint data explicitly.
 
 ## 8. Known Gaps To Close Next
 
 - `test_sequential_keys`: only part of the multi-key workload drains before end-of-test
 - `test_overwrite_stress` / `E003`: now reframed as a same-ts hotspot service-envelope test, but still needs a clean evidence rerun after the harness pressure observer changes
 - `test_random_multi_key` and `test_random_throughput`: same issue under randomized traffic
-- `tb_top.sv` still hardwires egress `ready=1`, so backpressure cross coverage is absent
 - only `BASIC` `bucket_frame` and curated crosses `CROSS-007` / `CROSS-010` exist today; the rest of `bucket_frame`, `all_buckets_frame`, and the overlap/counter-delay run families still need implementation
+- the next PROF closure tranche is beyond `P024`: fairness/skew/random-interleave cases need stronger per-key retire observability before they can be promoted without weakening the contract
 - no backdoor counter checker exists for delayed counter increments after injected errors
 
 These gaps are now first-class signoff blockers, not footnotes.

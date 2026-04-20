@@ -15,7 +15,7 @@
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 120 | stmt=95.81, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.83 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 29 | stmt=95.31, branch=84.01, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.09 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 19 | stmt=95.44, branch=84.67, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.55 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 37 | stmt=95.31, branch=84.36, cond=68.55, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.55 |
 | ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 84 | stmt=95.94, branch=86.45, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.58 |
 
 ## Cross / continuous-frame runs
@@ -34,24 +34,24 @@
 | ❓ | [`P003`](cases/P003.md) | PROF | 146 | [growth](txn_growth/P003.md) |
 | ❓ | [`P005`](cases/P005.md) | PROF | 0 | [growth](txn_growth/P005.md) |
 | ❓ | [`P006`](cases/P006.md) | PROF | 0 | [growth](txn_growth/P006.md) |
-| ❓ | [`P007`](cases/P007.md) | PROF | 0 | [growth](txn_growth/P007.md) |
-| ❓ | [`P008`](cases/P008.md) | PROF | 0 | [growth](txn_growth/P008.md) |
-| ❓ | [`P009`](cases/P009.md) | PROF | 0 | [growth](txn_growth/P009.md) |
-| ❓ | [`P010`](cases/P010.md) | PROF | 0 | [growth](txn_growth/P010.md) |
-| ❓ | [`P011`](cases/P011.md) | PROF | 0 | [growth](txn_growth/P011.md) |
-| ❓ | [`P012`](cases/P012.md) | PROF | 0 | [growth](txn_growth/P012.md) |
-| ❓ | [`P013`](cases/P013.md) | PROF | 0 | [growth](txn_growth/P013.md) |
-| ❓ | [`P014`](cases/P014.md) | PROF | 0 | [growth](txn_growth/P014.md) |
-| ❓ | [`P015`](cases/P015.md) | PROF | 0 | [growth](txn_growth/P015.md) |
-| ❓ | [`P016`](cases/P016.md) | PROF | 0 | [growth](txn_growth/P016.md) |
-| ❓ | [`P017`](cases/P017.md) | PROF | 0 | [growth](txn_growth/P017.md) |
-| ❓ | [`P018`](cases/P018.md) | PROF | 0 | [growth](txn_growth/P018.md) |
-| ❓ | [`P019`](cases/P019.md) | PROF | 0 | [growth](txn_growth/P019.md) |
-| ❓ | [`P020`](cases/P020.md) | PROF | 0 | [growth](txn_growth/P020.md) |
-| ❓ | [`P021`](cases/P021.md) | PROF | 0 | [growth](txn_growth/P021.md) |
-| ❓ | [`P022`](cases/P022.md) | PROF | 0 | [growth](txn_growth/P022.md) |
-| ❓ | [`P023`](cases/P023.md) | PROF | 0 | [growth](txn_growth/P023.md) |
-| ❓ | [`P024`](cases/P024.md) | PROF | 0 | [growth](txn_growth/P024.md) |
+| ❓ | [`P007`](cases/P007.md) | PROF | 4096 | [growth](txn_growth/P007.md) |
+| ❓ | [`P008`](cases/P008.md) | PROF | 4096 | [growth](txn_growth/P008.md) |
+| ❓ | [`P009`](cases/P009.md) | PROF | 4096 | [growth](txn_growth/P009.md) |
+| ❓ | [`P010`](cases/P010.md) | PROF | 4096 | [growth](txn_growth/P010.md) |
+| ❓ | [`P011`](cases/P011.md) | PROF | 4096 | [growth](txn_growth/P011.md) |
+| ❓ | [`P012`](cases/P012.md) | PROF | 4096 | [growth](txn_growth/P012.md) |
+| ❓ | [`P013`](cases/P013.md) | PROF | 4096 | [growth](txn_growth/P013.md) |
+| ❓ | [`P014`](cases/P014.md) | PROF | 4096 | [growth](txn_growth/P014.md) |
+| ❓ | [`P015`](cases/P015.md) | PROF | 4096 | [growth](txn_growth/P015.md) |
+| ❓ | [`P016`](cases/P016.md) | PROF | 4096 | [growth](txn_growth/P016.md) |
+| ❓ | [`P017`](cases/P017.md) | PROF | 4096 | [growth](txn_growth/P017.md) |
+| ❓ | [`P018`](cases/P018.md) | PROF | 4096 | [growth](txn_growth/P018.md) |
+| ❓ | [`P019`](cases/P019.md) | PROF | 4096 | [growth](txn_growth/P019.md) |
+| ❓ | [`P020`](cases/P020.md) | PROF | 4096 | [growth](txn_growth/P020.md) |
+| ❓ | [`P021`](cases/P021.md) | PROF | 4096 | [growth](txn_growth/P021.md) |
+| ❓ | [`P022`](cases/P022.md) | PROF | 4096 | [growth](txn_growth/P022.md) |
+| ❓ | [`P023`](cases/P023.md) | PROF | 4096 | [growth](txn_growth/P023.md) |
+| ❓ | [`P024`](cases/P024.md) | PROF | 513 | [growth](txn_growth/P024.md) |
 | ❓ | [`P025`](cases/P025.md) | PROF | 0 | [growth](txn_growth/P025.md) |
 | ❓ | [`P026`](cases/P026.md) | PROF | 0 | [growth](txn_growth/P026.md) |
 | ❓ | [`P027`](cases/P027.md) | PROF | 0 | [growth](txn_growth/P027.md) |
@@ -162,10 +162,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `252`
+- evidenced_cases = `270`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=96.76, branch=87.04, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=73.24`
-- functional coverage: `48.84% (252/516)`
+- functional coverage: `52.33% (270/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

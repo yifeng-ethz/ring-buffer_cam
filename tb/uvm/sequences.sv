@@ -391,6 +391,120 @@ class overwrite_profile_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_
   endtask
 endclass
 
+class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_item);
+  `uvm_object_utils(profile_traffic_seq)
+
+  int unsigned num_hits = 2048;
+  int unsigned lane_key_start_ord = 0;
+  int unsigned pool_keys = 1;
+  int unsigned hits_per_key_switch = 1;
+  bit          randomize_key_order = 0;
+  int unsigned inter_hit_gap_cycles = 0;
+  int unsigned random_gap_min_cycles = 0;
+  int unsigned random_gap_max_cycles = 0;
+  bit          use_bernoulli_arrival = 0;
+  byte unsigned bernoulli_arrival_threshold = 8'd128;
+  logic [31:0] lfsr_seed = 32'h1ace_b00c;
+  int unsigned burst_len = 0;
+  int unsigned burst_idle_cycles = 0;
+  int unsigned progress_stride = 0;
+  string       progress_tag = "";
+
+  function new(string name = "profile_traffic_seq");
+    super.new(name);
+  endfunction
+
+  function automatic logic [31:0] next_lfsr(logic [31:0] state);
+    logic feedback;
+    feedback = state[31] ^ state[21] ^ state[1] ^ state[0];
+    return {state[30:0], feedback};
+  endfunction
+
+  function automatic int unsigned choose_gap_cycles(ref logic [31:0] lfsr);
+    int unsigned span;
+    int unsigned gap_cycles;
+
+    gap_cycles = inter_hit_gap_cycles;
+
+    if (random_gap_max_cycles > random_gap_min_cycles) begin
+      span = random_gap_max_cycles - random_gap_min_cycles + 1;
+      lfsr = next_lfsr(lfsr);
+      gap_cycles += random_gap_min_cycles + (lfsr % span);
+    end else begin
+      gap_cycles += random_gap_min_cycles;
+    end
+
+    if (use_bernoulli_arrival) begin
+      gap_cycles = 0;
+      do begin
+        lfsr = next_lfsr(lfsr);
+        if (lfsr[7:0] < bernoulli_arrival_threshold) begin
+          break;
+        end
+        gap_cycles++;
+      end while (gap_cycles < 4096);
+    end
+
+    return gap_cycles;
+  endfunction
+
+  task body();
+    ring_buffer_cam_pkg::hit_seq_item hit;
+    int unsigned actual_key;
+    int unsigned lane_key_ord;
+    int unsigned effective_pool_keys;
+    int unsigned key_idx;
+    int unsigned key_switch;
+    int unsigned gap_cycles;
+    logic [31:0] lfsr;
+
+    effective_pool_keys = (pool_keys == 0) ? 1 : pool_keys;
+    key_switch = (hits_per_key_switch == 0) ? 1 : hits_per_key_switch;
+    lfsr = (lfsr_seed == '0) ? 32'h1ace_b00c : lfsr_seed;
+
+    for (int i = 0; i < num_hits; i++) begin
+      if (randomize_key_order && effective_pool_keys > 1) begin
+        lfsr = next_lfsr(lfsr);
+        key_idx = lfsr % effective_pool_keys;
+      end else begin
+        key_idx = (i / key_switch) % effective_pool_keys;
+      end
+      lane_key_ord = lane_key_start_ord + key_idx;
+      actual_key = (lane_key_ord * ring_buffer_cam_pkg::INTERLEAVING_FACTOR) +
+                   ring_buffer_cam_pkg::INTERLEAVING_INDEX;
+
+      hit = ring_buffer_cam_pkg::hit_seq_item::type_id::create("profile_hit");
+      start_item(hit);
+      hit.asic      = i & 4'hf;
+      hit.ingress_channel = (i >> 1) & 4'hf;
+      hit.channel   = (i >> 4) & 5'h1f;
+      hit.tcc8n     = 13'(actual_key * 16);
+      hit.tcc1n6    = (i >> 9) & 3'h7;
+      hit.tfine     = (i >> 4) & 5'h1f;
+      hit.et1n6     = i[8:0];
+      hit.has_error = 1'b0;
+      hit.is_empty_marker = 1'b0;
+      finish_item(hit);
+
+      if (progress_stride > 0 && (((i + 1) % progress_stride) == 0)) begin
+        `uvm_info("SEQ", $sformatf(
+          "%s progress: sent=%0d/%0d",
+          (progress_tag == "") ? get_name() : progress_tag, i + 1, num_hits), UVM_LOW)
+      end
+
+      gap_cycles = choose_gap_cycles(lfsr);
+      if (gap_cycles > 0)
+        #(gap_cycles * 8ns);
+      if (burst_len > 0 && burst_idle_cycles > 0 && ((i + 1) % burst_len) == 0)
+        #(burst_idle_cycles * 8ns);
+    end
+
+    `uvm_info("SEQ", $sformatf(
+      "%s completed: sent=%0d/%0d",
+      (progress_tag == "") ? get_name() : progress_tag, num_hits, num_hits), UVM_LOW)
+  endtask
+endclass
+
 class endofrun_marker_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_item);
   `uvm_object_utils(endofrun_marker_seq)
 
