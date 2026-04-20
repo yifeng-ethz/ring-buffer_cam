@@ -696,4 +696,4 @@ Normalization note:
     - `P059` now reports `sink_low_cycles=500`, `max_live_fill=234`, `observed_partition_mask=0x1`, `push=256`, `pop=256`
     - `P060` now reports `sink_low_cycles=14428`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=768`, `pop=768`
     - `P064` now reports `sink_low_cycles=9408`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=1024`, `pop=1024`
-- Commit: pending
+- Commit: 8b9ad49

@@ -355,7 +355,7 @@
       "date": "2026-04-20",
       "title": "Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "8b9ad49"
     }
   ],
   "buckets": {
