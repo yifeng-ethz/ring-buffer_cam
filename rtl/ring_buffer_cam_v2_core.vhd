@@ -42,9 +42,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.18 (no RTL delta; package the long-run fingerprint, explicit-seed, and calibrated PROF integrity refresh)
 --      Date: Apr 20, 2026
--- Version : 26.1.8
+-- Revision: 2.19 (no RTL delta; package the calibrated steady-state, overlap, and partition-profile PROF closure)
+--      Date: Apr 20, 2026
+-- Version : 26.1.9
 -- Date    : 20260419
--- Change  : keep the verified overwrite / counter fixes and package the PROF integrity refresh as release 26.1.8.0419
+-- Change  : keep the verified overwrite / counter fixes and package the next PROF closure tranche as release 26.1.9.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -87,7 +89,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 8;
+	VERSION_PATCH		: natural := 9;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;

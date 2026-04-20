@@ -4505,6 +4505,248 @@ class base_test extends uvm_test;
       num_epochs, inter_hit_gap_cycles, inter_epoch_gap_cycles, timeout_cycles);
   endtask
 
+  task automatic run_single_key_fixed_point_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned num_hits,
+    int unsigned lane_key_ord,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned timeout_cycles,
+    int unsigned min_max_fill,
+    int unsigned max_max_fill
+  );
+    run_profile_integrity_case(
+      what,
+      latency,
+      num_hits,
+      lane_key_ord,
+      1,
+      1,
+      inter_hit_gap_cycles,
+      0,
+      0,
+      1'b0,
+      1'b0,
+      8'd0,
+      0,
+      0,
+      0,
+      timeout_cycles,
+      min_max_fill,
+      max_max_fill,
+      32,
+      1'b1);
+  endtask
+
+  task automatic run_adversarial_overlap_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned lane_key_ord_a,
+    int unsigned lane_key_ord_b,
+    int unsigned num_epochs,
+    int unsigned inter_hit_gap_cycles,
+    int unsigned timeout_cycles
+  );
+    weighted_profile_seq weighted_seq;
+    int unsigned         lane_key_ords[$];
+    int unsigned         key_hits_per_epoch[$];
+    int unsigned         expected_hits[$];
+    int unsigned         push_count;
+    int unsigned         pop_count;
+    int unsigned         overwrite_count;
+    int unsigned         cache_miss_count;
+    int unsigned         fill_level;
+    bit                  saw_search_overlap;
+    bit                  saw_drain_overlap;
+    bit                  traffic_done;
+    int unsigned         search_cycles;
+
+    lane_key_ords.push_back(lane_key_ord_a);
+    lane_key_ords.push_back(lane_key_ord_b);
+    key_hits_per_epoch.push_back(1);
+    key_hits_per_epoch.push_back(1);
+    expected_hits.push_back(num_epochs);
+    expected_hits.push_back(num_epochs);
+    saw_search_overlap = 1'b0;
+    saw_drain_overlap = 1'b0;
+    traffic_done = 1'b0;
+
+    configure_and_start(latency);
+
+    fork
+      begin : overlap_traffic_thread
+        weighted_seq = weighted_profile_seq::type_id::create({what, "_weighted"});
+        weighted_seq.lane_key_ord_list.delete();
+        weighted_seq.key_hits_per_epoch.delete();
+        foreach (lane_key_ords[idx]) begin
+          weighted_seq.lane_key_ord_list.push_back(lane_key_ords[idx]);
+          weighted_seq.key_hits_per_epoch.push_back(key_hits_per_epoch[idx]);
+        end
+        weighted_seq.num_epochs = num_epochs;
+        weighted_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+        weighted_seq.progress_stride = ((num_epochs * 2) >= 4096) ?
+          ((num_epochs * 2) / 4) : (num_epochs * 2);
+        weighted_seq.progress_tag = what;
+        weighted_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+      begin : overlap_watch_thread
+        search_cycles = 0;
+        while (search_cycles < timeout_cycles &&
+               (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+          if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+              (m_env.m_dbg_mon.pop_engine_state_code inside {3'd1, 3'd2, 3'd3})) begin
+            saw_search_overlap = 1'b1;
+          end
+          if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+              (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            saw_drain_overlap = 1'b1;
+          end
+          @(posedge m_env.m_csr_drv.vif.clk);
+          search_cycles++;
+        end
+      end
+    join
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != (num_epochs * 2) ||
+        pop_count != (num_epochs * 2) ||
+        overwrite_count != 0 ||
+        cache_miss_count != 0 ||
+        fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        num_epochs * 2, num_epochs * 2))
+    end
+
+    check_exact_key_counts(what, lane_key_ords, expected_hits, 2);
+    if (!saw_search_overlap) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never observed push_write_grant during SEARCH/LOAD/COUNT",
+        what))
+    end
+    if (!saw_drain_overlap) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never observed pop_erase_grant while ingress traffic was still active",
+        what))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: total_hits=%0d per_key=%0d gap=%0d saw_search_overlap=%0d saw_drain_overlap=%0d max_live_fill=%0d max_remaining=%0d",
+      what, num_epochs * 2, num_epochs, inter_hit_gap_cycles,
+      saw_search_overlap, saw_drain_overlap,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
+  task automatic run_partition_local_profile_case(
+    string       what,
+    int unsigned latency,
+    int unsigned prefill_lane_key_ord,
+    int unsigned prefill_hits,
+    int unsigned target_lane_key_ord,
+    int unsigned target_hits,
+    logic [3:0] expected_partition_mask,
+    int unsigned timeout_cycles
+  );
+    same_key_burst_seq burst_seq;
+    int unsigned       prefill_search_key;
+    int unsigned       target_search_key;
+    int unsigned       hit_before;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+    int unsigned       overwrite_count;
+    int unsigned       cache_miss_count;
+    int unsigned       fill_level;
+    int unsigned       search_cycles;
+    logic [3:0]        observed_partition_mask;
+
+    configure_and_start(latency);
+
+    if (prefill_hits > 0) begin
+      prefill_search_key = m_cfg.lane_key_ord_to_search_key(prefill_lane_key_ord);
+      burst_seq = same_key_burst_seq::type_id::create({what, "_prefill"});
+      burst_seq.num_hits = prefill_hits;
+      burst_seq.search_key = prefill_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_scoreboard_idle(timeout_cycles, {what, " pointer-advance prefill"});
+      expect_service_model_accounting({what, " pointer-advance prefill"}, 1, 0);
+    end
+
+    target_search_key = m_cfg.lane_key_ord_to_search_key(target_lane_key_ord);
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    burst_seq = same_key_burst_seq::type_id::create({what, "_target"});
+    burst_seq.num_hits = target_hits;
+    burst_seq.search_key = target_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(prefill_hits + target_hits, timeout_cycles / 4, {what, " fill"});
+    if (m_env.m_scb.max_remaining_entries_for_key(target_search_key) < target_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never accumulated the requested target occupancy: key=0x%02x max_for_key=%0d expected=%0d",
+        what, target_search_key[7:0],
+        m_env.m_scb.max_remaining_entries_for_key(target_search_key), target_hits))
+    end
+
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+    wait_clocks(4);
+    wait_for_pop_engine_state(3'd4, 80_000, {what, " DRAIN entry"});
+
+    observed_partition_mask = '0;
+    search_cycles = 0;
+    while (search_cycles < timeout_cycles &&
+           (m_env.m_out_mon.total_hits_seen - hit_before) < target_hits) begin
+      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+        observed_partition_mask[m_env.m_dbg_mon.pop_issue_partition_idx] = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+
+    wait_for_hit_output_count(hit_before + target_hits, timeout_cycles, {what, " hit drain"});
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != (prefill_hits + target_hits) ||
+        pop_count != (prefill_hits + target_hits) ||
+        overwrite_count != 0 ||
+        cache_miss_count != 0 ||
+        fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        prefill_hits + target_hits, prefill_hits + target_hits))
+    end
+    if (observed_partition_mask != expected_partition_mask) begin
+      `uvm_error("PROF", $sformatf(
+        "%s partition issue mask mismatch: observed=0x%0h expected=0x%0h",
+        what, observed_partition_mask, expected_partition_mask))
+    end
+    if (m_env.m_scb.drained_hits_for_key(target_search_key[7:0]) != target_hits) begin
+      `uvm_error("PROF", $sformatf(
+        "%s target-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+        what, target_search_key[7:0],
+        m_env.m_scb.drained_hits_for_key(target_search_key[7:0]), target_hits))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s summary: prefill_hits=%0d target_hits=%0d observed_partition_mask=0x%0h max_live_fill=%0d max_remaining=%0d",
+      what, prefill_hits, target_hits, observed_partition_mask,
+      m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries()), UVM_LOW)
+  endtask
+
   task automatic run_multi_key_profile_case(
     string       what,
     int unsigned latency,
@@ -4716,7 +4958,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd8;
+    version_word[15:12] = 4'd9;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -8631,6 +8873,16 @@ class base_test extends uvm_test;
       run_profile_exact_depth_boundary_case(
         "P024 exact-depth boundary",
         16'd2000, 2);
+    end else if (case_id == "P025") begin
+      run_single_key_fixed_point_profile_case(
+        "P025 steady-state single-key fixed-point",
+        16'd128,
+        50_000,
+        2,
+        16,
+        2_500_000,
+        128,
+        384);
     end else if (case_id == "P026") begin
       run_weighted_multi_key_case(
         "P026 equal-weight four-key",
@@ -8695,6 +8947,15 @@ class base_test extends uvm_test;
         16'd128, 2,
         256, 256, 256, 256,
         2, 13, 176, 1_500_000);
+    end else if (case_id == "P031") begin
+      run_adversarial_overlap_profile_case(
+        "P031 adversarial two-key alternation",
+        16'd128,
+        2,
+        3,
+        10_000,
+        11,
+        2_000_000);
     end else if (case_id == "P032") begin
       run_randomized_multi_key_integrity_case(
         "P032 randomized eight-key reuse-50",
@@ -8780,6 +9041,29 @@ class base_test extends uvm_test;
         13,
         4_000_000,
         32'h0400_f10f);
+    end else if (case_id == "P046") begin
+      run_partition_local_profile_case(
+        "P046 default-build partition0-local profile",
+        16'd2000,
+        1,
+        0,
+        2,
+        partition_size - (partition_size / 4),
+        4'b0001,
+        2_000_000);
+    end else if (case_id == "P047") begin
+      if (m_cfg.n_partitions < 2) begin
+        `uvm_fatal("P047", "P047 requires at least two active partitions in the current build")
+      end
+      run_partition_local_profile_case(
+        "P047 default-build partition handoff profile",
+        16'd2000,
+        1,
+        partition_size,
+        2,
+        partition_size - (partition_size / 4),
+        4'b0011,
+        2_500_000);
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);
     end else if (case_id == "P112") begin

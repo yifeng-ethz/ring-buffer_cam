@@ -183,6 +183,10 @@ class scoreboard extends uvm_scoreboard;
     return total_data_subheaders_by_key[search_key];
   endfunction
 
+  function automatic bit is_data_subheader(ring_buffer_cam_pkg::out_seq_item item);
+    return item.is_subheader && ((item.hit_count != 0) || !item.eop);
+  endfunction
+
   function void update_peak_residency();
     int unsigned remaining;
     bit [7:0] search_key;
@@ -463,7 +467,7 @@ class scoreboard extends uvm_scoreboard;
       active_search_key = item.search_key;
       active_expected_hits = item.hit_count;
       active_seen_hits = 0;
-      if (item.hit_count != 0) begin
+      if (is_data_subheader(item)) begin
         if (!total_data_subheaders_by_key.exists(item.search_key)) begin
           total_data_subheaders_by_key[item.search_key] = 0;
         end

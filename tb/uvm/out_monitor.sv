@@ -29,6 +29,10 @@ class out_monitor extends uvm_monitor;
   ring_buffer_cam_pkg::out_seq_item recent_data_subheaders[$];
   ring_buffer_cam_pkg::out_seq_item recent_hits[$];
 
+  function automatic bit is_data_subheader(ring_buffer_cam_pkg::out_seq_item item);
+    return item.is_subheader && ((item.hit_count != 0) || !item.eop);
+  endfunction
+
   function new(string name, uvm_component parent);
     super.new(name, parent);
     drain_cycle_count = 0;
@@ -69,7 +73,7 @@ class out_monitor extends uvm_monitor;
       recent_subheaders.push_back(clone);
       if (recent_subheaders.size() > 64)
         void'(recent_subheaders.pop_front());
-      if (item.hit_count != 0) begin
+      if (is_data_subheader(item)) begin
         recent_data_subheaders.push_back(clone);
         if (recent_data_subheaders.size() > 64)
           void'(recent_data_subheaders.pop_front());
@@ -120,7 +124,7 @@ class out_monitor extends uvm_monitor;
             drain_hit_count   = 0;
           end
           total_subheaders_seen++;
-          if (item.hit_count > 0)
+          if (is_data_subheader(item))
             total_data_subheaders_seen++;
         end else begin
           // Hit data

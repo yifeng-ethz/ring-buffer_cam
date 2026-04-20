@@ -20,7 +20,7 @@
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
 | B009 | D | live UVM | none | CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity | UID CSR word 0 equals IP_UID generic across reset, RUNNING, TERMINATING reads; catches accidental writability or mux swap with META |
-| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,8,419) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
+| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,9,419) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
 | B011 | D | live UVM | none | CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260419) | META word 1 reads the 32-bit date integer; catches a stale META mux leftover after meta_sel write |
 | B012 | D | live UVM | none | CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic | META reads git hash constant; catches mis-decoded 2-bit selector |
 | B013 | D | live UVM | none | CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic | META reads instance id constant; catches default-branch fallthrough when other selectors are live |
@@ -67,7 +67,7 @@
 | B054 | D | live UVM | none | push pipeline depth 1: single hit, verify one-cycle push_write, no ERASE state entered (`addr_occupied=0` at write_pointer) | decision_reg sequence {0,4} only, OVERWRITE_COUNT stays 0; catches spurious erase |
 | B055 | D | live UVM | none | push pipeline depth 2: one hit followed by pointer wrap onto an occupied slot, state enters ERASE for one cycle | decision_reg sequence {0,1,0,...}, OVERWRITE_COUNT=1; catches missed overwrite detection |
 | B056 | D | live UVM | none | pop search latency baseline: `SEARCH` state counts `pop_search_wait_cnt` 0..5 before snapshotting match vector | measure IDLE->SEARCH->LOAD cycle count = 6; catches altered wait guard that would sample stale cam_match_addr_oh |
-| B057 | D | live UVM | none | pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per partition | count load pulses = 4 for default N_PARTITIONS=4; catches skipped partition |
+| B057 | D | live UVM | none | pop LOAD state walks `pop_load_idx` 0..N_PARTITIONS-1, asserting `pop_partition_load(i)` exactly once per live partition of the active build | count load pulses = `N_PARTITIONS` of the selected RTL variant (`2` on `default_p2_pipe4`); catches skipped partition |
 | B058 | D | live UVM | none | pop COUNT: MATCH_COUNT_CHUNKS_CONST chunks accumulated per partition using `count_ones_16` | seed CAM with 17 hits in one partition and verify total_hits=17; catches off-by-one in chunk iteration |
 | B059 | D | live UVM | none | pop COUNT zero-hit fast path: if `pop_count_total_acc=0` engine transitions COUNT -> RESET and asserts `pop_cmd_fifo_rdack` | observe one-cycle rdack and no DRAIN entry; catches a spurious DRAIN on empty search |
 | B060 | D | live UVM | none | subheader framing for empty drain: SOP+EOP same beat, hit_count field = 0x00, K237 lane = 0xF7 | capture first egress beat after cache miss; catches SOP-only framing regression |

@@ -165,7 +165,7 @@ One run per supported `N_PARTITIONS × ENCODER_PIPE_STAGES` point, plus promotio
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
 | CROSS-046 | `seed_sweep` | P046 → partition 0 saturated, 200k txn | single-partition saturation; other partitions idle |
-| CROSS-047 | `seed_sweep` | P047 → partition 1 saturated, 200k txn | same for partition 1 |
+| CROSS-047 | `seed_sweep` | P047 → exact-partition prefill followed by a target epoch that traverses the `p0->p1` handoff window, 200k txn | partition-handoff contract after a fully consumed first partition; both live partitions observed in the target issue mask |
 | CROSS-048 | `seed_sweep` | partition 2 saturated, 200k txn | same for partition 2 |
 | CROSS-049 | `seed_sweep` | partition 3 saturated, 200k txn | same for partition 3 |
 | CROSS-050 | `seed_sweep` | P050 balanced 4 partitions, 500k txn | per-partition drain throughput within ±5% |
