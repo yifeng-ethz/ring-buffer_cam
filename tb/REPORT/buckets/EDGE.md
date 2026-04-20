@@ -1,6 +1,6 @@
 # ⚠️ EDGE bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `24` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `25` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 95.56 | 95.0 |
-| ⚠️ | branch | 84.81 | 90.0 |
+| ✅ | stmt | 95.44 | 95.0 |
+| ⚠️ | branch | 84.31 | 90.0 |
 | ℹ️ | cond | 69.35 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 67.10 | 80.0 |
+| ⚠️ | toggle | 67.09 | 80.0 |
 
 ## Ordered merge trace
 
@@ -57,8 +57,8 @@
 | ❓ | 28 | `E028` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E028.md) |
 | ❓ | 29 | `E029` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E029.md) |
 | ❓ | 30 | `E030` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E030.md) |
-| ❓ | 31 | `E031` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E031.md) |
-| ✅ | 32 | `E032` | stmt=95.56, branch=84.81, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.10 | [case](../cases/E032.md) |
+| ✅ | 31 | `E031` | stmt=95.44, branch=84.31, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.09 | [case](../cases/E031.md) |
+| ✅ | 32 | `E032` | stmt=95.44, branch=84.31, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.09 | [case](../cases/E032.md) |
 | ❓ | 33 | `E033` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E033.md) |
 | ❓ | 34 | `E034` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E034.md) |
 | ❓ | 35 | `E035` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E035.md) |

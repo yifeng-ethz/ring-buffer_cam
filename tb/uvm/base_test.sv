@@ -7486,6 +7486,66 @@ class base_test extends uvm_test;
       wait_for_hit_output_count(
         hit_before + (m_cfg.ring_buffer_n_entry - partition_size + 1), 200_000, "E026 two-partition drain");
       wait_for_scoreboard_idle(160_000, "E026 partition skip drain");
+    end else if (case_id == "E031") begin
+      configure_and_start();
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      saw_load = 1'b0;
+      saw_done_pulse = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 40_000 && !saw_done_pulse) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd3) begin
+          saw_load = 1'b1;
+          if (m_env.m_dbg_mon.vif.pop_total_hits != 0 ||
+              m_env.m_dbg_mon.pop_hits_count != 0) begin
+            `uvm_error("E031", $sformatf(
+              "Zero-hit COUNT phase carried stale hit totals: pop_total_hits=%0d pop_hits_count=%0d",
+              m_env.m_dbg_mon.vif.pop_total_hits,
+              m_env.m_dbg_mon.pop_hits_count))
+          end
+        end
+        if (m_env.m_out_mon.total_subheaders_seen > subhdr_before) begin
+          saw_done_pulse = 1'b1;
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!saw_load) begin
+        `uvm_error("E031", "Zero-hit drain never exposed the COUNT phase")
+      end
+      if (!saw_done_pulse) begin
+        `uvm_error("E031", "Zero-hit drain never emitted a subheader")
+      end
+      wait_for_pop_engine_state(3'd5, 40_000, "E031 RESET entry");
+      if (m_env.m_out_mon.recent_subheaders.size() == 0) begin
+        `uvm_error("E031", "No subheader captured for zero-hit drain")
+      end else begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        if (!(matched_subheader.sop && matched_subheader.eop)) begin
+          `uvm_error("E031", "Zero-hit drain subheader did not assert SOP+EOP")
+        end
+        if (matched_subheader.hit_count != 0) begin
+          `uvm_error("E031", $sformatf(
+            "Zero-hit drain subheader carried hit_count=%0d",
+            matched_subheader.hit_count))
+        end
+        if (matched_subheader.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
+          `uvm_error("E031", "Zero-hit drain K237 marker mismatch")
+        end
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("E031", $sformatf(
+          "Zero-hit drain unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (pop_count != 0 || cache_miss_count != 0) begin
+        `uvm_error("E031", $sformatf(
+          "Zero-hit drain accounting mismatch: pop=%0d cache_miss=%0d",
+          pop_count, cache_miss_count))
+      end
     end else if (case_id == "E032") begin
       configure_and_start();
       hit_before = m_env.m_out_mon.total_hits_seen;

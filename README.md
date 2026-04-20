@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.1.5.0423
+**Version:** 26.1.5.0429
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,8 +96,11 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.1.5.0423` carries the previously fixed same-key overwrite tail issue correction plus the current durable-DV-evidence publisher checkpoint, live-partition harness refresh, and the new end-to-end BASIC closure tranche through `B123`, so the
-final overwrite in a burst no longer erases the newly written resident.
+Version `26.1.5.0429` carries the verified same-key overwrite-tail RTL fix plus the
+current published DV checkpoint on the `default_p2_pipe4` simulation build. The live
+dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
+[`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh includes the promoted PERF evidence
+through `P117/P118/P121` and the new zero-hit EDGE case `E031`.
 
 ---
 

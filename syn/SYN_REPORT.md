@@ -1,14 +1,14 @@
 # ✅ SYN Report — ring_buffer_cam
 
-**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-17` &nbsp;
+**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-20` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Build basis:** `fb4c6c2 + local signoff refresh`
+**Build basis:** `working tree atop cea5ed0`
 
 This file is the detailed standalone synthesis and timing report for the active `ring_buffer_cam` bug-fix release. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
-- compile the delivered `Default P4` configuration after the `26.1.5.0420` metadata/DV refresh on top of the prior RTL bug-fix release
+- compile the delivered `Default P4` configuration after the `26.1.5.0429` metadata alignment and the `2026-04-20` DV/dashboard refresh
 - use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
@@ -42,7 +42,7 @@ The old standalone project was not compiling the delivered release cleanly after
    - scalar `asi_hit_type1_error`
    - scalar `aso_hit_type2_error`
 4. The standalone tops and harness were normalized from an oversized `1024`-entry build back to the delivered `512`-entry depth.
-5. `rtl/ring_buffer_cam.vhd` metadata defaults were aligned to `26.1.5.0420` so the wrapper identity matches the packaged release.
+5. `rtl/ring_buffer_cam.vhd` metadata defaults were aligned to `26.1.5.0429` / `20260419`, and `script/ring_buffer_cam_hw.tcl` now carries the same packaged META DATE default.
 
 ## Timing Summary
 
@@ -54,24 +54,24 @@ Signoff target:
 
 | status | model | setup WNS (ns) | hold WNS (ns) | Fmax |
 |:---:|---|---:|---:|---:|
-| ✅ | Slow 1100mV 85C | `+1.077` | `+0.263` | `161.39 MHz` |
-| ✅ | Slow 1100mV 0C | `+1.167` | `+0.246` | `163.77 MHz` |
-| ✅ | Fast 1100mV 85C | `+3.583` | `+0.167` | n/a |
-| ✅ | Fast 1100mV 0C | `+3.901` | `+0.152` | n/a |
+| ✅ | Slow 1100mV 85C | `+1.097` | `+0.258` | `161.92 MHz` |
+| ✅ | Slow 1100mV 0C | `+1.213` | `+0.241` | `165.02 MHz` |
+| ✅ | Fast 1100mV 85C | `+3.633` | `+0.162` | n/a |
+| ✅ | Fast 1100mV 0C | `+3.960` | `+0.148` | n/a |
 
 Key conclusions:
 
 - the active P4 build closes setup and hold at the tightened `137.5 MHz` signoff clock
-- worst-case setup is the slow `85C` corner at `+1.077 ns`
-- worst-case hold is the fast `0C` corner at `+0.152 ns`
-- the equivalent slow-corner internal Fmax is `161.39 MHz`, which is about `29.1%` above the nominal `125 MHz` operating target
+- worst-case setup is the slow `85C` corner at `+1.097 ns`
+- worst-case hold is the fast `0C` corner at `+0.148 ns`
+- the equivalent slow-corner internal Fmax is `161.92 MHz`, which is about `29.5%` above the nominal `125 MHz` operating target
 
 ## Resource Summary
 
 | item | value |
 |---|---|
-| Logic utilization | `2,383 / 91,680 ALMs (3%)` |
-| Registers | `2,862` |
+| Logic utilization | `2,375 / 91,680 ALMs (3%)` |
+| Registers | `2,844` |
 | Pins | `34 / 426 (8%)` |
 | Block memory bits | `161,536 / 13,987,840 (1%)` |
 | RAM blocks | `19 / 1,366 (1%)` |
@@ -81,17 +81,17 @@ Key conclusions:
 Synthesis-only visibility:
 
 - map summary before fitter: `3,068` total registers and `161,536` memory bits
-- fitter preserved the RAM-centric implementation and reduced final logic to `2,383` ALMs
+- fitter preserved the RAM-centric implementation and reduced final logic to `2,375` ALMs
 
 ## Flow Runtime
 
 | module | elapsed | CPU time |
 |---|---:|---:|
-| Analysis & Synthesis | `00:00:21` | `00:00:37` |
-| Fitter | `00:01:18` | `00:06:59` |
+| Analysis & Synthesis | `00:00:22` | `00:00:37` |
+| Fitter | `00:01:20` | `00:07:10` |
 | Assembler | `00:00:11` | `00:00:11` |
 | Timing Analyzer | `00:00:09` | `00:00:15` |
-| Total | `00:01:59` | `00:08:02` |
+| Total | `00:02:02` | `00:08:13` |
 
 ## Constraint Caveats
 
