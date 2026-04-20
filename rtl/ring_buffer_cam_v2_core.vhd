@@ -36,9 +36,11 @@
 --      Date: Apr 18, 2026
 -- Revision: 2.15 (no RTL delta; metadata bump for the X019 boundary-driver and scoreboard epoch-reset harness fixes)
 --      Date: Apr 19, 2026
--- Version : 26.1.5
+-- Revision: 2.16 (no RTL delta; align the packaged build stamp to MMDD and bump the patch for a fresh Platform Designer pickup)
+--      Date: Apr 19, 2026
+-- Version : 26.1.6
 -- Date    : 20260419
--- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the verified boundary/epoch-reset harness checkpoint metadata
+-- Change  : fix long-run counter cleanup compares, the same-key overwrite tail erase bug, and align the packaged identity metadata to the corrected 26.1.6.0419 release
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -81,8 +83,8 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 5;
-	BUILD				: natural := 429;
+	VERSION_PATCH		: natural := 6;
+	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;

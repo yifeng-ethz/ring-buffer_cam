@@ -4021,6 +4021,9 @@ class base_test extends uvm_test;
     ring_buffer_cam_pkg::out_seq_item matched_subheader;
     int unsigned focus_search_key;
     int unsigned fill_level;
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
 
     configure_and_start(latency);
     focus_search_key = m_cfg.lane_key_ord_to_search_key(key_ord);
@@ -4053,6 +4056,18 @@ class base_test extends uvm_test;
 
     wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
     expect_service_model_accounting({what, " drain"}, 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+    if (push_count != num_hits ||
+        pop_count != num_hits ||
+        overwrite_count != 0 ||
+        fill_level != 0) begin
+      `uvm_error("SAME_KEY", $sformatf(
+        "%s accounting mismatch after drain: push=%0d pop=%0d overwrite=%0d fill=%0d expected=%0d/%0d/0/0",
+        what, push_count, pop_count, overwrite_count, fill_level, num_hits, num_hits))
+    end
   endtask
 
   function automatic logic [31:0] expected_meta_version();
@@ -4060,8 +4075,8 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd5;
-    version_word[11:0]  = 12'd429;
+    version_word[15:12] = 4'd6;
+    version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
 
@@ -7568,6 +7583,72 @@ class base_test extends uvm_test;
         end
       end
       wait_for_scoreboard_idle(80_000, "E032 single-hit drain");
+    end else if (case_id == "E033") begin
+      int unsigned issue_addr_a;
+      int unsigned issue_addr_b;
+      int unsigned issue_seen;
+
+      configure_and_start();
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e033_two_hit_adjacent");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 2, 1'b1, 1'b1, 80_000,
+        "E033 target two-hit subheader", matched_subheader);
+      issue_seen = 0;
+      search_cycles = 0;
+      while (search_cycles < 120_000 && issue_seen < 2) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant) begin
+          if (issue_seen == 0) begin
+            issue_addr_a = m_env.m_dbg_mon.vif.pop_issue_addr;
+          end else begin
+            issue_addr_b = m_env.m_dbg_mon.vif.pop_issue_addr;
+          end
+          issue_seen++;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      wait_for_hit_output_count(hit_before + 2, 120_000, "E033 two-hit output");
+      if (matched_subheader == null || m_env.m_out_mon.recent_hits.size() < 2) begin
+        `uvm_error("E033", "Did not capture the two-hit epoch history")
+      end else begin
+        if (!(matched_subheader.sop && !matched_subheader.eop)) begin
+          `uvm_error("E033", "Two-hit subheader was not SOP-only")
+        end
+        if (m_env.m_out_mon.recent_hits[$-1].eop) begin
+          `uvm_error("E033", "First data beat of two-hit epoch asserted EOP")
+        end
+        if (!m_env.m_out_mon.recent_hits[$].eop) begin
+          `uvm_error("E033", "Second data beat of two-hit epoch did not assert EOP")
+        end
+      end
+      if (issue_seen != 2) begin
+        `uvm_error("E033", $sformatf(
+          "Did not observe two pop issues for the two-hit epoch: observed=%0d",
+          issue_seen))
+      end else begin
+        if (issue_addr_a >= partition_size || issue_addr_b >= partition_size) begin
+          `uvm_error("E033", $sformatf(
+            "Two-hit epoch escaped partition0: addr_a=%0d addr_b=%0d partition_size=%0d",
+            issue_addr_a, issue_addr_b, partition_size))
+        end
+        if (issue_addr_b != (issue_addr_a + 1)) begin
+          `uvm_error("E033", $sformatf(
+            "Adjacent-slot issue check failed: addr_a=%0d addr_b=%0d",
+            issue_addr_a, issue_addr_b))
+        end
+      end
+      wait_for_scoreboard_idle(80_000, "E033 adjacent two-hit drain");
+    end else if (case_id == "E035") begin
+      run_same_key_epoch_count_case("E035 hit_count=255", 255, 2, 8'hFF, 2000, 300_000);
+    end else if (case_id == "E036") begin
+      run_same_key_epoch_count_case("E036 hit_count wraps at 256", 256, 2, 8'h00, 2000, 300_000);
+    end else if (case_id == "E037") begin
+      run_same_key_epoch_count_case("E037 hit_count wraps at 511", 511, 2, 8'hFF, 2000, 500_000);
     end else if (case_id == "E019") begin
       configure_and_start(1);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);

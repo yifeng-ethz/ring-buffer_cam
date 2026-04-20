@@ -244,14 +244,14 @@
       "evidenced_cases": 120,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1919,
-          "bins": 1995,
-          "pct": 96.19
+          "hits": 1923,
+          "bins": 2007,
+          "pct": 95.81
         },
         "branch": {
-          "hits": 488,
-          "bins": 563,
-          "pct": 86.68
+          "hits": 490,
+          "bins": 571,
+          "pct": 85.81
         },
         "cond": {
           "hits": 92,
@@ -1997,8 +1997,8 @@
           "method": "D",
           "implementation_decl": "live UVM",
           "alias": null,
-          "scenario": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,429) bit layout",
-          "description": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,5,429) bit layout",
+          "scenario": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,6,419) bit layout",
+          "description": "CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,1,6,419) bit layout",
           "primary_checks": "META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression",
           "contract_anchor": "",
           "seed": 1,
@@ -2036,17 +2036,17 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 119,
+              "hits": 117,
               "bins": 6333,
-              "pct": 1.88
+              "pct": 1.85
             }
           },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {
             "stmt": {
-              "hits": 9,
-              "bins": 1995,
-              "pct": 0.45
+              "hits": 10,
+              "bins": 2003,
+              "pct": 0.5
             },
             "branch": {
               "hits": 3,
@@ -2081,9 +2081,9 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1874,
-              "bins": 1995,
-              "pct": 93.93
+              "hits": 1875,
+              "bins": 2003,
+              "pct": 93.61
             },
             "branch": {
               "hits": 450,
@@ -2138,7 +2138,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B011",
@@ -2156,19 +2156,19 @@
           "isolated_effort": "smoke",
           "standalone_coverage": {
             "stmt": {
-              "hits": 1539,
-              "bins": 1983,
-              "pct": 77.61
+              "hits": 1541,
+              "bins": 1986,
+              "pct": 77.59
             },
             "branch": {
-              "hits": 225,
-              "bins": 555,
-              "pct": 40.54
+              "hits": 226,
+              "bins": 560,
+              "pct": 40.36
             },
             "cond": {
               "hits": 34,
-              "bins": 131,
-              "pct": 25.95
+              "bins": 134,
+              "pct": 25.37
             },
             "expr": {
               "hits": 0,
@@ -2186,22 +2186,22 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 120,
-              "bins": 6331,
-              "pct": 1.9
+              "hits": 122,
+              "bins": 6333,
+              "pct": 1.93
             }
           },
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {
             "stmt": {
-              "hits": 2,
-              "bins": 1995,
-              "pct": 0.1
+              "hits": 0,
+              "bins": 2003,
+              "pct": 0.0
             },
             "branch": {
-              "hits": 3,
+              "hits": 0,
               "bins": 563,
-              "pct": 0.53
+              "pct": 0.0
             },
             "cond": {
               "hits": 0,
@@ -2224,21 +2224,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 11,
+              "hits": 9,
               "bins": 6333,
-              "pct": 0.17
+              "pct": 0.14
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1876,
-              "bins": 1995,
-              "pct": 94.04
+              "hits": 1875,
+              "bins": 2003,
+              "pct": 93.61
             },
             "branch": {
-              "hits": 453,
+              "hits": 450,
               "bins": 563,
-              "pct": 80.46
+              "pct": 79.93
             },
             "cond": {
               "hits": 80,
@@ -2261,9 +2261,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3061,
+              "hits": 3059,
               "bins": 6333,
-              "pct": 48.33
+              "pct": 48.3
             }
           },
           "bucket_gain_per_txn": {},
@@ -2288,7 +2288,7 @@
             "cg_output_pct": 0.0,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "published_case_log"
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "B012",
@@ -2344,14 +2344,14 @@
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {
             "stmt": {
-              "hits": 1,
-              "bins": 1995,
-              "pct": 0.05
+              "hits": 2,
+              "bins": 2003,
+              "pct": 0.1
             },
             "branch": {
-              "hits": 1,
+              "hits": 3,
               "bins": 563,
-              "pct": 0.18
+              "pct": 0.53
             },
             "cond": {
               "hits": 0,
@@ -2382,13 +2382,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1877,
-              "bins": 1995,
-              "pct": 94.09
+              "bins": 2003,
+              "pct": 93.71
             },
             "branch": {
-              "hits": 454,
+              "hits": 453,
               "bins": 563,
-              "pct": 80.64
+              "pct": 80.46
             },
             "cond": {
               "hits": 80,
@@ -2411,9 +2411,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           },
           "bucket_gain_per_txn": {},
@@ -2495,7 +2495,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 1,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.05
             },
             "branch": {
@@ -2532,13 +2532,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -2561,9 +2561,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           },
           "bucket_gain_per_txn": {},
@@ -2645,7 +2645,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -2682,13 +2682,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -2711,9 +2711,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           },
           "bucket_gain_per_txn": {},
@@ -2795,7 +2795,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -2832,13 +2832,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -2861,9 +2861,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           },
           "bucket_gain_per_txn": {},
@@ -2945,7 +2945,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -2982,13 +2982,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -3011,9 +3011,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           },
           "bucket_gain_per_txn": {},
@@ -3095,7 +3095,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -3132,13 +3132,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -3161,9 +3161,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3166,
+              "hits": 3164,
               "bins": 6333,
-              "pct": 49.99
+              "pct": 49.96
             }
           },
           "bucket_gain_per_txn": {},
@@ -3245,7 +3245,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -3282,13 +3282,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -3311,9 +3311,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3166,
+              "hits": 3164,
               "bins": 6333,
-              "pct": 49.99
+              "pct": 49.96
             }
           },
           "bucket_gain_per_txn": {},
@@ -3395,7 +3395,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -3424,21 +3424,21 @@
               "pct": 0.0
             },
             "toggle": {
-              "hits": 30,
+              "hits": 32,
               "bins": 6333,
-              "pct": 0.47
+              "pct": 0.51
             }
           },
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -3545,7 +3545,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -3582,13 +3582,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -3731,7 +3731,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 2,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.1
             },
             "branch": {
@@ -3768,13 +3768,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1880,
-              "bins": 1995,
-              "pct": 94.24
+              "bins": 2003,
+              "pct": 93.86
             },
             "branch": {
-              "hits": 456,
+              "hits": 455,
               "bins": 563,
-              "pct": 80.99
+              "pct": 80.82
             },
             "cond": {
               "hits": 84,
@@ -3805,7 +3805,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.25,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.01
             },
             "branch": {
@@ -3953,7 +3953,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -3990,13 +3990,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1880,
-              "bins": 1995,
-              "pct": 94.24
+              "bins": 2003,
+              "pct": 93.86
             },
             "branch": {
-              "hits": 457,
+              "hits": 456,
               "bins": 563,
-              "pct": 81.17
+              "pct": 80.99
             },
             "cond": {
               "hits": 84,
@@ -4027,7 +4027,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4175,7 +4175,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 1,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.05
             },
             "branch": {
@@ -4212,13 +4212,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -4249,7 +4249,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 1.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.05
             },
             "branch": {
@@ -4361,7 +4361,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4398,13 +4398,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -4547,7 +4547,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4584,13 +4584,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -4621,7 +4621,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4769,7 +4769,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4806,13 +4806,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -4843,7 +4843,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -4991,7 +4991,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5028,13 +5028,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -5065,7 +5065,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5213,7 +5213,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5250,13 +5250,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -5287,7 +5287,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5447,7 +5447,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5484,13 +5484,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -5597,7 +5597,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5634,13 +5634,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -5747,7 +5747,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 2,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.1
             },
             "branch": {
@@ -5784,13 +5784,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -5897,7 +5897,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -5934,13 +5934,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6047,7 +6047,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6084,13 +6084,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6197,7 +6197,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6234,13 +6234,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6347,7 +6347,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6384,13 +6384,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6497,7 +6497,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6534,13 +6534,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6647,7 +6647,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6684,13 +6684,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6833,7 +6833,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -6870,13 +6870,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -6907,7 +6907,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7019,7 +7019,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7056,13 +7056,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7169,7 +7169,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7206,13 +7206,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7319,7 +7319,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7356,13 +7356,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7469,7 +7469,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7506,13 +7506,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7619,7 +7619,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7656,13 +7656,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7769,7 +7769,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7806,13 +7806,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -7955,7 +7955,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -7992,13 +7992,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8029,7 +8029,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8177,7 +8177,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8214,13 +8214,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8251,7 +8251,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8363,7 +8363,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8400,13 +8400,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8513,7 +8513,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8550,13 +8550,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8663,7 +8663,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8700,13 +8700,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8849,7 +8849,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -8886,13 +8886,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -8923,7 +8923,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9035,7 +9035,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9072,13 +9072,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -9221,7 +9221,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9258,13 +9258,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -9295,7 +9295,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9443,7 +9443,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9480,13 +9480,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -9517,7 +9517,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9665,7 +9665,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9702,13 +9702,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -9739,7 +9739,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9887,7 +9887,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -9924,13 +9924,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -9961,7 +9961,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10109,7 +10109,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10146,13 +10146,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -10183,7 +10183,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10295,7 +10295,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10332,13 +10332,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -10445,7 +10445,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10482,13 +10482,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -10631,7 +10631,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10668,13 +10668,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -10705,7 +10705,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10853,7 +10853,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -10890,13 +10890,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -10927,7 +10927,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11075,7 +11075,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11112,13 +11112,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -11149,7 +11149,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11297,7 +11297,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11334,13 +11334,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -11371,7 +11371,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11519,7 +11519,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11556,13 +11556,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -11593,7 +11593,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11741,7 +11741,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11778,13 +11778,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -11815,7 +11815,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -11987,7 +11987,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12024,13 +12024,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -12061,7 +12061,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12173,7 +12173,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12210,13 +12210,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -12359,7 +12359,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12396,13 +12396,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -12433,7 +12433,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12581,7 +12581,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 36,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 1.8
             },
             "branch": {
@@ -12618,13 +12618,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -12655,7 +12655,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.03515625,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12803,7 +12803,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -12840,13 +12840,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -12877,7 +12877,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13025,7 +13025,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13062,13 +13062,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -13099,7 +13099,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13247,7 +13247,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13284,13 +13284,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -13321,7 +13321,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13469,7 +13469,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13506,13 +13506,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -13543,7 +13543,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13691,7 +13691,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13728,13 +13728,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -13765,7 +13765,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13913,7 +13913,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -13950,13 +13950,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -13987,7 +13987,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14135,7 +14135,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14172,13 +14172,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -14209,7 +14209,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14357,7 +14357,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14394,13 +14394,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -14431,7 +14431,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14579,7 +14579,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14616,13 +14616,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -14653,7 +14653,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14801,7 +14801,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -14838,13 +14838,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -14875,7 +14875,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15023,7 +15023,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15060,13 +15060,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -15097,7 +15097,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15245,7 +15245,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15282,13 +15282,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -15319,7 +15319,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15467,7 +15467,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15504,13 +15504,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -15541,7 +15541,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15689,7 +15689,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15726,13 +15726,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -15763,7 +15763,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15911,7 +15911,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -15948,13 +15948,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -15985,7 +15985,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16133,7 +16133,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16170,13 +16170,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -16207,7 +16207,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16355,7 +16355,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16392,13 +16392,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -16429,7 +16429,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16577,7 +16577,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16614,13 +16614,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -16651,7 +16651,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16799,7 +16799,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -16836,13 +16836,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -16873,7 +16873,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17021,7 +17021,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17058,13 +17058,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -17095,7 +17095,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17243,7 +17243,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17280,13 +17280,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -17317,7 +17317,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17465,7 +17465,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17502,13 +17502,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -17539,7 +17539,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17783,7 +17783,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -17820,13 +17820,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -17857,7 +17857,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18029,7 +18029,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18066,13 +18066,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -18103,7 +18103,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18251,7 +18251,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18288,13 +18288,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -18325,7 +18325,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18473,7 +18473,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18510,13 +18510,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -18547,7 +18547,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18695,7 +18695,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18732,13 +18732,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -18769,7 +18769,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18905,7 +18905,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -18942,13 +18942,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19055,7 +19055,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19092,13 +19092,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19241,7 +19241,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19278,13 +19278,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19315,7 +19315,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19427,7 +19427,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19464,13 +19464,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19613,7 +19613,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19650,13 +19650,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19687,7 +19687,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19835,7 +19835,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -19872,13 +19872,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -19909,7 +19909,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20057,7 +20057,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20094,13 +20094,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -20131,7 +20131,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20279,7 +20279,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20316,13 +20316,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -20353,7 +20353,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20465,7 +20465,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20502,13 +20502,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -20651,7 +20651,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20688,13 +20688,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -20725,7 +20725,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20873,7 +20873,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -20910,13 +20910,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -20947,7 +20947,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21095,7 +21095,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21132,13 +21132,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -21169,7 +21169,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21317,7 +21317,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21354,13 +21354,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -21391,7 +21391,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21503,7 +21503,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21540,13 +21540,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -21689,7 +21689,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21726,13 +21726,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -21763,7 +21763,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21911,7 +21911,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -21948,13 +21948,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -21985,7 +21985,7 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -22097,7 +22097,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -22134,13 +22134,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -22247,7 +22247,7 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2003,
               "pct": 0.0
             },
             "branch": {
@@ -22284,13 +22284,13 @@
           "bucket_merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -22396,14 +22396,14 @@
           "isolated_cov_per_txn": {},
           "bucket_gain_by_case": {
             "stmt": {
-              "hits": 0,
-              "bins": 1995,
-              "pct": 0.0
+              "hits": 4,
+              "bins": 2007,
+              "pct": 0.2
             },
             "branch": {
-              "hits": 0,
-              "bins": 563,
-              "pct": 0.0
+              "hits": 3,
+              "bins": 571,
+              "pct": 0.53
             },
             "cond": {
               "hits": 0,
@@ -22433,14 +22433,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -22583,12 +22583,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -22619,14 +22619,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -22657,12 +22657,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -22805,12 +22805,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -22841,14 +22841,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -22879,12 +22879,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23027,12 +23027,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23063,14 +23063,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -23101,12 +23101,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23249,12 +23249,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23285,14 +23285,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -23323,12 +23323,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23471,12 +23471,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23507,14 +23507,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -23545,12 +23545,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23693,12 +23693,12 @@
           "bucket_gain_by_case": {
             "stmt": {
               "hits": 0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -23729,14 +23729,14 @@
           },
           "bucket_merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -23767,12 +23767,12 @@
           "bucket_gain_per_txn": {
             "stmt": {
               "hits": 0.0,
-              "bins": 1995,
+              "bins": 2007,
               "pct": 0.0
             },
             "branch": {
               "hits": 0.0,
-              "bins": 563,
+              "bins": 571,
               "pct": 0.0
             },
             "cond": {
@@ -24210,9 +24210,9 @@
           "full_case_id": "B010",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1874,
-              "bins": 1995,
-              "pct": 93.93
+              "hits": 1875,
+              "bins": 2003,
+              "pct": 93.61
             },
             "branch": {
               "hits": 450,
@@ -24252,9 +24252,51 @@
           "full_case_id": "B011",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1876,
-              "bins": 1995,
-              "pct": 94.04
+              "hits": 1875,
+              "bins": 2003,
+              "pct": 93.61
+            },
+            "branch": {
+              "hits": 450,
+              "bins": 563,
+              "pct": 79.93
+            },
+            "cond": {
+              "hits": 80,
+              "bins": 131,
+              "pct": 61.07
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 3059,
+              "bins": 6333,
+              "pct": 48.3
+            }
+          }
+        },
+        {
+          "step": 12,
+          "case_id": "B012",
+          "full_case_id": "B012",
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1877,
+              "bins": 2003,
+              "pct": 93.71
             },
             "branch": {
               "hits": 453,
@@ -24282,21 +24324,21 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3061,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.33
+              "pct": 48.32
             }
           }
         },
         {
-          "step": 12,
-          "case_id": "B012",
-          "full_case_id": "B012",
+          "step": 13,
+          "case_id": "B013",
+          "full_case_id": "B013",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1877,
-              "bins": 1995,
-              "pct": 94.09
+              "hits": 1878,
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
               "hits": 454,
@@ -24324,51 +24366,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
-            }
-          }
-        },
-        {
-          "step": 13,
-          "case_id": "B013",
-          "full_case_id": "B013",
-          "merged_total_after_case": {
-            "stmt": {
-              "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
-            },
-            "branch": {
-              "hits": 455,
-              "bins": 563,
-              "pct": 80.82
-            },
-            "cond": {
-              "hits": 80,
-              "bins": 131,
-              "pct": 61.07
-            },
-            "expr": {
-              "hits": 3,
-              "bins": 10,
-              "pct": 30.0
-            },
-            "fsm_state": {
-              "hits": 8,
-              "bins": 8,
-              "pct": 100.0
-            },
-            "fsm_trans": {
-              "hits": 10,
-              "bins": 15,
-              "pct": 66.67
-            },
-            "toggle": {
-              "hits": 3062,
-              "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           }
         },
@@ -24379,13 +24379,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24408,9 +24408,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           }
         },
@@ -24421,13 +24421,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24450,9 +24450,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           }
         },
@@ -24463,13 +24463,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24492,9 +24492,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3062,
+              "hits": 3060,
               "bins": 6333,
-              "pct": 48.35
+              "pct": 48.32
             }
           }
         },
@@ -24505,13 +24505,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24534,9 +24534,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3166,
+              "hits": 3164,
               "bins": 6333,
-              "pct": 49.99
+              "pct": 49.96
             }
           }
         },
@@ -24547,13 +24547,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24576,9 +24576,9 @@
               "pct": 66.67
             },
             "toggle": {
-              "hits": 3166,
+              "hits": 3164,
               "bins": 6333,
-              "pct": 49.99
+              "pct": 49.96
             }
           }
         },
@@ -24589,13 +24589,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24631,13 +24631,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1878,
-              "bins": 1995,
-              "pct": 94.14
+              "bins": 2003,
+              "pct": 93.76
             },
             "branch": {
-              "hits": 455,
+              "hits": 454,
               "bins": 563,
-              "pct": 80.82
+              "pct": 80.64
             },
             "cond": {
               "hits": 80,
@@ -24673,13 +24673,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1880,
-              "bins": 1995,
-              "pct": 94.24
+              "bins": 2003,
+              "pct": 93.86
             },
             "branch": {
-              "hits": 456,
+              "hits": 455,
               "bins": 563,
-              "pct": 80.99
+              "pct": 80.82
             },
             "cond": {
               "hits": 84,
@@ -24715,13 +24715,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1880,
-              "bins": 1995,
-              "pct": 94.24
+              "bins": 2003,
+              "pct": 93.86
             },
             "branch": {
-              "hits": 457,
+              "hits": 456,
               "bins": 563,
-              "pct": 81.17
+              "pct": 80.99
             },
             "cond": {
               "hits": 84,
@@ -24757,13 +24757,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -24799,13 +24799,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -24841,13 +24841,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -24883,13 +24883,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -24925,13 +24925,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -24967,13 +24967,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -25021,13 +25021,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -25063,13 +25063,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1881,
-              "bins": 1995,
-              "pct": 94.29
+              "bins": 2003,
+              "pct": 93.91
             },
             "branch": {
-              "hits": 458,
+              "hits": 457,
               "bins": 563,
-              "pct": 81.35
+              "pct": 81.17
             },
             "cond": {
               "hits": 84,
@@ -25105,13 +25105,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25147,13 +25147,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25189,13 +25189,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25231,13 +25231,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25273,13 +25273,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25315,13 +25315,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25357,13 +25357,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25399,13 +25399,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25441,13 +25441,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25483,13 +25483,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25525,13 +25525,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25567,13 +25567,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25609,13 +25609,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25651,13 +25651,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25693,13 +25693,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25735,13 +25735,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25777,13 +25777,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25819,13 +25819,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25861,13 +25861,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25903,13 +25903,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25945,13 +25945,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -25987,13 +25987,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26029,13 +26029,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26071,13 +26071,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26113,13 +26113,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26155,13 +26155,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26197,13 +26197,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26239,13 +26239,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26281,13 +26281,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26323,13 +26323,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26365,13 +26365,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26407,13 +26407,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26449,13 +26449,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26491,13 +26491,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26539,13 +26539,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26581,13 +26581,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26623,13 +26623,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1883,
-              "bins": 1995,
-              "pct": 94.39
+              "bins": 2003,
+              "pct": 94.01
             },
             "branch": {
-              "hits": 460,
+              "hits": 459,
               "bins": 563,
-              "pct": 81.71
+              "pct": 81.53
             },
             "cond": {
               "hits": 84,
@@ -26665,13 +26665,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26707,13 +26707,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26749,13 +26749,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26791,13 +26791,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26833,13 +26833,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26875,13 +26875,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26917,13 +26917,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -26959,13 +26959,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27001,13 +27001,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27043,13 +27043,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27085,13 +27085,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27127,13 +27127,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27169,13 +27169,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27211,13 +27211,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27253,13 +27253,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27295,13 +27295,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27337,13 +27337,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27379,13 +27379,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27421,13 +27421,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27463,13 +27463,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27505,13 +27505,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27547,13 +27547,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27589,13 +27589,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27655,13 +27655,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27703,13 +27703,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27745,13 +27745,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27787,13 +27787,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27829,13 +27829,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27877,13 +27877,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27919,13 +27919,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -27961,13 +27961,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28003,13 +28003,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28045,13 +28045,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28087,13 +28087,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28129,13 +28129,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28171,13 +28171,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28213,13 +28213,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28255,13 +28255,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28297,13 +28297,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28339,13 +28339,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28381,13 +28381,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28423,13 +28423,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28465,13 +28465,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28507,13 +28507,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28549,13 +28549,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28591,13 +28591,13 @@
           "merged_total_after_case": {
             "stmt": {
               "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "bins": 2003,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
+              "hits": 487,
               "bins": 563,
-              "pct": 86.68
+              "pct": 86.5
             },
             "cond": {
               "hits": 92,
@@ -28632,14 +28632,14 @@
           "full_case_id": "B123",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28674,14 +28674,14 @@
           "full_case_id": "B124",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28716,14 +28716,14 @@
           "full_case_id": "B125",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28758,14 +28758,14 @@
           "full_case_id": "B126",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28800,14 +28800,14 @@
           "full_case_id": "B127",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28842,14 +28842,14 @@
           "full_case_id": "B128",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28884,14 +28884,14 @@
           "full_case_id": "B129",
           "merged_total_after_case": {
             "stmt": {
-              "hits": 1919,
-              "bins": 1995,
-              "pct": 96.19
+              "hits": 1923,
+              "bins": 2007,
+              "pct": 95.81
             },
             "branch": {
-              "hits": 488,
-              "bins": 563,
-              "pct": 86.68
+              "hits": 490,
+              "bins": 571,
+              "pct": 85.81
             },
             "cond": {
               "hits": 92,
@@ -28924,17 +28924,17 @@
     },
     "EDGE": {
       "planned_cases": 129,
-      "evidenced_cases": 25,
+      "evidenced_cases": 29,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1903,
-          "bins": 1994,
-          "pct": 95.44
+          "hits": 1912,
+          "bins": 2006,
+          "pct": 95.31
         },
         "branch": {
-          "hits": 473,
-          "bins": 561,
-          "pct": 84.31
+          "hits": 478,
+          "bins": 569,
+          "pct": 84.01
         },
         "cond": {
           "hits": 86,
@@ -34206,7 +34206,7 @@
           "full_case_id": "E031",
           "bucket": "EDGE",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader SOP-only zero-hit drain: search key with zero matches",
           "description": "subheader SOP-only zero-hit drain: search key with zero matches",
@@ -34349,7 +34349,7 @@
             "cg_output_pct": 34.5,
             "cg_hit_data_pct": 0.0
           },
-          "implementation_mode": "case_engine_log"
+          "implementation_mode": "published_case_log"
         },
         {
           "case_id": "E032",
@@ -34578,7 +34578,7 @@
           "full_case_id": "E033",
           "bucket": "EDGE",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader SOP with N=2 hits, both in same partition 0 adjacent slots",
           "description": "subheader SOP with N=2 hits, both in same partition 0 adjacent slots",
@@ -34587,15 +34587,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1832,
+              "bins": 1986,
+              "pct": 92.25
+            },
+            "branch": {
+              "hits": 413,
+              "bins": 560,
+              "pct": 73.75
+            },
+            "cond": {
+              "hits": 69,
+              "bins": 134,
+              "pct": 51.49
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 1157,
+              "bins": 6333,
+              "pct": 18.27
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 916.0,
+              "bins": 1986,
+              "pct": 46.12
+            },
+            "branch": {
+              "hits": 206.5,
+              "bins": 560,
+              "pct": 36.88
+            },
+            "cond": {
+              "hits": 34.5,
+              "bins": 134,
+              "pct": 25.75
+            },
+            "expr": {
+              "hits": 1.5,
+              "bins": 10,
+              "pct": 15.0
+            },
+            "fsm_state": {
+              "hits": 4.0,
+              "bins": 8,
+              "pct": 50.0
+            },
+            "fsm_trans": {
+              "hits": 5.0,
+              "bins": 15,
+              "pct": 33.33
+            },
+            "toggle": {
+              "hits": 578.5,
+              "bins": 6333,
+              "pct": 9.13
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 9,
+              "bins": 2006,
+              "pct": 0.45
+            },
+            "branch": {
+              "hits": 5,
+              "bins": 569,
+              "pct": 0.88
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 4.5,
+              "bins": 2006,
+              "pct": 0.22
+            },
+            "branch": {
+              "hits": 2.5,
+              "bins": 569,
+              "pct": 0.44
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 2,
+          "log_summary": {
+            "pushed": 2,
+            "popped": 2,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 3,
+            "zero_hit_subheaders": 2,
+            "accepted": 2,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 68.3,
+            "cg_hit_data_pct": 10.4
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E034",
@@ -34626,7 +34824,7 @@
           "full_case_id": "E035",
           "bucket": "EDGE",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader hit_cnt field boundary at value 255 (8-bit saturation)",
           "description": "subheader hit_cnt field boundary at value 255 (8-bit saturation)",
@@ -34635,22 +34833,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1847,
+              "bins": 1986,
+              "pct": 93.0
+            },
+            "branch": {
+              "hits": 425,
+              "bins": 560,
+              "pct": 75.89
+            },
+            "cond": {
+              "hits": 70,
+              "bins": 134,
+              "pct": 52.24
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2790,
+              "bins": 6333,
+              "pct": 44.05
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 7.243137254901961,
+              "bins": 1986,
+              "pct": 0.36
+            },
+            "branch": {
+              "hits": 1.6666666666666667,
+              "bins": 560,
+              "pct": 0.3
+            },
+            "cond": {
+              "hits": 0.27450980392156865,
+              "bins": 134,
+              "pct": 0.2
+            },
+            "expr": {
+              "hits": 0.011764705882352941,
+              "bins": 10,
+              "pct": 0.12
+            },
+            "fsm_state": {
+              "hits": 0.03137254901960784,
+              "bins": 8,
+              "pct": 0.39
+            },
+            "fsm_trans": {
+              "hits": 0.0392156862745098,
+              "bins": 15,
+              "pct": 0.26
+            },
+            "toggle": {
+              "hits": 10.941176470588236,
+              "bins": 6333,
+              "pct": 0.17
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 255,
+          "log_summary": {
+            "pushed": 255,
+            "popped": 255,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 48,
+            "zero_hit_subheaders": 47,
+            "accepted": 255,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 78.4,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E036",
           "full_case_id": "E036",
           "bucket": "EDGE",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader hit_cnt field at value 256 (9-bit needed but only 8 exposed)",
           "description": "subheader hit_cnt field at value 256 (9-bit needed but only 8 exposed)",
@@ -34659,22 +35055,220 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1848,
+              "bins": 1986,
+              "pct": 93.05
+            },
+            "branch": {
+              "hits": 426,
+              "bins": 560,
+              "pct": 76.07
+            },
+            "cond": {
+              "hits": 70,
+              "bins": 134,
+              "pct": 52.24
+            },
+            "expr": {
+              "hits": 3,
+              "bins": 10,
+              "pct": 30.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 2756,
+              "bins": 6333,
+              "pct": 43.52
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 7.21875,
+              "bins": 1986,
+              "pct": 0.36
+            },
+            "branch": {
+              "hits": 1.6640625,
+              "bins": 560,
+              "pct": 0.3
+            },
+            "cond": {
+              "hits": 0.2734375,
+              "bins": 134,
+              "pct": 0.2
+            },
+            "expr": {
+              "hits": 0.01171875,
+              "bins": 10,
+              "pct": 0.12
+            },
+            "fsm_state": {
+              "hits": 0.03125,
+              "bins": 8,
+              "pct": 0.39
+            },
+            "fsm_trans": {
+              "hits": 0.0390625,
+              "bins": 15,
+              "pct": 0.26
+            },
+            "toggle": {
+              "hits": 10.765625,
+              "bins": 6333,
+              "pct": 0.17
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 256,
+          "log_summary": {
+            "pushed": 256,
+            "popped": 256,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 48,
+            "zero_hit_subheaders": 47,
+            "accepted": 256,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 75.9,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E037",
           "full_case_id": "E037",
           "bucket": "EDGE",
           "method": "D",
-          "implementation_decl": "planned",
+          "implementation_decl": "live UVM",
           "alias": null,
           "scenario": "subheader hit_cnt field at value 511 (max N-1)",
           "description": "subheader hit_cnt field at value 511 (max N-1)",
@@ -34683,15 +35277,213 @@
           "seed": 1,
           "build_tag": "default_p2_pipe4",
           "isolated_effort": "smoke",
-          "standalone_coverage": {},
-          "isolated_cov_per_txn": {},
-          "bucket_gain_by_case": {},
-          "bucket_merged_total_after_case": {},
-          "bucket_gain_per_txn": {},
-          "implemented": false,
-          "observed_txn": 0,
-          "log_summary": {},
-          "implementation_mode": "planned_only"
+          "standalone_coverage": {
+            "stmt": {
+              "hits": 1880,
+              "bins": 1986,
+              "pct": 94.66
+            },
+            "branch": {
+              "hits": 447,
+              "bins": 560,
+              "pct": 79.82
+            },
+            "cond": {
+              "hits": 73,
+              "bins": 134,
+              "pct": 54.48
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 3653,
+              "bins": 6333,
+              "pct": 57.68
+            }
+          },
+          "isolated_cov_per_txn": {
+            "stmt": {
+              "hits": 3.679060665362035,
+              "bins": 1986,
+              "pct": 0.19
+            },
+            "branch": {
+              "hits": 0.8747553816046967,
+              "bins": 560,
+              "pct": 0.16
+            },
+            "cond": {
+              "hits": 0.14285714285714285,
+              "bins": 134,
+              "pct": 0.11
+            },
+            "expr": {
+              "hits": 0.007827788649706457,
+              "bins": 10,
+              "pct": 0.08
+            },
+            "fsm_state": {
+              "hits": 0.015655577299412915,
+              "bins": 8,
+              "pct": 0.2
+            },
+            "fsm_trans": {
+              "hits": 0.019569471624266144,
+              "bins": 15,
+              "pct": 0.13
+            },
+            "toggle": {
+              "hits": 7.148727984344423,
+              "bins": 6333,
+              "pct": 0.11
+            }
+          },
+          "bucket_gain_by_case": {
+            "stmt": {
+              "hits": 0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "bucket_merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          },
+          "bucket_gain_per_txn": {
+            "stmt": {
+              "hits": 0.0,
+              "bins": 2006,
+              "pct": 0.0
+            },
+            "branch": {
+              "hits": 0.0,
+              "bins": 569,
+              "pct": 0.0
+            },
+            "cond": {
+              "hits": 0.0,
+              "bins": 124,
+              "pct": 0.0
+            },
+            "expr": {
+              "hits": 0.0,
+              "bins": 10,
+              "pct": 0.0
+            },
+            "fsm_state": {
+              "hits": 0.0,
+              "bins": 8,
+              "pct": 0.0
+            },
+            "fsm_trans": {
+              "hits": 0.0,
+              "bins": 15,
+              "pct": 0.0
+            },
+            "toggle": {
+              "hits": 0.0,
+              "bins": 6333,
+              "pct": 0.0
+            }
+          },
+          "implemented": true,
+          "passed": true,
+          "observed_txn": 511,
+          "log_summary": {
+            "pushed": 511,
+            "popped": 511,
+            "remaining": 0,
+            "overwrites": 0,
+            "unexpected_outputs": 0,
+            "uvm_error_count": 0,
+            "case_markers": 2,
+            "pending_drain": 0,
+            "overlap_evicted": 0,
+            "overlap_fallback": 0,
+            "subheaders": 48,
+            "zero_hit_subheaders": 47,
+            "accepted": 511,
+            "cache_miss_outputs": 0,
+            "cg_output_pct": 74.5,
+            "cg_hit_data_pct": 39.6
+          },
+          "implementation_mode": "case_engine_log"
         },
         {
           "case_id": "E038",
@@ -37999,7 +38791,43 @@
           "step": 33,
           "case_id": "E033",
           "full_case_id": "E033",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          }
         },
         {
           "step": 34,
@@ -38011,19 +38839,127 @@
           "step": 35,
           "case_id": "E035",
           "full_case_id": "E035",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          }
         },
         {
           "step": 36,
           "case_id": "E036",
           "full_case_id": "E036",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          }
         },
         {
           "step": 37,
           "case_id": "E037",
           "full_case_id": "E037",
-          "merged_total_after_case": {}
+          "merged_total_after_case": {
+            "stmt": {
+              "hits": 1912,
+              "bins": 2006,
+              "pct": 95.31
+            },
+            "branch": {
+              "hits": 478,
+              "bins": 569,
+              "pct": 84.01
+            },
+            "cond": {
+              "hits": 86,
+              "bins": 124,
+              "pct": 69.35
+            },
+            "expr": {
+              "hits": 4,
+              "bins": 10,
+              "pct": 40.0
+            },
+            "fsm_state": {
+              "hits": 8,
+              "bins": 8,
+              "pct": 100.0
+            },
+            "fsm_trans": {
+              "hits": 10,
+              "bins": 15,
+              "pct": 66.67
+            },
+            "toggle": {
+              "hits": 4249,
+              "bins": 6333,
+              "pct": 67.09
+            }
+          }
         },
         {
           "step": 38,
@@ -68327,14 +69263,14 @@
       "evidenced_cases": 120,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1919,
-          "bins": 1995,
-          "pct": 96.19
+          "hits": 1923,
+          "bins": 2007,
+          "pct": 95.81
         },
         "branch": {
-          "hits": 488,
-          "bins": 563,
-          "pct": 86.68
+          "hits": 490,
+          "bins": 571,
+          "pct": 85.81
         },
         "cond": {
           "hits": 92,
@@ -68371,17 +69307,17 @@
     {
       "bucket": "EDGE",
       "planned_cases": 129,
-      "evidenced_cases": 25,
+      "evidenced_cases": 29,
       "merged_bucket_total": {
         "stmt": {
-          "hits": 1903,
-          "bins": 1994,
-          "pct": 95.44
+          "hits": 1912,
+          "bins": 2006,
+          "pct": 95.31
         },
         "branch": {
-          "hits": 473,
-          "bins": 561,
-          "pct": 84.31
+          "hits": 478,
+          "bins": 569,
+          "pct": 84.01
         },
         "cond": {
           "hits": 86,
@@ -68410,8 +69346,8 @@
         }
       },
       "functional_coverage": {
-        "pct": 19.38,
-        "evidenced": 25,
+        "pct": 22.48,
+        "evidenced": 29,
         "planned": 129
       }
     },
@@ -68524,9 +69460,9 @@
     {
       "scope": "EDGE",
       "planned_cases": 129,
-      "executed_cases": 25,
-      "executed_ratio_pct": 19.38,
-      "observed_txn": 9537,
+      "executed_cases": 29,
+      "executed_ratio_pct": 22.48,
+      "observed_txn": 10561,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
@@ -68554,17 +69490,17 @@
     {
       "scope": "TOTAL",
       "planned_cases": 516,
-      "executed_cases": 248,
-      "executed_ratio_pct": 48.06,
-      "observed_txn": 56809,
+      "executed_cases": 252,
+      "executed_ratio_pct": 48.84,
+      "observed_txn": 57833,
       "failing_cases": 0,
       "asserted_failures": 0,
       "unexpected_outputs": 0
     }
   ],
   "implementation_summary": {
-    "implemented_count": 269,
-    "unimplemented_count": 247,
+    "implemented_count": 273,
+    "unimplemented_count": 243,
     "stale_artifact_without_engine_marker_count": 0
   },
   "failed_cases": [],
@@ -75185,18 +76121,18 @@
   "signoff_runs": [],
   "totals": {
     "planned_cases": 516,
-    "evidenced_cases": 248,
+    "evidenced_cases": 252,
     "excluded_cases": 0,
     "merged_total_code_coverage": {
       "stmt": {
-        "hits": 1932,
-        "bins": 1995,
-        "pct": 96.84
+        "hits": 1942,
+        "bins": 2007,
+        "pct": 96.76
       },
       "branch": {
-        "hits": 493,
-        "bins": 563,
-        "pct": 87.57
+        "hits": 497,
+        "bins": 571,
+        "pct": 87.04
       },
       "cond": {
         "hits": 95,
@@ -75225,8 +76161,8 @@
       }
     },
     "functional_coverage": {
-      "pct": 48.06,
-      "evidenced": 248,
+      "pct": 48.84,
+      "evidenced": 252,
       "planned": 516
     }
   }
