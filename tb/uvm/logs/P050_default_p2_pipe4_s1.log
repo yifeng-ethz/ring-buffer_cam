@@ -1,3 +1,3 @@
 P050 has no live log artifact.
 State: planned only
-Scenario: N_PARTITIONS=4: balanced push (25% to each partition), 100% ready, 30k txn
+Scenario: active-build partition-balance profile: balanced traffic across every live partition in the selected build (50/50 on `default_p2_pipe4`, 25/25/25/25 on `p4`)

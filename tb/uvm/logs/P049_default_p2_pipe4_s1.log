@@ -1,3 +1,3 @@
 P049 has no live log artifact.
 State: planned only
-Scenario: N_PARTITIONS=4: push all traffic to partition 3 only, 20k txn
+Scenario: partition-local profile on partition 3 in the `p4` build variant

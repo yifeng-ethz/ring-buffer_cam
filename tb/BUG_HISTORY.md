@@ -549,3 +549,51 @@ Normalization note:
   - removed the unsupported strict-FIFO checker path, rewrote `P029` around deterministic exact per-key integrity, and rewrote `P040` as a seeded four-key integrity audit instead of a false FIFO claim
   - verified by a clean isolated rerun batch of `B010`, `B011`, `B123`, `P029`, `P036`, `P037`, `P038`, and `P040`
 - Commit: 1c8118b
+
+### BUG-036-H: Data-bearing 256-hit packet subheaders were misclassified as zero-hit headers when the 8-bit hit-count field wrapped
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (isolated-only repro; first mismatch at 7.483404 ms in pre-fix P025)`
+- First seen in: `P025` on 2026-04-20 during the first calibrated steady-state fixed-point rerun
+- Symptom:
+  - `P025` failed with `observed=2 expected_at_least=32` data-bearing subheaders even though the same run's scoreboard summary still closed at `push=50000`, `pop=50000`, `overwrite=0`, `cache_miss=0`, and reported `197` non-empty subheaders overall
+  - the failure would have undercounted packetized long drains anywhere a data-bearing subheader legitimately encoded `hit_count=0x00` because the true chunk size was `256`
+- Root cause:
+  - `out_monitor` and `scoreboard` both treated "data-bearing subheader" as `hit_count != 0`
+  - for a packetized `256`-hit chunk the DUT still emits a data-bearing subheader, but the 8-bit count field wraps to `0` while `eop=0` proves the epoch continues with payload beats
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added a shared wrapped-count-safe classification rule in `out_monitor.sv` and `scoreboard.sv`: a subheader is data-bearing when `hit_count != 0` or `eop == 0`
+  - verified by clean isolated reruns of `P025`, `P031`, `P046`, and `P047`; `P025` now publishes `data_subheaders=197` with zero UVM errors
+- Commit: ca1b044
+
+### BUG-037-H: The default-build DV plan and report text drifted to `N_PARTITIONS=4` semantics even though the active dashboard build is `default_p2_pipe4`
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (promotion audit while wiring the partition-profile tranche on 2026-04-20)`
+- First seen in: `B057`, `P046-P065`, and `CROSS-047` documentation review on 2026-04-20 before promoting the next PROF tranche
+- Symptom:
+  - the live dashboard still described several default-build partition cases as if they were 4-partition runs
+  - stale examples included `B057` claiming four `pop_partition_load()` pulses by default and `P047` / `CROSS-047` being written as a partition-1-only saturation case even though the active evidence build only has two live partitions
+- Root cause:
+  - the docs/report text had not been normalized after the dashboard standard settled on `default_p2_pipe4`
+  - that left the published plan and cross-run descriptions stronger and more specific than the active build could honestly support
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - updated `DV_BASIC.md`, `DV_PROF.md`, `DV_CROSS.md`, and the generated dashboard sources so the default build is explicitly treated as a 2-partition active variant and the `p4`-only rows remain marked as variant-only work
+  - verified by the refreshed isolated reruns of `B010`, `B011`, `P025`, `P031`, `P046`, and `P047`, then by regenerating the dashboard from the corrected plan text
+- Commit: ca1b044
+
+### BUG-038-H: The first partition-profile promotion assumed exact-partition prefill isolated the next epoch to partition 1, but the live contract exposes a `p0->p1` handoff window instead
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (isolated-only repro; first mismatch at 1.140772 ms in pre-fix P047)`
+- First seen in: `P047` on 2026-04-20 during the first default-build partition-profile rerun
+- Symptom:
+  - the first `P047` attempt failed with `observed=0x3 expected=0x2` for the partition issue mask even though accounting still closed exactly with `push=448`, `pop=448`, `overwrite=0`, `cache_miss=0`, and `remaining=0`
+  - the failure would have published a false DUT regression by asserting that the target epoch stayed on partition 1 only after an exact-partition prefill
+- Root cause:
+  - the testcase/spec assumption was wrong, not the DUT
+  - after a fully consumed first-partition prefill, the next target epoch can legitimately traverse the boundary and issue across both live partitions in the `default_p2_pipe4` build
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - rewrote `P047` and its downstream report text as a partition-handoff profile with expected mask `0x3` instead of a partition-1-only saturation claim
+  - verified by a clean isolated rerun of `P047`, then by the refreshed `P046/P047` publication batch with zero UVM errors
+- Commit: ca1b044

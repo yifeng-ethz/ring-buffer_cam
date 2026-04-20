@@ -1,3 +1,3 @@
 P055 has no live log artifact.
 State: planned only
-Scenario: ENCODER_PIPE_STAGES=2 variant with balanced push, 100% ready, 20k txn
+Scenario: `ENCODER_PIPE_STAGES=2` build-variant profile with balanced active-build partition traffic

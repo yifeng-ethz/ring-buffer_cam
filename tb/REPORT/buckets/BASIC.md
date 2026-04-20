@@ -13,8 +13,8 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 95.43 | 95.0 |
-| ⚠️ | branch | 86.50 | 90.0 |
+| ✅ | stmt | 95.11 | 95.0 |
+| ⚠️ | branch | 85.81 | 90.0 |
 | ℹ️ | cond | 70.23 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
@@ -36,15 +36,15 @@
 | ✅ | 7 | `B007` | stmt=93.65, branch=77.84, cond=54.20, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=47.75 | [case](../cases/B007.md) |
 | ✅ | 8 | `B008` | stmt=93.65, branch=77.84, cond=54.20, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=47.75 | [case](../cases/B008.md) |
 | ✅ | 9 | `B009` | stmt=94.05, branch=80.54, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.08 | [case](../cases/B009.md) |
-| ✅ | 10 | `B010` | stmt=93.24, branch=79.93, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.16 | [case](../cases/B010.md) |
-| ✅ | 11 | `B011` | stmt=93.24, branch=79.93, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.33 | [case](../cases/B011.md) |
-| ✅ | 12 | `B012` | stmt=93.34, branch=80.46, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.35 | [case](../cases/B012.md) |
-| ✅ | 13 | `B013` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.35 | [case](../cases/B013.md) |
-| ✅ | 14 | `B014` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.35 | [case](../cases/B014.md) |
-| ✅ | 15 | `B015` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.35 | [case](../cases/B015.md) |
-| ✅ | 16 | `B016` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.35 | [case](../cases/B016.md) |
-| ✅ | 17 | `B017` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=49.99 | [case](../cases/B017.md) |
-| ✅ | 18 | `B018` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=49.99 | [case](../cases/B018.md) |
+| ✅ | 10 | `B010` | stmt=93.24, branch=79.93, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.19 | [case](../cases/B010.md) |
+| ✅ | 11 | `B011` | stmt=93.24, branch=79.93, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.37 | [case](../cases/B011.md) |
+| ✅ | 12 | `B012` | stmt=93.34, branch=80.46, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.38 | [case](../cases/B012.md) |
+| ✅ | 13 | `B013` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.38 | [case](../cases/B013.md) |
+| ✅ | 14 | `B014` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.38 | [case](../cases/B014.md) |
+| ✅ | 15 | `B015` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.38 | [case](../cases/B015.md) |
+| ✅ | 16 | `B016` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=48.38 | [case](../cases/B016.md) |
+| ✅ | 17 | `B017` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=50.02 | [case](../cases/B017.md) |
+| ✅ | 18 | `B018` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=50.02 | [case](../cases/B018.md) |
 | ✅ | 19 | `B019` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=50.47 | [case](../cases/B019.md) |
 | ✅ | 20 | `B020` | stmt=93.39, branch=80.64, cond=61.07, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.02 | [case](../cases/B020.md) |
 | ✅ | 21 | `B021` | stmt=93.49, branch=80.82, cond=64.12, expr=30.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.02 | [case](../cases/B021.md) |
@@ -149,13 +149,13 @@
 | ✅ | 120 | `B120` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.59 | [case](../cases/B120.md) |
 | ✅ | 121 | `B121` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.59 | [case](../cases/B121.md) |
 | ✅ | 122 | `B122` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.59 | [case](../cases/B122.md) |
-| ✅ | 123 | `B123` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B123.md) |
-| ✅ | 124 | `B124` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B124.md) |
-| ✅ | 125 | `B125` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B125.md) |
-| ✅ | 126 | `B126` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B126.md) |
-| ✅ | 127 | `B127` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B127.md) |
-| ✅ | 128 | `B128` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | [case](../cases/B128.md) |
-| ✅ | 129 | `B129` | stmt=95.43, branch=86.50, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | [case](../cases/B129.md) |
+| ✅ | 123 | `B123` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B123.md) |
+| ✅ | 124 | `B124` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B124.md) |
+| ✅ | 125 | `B125` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B125.md) |
+| ✅ | 126 | `B126` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B126.md) |
+| ✅ | 127 | `B127` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.67 | [case](../cases/B127.md) |
+| ✅ | 128 | `B128` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | [case](../cases/B128.md) |
+| ✅ | 129 | `B129` | stmt=95.11, branch=85.81, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | [case](../cases/B129.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

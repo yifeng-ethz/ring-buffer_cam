@@ -1,3 +1,3 @@
 P059 has no live log artifact.
 State: planned only
-Scenario: N_PARTITIONS=4: partition saturation and recovery (fill p0 to 100%, sink-ready=0 for 500 cyc, then release), 10k txn
+Scenario: active-build partition saturation and recovery: fill one live partition to 100%, stall sink-ready for 500 cyc, then release

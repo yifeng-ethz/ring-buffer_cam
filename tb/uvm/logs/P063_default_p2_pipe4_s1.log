@@ -1,3 +1,3 @@
 P063 has no live log artifact.
 State: planned only
-Scenario: N_PARTITIONS=4: two-partition adversarial alternation (p0/p2 only, skip p1/p3), 20k txn
+Scenario: sparse active-partition alternation across the selected build (for `default_p2_pipe4`: alternate the lowest and highest live partitions only)
