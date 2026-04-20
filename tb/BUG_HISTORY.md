@@ -712,4 +712,4 @@ Normalization note:
 - Runtime / coverage context:
   - the pop scheduler now advances to the next pending partition when the just-issued partition still has more matches and a peer partition is already pending, while preserving the old stay-local behavior when the current partition is the only pending source
   - verified by clean isolated reruns of `B080`, `B099`, `B100`, `B101`, `B102`, `B103`, `P050`, `P051`, `P052`, `P053`, `P058`, `P061`, `P062`, and `P063`
-- Commit: pending
+- Commit: 7c2beb7

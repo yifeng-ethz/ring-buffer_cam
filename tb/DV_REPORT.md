@@ -24,7 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-045-R` | RTL | `2026-04-20` | The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending | `pending` |
+| ✅ | `BUG-045-R` | RTL | `2026-04-20` | The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending | `7c2beb7` |
 | ✅ | `BUG-044-H` | Harness | `2026-04-20` | Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished | `8b9ad49` |
 | ✅ | `BUG-043-H` | Harness | `2026-04-20` | The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch | `97f956c` |
 | ✅ | `BUG-042-R` | RTL | `2026-04-20` | The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state | `08ad68b` |

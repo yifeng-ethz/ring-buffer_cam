@@ -363,7 +363,7 @@
       "date": "2026-04-20",
       "title": "The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "7c2beb7"
     }
   ],
   "buckets": {

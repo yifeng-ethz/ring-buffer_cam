@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-20` &nbsp;
-**Release under check:** `26.1.12.0419` &nbsp; **Evidence basis:** `8b9ad49`
+**Release under check:** `26.1.13.0419` &nbsp; **Evidence basis:** `7c2beb7`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ✅ | standalone_syn_p4_512 | `pass` |
-| ⚠️ | dv_closure | `309/516` planned cases evidenced |
+| ⚠️ | standalone_syn_p4_512 | `last clean standalone compile predates BUG-045; no rerun for 7c2beb7` |
+| ⚠️ | dv_closure | `314/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `59.88% (309/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `193` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `60.85% (314/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `187` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -54,8 +54,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-042` blocks stale buffered push / overwrite retirement after soft-reset by requiring an active run state |
 | ✅ | Harness | `BUG-043` fixes the staged `P042` late-arrival helper so the fingerprint space stays unique and the aggregate ingress rate remains calibrated to the planned `gap=13` profile |
 | ✅ | Harness | `BUG-044` keeps backpressure-enabled PROF sink-ready modulation active through the drain window instead of releasing as soon as ingress stops |
-| ✅ | DV | promoted `P059`, `P060`, and `P064` to live UVM, then refreshed the active PROF evidence slice with clean isolated reruns on `B010`, `B011`, `P018-P020`, `P059`, `P060`, and `P064` |
-| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.12.0419` / `20260419` |
+| ✅ | RTL | `BUG-045` advances the pop round-robin scheduler to the next pending partition when an equal-load peer is already waiting, fixing the `B099` fairness failure |
+| ✅ | DV | promoted `B099`, `P058`, and `P061-P063` to live UVM, then refreshed the active partition evidence slice with clean isolated reruns on `B010`, `B011`, `B080`, `B099-B103`, `B123`, `P050-P053`, `P058`, and `P061-P063` |
+| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.13.0419` / `20260419` |
 
 ## Evidence Index
 
@@ -70,7 +71,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh was DV plus metadata only: `P059`, `P060`, and `P064` are now evidenced in the active `default_p2_pipe4` build, `B010/B011` were rerun against the new `26.1.12.0419` version word, and the standalone synthesis result remains the last clean `ring_buffer_cam_syn_p4` compile reported in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md).
+- The latest refresh fixed `BUG-045`, promoted `B099` plus `P058/P061-P063`, reran the active partition-focused isolated slice on `default_p2_pipe4`, and restamped the delivered package as `26.1.13.0419`.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) remains the last clean `ring_buffer_cam_syn_p4` compile, but it was not rerun after `7c2beb7`; this page therefore treats synthesis freshness as inherited rather than freshly closed for the new RTL release.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
 - Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete even though the standalone timing/resource gate for the active P4 build is now green.
