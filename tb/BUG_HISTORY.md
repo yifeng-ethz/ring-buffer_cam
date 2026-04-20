@@ -677,3 +677,23 @@ Normalization note:
   - added an explicit `fingerprint_start_index` offset to the long-run profile generators, then rewrote `P042` as a calibrated two-phase profile: early keys only, then a combined eight-key phase at the original aggregate rate
   - verified by a clean isolated rerun of `P042` and a clean `P041-P045` batch rerun on `default_p2_pipe4`
 - Commit: 97f956c
+
+### BUG-044-H: Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `1104460000 ns (pre-fix P059 stall-window repro)`
+- First seen in: `P059` on 2026-04-20 during the active-build backpressure / partition-saturation PROF tranche, then cross-checked against `P018`, `P019`, `P020`, `P060`, and `P064`
+- Symptom:
+  - the first `P059` implementation claimed a 500-cycle sink stall and clean release, but the summary only observed `sink_low_cycles=256` even though the case still had residual drain work
+  - more generally, any `sink_ready_mode != 0` profile could stop applying backpressure the instant source injection ended, so the remaining drain window ran at forced-ready and under-stressed the advertised testcase contract
+- Root cause:
+  - the `sink_ready_thread` loop in `run_profile_integrity_case()` only tracked `!traffic_done || pending_source_items != 0`
+  - it omitted the scoreboard residual (`m_env.m_scb.remaining_entries()`), so the helper exited early and restored `sink_ready=1` before the DUT had actually drained the staged traffic
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the helper now keeps sink-ready modulation active until source injection and modeled drain both quiesce
+  - verified by clean isolated reruns of `P018`, `P019`, `P020`, `P059`, `P060`, and `P064`
+  - post-fix evidence:
+    - `P059` now reports `sink_low_cycles=500`, `max_live_fill=234`, `observed_partition_mask=0x1`, `push=256`, `pop=256`
+    - `P060` now reports `sink_low_cycles=14428`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=768`, `pop=768`
+    - `P064` now reports `sink_low_cycles=9408`, `data_subheaders=6`, `observed_partition_mask=0x3`, `push=1024`, `pop=1024`
+- Commit: pending

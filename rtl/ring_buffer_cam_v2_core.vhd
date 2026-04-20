@@ -48,9 +48,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.21 (no RTL logic delta; align delivered metadata with the staged late-arrival harness cleanup and PROF P041-P045 closure)
 --      Date: Apr 20, 2026
--- Version : 26.1.11
+-- Revision: 2.22 (no RTL logic delta; package the sustained-backpressure harness cleanup and active-build PROF P059/P060/P064 closure)
+--      Date: Apr 20, 2026
+-- Version : 26.1.12
 -- Date    : 20260419
--- Change  : align delivered metadata with the staged late-arrival harness cleanup and PROF P041-P045 closure for release 26.1.11.0419
+-- Change  : align delivered metadata with the sustained-backpressure harness cleanup and active-build PROF P059/P060/P064 closure for release 26.1.12.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -93,7 +95,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH		: natural := 11;
+	VERSION_PATCH		: natural := 12;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;

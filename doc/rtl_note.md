@@ -5,7 +5,7 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also closes the soft-reset and descriptor-backpressure RTL bugs, fixes the staged late-arrival PROF harness, extends the active-build partition-share PROF coverage through `P050-P053`, and republishes the delivered package as `26.1.11.0419`.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh also closes the soft-reset and descriptor-backpressure RTL bugs, fixes the sustained-backpressure PROF harness, extends the active-build PROF coverage through `P064`, and republishes the delivered package as `26.1.12.0419`.
 - Sign-off status: the current isolated DV dashboard and standalone `ring_buffer_cam_syn_p4` timing compile pass on the live RTL; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
@@ -15,9 +15,9 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,364` ALMs, `2,825` registers, slow-85C setup slack `+0.450 ns`, worst hold slack `+0.162 ns`, slow-corner Fmax `146.56 MHz`
-  - current DV dashboard: `306/516` cases evidenced (`59.30%`) with `0` active failed implemented cases on `default_p2_pipe4`
-  - targeted post-fix rerun slices: `23/23` clean across `B010`, `B011`, `B123`, `B124`, `E019`, `E020`, `E124`, `P025`, `X005`, `X035`, `X036`, `X071-X079`, `X081`, `X085`, and `X113`; plus clean isolated reruns of `B010`, `B011`, `P041-P045` after the staged late-arrival harness fix and `P050-P053` after the partition-share PROF promotion
-  - delivered package metadata: `26.1.11.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
+  - current DV dashboard: `309/516` cases evidenced (`59.88%`) with `0` active failed implemented cases on `default_p2_pipe4`
+  - targeted post-fix rerun slices: `23/23` clean across `B010`, `B011`, `B123`, `B124`, `E019`, `E020`, `E124`, `P025`, `X005`, `X035`, `X036`, `X071-X079`, `X081`, `X085`, and `X113`; plus clean isolated reruns of `B010`, `B011`, `P018-P020`, `P041-P045`, `P050-P053`, and `P059/P060/P064` after the sustained-backpressure harness fix and active-build PROF promotion
+  - delivered package metadata: `26.1.12.0419` with locked `BUILD=419` / `VERSION_DATE=20260419`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
   - the current release now has clean standalone timing/resource evidence and refreshed DV evidence on top of the earlier architectural refactor
@@ -192,7 +192,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - current delivered version `26.1.11.0419`
+  - current delivered version `26.1.12.0419`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`

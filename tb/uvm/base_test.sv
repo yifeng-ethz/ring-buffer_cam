@@ -3980,7 +3980,8 @@ class base_test extends uvm_test;
     int unsigned  max_max_fill,
     int unsigned  min_data_subheaders,
     bit           check_latency_readback = 1'b0,
-    logic [31:0]  lfsr_seed = 32'h1ace_b00c
+    logic [31:0]  lfsr_seed = 32'h1ace_b00c,
+    logic [3:0]   expected_partition_mask = 4'b0000
   );
     profile_traffic_seq prof_seq;
     int unsigned push_count;
@@ -3996,11 +3997,15 @@ class base_test extends uvm_test;
     logic [31:0] ready_lfsr;
     bit          traffic_done;
     bit          ready_now;
+    logic [3:0]  observed_partition_mask;
+    int unsigned observed_partition_idx;
+    int unsigned search_cycles;
 
     subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
     sink_low_cycles = 0;
     traffic_done = 1'b0;
     ready_lfsr = 32'h1bad_cafe;
+    observed_partition_mask = '0;
 
     configure_and_start(latency);
     if (check_latency_readback) begin
@@ -4017,7 +4022,9 @@ class base_test extends uvm_test;
         if (sink_ready_mode != 0) begin
           sink_cycles = 0;
           while (sink_cycles < timeout_cycles &&
-                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+                 (!traffic_done ||
+                  m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_scb.remaining_entries() != 0)) begin
             case (sink_ready_mode)
               1: ready_now = ((sink_cycles & 2'b11) != 2'b11); // 75% ready
               2: ready_now = ((sink_cycles & 1'b1) == 1'b0);   // 50% ready
@@ -4026,6 +4033,20 @@ class base_test extends uvm_test;
                               ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
                 ready_now = (ready_lfsr[7:0] < 8'd179);        // ~70% ready
               end
+              4: begin
+                ready_lfsr = {ready_lfsr[30:0],
+                              ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+                ready_now = (ready_lfsr[7:0] < 8'd77);         // ~30% ready
+              end
+              5: begin
+                case ((sink_cycles / 128) % 4)
+                  0: ready_now = 1'b1;
+                  1: ready_now = ((sink_cycles & 1'b1) == 1'b0);   // 50% ready
+                  2: ready_now = ((sink_cycles & 2'b11) != 2'b11); // 75% ready
+                  default: ready_now = 1'b0;                       // hard stall window
+                endcase
+              end
+              6: ready_now = (sink_cycles >= 500);
               default: ready_now = 1'b1;
             endcase
             set_sink_ready(ready_now);
@@ -4057,6 +4078,22 @@ class base_test extends uvm_test;
         prof_seq.progress_tag = what;
         prof_seq.start(m_env.m_hit_seqr);
         traffic_done = 1'b1;
+      end
+      begin : partition_watch_thread
+        search_cycles = 0;
+        while (search_cycles < timeout_cycles &&
+               (!traffic_done ||
+                m_env.m_hit_drv.pending_source_items() != 0 ||
+                m_env.m_scb.remaining_entries() != 0)) begin
+          if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+            observed_partition_idx = m_env.m_dbg_mon.pop_issue_partition_idx;
+            if (observed_partition_idx < 4) begin
+              observed_partition_mask[observed_partition_idx[1:0]] = 1'b1;
+            end
+          end
+          @(posedge m_env.m_csr_drv.vif.clk);
+          search_cycles++;
+        end
       end
     join
 
@@ -4098,16 +4135,23 @@ class base_test extends uvm_test;
         "%s fill envelope exceeded the allowed bound: max_live_fill=%0d expected_at_most=%0d",
         what, m_env.m_dbg_mon.max_live_fill, max_max_fill))
     end
+    if (expected_partition_mask != 4'b0000 &&
+        observed_partition_mask != expected_partition_mask) begin
+      `uvm_error("PROF", $sformatf(
+        "%s partition issue mask mismatch: observed=0x%0h expected=0x%0h",
+        what, observed_partition_mask, expected_partition_mask))
+    end
 
     `uvm_info("PROF", $sformatf(
-      "%s summary: latency=%0d num_hits=%0d pool_keys=%0d gap=%0d rand_gap=[%0d,%0d] bernoulli=%0d/%0d burst=%0d/%0d sink_mode=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d max_live_fill=%0d max_remaining=%0d data_subheaders=%0d pushes_before_first_pop=%0d sink_low_cycles=%0d",
+      "%s summary: latency=%0d num_hits=%0d pool_keys=%0d gap=%0d rand_gap=[%0d,%0d] bernoulli=%0d/%0d burst=%0d/%0d sink_mode=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d max_live_fill=%0d max_remaining=%0d data_subheaders=%0d pushes_before_first_pop=%0d sink_low_cycles=%0d observed_partition_mask=0x%0h",
       what, latency, num_hits, pool_keys, inter_hit_gap_cycles,
       random_gap_min_cycles, random_gap_max_cycles,
       use_bernoulli_arrival, bernoulli_arrival_threshold,
       burst_len, burst_idle_cycles, sink_ready_mode,
       push_count, pop_count, overwrite_count, cache_miss_count,
       m_env.m_dbg_mon.max_live_fill, m_env.m_scb.max_remaining_entries(),
-      subhdr_delta, m_env.m_dbg_mon.push_count_at_first_pop, sink_low_cycles), UVM_LOW)
+      subhdr_delta, m_env.m_dbg_mon.push_count_at_first_pop, sink_low_cycles,
+      observed_partition_mask), UVM_LOW)
   endtask
 
   task automatic run_profile_exact_depth_boundary_case(
@@ -5216,7 +5260,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd11;
+    version_word[15:12] = 4'd12;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -9530,6 +9574,80 @@ class base_test extends uvm_test;
         target_hits,
         expected_partition_hits,
         2_500_000);
+    end else if (case_id == "P059") begin
+      run_profile_integrity_case(
+        "P059 active-build partition saturation and recovery",
+        16'd0,
+        partition_size,
+        2,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1'b0,
+        1'b0,
+        8'd0,
+        0,
+        0,
+        6,
+        1_200_000,
+        partition_size - (partition_size / 8),
+        partition_size,
+        1,
+        1'b1,
+        32'h0590_0001,
+        4'b0001);
+    end else if (case_id == "P060") begin
+      expected_mask = (1 << m_cfg.n_partitions) - 1;
+      run_profile_integrity_case(
+        "P060 active-build encoder-stall 30pct-ready profile",
+        16'd0,
+        768,
+        2,
+        1,
+        1,
+        23,
+        0,
+        0,
+        1'b0,
+        1'b0,
+        8'd0,
+        0,
+        0,
+        4,
+        2_500_000,
+        partition_size / 2,
+        m_cfg.ring_buffer_n_entry,
+        6,
+        1'b1,
+        32'h0600_30aa,
+        expected_mask[3:0]);
+    end else if (case_id == "P064") begin
+      expected_mask = (1 << m_cfg.n_partitions) - 1;
+      run_profile_integrity_case(
+        "P064 active-build time-varying backpressure partition profile",
+        16'd0,
+        1024,
+        2,
+        1,
+        1,
+        19,
+        0,
+        0,
+        1'b0,
+        1'b0,
+        8'd0,
+        0,
+        0,
+        5,
+        3_000_000,
+        partition_size / 2,
+        m_cfg.ring_buffer_n_entry,
+        6,
+        1'b1,
+        32'h0640_5eed,
+        expected_mask[3:0]);
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);
     end else if (case_id == "P112") begin
