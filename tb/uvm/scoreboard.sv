@@ -407,11 +407,6 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
-    if (!item.occupied) begin
-      return;
-    end
-
-    total_pop_observations++;
     pop_fp = debug_pop_item_to_fp(item);
     model_match_idx = -1;
     if (slot_model[slot_addr].valid &&
@@ -420,6 +415,17 @@ class scoreboard extends uvm_scoreboard;
     end else begin
       model_match_idx = find_model_fp_index(pop_fp);
     end
+
+    if (!item.occupied) begin
+      if (model_match_idx < 0) begin
+        return;
+      end
+      `uvm_info("SCB", $sformatf(
+        "Retiring cache-miss pop_erase from slot %0d using raw side-ram payload with occupied=0",
+        slot_addr), UVM_LOW)
+    end
+
+    total_pop_observations++;
 
     if (model_match_idx < 0) begin
       pending_drain_q.push_back(pop_fp);
@@ -492,6 +498,10 @@ class scoreboard extends uvm_scoreboard;
 
     active_seen_hits++;
     if (item.cache_miss) begin
+      pending_match_idx = find_pending_match_index(item);
+      if (pending_match_idx >= 0) begin
+        pending_drain_q.delete(pending_match_idx);
+      end
       total_cache_miss_outputs++;
       if (item.eop) begin
         if (active_seen_hits[7:0] != active_expected_hits[7:0]) begin

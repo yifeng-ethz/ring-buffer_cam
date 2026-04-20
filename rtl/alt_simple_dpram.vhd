@@ -18,7 +18,10 @@ entity alt_simple_dpram is
 		clk		: in std_logic;
 		raddr	: in natural range 0 to 2**ADDR_WIDTH - 1;
 		waddr	: in natural range 0 to 2**ADDR_WIDTH - 1;
+		dbg_patch_addr : in natural range 0 to 2**ADDR_WIDTH - 1 := 0;
 		data	: in std_logic_vector((DATA_WIDTH-1) downto 0);
+		dbg_patch_data : in std_logic_vector((DATA_WIDTH-1) downto 0) := (others => '0');
+		dbg_patch_we   : in std_logic := '0';
 		we		: in std_logic := '1';
 		q		: out std_logic_vector((DATA_WIDTH -1) downto 0)
 	);
@@ -39,7 +42,9 @@ begin
 	process(clk)
 	begin
 	if(rising_edge(clk)) then 
-		if(we = '1') then
+		if(dbg_patch_we = '1') then
+			ram(dbg_patch_addr) <= dbg_patch_data;
+		elsif(we = '1') then
 			ram(waddr) <= data;
 		end if;
  

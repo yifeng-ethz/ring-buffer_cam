@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.14
+-- Version : 26.1.15
 -- Date    : 20260419
--- Change  : publish the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure as release 26.1.14.0419
+-- Change  : publish the stale-slot cache-miss closure tranche (B029/B030/B067/B097) as release 26.1.15.0419
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 14;
+        VERSION_PATCH       : natural := 15;
         BUILD               : natural := 419;
         VERSION_DATE        : natural := 20260419;
         VERSION_GIT         : natural := 0;

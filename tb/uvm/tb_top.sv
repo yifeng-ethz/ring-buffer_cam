@@ -20,11 +20,15 @@ module tb_top;
   parameter int G_ENCODER_LEAF_WIDTH   = 16;
   parameter int G_ENCODER_PIPE_STAGES  = 4;
   parameter int G_DEBUG                = 1;
+  localparam int TB_SRAM_ADDR_W        = $clog2(G_RING_BUFFER_N_ENTRY);
 
   // ── Clock and reset ───────────────────────────────────────────
   logic clk = 0;
   logic rst = 1;
   logic out_ready_drv = 1'b1;
+  logic tb_side_ram_patch_we = 1'b0;
+  logic [TB_SRAM_ADDR_W-1:0] tb_side_ram_patch_addr = '0;
+  logic [39:0] tb_side_ram_patch_data = '0;
   int unsigned tb_timeout_cycles = 5_000_000;
 
   always #4 clk = ~clk;  // 8 ns period = 125 MHz
@@ -92,6 +96,25 @@ module tb_top;
 
   assign out_if.ready = out_ready_drv;
 
+  always_comb begin
+    force dut.v2_core.dbg_side_ram_patch_we = tb_side_ram_patch_we;
+    force dut.v2_core.dbg_side_ram_patch_addr = tb_side_ram_patch_addr;
+    force dut.v2_core.dbg_side_ram_patch_data = tb_side_ram_patch_data;
+  end
+
+  task automatic tb_poison_side_ram_word(
+    input logic [TB_SRAM_ADDR_W-1:0] addr,
+    input logic [39:0] value
+  );
+    tb_side_ram_patch_addr = addr;
+    tb_side_ram_patch_data = value;
+    tb_side_ram_patch_we = 1'b1;
+    @(posedge clk);
+    tb_side_ram_patch_we = 1'b0;
+    tb_side_ram_patch_addr = '0;
+    tb_side_ram_patch_data = '0;
+  endtask
+
   // UVM ingress keeps the optional framing sidebands at zero for the existing payload tests.
   assign hit_if.startofpacket = 1'b0;
   assign hit_if.endofpacket   = 1'b0;
@@ -135,6 +158,7 @@ module tb_top;
     dbg_if.pop_partition_result_valid = dut.v2_core.dbg_pop_partition_result_valid;
     dbg_if.pop_partition_flag  = dut.v2_core.dbg_pop_partition_flag;
     dbg_if.pop_partition_has_more = dut.v2_core.dbg_pop_partition_has_more;
+    dbg_if.pop_partition_eval_stage0_valid = dut.v2_core.dbg_pop_partition_eval_stage0_valid;
     dbg_if.pop_last_hit_pending = dut.v2_core.pop_last_hit_pending;
     dbg_if.pop_pipeline_start  = dut.v2_core.pop_pipeline_start;
     dbg_if.pop_hit_valid       = dut.v2_core.pop_hit_valid;

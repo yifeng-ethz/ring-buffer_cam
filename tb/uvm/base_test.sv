@@ -282,6 +282,75 @@ class base_test extends uvm_test;
     eor_seq.start(m_env.m_hit_seqr);
   endtask
 
+  task automatic poison_side_ram_occ_zero_on_push_write(
+    int unsigned target_push_ordinal = 1,
+    int unsigned max_cycles = 40_000,
+    string       what = "stale-slot poison"
+  );
+    int unsigned push_count;
+    int unsigned cycles;
+    int unsigned slot_addr;
+    logic [39:0] poisoned_word;
+
+    push_count = 0;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+        push_count++;
+        if (push_count == target_push_ordinal) begin
+          slot_addr = m_env.m_dbg_mon.vif.side_ram_waddr;
+          poisoned_word = m_env.m_dbg_mon.vif.side_ram_din;
+          poisoned_word[39] = 1'b0;
+          $root.tb_top.tb_poison_side_ram_word(slot_addr, poisoned_word);
+          return;
+        end
+      end
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s push write #%0d after %0d cycles",
+      what, target_push_ordinal, max_cycles))
+  endtask
+
+  task automatic wait_for_cache_miss_count(
+    int unsigned expected_count,
+    int unsigned max_cycles = 40_000,
+    string       what = "cache_miss_count"
+  );
+    int unsigned cycles;
+
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_dbg_mon.dbg_cache_miss_cnt[31:0] >= expected_count) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s=%0d after %0d cycles: observed=%0d",
+      what, expected_count, max_cycles, m_env.m_dbg_mon.dbg_cache_miss_cnt[31:0]))
+  endtask
+
+  task automatic expect_main_activity_counters_zero(string what);
+    int unsigned push_count;
+    int unsigned pop_count;
+    int unsigned overwrite_count;
+    int unsigned cache_miss_count;
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    if (push_count != 0 || pop_count != 0 ||
+        overwrite_count != 0 || cache_miss_count != 0) begin
+      `uvm_error("COUNTERS", $sformatf(
+        "%s did not clear PUSH/POP/OVERWRITE/CACHE_MISS: push=%0d pop=%0d overwrite=%0d cache_miss=%0d",
+        what, push_count, pop_count, overwrite_count, cache_miss_count))
+    end
+  endtask
+
   task automatic wait_for_scoreboard_idle(
     int unsigned max_cycles = 50_000,
     string what = "scoreboard drain"
@@ -5727,7 +5796,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd14;
+    version_word[15:12] = 4'd15;
     version_word[11:0]  = 12'd419;
     return version_word;
   endfunction
@@ -6030,6 +6099,8 @@ class base_test extends uvm_test;
     bit                   saw_preempt;
     bit                   saw_full;
     bit                   saw_ready_recover;
+    bit                   saw_stage0;
+    bit                   saw_cache_miss;
     bit                   saw_term_deassm_block;
     bit                   saw_term_popcmd_block;
     bit                   saw_term_busy_block;
@@ -6282,6 +6353,93 @@ class base_test extends uvm_test;
           data_a, data_b))
       end
       m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+    end else if (case_id == "B029") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      saw_cache_miss = 1'b0;
+      burst_seq = same_key_burst_seq::type_id::create("b029_forced_cache_miss");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          poison_side_ram_occ_zero_on_push_write(1, 40_000, "B029 forced cache miss");
+        end
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+        end
+      join
+      wait_for_hit_output_count(hit_before + 1, 80_000, "B029 forced cache-miss output");
+      wait_for_cache_miss_count(1, 80_000, "B029 cache-miss counter");
+      wait_for_scoreboard_idle(80_000, "B029 forced cache-miss drain");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (m_env.m_out_mon.recent_hits.size() > 0 &&
+          m_env.m_out_mon.recent_hits[$].cache_miss) begin
+        saw_cache_miss = 1'b1;
+      end
+      if (push_count != 1 || pop_count != 1 ||
+          cache_miss_count != 1 || fill_level != 0) begin
+        `uvm_error("B029", $sformatf(
+          "Forced cache-miss accounting mismatch: push=%0d pop=%0d cache_miss=%0d fill=%0d",
+          push_count, pop_count, cache_miss_count, fill_level))
+      end
+      if (m_env.m_dbg_mon.cache_miss_pulse_count == 0) begin
+        `uvm_error("B029", "Forced cache miss never raised pop_cache_miss_pulse")
+      end
+      if (m_env.m_scb.total_cache_miss_outputs != 1) begin
+        `uvm_error("B029", $sformatf(
+          "Forced cache miss did not produce exactly one cache-miss data beat: observed=%0d",
+          m_env.m_scb.total_cache_miss_outputs))
+      end
+      if (!saw_cache_miss) begin
+        `uvm_error("B029", "Forced cache miss did not tag the drained hit as cache_miss")
+      end
+    end else if (case_id == "B030") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      single_seq = single_push_pop_seq::type_id::create("b030_cache_miss_seed");
+      single_seq.search_key = focus_search_key;
+      fork
+        begin
+          poison_side_ram_occ_zero_on_push_write(1, 40_000, "B030 cache-miss seed");
+        end
+        begin
+          single_seq.start(m_env.m_hit_seqr);
+        end
+      join
+      wait_for_cache_miss_count(1, 80_000, "B030 cache-miss seed");
+      wait_for_scoreboard_idle(80_000, "B030 cache-miss seed drain");
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
+      wait_clocks(4);
+      burst_seq = same_key_burst_seq::type_id::create("b030_overwrite_fill");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry + 2, 120_000, "B030 overwrite precondition");
+      search_cycles = 0;
+      overwrite_count = 0;
+      while (search_cycles < 1_024 && overwrite_count == 0) begin
+        read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+        if (overwrite_count != 0) begin
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (push_count == 0 || pop_count == 0 ||
+          overwrite_count == 0 || cache_miss_count == 0) begin
+        `uvm_error("B030", $sformatf(
+          "FLUSHING precondition did not accumulate non-zero counters: push=%0d pop=%0d overwrite=%0d cache_miss=%0d",
+          push_count, pop_count, overwrite_count, cache_miss_count))
+      end
+      enter_run_prepare();
+      expect_main_activity_counters_zero("B030 FLUSHING counter clear");
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
@@ -6880,6 +7038,70 @@ class base_test extends uvm_test;
             m_env.m_out_mon.recent_hits[$].et1n6 != 9'h101) begin
           `uvm_error("B066", "Hit egress bit slices did not match the injected payload")
         end
+      end
+    end else if (case_id == "B067") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      burst_seq = same_key_burst_seq::type_id::create("b067_partial_cache_miss");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      fork
+        begin
+          poison_side_ram_occ_zero_on_push_write(2, 40_000, "B067 second-hit cache miss");
+        end
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+        end
+      join
+      wait_for_hit_output_count(hit_before + 2, 80_000, "B067 two-hit cache-miss drain");
+      wait_for_cache_miss_count(1, 80_000, "B067 cache-miss counter");
+      wait_for_scoreboard_idle(80_000, "B067 partial cache-miss drain");
+      matched_subheader = null;
+      if (m_env.m_out_mon.total_data_subheaders_seen <= subhdr_before ||
+          m_env.m_out_mon.recent_data_subheaders.size() == 0) begin
+        `uvm_error("B067", "Forced cache-miss epoch did not publish a data-bearing subheader")
+      end else begin
+        matched_subheader = m_env.m_out_mon.recent_data_subheaders[$];
+      end
+      if (matched_subheader == null ||
+          matched_subheader.search_key != focus_search_key[7:0] ||
+          matched_subheader.hit_count != 2) begin
+        `uvm_error("B067", $sformatf(
+          "Forced cache-miss epoch did not preserve subheader key/hit_count: expected_key=0x%02x observed=%s",
+          focus_search_key[7:0],
+          (matched_subheader == null) ? "none" :
+            $sformatf("key=0x%02x hit_count=%0d",
+              matched_subheader.search_key, matched_subheader.hit_count)))
+      end
+      if (m_env.m_out_mon.recent_hits.size() < 2) begin
+        `uvm_error("B067", "Forced cache-miss epoch did not capture both hit beats")
+      end else begin
+        if (m_env.m_out_mon.recent_hits[$-1].cache_miss) begin
+          `uvm_error("B067", "First beat of the two-hit epoch was incorrectly marked cache_miss")
+        end
+        if (m_env.m_out_mon.recent_hits[$-1].eop) begin
+          `uvm_error("B067", "First beat of the two-hit epoch asserted EOP")
+        end
+        if (!m_env.m_out_mon.recent_hits[$].cache_miss) begin
+          `uvm_error("B067", "Second beat of the two-hit epoch did not carry cache_miss")
+        end
+        if (!m_env.m_out_mon.recent_hits[$].eop) begin
+          `uvm_error("B067", "Second beat of the two-hit epoch did not assert EOP")
+        end
+      end
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (pop_count != 2 || cache_miss_count != 1) begin
+        `uvm_error("B067", $sformatf(
+          "Partial cache-miss accounting mismatch: pop=%0d cache_miss=%0d",
+          pop_count, cache_miss_count))
+      end
+      if (m_env.m_scb.total_cache_miss_outputs != 1) begin
+        `uvm_error("B067", $sformatf(
+          "Expected exactly one cache-miss output in the two-hit epoch: observed=%0d",
+          m_env.m_scb.total_cache_miss_outputs))
       end
     end else if (case_id == "B068") begin
       configure_and_start(64);
@@ -7600,11 +7822,16 @@ class base_test extends uvm_test;
       wait_for_push_count(1, 10_000, "B097 single-hit fill");
       cycle_a = 0;
       cycle_b = 0;
+      saw_stage0 = 1'b0;
       search_cycles = 0;
       while (search_cycles < 8_192 && cycle_b == 0) begin
         if (cycle_a == 0 &&
-            m_env.m_dbg_mon.pop_partition_load[0] === 1'b1) begin
+            m_env.m_dbg_mon.pop_partition_eval_stage0_valid[0] === 1'b1) begin
           cycle_a = m_env.m_dbg_mon.sampled_cycles;
+          saw_stage0 = 1'b1;
+        end
+        if (m_env.m_dbg_mon.pop_partition_eval_stage0_valid[0] === 1'b1) begin
+          saw_stage0 = 1'b1;
         end
         if (cycle_a != 0 &&
             m_env.m_dbg_mon.pop_partition_result_valid[0] === 1'b1 &&
@@ -7619,6 +7846,23 @@ class base_test extends uvm_test;
         @(posedge m_env.m_csr_drv.vif.clk);
         search_cycles++;
       end
+      if (cycle_a == 0) begin
+        `uvm_error("B097", "PIPE_STAGES=4 case never observed the non-zero stage0 eval bitmap")
+      end
+      if (cycle_b == 0) begin
+        `uvm_error("B097", "PIPE_STAGES=4 case never observed a flagged result_valid pulse")
+      end else begin
+        wait_min = int'(cycle_b - cycle_a);
+        if (wait_min != int'(m_cfg.encoder_pipe_stages - 1)) begin
+          `uvm_error("B097", $sformatf(
+            "PIPE_STAGES=4 result latency mismatch: observed=%0d expected=%0d load_cycle=%0d result_cycle=%0d",
+            wait_min, m_cfg.encoder_pipe_stages - 1, cycle_a, cycle_b))
+        end
+      end
+      if (!saw_stage0) begin
+        `uvm_error("B097", "PIPE_STAGES=4 case never observed the stage0 eval bitmap")
+      end
+      wait_for_scoreboard_idle(80_000, "B097 pipe4 latency drain");
     end else if (case_id == "B098") begin
       configure_and_start(2000);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);

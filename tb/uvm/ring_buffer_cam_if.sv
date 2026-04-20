@@ -119,6 +119,7 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [3:0]   pop_partition_result_valid;
   logic [3:0]   pop_partition_flag;
   logic [3:0]   pop_partition_has_more;
+  logic [3:0]   pop_partition_eval_stage0_valid;
   logic         pop_last_hit_pending;
   logic         pop_pipeline_start;
   logic         pop_hit_valid;
@@ -163,7 +164,8 @@ interface dut_debug_if (input logic clk, input logic rst);
           pop_rr_idx, pop_issue_partition_idx, pop_count_partition_idx,
           pop_search_wait_cnt, pop_partition_pending, pop_partition_load,
           pop_partition_advance, pop_partition_result_valid,
-          pop_partition_flag, pop_partition_has_more, pop_last_hit_pending,
+          pop_partition_flag, pop_partition_has_more,
+          pop_partition_eval_stage0_valid, pop_last_hit_pending,
           pop_pipeline_start, pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
           pop_cmd_fifo_sclr, deassembly_fifo_sclr,
           pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack, pop_cmd_fifo_empty,

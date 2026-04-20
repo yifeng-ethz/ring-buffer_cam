@@ -729,3 +729,53 @@ Normalization note:
   - the clean terminate helper now waits for both the source queue and the DUT-visible `deassembly_fifo_empty` condition before pulsing `CTRL_TERMINATING`, then gives the push path a short settle window before sending the end-of-run marker
   - verified by clean isolated reruns of `P004`, `P005`, and `P006`, followed by a clean `P001-P006` regression slice on `default_p2_pipe4`
 - Commit: cb365cf
+
+## 2026-04-21
+
+### BUG-047-H: Cache-miss pop observations with `occupied=0` did not retire the live resident in the scoreboard
+- Severity: `signoff block`
+- Encounter sim-time: `1690228000 ns (first B029 forced-cache-miss idle-timeout repro)`
+- First seen in: `B029` on 2026-04-21 during the first stale-slot BASIC closure tranche, then cross-checked against `B067`
+- Symptom:
+  - the DUT drained the stale-slot beat and raised `CACHE_MISS_COUNT`, but `wait_for_scoreboard_idle()` still timed out with `remaining=1` / `pending_drain=0`
+  - end-of-test extraction then reported an undrained resident even though the output monitor had already seen the cache-miss-tagged hit beat
+- Root cause:
+  - `write_pop()` returned immediately whenever the debug pop item reported `occupied=0`
+  - in the stale-slot contract that exact `occupied=0` observation is still a real resident retirement, because the pop-side raw payload can still identify the written slot that is being drained as a cache miss
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the scoreboard now recovers the matching live fingerprint from the raw pop payload even when `occupied=0`, retires the resident immediately, and leaves the later output beat to classify the drain as `cache_miss`
+  - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
+- Commit: pending
+
+### BUG-048-H: Cache-miss output beats left the scoreboard pending-drain queue uncleared
+- Severity: `signoff block`
+- Encounter sim-time: `1690228000 ns (second B029 stale-slot repro after resident-retire fix)`
+- First seen in: `B029` on 2026-04-21 immediately after `BUG-047-H` had retired the resident correctly, then cross-checked against `B067`
+- Symptom:
+  - the resident model reached `remaining=0`, but `wait_for_scoreboard_idle()` still timed out with `pending_drain=1`
+  - end-of-test extraction then reported a non-empty pending-drain queue even though the matching cache-miss output beat had already been observed
+- Root cause:
+  - `write_out()` treated `item.cache_miss` as a special classification path, but it never deleted the corresponding fingerprint from `pending_drain_q`
+  - the stale-slot epoch therefore remained artificially non-quiescent forever, even after the visible output beat had closed the packet
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the cache-miss output path now consumes the matching pending-drain fingerprint before final packet-accounting checks run
+  - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
+- Commit: pending
+
+### BUG-049-H: The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase
+- Severity: `signoff block`
+- Encounter sim-time: `1087260000 ns (first B030 mixed-counter precondition repro after the initial stale-slot helper landed)`
+- First seen in: `B030` on 2026-04-21 during the first attempt to combine stale-slot cache-miss traffic with later overwrite pressure
+- Symptom:
+  - the mixed counter-precondition case unexpectedly observed `push=514 pop=513 overwrite=0 cache_miss=513`
+  - scoreboard debug showed every later pop across the full ring being classified as `occupied=0`, proving the original one-shot stale-slot force had leaked far beyond the targeted resident
+- Root cause:
+  - the first helper overrode `dut.v2_core.side_ram_dout[39]` directly with `force/release`
+  - that approach perturbed the live read bus instead of editing one stored side-RAM word, so later pop-side reads in the same testcase could inherit the stale forced occupancy value and collapse both overwrite detection and cache-miss attribution
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - replaced the live-bus force with a dedicated debug patch lane in `alt_simple_dpram` / `ring_buffer_cam_v2_core`, then rewrote the BASIC stale-slot helpers to patch exactly one written side-RAM entry for one clock
+  - verified by clean isolated reruns of `B029`, `B030`, and `B067`, with `B027` remaining clean as the overwrite-path control
+- Commit: pending

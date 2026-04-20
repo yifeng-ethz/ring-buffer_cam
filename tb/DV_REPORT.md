@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `185` |
+| ⚠️ | unimplemented_cases | `182` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-049-H` | Harness | `2026-04-21` | The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase | `pending` |
+| ⚠️ | `BUG-048-H` | Harness | `2026-04-21` | Cache-miss output beats left the scoreboard pending-drain queue uncleared | `pending` |
+| ⚠️ | `BUG-047-H` | Harness | `2026-04-21` | Cache-miss pop observations with `occupied=0` did not retire the live resident in the scoreboard | `pending` |
 | ✅ | `BUG-046-H` | Harness | `2026-04-20` | Clean terminate/drain only waited for the source queue, not for the internal deassembly FIFO, and could wedge heavy overwrite soaks | `cb365cf` |
 | ✅ | `BUG-045-R` | RTL | `2026-04-20` | The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending | `7c2beb7` |
 | ✅ | `BUG-044-H` | Harness | `2026-04-20` | Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished | `8b9ad49` |
 | ✅ | `BUG-043-H` | Harness | `2026-04-20` | The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch | `97f956c` |
 | ✅ | `BUG-042-R` | RTL | `2026-04-20` | The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state | `08ad68b` |
-| ✅ | `BUG-041-R` | RTL | `2026-04-20` | The pop engine could still consume stale descriptors after soft-reset had already returned the DUT to `IDLE` | `08ad68b` |
-| ✅ | `BUG-040-R` | RTL | `2026-04-20` | CSR `soft_reset` only self-cleared bit1 and never reset the live DUT state, counters, or FIFOs | `08ad68b` |
-| ✅ | `BUG-039-R` | RTL | `2026-04-20` | The pop descriptor generator ignored `pop_cmd_fifo_full` and could overrun the 16-entry descriptor FIFO under sustained backlog | `08ad68b` |
 
 ## Formal / contract cases
 
@@ -43,11 +43,11 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
-| ⚠️ | `BASIC` | 129 | 121 | 93.80% | 13821 | 0 | 0 | 0 |
+| ⚠️ | `BASIC` | 129 | 125 | 96.90% | 13825 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 30 | 23.26% | 25561 | 0 | 0 | 0 |
 | ⚠️ | `PROF` | 129 | 73 | 56.59% | 554574 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 92 | 71.32% | 4353 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 316 | 61.24% | 598309 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 320 | 62.02% | 598313 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -55,7 +55,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 121 | stmt=95.69, branch=86.18, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=71.86 | 93.8% (121/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=95.48, branch=85.64, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 96.9% (125/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 | 23.26% (30/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 73 | stmt=91.91, branch=82.33, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.12 | 56.59% (73/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 | 71.32% (92/129) |
@@ -64,15 +64,15 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 96.02 | 95.0 |
-| ⚠️ | branch | 84.69 | 90.0 |
+| ✅ | stmt | 95.97 | 95.0 |
+| ⚠️ | branch | 84.23 | 90.0 |
 | ℹ️ | cond | 72.52 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 73.65 | 80.0 |
+| ⚠️ | toggle | 72.33 | 80.0 |
 
-- functional coverage: `61.24% (316/516)`
+- functional coverage: `62.02% (320/516)`
 
 ## Cross / continuous-frame signoff
 

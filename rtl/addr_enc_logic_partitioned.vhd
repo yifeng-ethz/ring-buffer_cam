@@ -33,7 +33,8 @@ port(
     o_cam_match_flag            : out std_logic;
     o_cam_has_more_matches      : out std_logic;
     o_cam_match_count           : out std_logic_vector(PARTITION_ADDR_BITS downto 0);
-    o_cam_address_onehot_next   : out std_logic_vector(PARTITION_SIZE-1 downto 0)
+    o_cam_address_onehot_next   : out std_logic_vector(PARTITION_SIZE-1 downto 0);
+    o_dbg_eval_match_stage0_valid : out std_logic
 );
 end entity addr_enc_logic_partitioned;
 
@@ -411,5 +412,9 @@ begin
                                  when result_flag_reg = '1' else
                                  (others => '0');
     o_cam_address_onehot_next <= active_match_vec;
+    o_dbg_eval_match_stage0_valid <= '1'
+                                     when ACTIVE_PIPE_STAGES_CONST = 4 and
+                                          eval_match_stage0 /= (eval_match_stage0'range => '0')
+                                     else '0';
 
 end architecture rtl;

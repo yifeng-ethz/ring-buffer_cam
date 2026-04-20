@@ -54,9 +54,9 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.24 (no RTL logic delta; package the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure)
 --      Date: Apr 20, 2026
--- Version : 26.1.14
+-- Version : 26.1.15
 -- Date    : 20260419
--- Change  : publish the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure as release 26.1.14.0419
+-- Change  : publish the stale-slot cache-miss closure tranche (B029/B030/B067/B097) as release 26.1.15.0419
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -99,7 +99,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH       : natural := 14;
+	VERSION_PATCH       : natural := 15;
 	BUILD				: natural := 419;
 	VERSION_DATE		: natural := 20260419;
 	VERSION_GIT			: natural := 0;
@@ -320,6 +320,10 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal side_ram_waddr			: std_logic_vector(SRAM_ADDR_WIDTH-1 downto 0);
 	signal side_ram_waddr_nat		: natural range 0 to 2**SRAM_ADDR_WIDTH - 1;
 	signal side_ram_din				: std_logic_vector(SRAM_DATA_WIDTH-1 downto 0);
+	signal dbg_side_ram_patch_we		: std_logic;
+	signal dbg_side_ram_patch_addr		: std_logic_vector(SRAM_ADDR_WIDTH-1 downto 0);
+	signal dbg_side_ram_patch_addr_nat	: natural range 0 to 2**SRAM_ADDR_WIDTH - 1;
+	signal dbg_side_ram_patch_data		: std_logic_vector(SRAM_DATA_WIDTH-1 downto 0);
 	
 	-- pop command fifo 
 	constant POP_CMD_FIFO_LPM_WIDTH	    : natural := 9; -- data width. ts[12:4]. only ts[11:4] is used for search key and subheader ts. ts[12] is used for ts glitch validation.
@@ -405,6 +409,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal pop_partition_result_valid         : std_logic_vector(N_PARTITIONS-1 downto 0);
 	signal pop_partition_flag                 : std_logic_vector(N_PARTITIONS-1 downto 0);
 	signal pop_partition_has_more             : std_logic_vector(N_PARTITIONS-1 downto 0);
+	signal pop_partition_eval_stage0_valid    : std_logic_vector(N_PARTITIONS-1 downto 0);
 	signal pop_partition_addr_lsb             : match_partition_binary_t;
 	signal pop_total_hits                     : unsigned(MAIN_CAM_ADDR_WIDTH downto 0);
 	signal pop_last_hit_pending               : std_logic;
@@ -541,6 +546,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal dbg_pop_partition_result_valid	: std_logic_vector(3 downto 0);
 	signal dbg_pop_partition_flag			: std_logic_vector(3 downto 0);
 	signal dbg_pop_partition_has_more		: std_logic_vector(3 downto 0);
+	signal dbg_pop_partition_eval_stage0_valid : std_logic_vector(3 downto 0);
 	
 begin
 
@@ -556,6 +562,8 @@ begin
 	dbg_pop_partition_result_valid <= std_logic_vector(resize(unsigned(pop_partition_result_valid), dbg_pop_partition_result_valid'length));
 	dbg_pop_partition_flag <= std_logic_vector(resize(unsigned(pop_partition_flag), dbg_pop_partition_flag'length));
 	dbg_pop_partition_has_more <= std_logic_vector(resize(unsigned(pop_partition_has_more), dbg_pop_partition_has_more'length));
+	dbg_pop_partition_eval_stage0_valid <= std_logic_vector(
+		resize(unsigned(pop_partition_eval_stage0_valid), dbg_pop_partition_eval_stage0_valid'length));
 
 	main_cam : entity work.cam_mem_a5 -- TODO: 1) improve timing of output <lut> address 2) add true-dp variant
 	-- primitive cam construction
@@ -588,11 +596,14 @@ begin
 		ADDR_WIDTH	=> SRAM_ADDR_WIDTH)
 	port map(
 		-- read port
-		raddr	=> side_ram_raddr_nat,
+		raddr	        => side_ram_raddr_nat,
+		dbg_patch_addr  => dbg_side_ram_patch_addr_nat,
 		q		=> side_ram_dout,
 		-- write port
 		we		=> side_ram_we,
-		waddr	=> side_ram_waddr_nat,
+		waddr	        => side_ram_waddr_nat,
+		dbg_patch_data  => dbg_side_ram_patch_data,
+		dbg_patch_we    => dbg_side_ram_patch_we,
 		data	=> side_ram_din,
 		-- clock interface
 		clk		=> i_clk
@@ -600,6 +611,7 @@ begin
 
 	side_ram_raddr_nat	<= slv_to_natural_clean(side_ram_raddr);
 	side_ram_waddr_nat	<= slv_to_natural_clean(side_ram_waddr);
+	dbg_side_ram_patch_addr_nat <= slv_to_natural_clean(dbg_side_ram_patch_addr);
 	
 	pop_cmd_fifo : cmd_fifo port map (
         -- write port
@@ -668,7 +680,8 @@ begin
 			o_cam_match_flag          => pop_partition_flag(i),
 			o_cam_has_more_matches    => pop_partition_has_more(i),
 			o_cam_match_count         => open,
-			o_cam_address_onehot_next => open
+			o_cam_address_onehot_next => open,
+			o_dbg_eval_match_stage0_valid => pop_partition_eval_stage0_valid(i)
 		);
 	end generate gen_addr_enc_logic;
 	
