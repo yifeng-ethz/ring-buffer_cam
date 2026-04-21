@@ -265,14 +265,16 @@ package ring_buffer_cam_pkg;
     longint unsigned unique_idx,
     ref hit_seq_item hit
   );
-    // Keep long random/profile traffic unique well past 4k events so the
-    // scoreboard can audit deep no-overwrite runs without fingerprint aliasing.
+    // Only consume fields that survive the DUT datapath. ingress_channel is not
+    // stored in side RAM or emitted on egress for normal data hits, so using it
+    // as part of the "unique" pattern aliases the observable fingerprint every
+    // 16 beats in long profile runs.
     hit.asic            = unique_idx[3:0];
-    hit.ingress_channel = unique_idx[7:4];
-    hit.channel         = unique_idx[12:8];
-    hit.tfine           = unique_idx[17:13];
-    hit.tcc1n6          = unique_idx[20:18];
-    hit.et1n6           = unique_idx[29:21];
+    hit.channel         = unique_idx[8:4];
+    hit.tfine           = unique_idx[13:9];
+    hit.tcc1n6          = unique_idx[16:14];
+    hit.et1n6           = unique_idx[25:17];
+    hit.ingress_channel = unique_idx[29:26];
   endfunction
 
   // ── egress hit (monitored) ────────────────────────────────────

@@ -12,6 +12,7 @@ class debug_monitor extends uvm_monitor;
   virtual dut_debug_if.mon vif;
   uvm_analysis_port #(ring_buffer_cam_pkg::debug_push_item) push_ap;
   uvm_analysis_port #(ring_buffer_cam_pkg::debug_pop_item)  pop_ap;
+  bit [15:0] pending_pop_slot_q[$];
 
   int unsigned pop_cmd_wrreq_count;
   int unsigned pop_cmd_rdack_count;
@@ -84,9 +85,6 @@ class debug_monitor extends uvm_monitor;
   logic [3:0]  pop_cmd_fifo_usedw;
   logic [7:0]  deassembly_fifo_usedw;
   logic        terminating_drain_done;
-  bit          pending_pop_sample_valid;
-  logic [15:0] pending_pop_slot_addr;
-
   function new(string name, uvm_component parent);
     super.new(name, parent);
     pop_cmd_wrreq_count = 0;
@@ -158,8 +156,6 @@ class debug_monitor extends uvm_monitor;
     pop_cmd_fifo_usedw = '0;
     deassembly_fifo_usedw = '0;
     terminating_drain_done = 1'b0;
-    pending_pop_sample_valid = 1'b0;
-    pending_pop_slot_addr = '0;
   endfunction
 
   function void build_phase(uvm_phase phase);
@@ -181,6 +177,7 @@ class debug_monitor extends uvm_monitor;
     prev_overwrite_cnt = '0;
     forever begin
       @(posedge vif.clk);
+      #0;
       sampled_cycles++;
 
       dbg_inerr_cnt       = vif.dbg_inerr_cnt;
@@ -275,8 +272,23 @@ class debug_monitor extends uvm_monitor;
         push_write_grant_count++;
       if (vif.push_erase_grant === 1'b1)
         push_erase_grant_count++;
-      if (vif.pop_erase_grant === 1'b1)
+      if (vif.pop_hit_valid === 1'b1) begin
+        if (pending_pop_slot_q.size() == 0) begin
+          `uvm_error("DBG_MON",
+            "Observed pop_hit_valid without a queued pop_erase_grant slot address")
+        end else begin
+          pop_item = ring_buffer_cam_pkg::debug_pop_item::type_id::create("pop_evt");
+          pop_item.slot_addr = pending_pop_slot_q.pop_front();
+          pop_item.raw_hit = vif.side_ram_dout[38:0];
+          pop_item.occupied = vif.side_ram_dout[39];
+          pop_item.pop_count = vif.dbg_pop_cnt;
+          pop_ap.write(pop_item);
+        end
+      end
+      if (vif.pop_erase_grant === 1'b1) begin
         pop_erase_grant_count++;
+        pending_pop_slot_q.push_back(vif.pop_issue_addr);
+      end
       if (vif.pop_flush_grant === 1'b1)
         pop_flush_grant_count++;
       if (vif.pop_cache_miss_pulse === 1'b1)
@@ -290,26 +302,6 @@ class debug_monitor extends uvm_monitor;
         item.push_count = vif.dbg_push_cnt;
         item.overwrite_count = vif.dbg_overwrite_cnt;
         push_ap.write(item);
-      end
-
-      if (pending_pop_sample_valid &&
-          vif.pop_hit_valid === 1'b1 &&
-          vif.decision_reg == 3'd2) begin
-        pop_item = ring_buffer_cam_pkg::debug_pop_item::type_id::create("pop_evt");
-        pop_item.slot_addr = pending_pop_slot_addr;
-        pop_item.raw_hit = vif.side_ram_dout[38:0];
-        pop_item.occupied = vif.side_ram_dout[39];
-        pop_item.pop_count = vif.dbg_pop_cnt;
-        pop_ap.write(pop_item);
-      end
-
-      if (vif.pop_erase_grant === 1'b1) begin
-        pending_pop_sample_valid = 1'b1;
-        pending_pop_slot_addr = vif.pop_issue_addr;
-      end else if (pending_pop_sample_valid &&
-                   vif.pop_hit_valid === 1'b1 &&
-                   vif.decision_reg == 3'd2) begin
-        pending_pop_sample_valid = 1'b0;
       end
 
       prev_push_cnt = dbg_push_cnt;

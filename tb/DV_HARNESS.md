@@ -27,7 +27,7 @@ The live harness under `tb/uvm/` currently contains:
 
 ## 3. Current Live Findings
 
-The current 2026-04-20 evidence set establishes:
+The current 2026-04-21 evidence set establishes:
 
 - the real CSR map is:
   - `0 = UID`
@@ -46,6 +46,12 @@ The current 2026-04-20 evidence set establishes:
   - `RUN_PREPARE` is re-issued so the second command waits on flush completion
   - `TERMINATING` is re-issued after the end-of-run marker so the driver waits on the real drain-complete path
 - several directed and error smoke cases now drain correctly, including `X007`, `X008`, and `X013`
+- the new overlap guards now explicitly prove the frozen pop snapshot cannot be mutated by `push_write` once the engine has entered `LOAD`, `COUNT`, or `DRAIN`:
+  - `B130` guards `DRAIN`
+  - `B131` guards `LOAD/COUNT`
+- the terminate path is now closed around the real DUT contract:
+  - `B132` proves ingress `ready` clamps after lane-local end-of-run
+  - `P066` proves already-buffered deassembly payload still drains to completion in `TERMINATING`
 - the profile tranche `P007-P024` now runs through the isolated case engine with real log and UCDB evidence:
   - same-key and multi-key integrity windows had to be calibrated against the DUT's real service rate rather than the older placeholder fill/txn prose
   - the live no-overwrite profiles are therefore defined by measured ingress gaps and sink-ready patterns, not by the superseded nominal `10k/20k/30k` traffic counts in the early PROF draft

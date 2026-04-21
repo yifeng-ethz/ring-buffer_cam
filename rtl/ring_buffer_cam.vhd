@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
 -- Version : 26.1.15
--- Date    : 20260419
--- Change  : publish the stale-slot cache-miss closure tranche (B029/B030/B067/B097) as release 26.1.15.0419
+-- Date    : 20260421
+-- Change  : package the DRAIN/LOAD push-overlap fixes plus the TERMINATING end-of-run ingress/drain fixes as release 26.1.15.0421
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -21,8 +21,8 @@ entity ring_buffer_cam is
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 1;
         VERSION_PATCH       : natural := 15;
-        BUILD               : natural := 419;
-        VERSION_DATE        : natural := 20260419;
+        BUILD               : natural := 421;
+        VERSION_DATE        : natural := 20260421;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;
         DEBUG               : natural := 1

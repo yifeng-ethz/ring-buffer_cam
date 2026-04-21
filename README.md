@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.1.14.0419
+**Version:** 26.1.15.0421
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,15 +96,15 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.1.14.0419` keeps the verified same-key overwrite-tail RTL fix, retains the
-locked MMDD build stamp, carries forward the soft-reset abort-to-`IDLE` cleanup plus
-descriptor / stale-request guards, repairs the equal-load partition round-robin scheduler,
-and republishes the clean terminate/deassembly-drain harness fix with the new `P005/P006`
-PROF evidence so Platform Designer picks up the current verified IP image. The live dashboard state is maintained in
-[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md); this refresh
-adds clean `P005/P006` plus refreshed `P001-P006` terminate / encoder evidence on top of
-the earlier `B099`, `P058`, `P061-P063`, `P041-P045`, `P050-P053`, `P059`, `P060`, and `P064`
-closure tranches.
+Version `26.1.15.0421` keeps the verified same-key overwrite-tail RTL fix, carries forward
+the soft-reset abort-to-`IDLE` cleanup plus descriptor / stale-request guards, preserves the
+equal-load partition round-robin scheduler fix, and now adds the DRAIN / frozen-snapshot
+push-overlap closure together with the TERMINATING end-of-run ingress clamp and buffered
+deassembly-drain completion fix. This nightly checkpoint also folds in the compat-FIFO
+warning cleanup and refreshed seed-1 evidence for the mid-run terminate profile (`P066`)
+and the checkpoint overwrite soak (`P126`) so Platform Designer picks up the current
+verified IP image. The live dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
+and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 

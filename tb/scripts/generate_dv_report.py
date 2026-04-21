@@ -463,6 +463,19 @@ def case_ucdb_candidates(case_data: dict) -> list[Path]:
     )
 
 
+def checkpoint_ucdb_candidates(case_data: dict) -> list[tuple[int, Path]]:
+    case_id = case_data["case_id"]
+    candidates: list[tuple[int, Path]] = []
+    pattern = re.compile(rf"^{re.escape(case_id)}_txn(\d+)_s{SEED}\.ucdb$")
+    for candidate in sorted((PUB_COV / "txn_growth").glob(f"{case_id}_txn*_s{SEED}.ucdb")):
+        match = pattern.match(candidate.name)
+        if not match:
+            continue
+        candidates.append((int(match.group(1)), candidate))
+    candidates.sort(key=lambda item: item[0])
+    return candidates
+
+
 def cross_log_candidates(run_data: dict) -> list[Path]:
     run_id = run_data["run_id"]
     work_names = []
@@ -577,6 +590,21 @@ def build_case(case_data: dict) -> dict:
             entry["isolated_cov_per_txn"] = metrics_to_raw(
                 scale_cov(standalone_metrics, entry["observed_txn"])
             )
+
+    if entry["method"] == "R":
+        txn_growth_curve = []
+        for txn_count, candidate in checkpoint_ucdb_candidates(entry):
+            checkpoint_metrics = summarize_ucdb(str(candidate))
+            if not checkpoint_metrics:
+                continue
+            txn_growth_curve.append(
+                {
+                    "txn": txn_count,
+                    "coverage": metrics_to_raw(checkpoint_metrics),
+                }
+            )
+        if txn_growth_curve:
+            entry["txn_growth_curve"] = txn_growth_curve
 
     publish_log_artifact(entry["case_id"], chosen_log, entry["scenario"], implemented)
     publish_cov_artifact(entry["case_id"], chosen_ucdb)

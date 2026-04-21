@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `182` |
+| ⚠️ | unimplemented_cases | `177` |
 | ✅ | stale_artifacts | `0` |
 
 ## Bugs
@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `pending` |
+| ⚠️ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `pending` |
+| ⚠️ | `BUG-052-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT` | `pending` |
+| ⚠️ | `BUG-051-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN` | `pending` |
+| ⚠️ | `BUG-050-H` | Harness | `2026-04-21` | The compat `scfifo` model truncated exact-full `usedw` and flooded long regressions with false warnings | `pending` |
 | ✅ | `BUG-049-H` | Harness | `2026-04-21` | The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase | `2fd3115` |
 | ✅ | `BUG-048-H` | Harness | `2026-04-21` | Cache-miss output beats left the scoreboard pending-drain queue uncleared | `2fd3115` |
 | ✅ | `BUG-047-H` | Harness | `2026-04-21` | Cache-miss pop observations with `occupied=0` did not retire the live resident in the scoreboard | `2fd3115` |
-| ✅ | `BUG-046-H` | Harness | `2026-04-20` | Clean terminate/drain only waited for the source queue, not for the internal deassembly FIFO, and could wedge heavy overwrite soaks | `cb365cf` |
-| ✅ | `BUG-045-R` | RTL | `2026-04-20` | The equal-load partition drain scheduler held service on the just-issued partition even when another partition was already pending | `7c2beb7` |
-| ✅ | `BUG-044-H` | Harness | `2026-04-20` | Backpressure-enabled PROF cases released `sink_ready` as soon as ingress stopped, not when the drain window finished | `8b9ad49` |
-| ✅ | `BUG-043-H` | Harness | `2026-04-20` | The first `P042` staged late-arrival helper reused overlapping fingerprint space and doubled the aggregate ingress rate after the late-key launch | `97f956c` |
-| ✅ | `BUG-042-R` | RTL | `2026-04-20` | The push path could retire one stale buffered push or overwrite after soft-reset because request generation was not gated by active run state | `08ad68b` |
 
 ## Formal / contract cases
 
@@ -45,9 +45,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
 | ⚠️ | `BASIC` | 129 | 125 | 96.90% | 13825 | 0 | 0 | 0 |
 | ⚠️ | `EDGE` | 129 | 30 | 23.26% | 25561 | 0 | 0 | 0 |
-| ⚠️ | `PROF` | 129 | 73 | 56.59% | 554574 | 0 | 0 | 0 |
+| ⚠️ | `PROF` | 129 | 75 | 58.14% | 557159 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 92 | 71.32% | 4353 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 320 | 62.02% | 598313 | 0 | 0 | 0 |
+| ⚠️ | `TOTAL` | 516 | 322 | 62.40% | 600898 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -55,24 +55,24 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=95.48, branch=85.64, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 96.9% (125/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=95.64, branch=85.90, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | 96.9% (125/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 | 23.26% (30/129) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 73 | stmt=91.91, branch=82.33, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.12 | 56.59% (73/129) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 75 | stmt=91.68, branch=81.78, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.16 | 58.14% (75/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 | 71.32% (92/129) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 95.97 | 95.0 |
-| ⚠️ | branch | 84.23 | 90.0 |
+| ✅ | stmt | 96.13 | 95.0 |
+| ⚠️ | branch | 84.49 | 90.0 |
 | ℹ️ | cond | 72.52 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 72.33 | 80.0 |
+| ⚠️ | toggle | 72.37 | 80.0 |
 
-- functional coverage: `62.02% (320/516)`
+- functional coverage: `62.4% (322/516)`
 
 ## Cross / continuous-frame signoff
 

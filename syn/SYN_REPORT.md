@@ -1,14 +1,14 @@
 # ✅ SYN Report — ring_buffer_cam
 
-**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-20` &nbsp;
+**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-21` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Evidence basis:** `97f956c`
+**Evidence basis:** `pending commit`
 
 This file is the detailed standalone synthesis and timing report for the active `ring_buffer_cam` bug-fix release. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
-- compile the delivered `Default P4` configuration after the `26.1.11.0419` metadata alignment and the `2026-04-20` DV/dashboard refresh
+- compile the delivered `Default P4` configuration after the `26.1.15.0421` metadata alignment and the `2026-04-21` seed-1 DV/dashboard refresh
 - use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
@@ -33,12 +33,12 @@ This model matched the final fitter result: the build is RAM-dominated in storag
 The standalone project already compiled the live wrapper cleanly; this refresh reran it on the latest delivered RTL and metadata:
 
 1. `ring_buffer_cam_syn.sdc` remained tightened at the signoff clock `7.273 ns`.
-2. `proc_pop_descriptor_generator` now gates descriptor issuance on `pop_cmd_fifo_full` so low-latency backlog cannot overrun the 16-entry command FIFO.
-3. `CTRL.soft_reset` now aborts active state back to `IDLE` and clears live counters, fill level, FIFOs, and internal push/pop bookkeeping instead of merely self-clearing bit1.
-4. `proc_pop_engine` no longer consumes stale descriptors once the DUT has already left the active `RUNNING` / `TERMINATING` states.
-5. `proc_push_engine_comb` now blocks stale buffered push / overwrite retirement after soft-reset by requiring both an active run state and `csr.soft_reset /= '1'`.
-6. Delivered metadata defaults and Platform Designer packaging are aligned to `26.1.11.0419` / `20260419`.
-7. This metadata-only refresh kept the standalone P4 timing/resource result unchanged while aligning the packaged image with the verified `P041-P045` PROF evidence slice.
+2. the earlier RTL closure for `BUG-039-R` through `BUG-045-R` remains in place: descriptor generation is FIFO-safe, soft-reset aborts to `IDLE`, stale post-reset work cannot retire, and the equal-load partition scheduler still rotates fairly.
+3. the new `2026-04-21` closure adds `BUG-051-R` and `BUG-052-R`, which block `push_write` once the pop-side resident snapshot has frozen in `LOAD`, `COUNT`, or `DRAIN`.
+4. the new `2026-04-21` terminate-path closure adds `BUG-053-R` and `BUG-054-R`: ingress `ready` clamps low after lane-local end-of-run, while already-buffered deassembly payload continues draining locally until `terminating_drain_done`.
+5. delivered metadata defaults and Platform Designer packaging are aligned to `26.1.15.0421` / `20260421`.
+6. the nightly refresh also folded in the compat `scfifo` warning cleanup (`BUG-050-H`) so long seeded regressions no longer hide real failures behind exact-full `usedw` truncation noise.
+7. `B010` exposed a real packaging constraint while restamping the release: the META patch field is only `4` bits wide, so the compatible-fix patch had to stay at `15` for this delivered image rather than rolling to `16`.
 
 ## Timing Summary
 
@@ -50,44 +50,44 @@ Signoff target:
 
 | status | model | setup WNS (ns) | hold WNS (ns) | Fmax |
 |:---:|---|---:|---:|---:|
-| ✅ | Slow 1100mV 85C | `+0.450` | `+0.297` | `146.56 MHz` |
-| ✅ | Slow 1100mV 0C | `+0.555` | `+0.277` | `148.85 MHz` |
-| ✅ | Fast 1100mV 85C | `+3.434` | `+0.176` | n/a |
-| ✅ | Fast 1100mV 0C | `+3.690` | `+0.162` | n/a |
+| ✅ | Slow 1100mV 85C | `+0.809` | `+0.325` | `154.70 MHz` |
+| ✅ | Slow 1100mV 0C | `+0.920` | `+0.308` | `157.41 MHz` |
+| ✅ | Fast 1100mV 85C | `+3.534` | `+0.189` | n/a |
+| ✅ | Fast 1100mV 0C | `+3.798` | `+0.169` | n/a |
 
 Key conclusions:
 
 - the active P4 build closes setup and hold at the tightened `137.5 MHz` signoff clock
-- worst-case setup is the slow `85C` corner at `+0.450 ns`
-- worst-case hold is the fast `0C` corner at `+0.162 ns`
-- the equivalent slow-corner internal Fmax is `146.56 MHz`, which is about `17.2%` above the nominal `125 MHz` operating target
+- worst-case setup is the slow `85C` corner at `+0.809 ns`
+- worst-case hold is the fast `0C` corner at `+0.169 ns`
+- the equivalent slow-corner internal Fmax is `154.70 MHz`, which is about `23.8%` above the nominal `125 MHz` operating target
 
 ## Resource Summary
 
 | item | value |
 |---|---|
-| Logic utilization | `2,364 / 91,680 ALMs (3%)` |
-| Registers | `2,825` |
+| Logic utilization | `2,327 / 91,680 ALMs (3%)` |
+| Registers | `2,770` |
 | Pins | `34 / 426 (8%)` |
-| Block memory bits | `161,536 / 13,987,840 (1%)` |
+| Block memory bits | `153,600 / 13,987,840 (1%)` |
 | RAM blocks | `19 / 1,366 (1%)` |
 | DSP blocks | `0 / 800` |
 | PLLs | `0 / 21` |
 
 Synthesis-only visibility:
 
-- map summary before fitter: `2,847` total registers and `161,536` memory bits
-- fitter preserved the RAM-centric implementation and reduced final logic to `2,364` ALMs
+- fitter preserved the RAM-centric implementation at `19` RAM blocks / `153,600` bits while keeping logic at `2,327` ALMs
+- no seed scan or timing-only netlist tricks were needed to close the tightened `137.5 MHz` target
 
 ## Flow Runtime
 
 | module | elapsed | CPU time |
 |---|---:|---:|
-| Analysis & Synthesis | `00:00:22` | `00:00:37` |
-| Fitter | `00:01:22` | `00:07:34` |
+| Analysis & Synthesis | `00:00:20` | `00:00:34` |
+| Fitter | `00:01:18` | `00:06:57` |
 | Assembler | `00:00:11` | `00:00:11` |
 | Timing Analyzer | `00:00:09` | `00:00:15` |
-| Total | `00:02:09` | `00:08:39` |
+| Total | `00:01:58` | `00:07:57` |
 
 ## Constraint Caveats
 
@@ -96,6 +96,11 @@ TimeQuest reports the design as not fully constrained. This is understood and is
 - unconstrained setup output ports: `32`
 - unconstrained hold output ports: `32`
 - affected ports: the top-level `probe_out[31:0]` bits of the standalone synthesis harness
+- fitter-only harness warnings also remain expected:
+  - no exact pin locations for the standalone harness I/O
+  - incomplete I/O assignments on the harness pins
+  - non-dedicated clock routing on harness input `clk125`
+  - shared-VREF use on harness pin `probe_out[3]`
 
 The internal `clk125` register-to-register domain is constrained and closes. The unconstrained paths are harness-observation outputs only, not DUT internal timing paths.
 

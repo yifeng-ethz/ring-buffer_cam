@@ -779,3 +779,83 @@ Normalization note:
   - replaced the live-bus force with a dedicated debug patch lane in `alt_simple_dpram` / `ring_buffer_cam_v2_core`, then rewrote the BASIC stale-slot helpers to patch exactly one written side-RAM entry for one clock
   - verified by clean isolated reruns of `B029`, `B030`, and `B067`, with `B027` remaining clean as the overwrite-path control
 - Commit: 2fd3115
+
+### BUG-050-H: The compat `scfifo` model truncated exact-full `usedw` and flooded long regressions with false warnings
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (simulator-compatibility warning audit during B072 on 2026-04-21)`
+- First seen in: `B072` on 2026-04-21 while refreshing the BASIC warning floor for the current nightly checkpoint
+- Symptom:
+  - exact-full FIFO occupancy produced repeated `NUMERIC_STD.TO_UNSIGNED: vector truncated` style warnings from the compat `usedw` path
+  - the warning burst obscured real UVM failures and made the nightly log count look unhealthy even when the DUT behavior was correct
+- Root cause:
+  - the compat model encoded `count` directly into a `usedw` vector whose width is only `log2(depth)`
+  - Intel's generated wrappers use that narrow debug width, so the exact-full count is not representable and must saturate rather than convert lossily
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - added a saturating `encode_usedw()` helper to `tb/sim/compat/scfifo.vhd` and made the compat source a real Makefile dependency so reruns rebuild it deterministically
+  - verified by a clean isolated rerun of `B072`; warning count dropped from the previous full-occupancy flood to the remaining benign startup/tool warnings only
+- Commit: pending
+
+### BUG-051-R: The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN`
+- Severity: `soft error`
+- Encounter sim-time: `n/a (directed-only DRAIN-overlap guard repro)`
+- First seen in: `B130` on 2026-04-21 during the overwrite-closure directed guard bring-up
+- Symptom:
+  - a late push could still win arbitration in a `DRAIN` bubble even though the pop engine already owned a frozen resident snapshot
+  - that risked mutating live RAM/CAM state underneath an active drain epoch and invalidating the scoreboard's packet-level retirement model
+- Root cause:
+  - `proc_mem_arbitor_comb` still treated every non-IDLE pop state as eligible for push/pop overlap
+  - once the engine had entered `DRAIN`, that overlap policy was no longer legal because the frozen pop snapshot had to retire without further push-side mutation
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - restricted overlap to the pre-freeze search window and added the dedicated `B130` guard so any future `push_write` in `DRAIN` fails immediately
+  - verified by clean isolated reruns of `B130`, `B131`, and the skewed overwrite soak `P126`
+- Commit: pending
+
+### BUG-052-R: The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT`
+- Severity: `soft error`
+- Encounter sim-time: `n/a (directed-only frozen-snapshot overlap repro)`
+- First seen in: `B131` on 2026-04-21 while closing the post-search overlap path after `BUG-051-R`
+- Symptom:
+  - the DRAIN guard removed the latest overlap window, but the arbiter could still admit a `push_write` during `LOAD` or `COUNT`
+  - that meant the issue mask and exact-hit count could be computed from one resident set and then drained against a different one
+- Root cause:
+  - overlap had been left enabled for all non-IDLE pop states instead of only the final pre-freeze `SEARCH` phase
+  - the pop-side snapshot therefore was not protected once the engine had already started loading/counting the matched partitions
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - the arbiter now allows overlap only during `SEARCH`, while `LOAD`, `COUNT`, and `DRAIN` preserve the frozen snapshot until retirement completes
+  - verified by clean isolated reruns of `B131` and the reduced checkpoint overwrite soak `P126`, which still closes at `push=2500`, `pop=1693`, `overwrite=807`, `remaining=0`
+- Commit: pending
+
+### BUG-053-R: Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped
+- Severity: `soft error`
+- Encounter sim-time: `n/a (randomized mid-run TERMINATING repro in pre-fix P066)`
+- First seen in: `P066` on 2026-04-21 during the new mid-run terminate profile implementation, then locked down with `B132`
+- Symptom:
+  - after `endofrun_seen` latched, the source still observed `ready=1` and continued handshaking payload beats
+  - `accepted_payload_total` kept advancing, but the DUT had already stopped writing those beats into the deassembly path, leaving `PUSH_COUNT` permanently below the source-side accepted total
+- Root cause:
+  - `deassembly_fifo_wrreq` correctly stopped once the DUT entered `TERMINATING` with `endofrun_seen=1`, but `asi_hit_type1_ready` still depended only on FIFO fullness
+  - the DUT therefore advertised acceptance after end-of-run even though the local write path had already closed
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - `asi_hit_type1_ready` now also requires `csr.go=1`, no soft-reset, and an active `RUNNING` / pre-EOR `TERMINATING` state; the new `B132` guard checks that `ready` and `dbg_push_cnt` stay flat after lane-local end-of-run
+  - verified by clean isolated reruns of `P066`, `B132`, `B131`, and `P126`
+- Commit: pending
+
+### BUG-054-R: The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING`
+- Severity: `soft error`
+- Encounter sim-time: `n/a (seed-1 mid-run TERMINATING repro in post-BUG-053 P066)`
+- First seen in: `P066` on 2026-04-21 during the report-seed rerun after `BUG-053-R` had already clamped post-EOR ingress acceptance
+- Symptom:
+  - seed-1 `P066` no longer accepted new post-EOR beats, but `terminating_drain_done` still never asserted because two pre-EOR entries stayed stranded forever in the local deassembly FIFO
+  - the DUT sat in `TERMINATING` with `deassm_usedw=2`, `push=83`, `pop=83`, `accepted=85`, and a permanently backpressured source, proving the remaining buffered work was not being retired
+- Root cause:
+  - `proc_push_engine_comb` still blocked both `push_write_req` and `push_erase_req` once `run_state_cmd=TERMINATING` and `endofrun_seen=1`
+  - that was too aggressive: new ingress had to stop, but already-buffered deassembly entries and their follow-on erase work still had to drain to make `terminating_drain_done` reachable
+- Fix status: fixed and verified
+- Runtime / coverage context:
+  - allowed the push engine to continue servicing buffered local payload while the DUT is in `TERMINATING`, while keeping ingress `wrreq` / `ready` clamped after lane-local end-of-run
+  - verified by the clean seed-1 reruns of `P066`, `B132`, and `P126`; `P066` now closes at `accepted=85`, `push=85`, `pop=85`, `remaining=0`
+- Commit: pending

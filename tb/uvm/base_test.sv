@@ -351,6 +351,260 @@ class base_test extends uvm_test;
     end
   endtask
 
+  function automatic int unsigned get_dv_seed();
+    int unsigned dv_seed;
+
+    if (!$value$plusargs("DV_SEED=%d", dv_seed)) begin
+      dv_seed = 1;
+    end
+    return dv_seed;
+  endfunction
+
+  function automatic string get_dv_tb_dir();
+    string tb_dir;
+
+    if (!$value$plusargs("DV_TB_DIR=%s", tb_dir)) begin
+      tb_dir = "";
+    end
+    return tb_dir;
+  endfunction
+
+  function automatic int unsigned get_long_txn_override();
+    int unsigned override_hits;
+
+    if (!$value$plusargs("DV_LONG_TXN_OVERRIDE=%d", override_hits)) begin
+      override_hits = 0;
+    end
+    return override_hits;
+  endfunction
+
+  task automatic build_log_spaced_checkpoint_targets(
+    int unsigned final_txn,
+    ref int unsigned checkpoint_targets[$]
+  );
+    int unsigned next_txn;
+
+    checkpoint_targets.delete();
+    if (final_txn == 0) begin
+      return;
+    end
+
+    next_txn = 1;
+    while (next_txn < final_txn) begin
+      checkpoint_targets.push_back(next_txn);
+      if (next_txn > (32'h7fff_ffff >> 1)) begin
+        break;
+      end
+      next_txn <<= 1;
+    end
+    if (checkpoint_targets.size() == 0 ||
+        checkpoint_targets[$] != final_txn) begin
+      checkpoint_targets.push_back(final_txn);
+    end
+  endtask
+
+  task automatic wait_for_accepted_payload_count(
+    int unsigned expected_count,
+    int unsigned max_cycles,
+    string       what
+  );
+    int unsigned cycles;
+
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_hit_drv.accepted_payload_total >= expected_count) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s accepted_payload_total=%0d after %0d cycles: observed=%0d",
+      what, expected_count, max_cycles, m_env.m_hit_drv.accepted_payload_total))
+  endtask
+
+  task automatic save_txn_growth_checkpoints(
+    string       case_id,
+    int unsigned checkpoint_targets[$],
+    int unsigned max_cycles_per_checkpoint,
+    string       what
+  );
+    string checkpoint_dir;
+    string checkpoint_path;
+    string tb_dir;
+    int unsigned dv_seed;
+    int unsigned idx;
+
+    tb_dir = get_dv_tb_dir();
+    if (tb_dir == "") begin
+      `uvm_fatal("COV", $sformatf(
+        "%s is missing +DV_TB_DIR; cannot save checkpoint UCDBs",
+        what))
+    end
+
+    dv_seed = get_dv_seed();
+    checkpoint_dir = {tb_dir, "/uvm/cov_after/txn_growth"};
+    void'($system({"mkdir -p ", checkpoint_dir}));
+
+    for (idx = 0; idx < checkpoint_targets.size(); idx++) begin
+      wait_for_accepted_payload_count(
+        checkpoint_targets[idx],
+        max_cycles_per_checkpoint,
+        {what, " checkpoint"});
+      checkpoint_path = $sformatf(
+        "%s/%s_txn%0d_s%0d.ucdb",
+        checkpoint_dir, case_id, checkpoint_targets[idx], dv_seed);
+      void'($coverage_save(checkpoint_path));
+      `uvm_info("COV", $sformatf(
+        "%s saved checkpoint UCDB txn=%0d path=%s",
+        what, checkpoint_targets[idx], checkpoint_path), UVM_LOW)
+    end
+  endtask
+
+  task automatic run_weighted_overwrite_checkpoint_case(
+    string       what,
+    string       case_id,
+    int unsigned latency,
+    int unsigned default_num_epochs,
+    int unsigned key_hits_per_epoch[$],
+    int unsigned lane_key_ord_list[$],
+    int unsigned inter_hit_gap_cycles,
+    int unsigned inter_epoch_gap_cycles,
+    int unsigned sink_ready_mode,
+    int unsigned timeout_cycles,
+    int unsigned min_overwrites,
+    output int unsigned total_hits,
+    output int unsigned push_count,
+    output int unsigned pop_count,
+    output int unsigned overwrite_count,
+    output int unsigned cache_miss_count,
+    output int unsigned fill_level,
+    output int unsigned sink_low_cycles
+  );
+    weighted_profile_seq prof_seq;
+    int unsigned         checkpoint_targets[$];
+    int unsigned         hits_per_epoch_total;
+    int unsigned         num_epochs;
+    int unsigned         override_hits;
+    int unsigned         sink_cycles;
+    logic [31:0]         ready_lfsr;
+    bit                  ready_now;
+    bit                  traffic_done;
+
+    hits_per_epoch_total = 0;
+    foreach (key_hits_per_epoch[idx]) begin
+      hits_per_epoch_total += key_hits_per_epoch[idx];
+    end
+    if (hits_per_epoch_total == 0) begin
+      `uvm_fatal("PROF", $sformatf(
+        "%s requires at least one weighted traffic slot",
+        what))
+    end
+
+    num_epochs = default_num_epochs;
+    override_hits = get_long_txn_override();
+    if (override_hits > 0) begin
+      num_epochs = (override_hits + hits_per_epoch_total - 1) / hits_per_epoch_total;
+      if (num_epochs == 0) begin
+        num_epochs = 1;
+      end
+      `uvm_info("PROF", $sformatf(
+        "%s applying DV_LONG_TXN_OVERRIDE=%0d -> epochs=%0d",
+        what, override_hits, num_epochs), UVM_LOW)
+    end
+
+    total_hits = hits_per_epoch_total * num_epochs;
+    build_log_spaced_checkpoint_targets(total_hits, checkpoint_targets);
+
+    sink_low_cycles = 0;
+    traffic_done = 1'b0;
+    ready_lfsr = 32'h1bad_cafe;
+
+    configure_and_start(latency);
+
+    fork
+      begin : sink_ready_thread
+        if (sink_ready_mode != 0) begin
+          sink_cycles = 0;
+          while (sink_cycles < timeout_cycles &&
+                 (!traffic_done ||
+                  m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_scb.remaining_entries() != 0)) begin
+            case (sink_ready_mode)
+              1: ready_now = ((sink_cycles & 2'b11) != 2'b11); // 75% ready
+              2: ready_now = ((sink_cycles & 1'b1) == 1'b0);   // 50% ready
+              3: begin
+                ready_lfsr = {ready_lfsr[30:0],
+                              ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+                ready_now = (ready_lfsr[7:0] < 8'd179);        // ~70% ready
+              end
+              4: begin
+                ready_lfsr = {ready_lfsr[30:0],
+                              ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+                ready_now = (ready_lfsr[7:0] < 8'd77);         // ~30% ready
+              end
+              default: ready_now = 1'b1;
+            endcase
+            set_sink_ready(ready_now);
+            if (!ready_now) begin
+              sink_low_cycles++;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            sink_cycles++;
+          end
+          set_sink_ready(1'b1);
+        end
+      end
+      begin : checkpoint_thread
+        save_txn_growth_checkpoints(
+          case_id, checkpoint_targets, timeout_cycles, what);
+      end
+      begin : traffic_thread
+        prof_seq = weighted_profile_seq::type_id::create({what, "_weighted"});
+        prof_seq.num_epochs = num_epochs;
+        prof_seq.inter_hit_gap_cycles = inter_hit_gap_cycles;
+        prof_seq.inter_epoch_gap_cycles = inter_epoch_gap_cycles;
+        prof_seq.progress_stride = (total_hits >= 4096) ? (total_hits / 4) :
+                                   ((total_hits >= 4) ? (total_hits / 2) : 1);
+        prof_seq.progress_tag = what;
+        foreach (key_hits_per_epoch[idx]) begin
+          prof_seq.key_hits_per_epoch.push_back(key_hits_per_epoch[idx]);
+        end
+        foreach (lane_key_ord_list[idx]) begin
+          prof_seq.lane_key_ord_list.push_back(lane_key_ord_list[idx]);
+        end
+        prof_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+    join
+
+    set_sink_ready(1'b1);
+    terminate_and_drain(timeout_cycles, {what, " terminate drain"});
+    expect_service_model_accounting({what, " post-terminate"}, 1, min_overwrites);
+
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+
+    if (push_count != total_hits || cache_miss_count != 0 || fill_level != 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level, total_hits))
+    end
+    if (sink_ready_mode != 0 && sink_low_cycles == 0) begin
+      `uvm_error("PROF", $sformatf(
+        "%s never forced sink-ready low in the backpressure-enabled soak",
+        what))
+    end
+
+    `uvm_info("PROF", $sformatf(
+      "%s overwrite-soak summary: total_hits=%0d push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d sink_low_cycles=%0d max_live_fill=%0d",
+      what, total_hits, push_count, pop_count, overwrite_count, cache_miss_count,
+      fill_level, sink_low_cycles, m_env.m_dbg_mon.max_live_fill), UVM_LOW)
+  endtask
+
   task automatic wait_for_scoreboard_idle(
     int unsigned max_cycles = 50_000,
     string what = "scoreboard drain"
@@ -2496,7 +2750,7 @@ class base_test extends uvm_test;
     csr_read(CSR_META_ADDR, version_word);
     set_meta_sel(2'b01);
     csr_read(CSR_META_ADDR, date_word);
-    if (version_word != expected_meta_version() || date_word != 32'd20260419) begin
+    if (version_word != expected_meta_version() || date_word != 32'd20260421) begin
       `uvm_error("X090", $sformatf(
         "META selector write/read mismatch: version=0x%08x date=0x%08x",
         version_word, date_word))
@@ -5797,7 +6051,7 @@ class base_test extends uvm_test;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd1;
     version_word[15:12] = 4'd15;
-    version_word[11:0]  = 12'd419;
+    version_word[11:0]  = 12'd421;
     return version_word;
   endfunction
 
@@ -6187,7 +6441,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260419, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -6443,7 +6697,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260419, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -8715,7 +8969,7 @@ class base_test extends uvm_test;
       csr_read(CSR_META_ADDR, data_a);
       set_meta_sel(2'b01);
       csr_read(CSR_META_ADDR, data_b);
-      if (data_a != expected_meta_version() || data_b != 32'd20260419) begin
+      if (data_a != expected_meta_version() || data_b != 32'd20260421) begin
         `uvm_error("B123", $sformatf(
           "META walk mismatch in VERSION/DATE phase: version=0x%08x date=0x%08x",
           data_a, data_b))
@@ -8937,6 +9191,148 @@ class base_test extends uvm_test;
       end
       terminate_and_drain(250_000, "B129 no-bubble terminate");
       expect_service_model_accounting("B129 no-bubble terminate", 1, 0);
+    end else if (case_id == "B130") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b130_drain_bubble_guard");
+      burst_seq.num_hits = 512;
+      burst_seq.search_key = focus_search_key;
+      saw_overlap = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 8_192 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              saw_overlap = 1'b1;
+              `uvm_error("B130", $sformatf(
+                "push_write_grant entered DRAIN bubble at decision_reg=%0d pop_issue_addr=%0d",
+                m_env.m_dbg_mon.vif.decision_reg,
+                m_env.m_dbg_mon.vif.pop_issue_addr))
+              break;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (saw_overlap) begin
+        `uvm_error("B130", "Observed push_write_grant while pop_engine_state stayed in DRAIN")
+      end
+      terminate_and_drain(250_000, "B130 no push-write in DRAIN");
+      expect_service_model_accounting("B130 no push-write in DRAIN", 1, 0);
+    end else if (case_id == "B131") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("b131_snapshot_freeze_guard");
+      burst_seq.num_hits = 512;
+      burst_seq.search_key = focus_search_key;
+      saw_overlap = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin
+          burst_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 8_192 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            if ((m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3}) &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              saw_overlap = 1'b1;
+              `uvm_error("B131", $sformatf(
+                "push_write_grant overlapped a frozen pop snapshot: pop_state=%0d decision_reg=%0d",
+                m_env.m_dbg_mon.pop_engine_state_code,
+                m_env.m_dbg_mon.vif.decision_reg))
+              break;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+      if (saw_overlap) begin
+        `uvm_error("B131", "Observed push_write_grant while pop_engine_state stayed in LOAD/COUNT")
+      end
+      terminate_and_drain(250_000, "B131 no push-write in LOAD/COUNT");
+      expect_service_model_accounting("B131 no push-write in LOAD/COUNT", 1, 0);
+    end else if (case_id == "B132") begin
+      profile_traffic_seq term_seq;
+      int unsigned        push_at_endofrun;
+      int unsigned        offered_at_endofrun;
+      int unsigned        observe_cycles;
+      bit                 saw_ready_high_after_endofrun;
+      bit                 saw_push_after_endofrun;
+
+      configure_and_start(16'd128);
+      traffic_done = 1'b0;
+      saw_ready_high_after_endofrun = 1'b0;
+      saw_push_after_endofrun = 1'b0;
+      fork
+        begin
+          term_seq = profile_traffic_seq::type_id::create("b132_term_ready_guard");
+          term_seq.num_hits = 256;
+          term_seq.lane_key_start_ord = 2;
+          term_seq.pool_keys = 4;
+          term_seq.hits_per_key_switch = 1;
+          term_seq.inter_hit_gap_cycles = 13;
+          term_seq.progress_stride = 128;
+          term_seq.progress_tag = "B132 terminate ingress-ready guard";
+          term_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          wait_clocks(1_500);
+          ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+          wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 20_000, "B132 TERMINATING entry");
+          send_endofrun_marker();
+          wait_clocks(2);
+          if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+            `uvm_error("B132", "endofrun_seen did not latch after TERMINATING marker")
+          end
+
+          push_at_endofrun = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+          offered_at_endofrun = m_env.m_hit_drv.offered_payload_total;
+          observe_cycles = 0;
+          while (observe_cycles < 128 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            @(posedge m_env.m_csr_drv.vif.clk);
+            observe_cycles++;
+            if (m_env.m_hit_drv.vif.ready === 1'b1) begin
+              saw_ready_high_after_endofrun = 1'b1;
+            end
+            if (m_env.m_dbg_mon.dbg_push_cnt[31:0] != push_at_endofrun) begin
+              saw_push_after_endofrun = 1'b1;
+            end
+          end
+        end
+      join
+
+      if (m_env.m_hit_drv.offered_payload_total == offered_at_endofrun) begin
+        `uvm_error("B132", $sformatf(
+          "Terminate ingress-ready guard never observed additional offered traffic after endofrun_seen: offered_at_eor=%0d final_offered=%0d",
+          offered_at_endofrun, m_env.m_hit_drv.offered_payload_total))
+      end
+      if (saw_ready_high_after_endofrun) begin
+        `uvm_error("B132", "asi_hit_type1_ready stayed high after endofrun_seen latched in TERMINATING")
+      end
+      if (saw_push_after_endofrun) begin
+        `uvm_error("B132", $sformatf(
+          "PUSH_COUNT advanced after endofrun_seen latched: before=%0d after=%0d",
+          push_at_endofrun, m_env.m_dbg_mon.dbg_push_cnt[31:0]))
+      end
+      ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+      m_env.m_hit_drv.pending_q.delete();
+      wait_clocks(2);
+      wait_for_scoreboard_idle(120_000, "B132 post-terminate cleanup");
+      expect_service_model_accounting("B132 terminate ingress-ready guard", 1, 0);
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);
@@ -10564,6 +10960,102 @@ class base_test extends uvm_test;
         1'b1,
         32'h0640_5eed,
         expected_mask[3:0]);
+    end else if (case_id == "P066") begin
+      profile_traffic_seq term_seq;
+      int unsigned term_inject_cycles;
+      int unsigned accepted_at_endofrun;
+      int unsigned offered_at_endofrun;
+      int unsigned push_count;
+      int unsigned pop_count;
+      int unsigned overwrite_count;
+      int unsigned cache_miss_count;
+      int unsigned fill_level;
+      int unsigned post_eor_cycles;
+      bit          p066_traffic_done;
+      bit          saw_post_endofrun_offers;
+
+      configure_and_start(16'd128);
+      p066_traffic_done = 1'b0;
+      term_inject_cycles = 1_000 + ((get_dv_seed() * 97) % 8_001);
+
+      fork
+        begin : p066_traffic_thread
+          term_seq = profile_traffic_seq::type_id::create("p066_uniform_term");
+          term_seq.num_hits = 1_024;
+          term_seq.lane_key_start_ord = 2;
+          term_seq.pool_keys = 4;
+          term_seq.hits_per_key_switch = 1;
+          term_seq.randomize_key_order = 1'b0;
+          term_seq.inter_hit_gap_cycles = 13;
+          term_seq.progress_stride = 256;
+          term_seq.progress_tag = "P066 mid-run terminate profile";
+          term_seq.start(m_env.m_hit_seqr);
+          p066_traffic_done = 1'b1;
+        end
+        begin : p066_term_thread
+          wait_clocks(term_inject_cycles);
+          ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+          wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 20_000, "P066 TERMINATING entry");
+          send_endofrun_marker();
+          wait_clocks(2);
+          if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+            `uvm_error("P066", "endofrun_seen did not latch after the mid-run TERMINATING marker")
+          end
+
+          accepted_at_endofrun = m_env.m_hit_drv.accepted_payload_total;
+          offered_at_endofrun = m_env.m_hit_drv.offered_payload_total;
+          saw_post_endofrun_offers = 1'b0;
+          post_eor_cycles = 0;
+          while (post_eor_cycles < 512 &&
+                 (!p066_traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            @(posedge m_env.m_csr_drv.vif.clk);
+            post_eor_cycles++;
+            if (m_env.m_hit_drv.offered_payload_total > offered_at_endofrun) begin
+              saw_post_endofrun_offers = 1'b1;
+            end
+            if (m_env.m_hit_drv.accepted_payload_total > accepted_at_endofrun) begin
+              `uvm_error("P066", $sformatf(
+                "Accepted payload advanced after endofrun_seen latched: accepted_before=%0d accepted_now=%0d offered_now=%0d pending_source=%0d",
+                accepted_at_endofrun,
+                m_env.m_hit_drv.accepted_payload_total,
+                m_env.m_hit_drv.offered_payload_total,
+                m_env.m_hit_drv.pending_source_items()))
+              accepted_at_endofrun = m_env.m_hit_drv.accepted_payload_total;
+            end
+          end
+          if (!saw_post_endofrun_offers) begin
+            `uvm_error("P066", $sformatf(
+              "Mid-run TERMINATING never observed additional offered traffic after endofrun_seen: offered_at_eor=%0d final_offered=%0d",
+              offered_at_endofrun,
+              m_env.m_hit_drv.offered_payload_total))
+          end
+
+          ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+        end
+      join
+
+      m_env.m_hit_drv.pending_q.delete();
+      wait_clocks(2);
+      wait_for_scoreboard_idle(200_000, "P066 mid-run terminate cleanup");
+      expect_service_model_accounting("P066 mid-run terminate cleanup", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != m_env.m_hit_drv.accepted_payload_total) begin
+        `uvm_error("P066", $sformatf(
+          "PUSH_COUNT disagreed with accepted payload total after mid-run TERMINATING: push=%0d accepted=%0d pop=%0d overwrite=%0d",
+          push_count,
+          m_env.m_hit_drv.accepted_payload_total,
+          pop_count,
+          overwrite_count))
+      end
+      if (cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P066", $sformatf(
+          "Mid-run TERMINATING left unexpected residual accounting: fill=%0d cache_miss=%0d push=%0d pop=%0d overwrite=%0d",
+          fill_level, cache_miss_count, push_count, pop_count, overwrite_count))
+      end
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);
     end else if (case_id == "P112") begin
@@ -10782,6 +11274,409 @@ class base_test extends uvm_test;
       run_single_key_latency_extreme_case(
         "P124 single-key overwrite min-latency",
         16'd1, 1024, 128, 192, 384, 448, 1'b0);
+    end else if (case_id == "P125") begin
+      int unsigned key_hits_per_epoch[$];
+      int unsigned lane_key_ord_list[$];
+      int unsigned p125_total_hits;
+      int unsigned p125_push_count;
+      int unsigned p125_pop_count;
+      int unsigned p125_overwrite_count;
+      int unsigned p125_cache_miss_count;
+      int unsigned p125_fill_level;
+      int unsigned p125_sink_low_cycles;
+      int unsigned p125_ow16;
+      int unsigned p125_ow20;
+      int unsigned p125_ow24;
+      int unsigned p125_ow28;
+      int unsigned p125_ow_min;
+      int unsigned p125_ow_max;
+
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      lane_key_ord_list.push_back(4);
+      lane_key_ord_list.push_back(5);
+      lane_key_ord_list.push_back(6);
+      lane_key_ord_list.push_back(7);
+
+      run_weighted_overwrite_checkpoint_case(
+        "P125 overwrite checkpoint soak balanced",
+        "P125",
+        16'd2000,
+        10_000,
+        key_hits_per_epoch,
+        lane_key_ord_list,
+        0,
+        0,
+        0,
+        25_000_000,
+        1,
+        p125_total_hits,
+        p125_push_count,
+        p125_pop_count,
+        p125_overwrite_count,
+        p125_cache_miss_count,
+        p125_fill_level,
+        p125_sink_low_cycles);
+
+      if ((p125_overwrite_count * 10_000) < (p125_total_hits * 1000) ||
+          (p125_overwrite_count * 10_000) > (p125_total_hits * 3500)) begin
+        `uvm_error("P125", $sformatf(
+          "Balanced overwrite soak escaped the intended 10%%..35%% regime: total_hits=%0d overwrite=%0d pct_x100=%0d",
+          p125_total_hits,
+          p125_overwrite_count,
+          (p125_total_hits == 0) ? 0 : ((p125_overwrite_count * 10_000) / p125_total_hits)))
+      end
+
+      p125_ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      p125_ow20 = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      p125_ow24 = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      p125_ow28 = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      p125_ow_min = p125_ow16;
+      p125_ow_max = p125_ow16;
+      if (p125_ow20 < p125_ow_min) p125_ow_min = p125_ow20;
+      if (p125_ow24 < p125_ow_min) p125_ow_min = p125_ow24;
+      if (p125_ow28 < p125_ow_min) p125_ow_min = p125_ow28;
+      if (p125_ow20 > p125_ow_max) p125_ow_max = p125_ow20;
+      if (p125_ow24 > p125_ow_max) p125_ow_max = p125_ow24;
+      if (p125_ow28 > p125_ow_max) p125_ow_max = p125_ow28;
+      if ((p125_ow_max - p125_ow_min) > ((p125_overwrite_count / 10) + 1)) begin
+        `uvm_error("P125", $sformatf(
+          "Balanced long-soak overwrite ownership drifted too far across the 4 keys: key16=%0d key20=%0d key24=%0d key28=%0d total_overwrite=%0d",
+          p125_ow16, p125_ow20, p125_ow24, p125_ow28, p125_overwrite_count))
+      end
+    end else if (case_id == "P126") begin
+      int unsigned key_hits_per_epoch[$];
+      int unsigned lane_key_ord_list[$];
+      int unsigned p126_total_hits;
+      int unsigned p126_push_count;
+      int unsigned p126_pop_count;
+      int unsigned p126_overwrite_count;
+      int unsigned p126_cache_miss_count;
+      int unsigned p126_fill_level;
+      int unsigned p126_sink_low_cycles;
+      int unsigned p126_ow16;
+      int unsigned p126_ow20;
+      int unsigned p126_ow24;
+      int unsigned p126_ow28;
+
+      key_hits_per_epoch.push_back(53);
+      key_hits_per_epoch.push_back(23);
+      key_hits_per_epoch.push_back(14);
+      key_hits_per_epoch.push_back(10);
+      lane_key_ord_list.push_back(4);
+      lane_key_ord_list.push_back(5);
+      lane_key_ord_list.push_back(6);
+      lane_key_ord_list.push_back(7);
+
+      run_weighted_overwrite_checkpoint_case(
+        "P126 overwrite checkpoint soak zipf-like",
+        "P126",
+        16'd2000,
+        10_000,
+        key_hits_per_epoch,
+        lane_key_ord_list,
+        0,
+        0,
+        0,
+        25_000_000,
+        1,
+        p126_total_hits,
+        p126_push_count,
+        p126_pop_count,
+        p126_overwrite_count,
+        p126_cache_miss_count,
+        p126_fill_level,
+        p126_sink_low_cycles);
+
+      if ((p126_overwrite_count * 10_000) < (p126_total_hits * 1000)) begin
+        `uvm_error("P126", $sformatf(
+          "Zipf-like overwrite soak stayed too shallow to prove the overwrite axis: total_hits=%0d overwrite=%0d pct_x100=%0d",
+          p126_total_hits,
+          p126_overwrite_count,
+          (p126_total_hits == 0) ? 0 : ((p126_overwrite_count * 10_000) / p126_total_hits)))
+      end
+
+      p126_ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      p126_ow20 = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      p126_ow24 = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      p126_ow28 = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      if (!(p126_ow16 > p126_ow20 &&
+            p126_ow20 > p126_ow24 &&
+            p126_ow24 > p126_ow28)) begin
+        `uvm_error("P126", $sformatf(
+          "Zipf-like overwrite ordering mismatch: key16=%0d key20=%0d key24=%0d key28=%0d",
+          p126_ow16, p126_ow20, p126_ow24, p126_ow28))
+      end
+      if (p126_total_hits >= 512_000 && p126_ow28 == 0) begin
+        `uvm_error("P126", $sformatf(
+          "Tail-key overwrite never appeared by the time the soak exceeded 512k accepted hits: total_hits=%0d key28=%0d",
+          p126_total_hits, p126_ow28))
+      end
+      if (p126_ow16 <= (p126_ow28 * 2)) begin
+        `uvm_error("P126", $sformatf(
+          "Dominant-key overwrite did not separate enough from the tail under the zipf-like profile: key16=%0d key28=%0d",
+          p126_ow16, p126_ow28))
+      end
+    end else if (case_id == "P127") begin
+      weighted_profile_seq prefill_seq;
+      weighted_profile_seq pressure_seq;
+      int unsigned prefill_key_hits[$];
+      int unsigned key_hits_per_epoch[$];
+      int unsigned lane_key_ord_list[$];
+      int unsigned checkpoint_targets[$];
+      int unsigned hits_per_epoch_total;
+      int unsigned num_epochs;
+      int unsigned override_hits;
+      int unsigned p127_total_hits;
+      int unsigned p127_push_count;
+      int unsigned p127_pop_count;
+      int unsigned p127_overwrite_count;
+      int unsigned p127_cache_miss_count;
+      int unsigned p127_fill_level;
+      int unsigned p127_sink_low_cycles;
+      int unsigned p127_prefill_overwrite_count;
+      int unsigned p127_prefill_fill_level;
+      int unsigned p127_prefill_max_live_fill;
+      int unsigned p127_ow16;
+      int unsigned p127_ow20;
+      int unsigned p127_ow24;
+      int unsigned p127_ow28;
+      int unsigned p127_nonzero_keys;
+      int unsigned sink_cycles;
+      logic [31:0] ready_lfsr;
+      bit          ready_now;
+      bit          traffic_done;
+      bit          pressure_phase_active;
+
+      prefill_key_hits.push_back(100);
+      prefill_key_hits.push_back(100);
+      prefill_key_hits.push_back(100);
+      prefill_key_hits.push_back(100);
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      key_hits_per_epoch.push_back(25);
+      lane_key_ord_list.push_back(4);
+      lane_key_ord_list.push_back(5);
+      lane_key_ord_list.push_back(6);
+      lane_key_ord_list.push_back(7);
+
+      hits_per_epoch_total = 0;
+      foreach (key_hits_per_epoch[idx]) begin
+        hits_per_epoch_total += key_hits_per_epoch[idx];
+      end
+      num_epochs = 10_000;
+      override_hits = get_long_txn_override();
+      if (override_hits > 0) begin
+        int unsigned remaining_hits_target;
+
+        if (override_hits > 400) begin
+          remaining_hits_target = override_hits - 400;
+        end else begin
+          remaining_hits_target = hits_per_epoch_total;
+        end
+        num_epochs = (remaining_hits_target + hits_per_epoch_total - 1) / hits_per_epoch_total;
+        if (num_epochs == 0) begin
+          num_epochs = 1;
+        end
+        `uvm_info("PROF", $sformatf(
+          "P127 overwrite checkpoint soak backpressure applying DV_LONG_TXN_OVERRIDE=%0d -> prefill=400 epochs=%0d",
+          override_hits, num_epochs), UVM_LOW)
+      end
+
+      p127_total_hits = 400 + (hits_per_epoch_total * num_epochs);
+      build_log_spaced_checkpoint_targets(p127_total_hits, checkpoint_targets);
+
+      p127_sink_low_cycles = 0;
+      traffic_done = 1'b0;
+      pressure_phase_active = 1'b0;
+      ready_lfsr = 32'h1bad_cafe;
+
+      configure_and_start(16'd2000);
+
+      fork
+        begin : p127_sink_ready_thread
+          sink_cycles = 0;
+          while (sink_cycles < 25_000_000 &&
+                 (!traffic_done ||
+                  m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_scb.remaining_entries() != 0)) begin
+            if (!pressure_phase_active) begin
+              set_sink_ready(1'b1);
+            end else begin
+              ready_lfsr = {ready_lfsr[30:0],
+                            ready_lfsr[31] ^ ready_lfsr[21] ^ ready_lfsr[1] ^ ready_lfsr[0]};
+              ready_now = (ready_lfsr[7:0] < 8'd77); // ~30% ready
+              set_sink_ready(ready_now);
+              if (!ready_now) begin
+                p127_sink_low_cycles++;
+              end
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            sink_cycles++;
+          end
+          set_sink_ready(1'b1);
+        end
+        begin : p127_checkpoint_thread
+          save_txn_growth_checkpoints(
+            "P127", checkpoint_targets, 25_000_000,
+            "P127 overwrite checkpoint soak backpressure");
+        end
+        begin : p127_traffic_thread
+          prefill_seq = weighted_profile_seq::type_id::create("p127_prefill");
+          prefill_seq.num_epochs = 1;
+          prefill_seq.inter_hit_gap_cycles = 0;
+          prefill_seq.inter_epoch_gap_cycles = 0;
+          prefill_seq.progress_stride = 200;
+          prefill_seq.progress_tag = "P127 overwrite checkpoint soak backpressure prefill";
+          foreach (prefill_key_hits[idx]) begin
+            prefill_seq.key_hits_per_epoch.push_back(prefill_key_hits[idx]);
+          end
+          foreach (lane_key_ord_list[idx]) begin
+            prefill_seq.lane_key_ord_list.push_back(lane_key_ord_list[idx]);
+          end
+          prefill_seq.start(m_env.m_hit_seqr);
+
+          wait_clocks(32);
+          read_counter_u32(CSR_OVERWRITE_ADDR, p127_prefill_overwrite_count);
+          read_counter_u32(CSR_FILL_LEVEL_ADDR, p127_prefill_fill_level);
+          p127_prefill_max_live_fill = m_env.m_dbg_mon.max_live_fill;
+          pressure_phase_active = 1'b1;
+
+          pressure_seq = weighted_profile_seq::type_id::create("p127_pressure");
+          pressure_seq.num_epochs = num_epochs;
+          pressure_seq.inter_hit_gap_cycles = 19;
+          pressure_seq.inter_epoch_gap_cycles = 0;
+          pressure_seq.fingerprint_start_index = 400;
+          pressure_seq.progress_stride = ((p127_total_hits - 400) >= 4096) ? ((p127_total_hits - 400) / 4) :
+                                         (((p127_total_hits - 400) >= 4) ? ((p127_total_hits - 400) / 2) : 1);
+          pressure_seq.progress_tag = "P127 overwrite checkpoint soak backpressure";
+          foreach (key_hits_per_epoch[idx]) begin
+            pressure_seq.key_hits_per_epoch.push_back(key_hits_per_epoch[idx]);
+          end
+          foreach (lane_key_ord_list[idx]) begin
+            pressure_seq.lane_key_ord_list.push_back(lane_key_ord_list[idx]);
+          end
+          pressure_seq.start(m_env.m_hit_seqr);
+
+          pressure_phase_active = 1'b0;
+          traffic_done = 1'b1;
+        end
+      join
+
+      set_sink_ready(1'b1);
+      terminate_and_drain(25_000_000, "P127 overwrite checkpoint soak backpressure terminate drain");
+      expect_service_model_accounting("P127 overwrite checkpoint soak backpressure post-terminate", 1, 1);
+
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, p127_push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, p127_pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, p127_overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, p127_cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, p127_fill_level);
+
+      if (p127_push_count != p127_total_hits ||
+          p127_cache_miss_count != 0 ||
+          p127_fill_level != 0) begin
+        `uvm_error("P127", $sformatf(
+          "Backpressure-driven overwrite accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d",
+          p127_push_count, p127_pop_count, p127_overwrite_count,
+          p127_cache_miss_count, p127_fill_level, p127_total_hits))
+      end
+      if (p127_sink_low_cycles == 0) begin
+        `uvm_error("P127", "Backpressure-driven overwrite case never actually forced sink-ready low")
+      end
+      if (p127_prefill_overwrite_count != 0) begin
+        `uvm_error("P127", $sformatf(
+          "Balanced prefill already overwrote before sink pressure started: overwrite=%0d fill=%0d max_live_fill=%0d",
+          p127_prefill_overwrite_count, p127_prefill_fill_level, p127_prefill_max_live_fill))
+      end
+      if (p127_prefill_max_live_fill < 256) begin
+        `uvm_error("P127", $sformatf(
+          "Balanced prefill stayed too shallow to support the backpressure regime: max_live_fill=%0d expected_at_least=256",
+          p127_prefill_max_live_fill))
+      end
+      if (p127_overwrite_count <= p127_prefill_overwrite_count) begin
+        `uvm_error("P127", $sformatf(
+          "Backpressure phase never added overwrite beyond the non-overwriting prefill: prefill=%0d final=%0d",
+          p127_prefill_overwrite_count, p127_overwrite_count))
+      end
+
+      if (p127_overwrite_count == 0) begin
+        `uvm_error("P127", $sformatf(
+          "Backpressure-driven multi-key soak never produced overwrite: total_hits=%0d push=%0d pop=%0d overwrite=%0d",
+          p127_total_hits, p127_push_count, p127_pop_count, p127_overwrite_count))
+      end
+      if ((p127_overwrite_count * 10_000) > (p127_total_hits * 7000)) begin
+        `uvm_error("P127", $sformatf(
+          "Backpressure-driven multi-key soak escaped the intended bounded regime: total_hits=%0d overwrite=%0d pct_x100=%0d",
+          p127_total_hits,
+          p127_overwrite_count,
+          (p127_total_hits == 0) ? 0 : ((p127_overwrite_count * 10_000) / p127_total_hits)))
+      end
+
+      p127_ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
+      p127_ow20 = m_env.m_scb.overwrite_events_for_new_key(8'd20);
+      p127_ow24 = m_env.m_scb.overwrite_events_for_new_key(8'd24);
+      p127_ow28 = m_env.m_scb.overwrite_events_for_new_key(8'd28);
+      p127_nonzero_keys = 0;
+      if (p127_ow16 != 0) p127_nonzero_keys++;
+      if (p127_ow20 != 0) p127_nonzero_keys++;
+      if (p127_ow24 != 0) p127_nonzero_keys++;
+      if (p127_ow28 != 0) p127_nonzero_keys++;
+      if (p127_nonzero_keys < 2) begin
+        `uvm_error("P127", $sformatf(
+          "Backpressure-driven overwrite did not spread beyond one key: key16=%0d key20=%0d key24=%0d key28=%0d",
+          p127_ow16, p127_ow20, p127_ow24, p127_ow28))
+      end
+    end else if (case_id == "P129") begin
+      int unsigned key_hits_per_epoch[$];
+      int unsigned lane_key_ord_list[$];
+      int unsigned p129_total_hits;
+      int unsigned p129_push_count;
+      int unsigned p129_pop_count;
+      int unsigned p129_overwrite_count;
+      int unsigned p129_cache_miss_count;
+      int unsigned p129_fill_level;
+      int unsigned p129_sink_low_cycles;
+      int unsigned focus_search_key;
+
+      key_hits_per_epoch.push_back(100);
+      lane_key_ord_list.push_back(2);
+      run_weighted_overwrite_checkpoint_case(
+        "P129 deterministic throughput replay",
+        "P129",
+        16'd2000,
+        10_000,
+        key_hits_per_epoch,
+        lane_key_ord_list,
+        0,
+        0,
+        0,
+        25_000_000,
+        1,
+        p129_total_hits,
+        p129_push_count,
+        p129_pop_count,
+        p129_overwrite_count,
+        p129_cache_miss_count,
+        p129_fill_level,
+        p129_sink_low_cycles);
+
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      if (p129_overwrite_count <= p129_pop_count) begin
+        `uvm_error("P129", $sformatf(
+          "Directed throughput replay did not stay in the overwrite-dominant regime: push=%0d pop=%0d overwrite=%0d",
+          p129_push_count, p129_pop_count, p129_overwrite_count))
+      end
+      if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < m_cfg.ring_buffer_n_entry) begin
+        `uvm_error("P129", $sformatf(
+          "Directed throughput replay never saturated the replay hotspot: key=%0d max_for_key=%0d ring_depth=%0d",
+          focus_search_key,
+          m_env.m_scb.max_remaining_entries_for_key(focus_search_key),
+          m_cfg.ring_buffer_n_entry))
+      end
     end else if (case_id == "P128") begin
       run_single_key_overwrite_window("P128 single-key overwrite upper-bound", 2048);
       read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);

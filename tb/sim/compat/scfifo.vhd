@@ -44,6 +44,19 @@ architecture sim of scfifo is
         end if;
         return ptr_v + 1;
     end function incr_ptr;
+
+    function encode_usedw(count_v : natural; width_v : natural) return std_logic_vector is
+        variable max_count_v : natural;
+        variable sat_count_v : natural;
+    begin
+        max_count_v := (2 ** width_v) - 1;
+        if count_v > max_count_v then
+            sat_count_v := max_count_v;
+        else
+            sat_count_v := count_v;
+        end if;
+        return std_logic_vector(to_unsigned(sat_count_v, width_v));
+    end function encode_usedw;
 begin
     fifo_reg : process (clock)
         variable wr_ptr_v : natural range 0 to lpm_numwords-1;
@@ -81,5 +94,8 @@ begin
     q     <= fifo_mem(rd_ptr) when count > 0 else (others => '0');
     empty <= '1' when count = 0 else '0';
     full  <= '1' when count = lpm_numwords else '0';
-    usedw <= std_logic_vector(to_unsigned(count, usedw'length));
+    -- Intel's generated wrappers use widthu=log2(depth), so the exact-full
+    -- count is not representable. Saturate the compat-model debug port
+    -- instead of emitting simulator truncation warnings at full occupancy.
+    usedw <= encode_usedw(count, usedw'length);
 end architecture sim;

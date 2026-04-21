@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-20` &nbsp;
-**Release under check:** `26.1.14.0419` &nbsp; **Evidence basis:** `cb365cf`
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
+**Release under check:** `26.1.15.0421` &nbsp; **Evidence basis:** `pending commit`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ⚠️ | standalone_syn_p4_512 | `last clean standalone compile predates BUG-046; no rerun for cb365cf` |
-| ⚠️ | dv_closure | `316/516` planned cases evidenced |
+| ✅ | standalone_syn_p4_512 | `2026-04-21 rerun closes cleanly at 137.5 MHz / 7.273 ns on ring_buffer_cam_syn_p4` |
+| ⚠️ | dv_closure | `322/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `61.24% (316/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `185` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `62.40% (322/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `177` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -36,11 +36,11 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
-| ✅ | slow 85C WNS / TNS | `+0.450 ns` / `0.000 ns` |
-| ✅ | worst hold slack | `+0.162 ns` |
-| ✅ | slow 85C Fmax | `146.56 MHz` |
-| ✅ | nominal 125 MHz headroom | `17.2%` |
-| ✅ | fitted resources | `2,364 ALMs`, `2,825 regs`, `19 RAM blocks`, `161,536` bits |
+| ✅ | slow 85C WNS / TNS | `+0.809 ns` / `0.000 ns` |
+| ✅ | worst hold slack | `+0.169 ns` |
+| ✅ | slow 85C Fmax | `154.70 MHz` |
+| ✅ | nominal 125 MHz headroom | `23.8%` |
+| ✅ | fitted resources | `2,327 ALMs`, `2,770 regs`, `19 RAM blocks`, `153,600` bits |
 | ⚠️ | TimeQuest caveat | internal `clk125` domain closes, but `probe_out[31:0]` is left unconstrained in the standalone harness |
 | ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
 
@@ -48,16 +48,15 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | class | summary |
 |:---:|---|---|
-| ✅ | RTL | `BUG-039` gates pop descriptor generation on `pop_cmd_fifo_full` so the 16-entry command FIFO cannot be overrun under sustained backlog |
-| ✅ | RTL | `BUG-040` turns CSR `soft_reset` into a real abort-to-`IDLE` path that clears live counters, fill level, FIFOs, and internal state |
-| ✅ | RTL | `BUG-041` blocks stale descriptor consumption after soft-reset has already returned the DUT to `IDLE` |
-| ✅ | RTL | `BUG-042` blocks stale buffered push / overwrite retirement after soft-reset by requiring an active run state |
-| ✅ | Harness | `BUG-043` fixes the staged `P042` late-arrival helper so the fingerprint space stays unique and the aggregate ingress rate remains calibrated to the planned `gap=13` profile |
-| ✅ | Harness | `BUG-044` keeps backpressure-enabled PROF sink-ready modulation active through the drain window instead of releasing as soon as ingress stops |
-| ✅ | RTL | `BUG-045` advances the pop round-robin scheduler to the next pending partition when an equal-load peer is already waiting, fixing the `B099` fairness failure |
-| ✅ | Harness | `BUG-046` waits for the DUT's internal deassembly FIFO to drain before issuing a clean terminate/eor sequence, fixing the `P004` overwrite-soak wedge under heavy local buffering |
-| ✅ | DV | promoted `P005` and `P006` to live UVM, refreshed the `P001-P006` PROF bring-up slice, and retained the earlier active partition evidence slice on `B010`, `B011`, `B080`, `B099-B103`, `B123`, `P050-P053`, `P058`, and `P061-P063` |
-| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.14.0419` / `20260419` |
+| ✅ | RTL | `BUG-039-R` through `BUG-045-R` remain in scope for this release: descriptor FIFO overrun is blocked, soft-reset is a real abort-to-`IDLE`, stale post-reset work cannot retire, and equal-load partition drain still rotates fairly |
+| ✅ | Harness | `BUG-043-H`, `BUG-044-H`, and `BUG-046-H` remain in scope: the staged late-arrival helper is rate-correct, PROF sink backpressure remains active through drain, and clean terminate waits for the DUT-side deassembly FIFO |
+| ✅ | Harness | `BUG-050-H` removes exact-full compat `scfifo` warning floods so nightly logs only carry the remaining benign startup/tool warnings |
+| ✅ | RTL | `BUG-051-R` blocks `push_write` once the pop engine has entered `DRAIN`, protecting the frozen resident snapshot during retirement |
+| ✅ | RTL | `BUG-052-R` further narrows overlap so `LOAD` and `COUNT` also keep the pop snapshot immutable until drain completes |
+| ✅ | RTL | `BUG-053-R` clamps ingress `ready` after lane-local end-of-run in `TERMINATING`, preventing accepted-but-dropped post-EOR beats |
+| ✅ | RTL | `BUG-054-R` lets the push engine keep draining already-buffered deassembly entries during `TERMINATING`, restoring `terminating_drain_done` reachability |
+| ✅ | DV | refreshed seed-1 evidence closes `B010`, `B011`, `B130`, `B131`, `B132`, `P066`, and `P126`, and regenerated the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.15.0421` / `20260421`; the patch stays at `15` because the META patch field is only `4` bits wide |
 
 ## Evidence Index
 
@@ -72,8 +71,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh fixed `BUG-046`, promoted `P005/P006`, reran `P001-P006` cleanly on `default_p2_pipe4`, and restamped the delivered package as `26.1.14.0419`.
-- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) remains the last clean `ring_buffer_cam_syn_p4` compile, but it was not rerun after `cb365cf`; this page therefore treats synthesis freshness as inherited rather than freshly closed for the new release.
+- The latest refresh fixed `BUG-050-H` through `BUG-054-R`, reran `B010`, `B011`, `B130`, `B131`, `B132`, `P066`, and `P126` on seed `1`, and regenerated the dashboard from the refreshed evidence.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release rather than inherited from an earlier checkpoint.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
 - Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete even though the standalone timing/resource gate for the active P4 build is now green.

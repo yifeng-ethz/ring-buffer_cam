@@ -58,6 +58,7 @@ VCOM_COVER = $(if $(COV_ENABLED_BOOL),-cover bcesft,)
 VLOG_COVER = $(if $(COV_ENABLED_BOOL),+cover=bcesft,)
 VSIM_COVER = $(if $(COV_ENABLED_BOOL),-coverage,)
 RUN_DO = $(if $(COV_ENABLED_BOOL),coverage save -onexit $(abspath $(COV_DIR))/$(COV_STEM)_s$(SEED).ucdb; run -all; quit -f,run -all; quit -f)
+DV_CONTEXT_PLUSARGS = +DV_TB_DIR=$(TB_DIR) +DV_SEED=$(SEED)
 
 # ── VHDL sources ─────────────────────────────────────────────────
 VHDL_SRCS = \
@@ -71,6 +72,10 @@ VHDL_SRCS = \
   $(IP_DIR)/rtl/addr_enc_logic_partitioned.vhd \
   $(IP_DIR)/rtl/ring_buffer_cam_v2_core.vhd \
   $(IP_DIR)/rtl/ring_buffer_cam.vhd
+
+SIM_COMPAT_SRCS = \
+  $(SIM_COMPAT)/altera_mf_components.vhd \
+  $(SIM_COMPAT)/scfifo.vhd
 
 # ── SystemVerilog sources ────────────────────────────────────────
 SV_SRCS = \
@@ -121,7 +126,7 @@ CFG_CASES = p1 p2 p3 p4
 
 compile: $(WORK_DIR)/.compiled
 
-$(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS)
+$(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS) $(SIM_COMPAT_SRCS)
 	@rm -rf $(WORK_DIR)
 	@mkdir -p $(WORK_DIR)
 	@cd $(WORK_DIR) && $(VLIB) work
@@ -151,10 +156,11 @@ $(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS)
 
 run: compile
 	@echo "=== Running $(TEST) seed=$(SEED) ==="
-	@mkdir -p $(WORK_DIR)/logs $(COV_DIR)
+	@mkdir -p $(WORK_DIR)/logs $(COV_DIR) $(UVM_DIR)/cov_after/txn_growth
 	@rm -f $(COV_DIR)/$(COV_STEM)_s$(SEED).ucdb
 	@cd $(WORK_DIR) && $(VSIM) -modelsimini modelsim.ini -c -quiet \
 	  $(VSIM_COVER) \
+	  -usenonstdcoveragesavesysf \
 	  -gG_RING_BUFFER_N_ENTRY=$(RING_BUFFER_N_ENTRY) \
 	  -gG_INTERLEAVING_FACTOR=$(INTERLEAVING_FACTOR) \
 	  -gG_INTERLEAVING_INDEX=$(INTERLEAVING_INDEX) \
@@ -165,6 +171,7 @@ run: compile
 	  -sv_seed $(SEED) \
 	  +UVM_TESTNAME=$(TEST) \
 	  +UVM_VERBOSITY=$(VERBOSITY) \
+	  $(DV_CONTEXT_PLUSARGS) \
 	  $(PLUSARGS) \
 	  -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" \
 	  work.tb_top \
@@ -181,17 +188,17 @@ run: compile
 run_case: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(CASE_ID) \
 	  COV_STEM=$(CASE_ID) \
-	  PLUSARGS="+DV_EXEC_MODE=isolated +DV_CASE_ID=$(CASE_ID)" SEED=$(SEED)
+	  PLUSARGS="+DV_EXEC_MODE=isolated +DV_CASE_ID=$(CASE_ID) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_bucket_frame: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(BUCKET)_bucket_frame \
 	  COV_STEM=$(BUCKET)_bucket_frame \
-	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET)" SEED=$(SEED)
+	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_cross: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
 	  COV_STEM=$(RUN_ID) \
-	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID)" SEED=$(SEED)
+	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_sim: compile
 	@if [ -n "$(CASE_ID)" ]; then \

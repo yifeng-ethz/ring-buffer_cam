@@ -459,6 +459,8 @@ class scoreboard extends uvm_scoreboard;
     int pending_match_idx;
     int live_match_idx;
     int overlap_match_idx;
+    string pending_head_s;
+    string overlap_head_s;
 
     if (item.is_subheader) begin
       if (epoch_active && active_seen_hits != active_expected_hits) begin
@@ -540,16 +542,35 @@ class scoreboard extends uvm_scoreboard;
     end
 
     if (pending_match_idx < 0 && live_match_idx < 0 && overlap_match_idx < 0) begin
+      if (pending_drain_q.size() > 0) begin
+        pending_head_s = $sformatf(
+          "head_pending={key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h}",
+          pending_drain_q[0].search_key, pending_drain_q[0].asic,
+          pending_drain_q[0].channel, pending_drain_q[0].ts50p,
+          pending_drain_q[0].et1n6);
+      end else begin
+        pending_head_s = "head_pending=<none>";
+      end
+      if (overlap_evicted_q.size() > 0) begin
+        overlap_head_s = $sformatf(
+          "head_overlap={key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h}",
+          overlap_evicted_q[0].search_key, overlap_evicted_q[0].asic,
+          overlap_evicted_q[0].channel, overlap_evicted_q[0].ts50p,
+          overlap_evicted_q[0].et1n6);
+      end else begin
+        overlap_head_s = "head_overlap=<none>";
+      end
       total_unexpected_outputs++;
       `uvm_error("SCB", $sformatf(
-        "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h pending=%0d overlap=%0d remaining=%0d remaining_key=%0d accepted_key=%0d written_key=%0d drained_key=%0d pop_obs=%0d",
+        "Unexpected drained hit: key=%0d asic=%0d channel=%0d ts50p=0x%0h et1n6=0x%0h pending=%0d overlap=%0d remaining=%0d remaining_key=%0d accepted_key=%0d written_key=%0d drained_key=%0d pop_obs=%0d %s %s",
         item.active_search_key, item.asic, item.channel, item.ts50p, item.et1n6,
         pending_drain_entries(), overlap_evicted_entries(),
         remaining_entries(), remaining_entries_for_key(item.active_search_key),
         accepted_hits_for_key(item.active_search_key),
         written_hits_for_key(item.active_search_key),
         drained_hits_for_key(item.active_search_key),
-        total_pop_observations))
+        total_pop_observations,
+        pending_head_s, overlap_head_s))
     end else if (live_match_idx >= 0) begin
       if (slot_model[live_match_idx].valid) begin
         if (current_remaining > 0) begin

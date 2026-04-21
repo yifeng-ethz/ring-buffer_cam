@@ -2,8 +2,8 @@ package require -exact qsys 16.1
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
-set_module_property VERSION 26.1.15.0419
-set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, adds a real soft-reset abort-to-IDLE path, gates low-latency descriptor issuance on pop_cmd_fifo fullness, fixes the clean terminate/deassembly-drain harness path, and packages the refreshed PROF closure through P006."
+set_module_property VERSION 26.1.15.0421
+set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, blocks push-write overlap once pop drain ownership is active, backpressures ingress after end-of-run in TERMINATING, drains already-buffered local residue to completion, and refreshes the PROF checkpoint evidence through P126 plus the mid-run terminate closure in P066."
 set_module_property GROUP "Mu3e Data Plane/Modules"
 set_module_property AUTHOR "Yifeng Wang"
 set_module_property INTERNAL false
@@ -38,11 +38,11 @@ set FILLLEVEL_WIDTH_CONST       16
 set DEFAULT_RING_DEPTH_CONST    512
 set DEFAULT_PIPE_STAGES_CONST   4
 set IP_UID_DEFAULT_CONST        1380074317
-set BUILD_DEFAULT_CONST         419
+set BUILD_DEFAULT_CONST         421
 set VERSION_MAJOR_DEFAULT_CONST 26
 set VERSION_MINOR_DEFAULT_CONST 1
 set VERSION_PATCH_DEFAULT_CONST 15
-set VERSION_DATE_DEFAULT_CONST  20260419
+set VERSION_DATE_DEFAULT_CONST  20260421
 set VERSION_GIT_DEFAULT_CONST   0
 set INSTANCE_ID_DEFAULT_CONST   0
 
@@ -394,7 +394,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.1.15.0419</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked `BUILD=419` / `VERSION_DATE=20260419` metadata, the stale-slot cache-miss harness closure, the PIPE_STAGES=4 encoder-stage observability check, the FLUSH counter-clear proof for mixed push/pop/overwrite/cache-miss state, and the refreshed BASIC evidence through `B097`.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
+add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.1.15.0421</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=421</b> / <b>VERSION_DATE=20260421</b> metadata, the DRAIN/LOAD push-overlap RTL closure, the TERMINATING end-of-run ingress clamp plus buffered-drain completion fix, the compat-FIFO warning cleanup, and the refreshed directed/checkpoint evidence through <b>B132</b>, <b>P066</b>, and <b>P126</b>.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
 add_html_text "Versioning" versioning_html {<html><b>Common identity header</b><br/>Word <b>0</b> is <b>UID</b>.<br/>Word <b>1</b> is <b>META</b>: write 0=VERSION, 1=DATE, 2=GIT, 3=INSTANCE_ID.<br/><br/><b>VERSION encoding</b><br/>VERSION[31:24] = MAJOR, VERSION[23:16] = MINOR, VERSION[15:12] = PATCH, VERSION[11:0] = BUILD.</html>}
 add_display_item "Versioning" IP_UID parameter
 add_display_item "Versioning" VERSION_MAJOR parameter

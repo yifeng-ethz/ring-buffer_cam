@@ -55,8 +55,8 @@
 -- Revision: 2.24 (no RTL logic delta; package the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure)
 --      Date: Apr 20, 2026
 -- Version : 26.1.15
--- Date    : 20260419
--- Change  : publish the stale-slot cache-miss closure tranche (B029/B030/B067/B097) as release 26.1.15.0419
+-- Date    : 20260421
+-- Change  : package the DRAIN/LOAD push-overlap fixes plus the TERMINATING end-of-run ingress/drain fixes as release 26.1.15.0421
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -100,8 +100,8 @@ generic(
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 1;
 	VERSION_PATCH       : natural := 15;
-	BUILD				: natural := 419;
-	VERSION_DATE		: natural := 20260419;
+	BUILD				: natural := 421;
+	VERSION_DATE		: natural := 20260421;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
 	DEBUG				: natural := 1
@@ -503,7 +503,6 @@ architecture rtl of ring_buffer_cam_v2_core is
 	-- memory out cleanup
 	constant SK_BITS						: natural := SK_RANGE_HI-SK_RANGE_LO+1;
 	signal addr_occupied					: std_logic;
-	signal cam_erase_ts8n					: std_logic_vector(HIT_TYPE1_TS8N_WIDTH-1 downto 0);
 	signal cam_erase_data					: std_logic_vector(SK_BITS-1 downto 0);
 	signal hit_pop_data_comb				: std_logic_vector(HIT_TYPE1_DATA_WIDTH-1 downto 0);
 	signal side_ram_dout_valid_comb			: std_logic;
@@ -829,9 +828,12 @@ begin
                 else
                     lane_match_v := (to_integer(unsigned(asi_hit_type1_data(TCC8N_INTERLEAVING_HI downto TCC8N_INTERLEAVING_LO))) = INTERLEAVING_INDEX);
                 end if;
-				if (lane_match_v and asi_hit_type1_empty = '0') then 
+				if (lane_match_v and asi_hit_type1_empty = '0' and deassembly_fifo_full /= '1') then 
 				-- only takes the ts modulo interleaving_factor = interleaving_index
 				-- (deprecated) since the data streams are merged in mts_processor, ignore data from other non-selected channel
+				-- Honor the local ready/valid contract: when the deassembly fifo
+				-- is full the upstream source holds its beat until ready returns,
+				-- so asserting wrreq here would duplicate that held beat.
                     if (csr.filter_inerr = '1') then 
                         -- filter the tserr from the processor 
                         if (asi_hit_type1_error(0) = '0') then 
@@ -862,7 +864,11 @@ begin
 			deassembly_fifo_rdack		<= '0';
 		end if;
 		-- avst ready
-		if (deassembly_fifo_full /= '1') then -- TODO: refine it. For now, this ready signal is for sanity check only.
+		if (csr.soft_reset /= '1' and
+			csr.go = '1' and
+			(run_state_cmd = RUNNING or
+			 (run_state_cmd = TERMINATING and endofrun_seen = '0')) and
+			deassembly_fifo_full /= '1') then
 			asi_hit_type1_ready			<= '1';
 		else
 			asi_hit_type1_ready			<= '0';
@@ -934,12 +940,14 @@ begin
 		push_erase_req 		<= '0';
 		push_write_req 		<= '0';
 		if (csr.soft_reset /= '1' and
-			(run_state_cmd = RUNNING or
-			 (run_state_cmd = TERMINATING and endofrun_seen = '0'))) then
+			(run_state_cmd = RUNNING or run_state_cmd = TERMINATING)) then
 			case push_state is		
 				when ERASE => -- erase
 					push_erase_req 		<= '1'; -- the grant is derived in comb
 				when WRITE_AND_CHECK => -- write (write through while no show stopper (addr_occupied) is seen) 
+					-- Keep draining already-buffered deassembly entries during
+					-- TERMINATING after lane-local end-of-run, but do not reopen
+					-- ingress acceptance; that contract is enforced by wrreq/ready.
 					if (in_payload_valid = '1') then -- always ask for grant access when new data 
 						push_write_req 		<= '1';
 					else
@@ -1386,11 +1394,15 @@ begin
 			decision		<= 3;
 		elsif (req(1) = '1') then -- always grant erase even in pop phase (appear in the first cycle as last push write is just granted)
 			decision		<= 1;
-		elsif (pop_engine_state /= IDLE) then -- pop erase stays exclusive, but allow push writes while pop is only searching/counting
+		elsif (pop_engine_state = SEARCH) then -- SEARCH is the last phase before the pop snapshot is frozen; later phases must preserve it
 			if (req(2) = '1') then
 				decision		<= 2;
 			elsif (req(0) = '1') then
 				decision		<= 0;
+			end if;
+		elsif (pop_engine_state /= IDLE) then -- once DRAIN starts, preserve the frozen pop snapshot until retirement completes
+			if (req(2) = '1') then
+				decision		<= 2;
 			end if;
 		elsif (req(0) = '1') then -- grant push write
 			decision		<= 0;
@@ -1630,8 +1642,11 @@ begin
 		-- flag signal for push_erase
 		addr_occupied		<= side_ram_dout(side_ram_dout'high); 
 		-- reg only valid after push_write, for the use in push_erase
-		cam_erase_ts8n		<= side_ram_dout(TCC8N_HI downto TCC8N_LO); -- side_ram_dout is valid after push_write, in the immediate next cycle, we can directly use this reg
-		cam_erase_data		<= cam_erase_ts8n(SK_RANGE_HI downto SK_RANGE_LO); -- feed the cam for erase in the next cycle
+		-- Derive the resident search key directly from the current side-ram
+		-- read payload. Using an intermediate signal here lags the erase key by
+		-- one delta cycle and can erase the previous occupant's CAM entry under
+		-- sustained overwrite pressure.
+		cam_erase_data		<= side_ram_dout(TCC8N_LO + SK_RANGE_HI downto TCC8N_LO + SK_RANGE_LO);
 		-- assemble output hit
 		hit_pop_data_comb	<= side_ram_dout(side_ram_dout'high-1 downto 0); -- simply strip the msb to get the hit type 1
 	end process;
@@ -1707,7 +1722,7 @@ begin
 					end if;
 	            -- 2) generate hits (w/ eop)
 				elsif (pop_pipeline_start = '1' and subheader_gen_done = '1') then -- after DRAIN starts, hits should be available
-					if (pop_hit_valid = '1' and decision_reg = 2) then -- this co-validate this hit is not from push_write (0) . push can win arb in bubbles of pop
+					if (pop_hit_valid = '1') then -- pop_hit_valid is already aligned to the prior-cycle pop_erase grant
 						-- Streaming
 						aso_hit_type2_valid		<= '1';
 						-- assemble hit type 2
