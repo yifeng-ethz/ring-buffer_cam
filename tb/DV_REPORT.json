@@ -452,6 +452,22 @@
       "title": "Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer",
       "fix_status": "fixed and verified in the checkpoint overwrite-soak reruns on `dev`",
       "commit": "07c0dae"
+    },
+    {
+      "bug_id": "BUG-057-R",
+      "class": "RTL",
+      "date": "2026-04-21",
+      "title": "Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width",
+      "fix_status": "fixed and verified in the low-stage build-axis reruns on `dev`",
+      "commit": "acb9230"
+    },
+    {
+      "bug_id": "BUG-058-R",
+      "class": "RTL",
+      "date": "2026-04-21",
+      "title": "Non-power-of-two ring depths let the live write pointer escape the configured ring span",
+      "fix_status": "fixed and verified in the non-power-of-two depth reruns on `dev`",
+      "commit": "acb9230"
     }
   ],
   "buckets": {

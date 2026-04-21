@@ -958,3 +958,47 @@ Normalization note:
   - settled-tail overlap is now reopened only when the live write pointer sits outside the frozen snapshot, so SEARCH can keep limited throughput overlap without mutating an already-captured retirement set
   - verified by clean isolated reruns of `B056`, `P125`, and `P126`
 - Commit: 07c0dae
+
+### BUG-057-R: Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (Questa elaboration warning screen on PIPE_STAGES=1/2 build-variant runs)`
+- First seen in: ad-hoc `PIPE_STAGES=1/2` variant screens on 2026-04-21 while closing the low-stage encoder build axis after `BUG-056-R`
+- Symptom:
+  - low-stage partitioned-encoder builds emitted out-of-range index warnings from `addr_enc_logic_partitioned.vhd`, so the build-axis evidence was not trustworthy
+  - pre-fix warning signature:
+    - `PIPE_STAGES=1`: index `1` / `2` out of range `0 downto 0`
+    - `PIPE_STAGES=2`: index `2` out of range `1 downto 0`
+- Root cause:
+  - `pipe_valid_t` was sized directly from `PIPE_STAGES` even though the partitioned encoder's active datapath is fixed-width up to four stages
+  - the valid-shift logic also indexed by raw `PIPE_STAGES` instead of `ACTIVE_PIPE_STAGES_CONST`, so low-stage builds could address non-existent valid bits
+- Fix status:
+  - `state`: fixed and verified in the low-stage build-axis reruns on `dev`
+  - `mechanism`: cap `pipe_valid_t` at four bits and shift only the active `ACTIVE_PIPE_STAGES_CONST-1 downto 1` slice instead of the raw generic width
+  - `before_fix_outcome`: `PIPE_STAGES=1/2` variant elaboration emitted out-of-range index warnings from `addr_enc_logic_partitioned.vhd`, blocking clean build-axis closure
+  - `after_fix_outcome`: `P050` now passes cleanly on both `PIPE_STAGES=1` and `PIPE_STAGES=2`, and the pre-fix out-of-range warnings no longer appear
+  - `potential_hazard`: low; the repair is local to pipeline-valid bookkeeping, but any future pipeline-depth refactor still needs to keep the active-stage width decoupled from the extra-valid tail
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - verified by clean `P050` reruns on `PIPE_STAGES=1` and `PIPE_STAGES=2`; the warning floor returned to the remaining benign startup/tool messages only
+- Commit: acb9230
+
+### BUG-058-R: Non-power-of-two ring depths let the live write pointer escape the configured ring span
+- Severity: `hard stuck error`
+- Encounter sim-time: `2103700 ns (first N=768 active-build profile repro before the ring-depth wrap fix)`
+- First seen in: `P050` with `RING_BUFFER_N_ENTRY=768` on 2026-04-21 during the non-power-of-two depth screen
+- Symptom:
+  - startup `RUN_PREPARE` did not return ready in the usual window, and the simulation later fatals inside `proc_pop_write_pointer_snapshot_guard`
+  - pre-fix fatal signature: `Value 768 is out of range 0 to 767`
+- Root cause:
+  - `write_pointer` incremented modulo the raw `SRAM_ADDR_WIDTH` instead of modulo `RING_BUFFER_N_ENTRY`, so non-power-of-two depths could generate illegal live slot indices
+  - `proc_pop_write_pointer_snapshot_guard` assumed the raw pointer already lived inside `0..MAIN_CAM_SIZE-1`, so the first escaped value caused an immediate fatal
+- Fix status:
+  - `state`: fixed and verified in the non-power-of-two depth reruns on `dev`
+  - `mechanism`: add a ring-depth-aware `ring_ptr_inc()` helper for the push pointer and guard snapshot indexing whenever `write_pointer` sits outside the live ring span
+  - `before_fix_outcome`: `P050` with `RING_BUFFER_N_ENTRY=768` hung in `RUN_PREPARE` long enough to expose `write_pointer=768`, then fatals with `Value 768 is out of range 0 to 767`
+  - `after_fix_outcome`: the same `P050` `N=768` rerun now passes cleanly at `push=768`, `pop=768`, `remaining=0`, and no fatal
+  - `potential_hazard`: low to moderate; the live pointer is now ring-depth safe, but non-power-of-two builds still pay the longer padded CAM flush latency during `RUN_PREPARE`
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - verified by the clean `P050` rerun at `RING_BUFFER_N_ENTRY=768`, alongside the release-metadata smoke `B010` after the patch/build bump
+- Commit: acb9230
