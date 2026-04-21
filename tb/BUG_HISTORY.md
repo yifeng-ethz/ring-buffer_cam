@@ -1092,3 +1092,25 @@ Normalization note:
   - this is a harness/accounting closure fix with no datapath behavior change
   - verified by clean reruns of `B071`, `B040`, `B113`, `B114`, and `B132`
 - Commit: b4e0daa
+
+### BUG-063-H: The shared low-stage partition-latency helper anchored on a stage-4-only pulse instead of the real active-partition load event
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `n/a (directed-only low-stage build-axis latency reruns before the helper anchor was corrected)`
+- First seen in: `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on 2026-04-21 while closing the PIPE_STAGES build axis with standalone per-variant evidence
+- Symptom:
+  - the directed PIPE_STAGES=1/2/3 latency smokes and the matching partition-balance profile smokes could report a missing or mis-timed encoder result pulse even though the DUT variant was behaving correctly
+  - that blocked trustworthy case promotion on the low-stage variants because the common helper was measuring against a debug pulse shape that only lines up with the fully staged build
+- Root cause:
+  - `run_pipe_stage_latency_smoke_case()` anchored its timing window on `pop_partition_eval_stage0_valid`, which is not the stable contract point for the reduced-stage variants
+  - the correct DUT-visible start event is the active pending-partition `pop_partition_load` pulse for the target search key, followed by the flagged `pop_partition_result_valid` on the same partition
+- Fix status:
+  - `state`: fixed and verified in the low-stage directed and profile reruns on `dev`
+  - `mechanism`: retime the helper to capture the active pending-partition `pop_partition_load` pulse, derive the active partition from `pop_partition_pending`, and measure latency to the flagged `pop_partition_result_valid` pulse on that partition
+  - `before_fix_outcome`: the low-stage build-axis cases could fail or mis-measure latency because the helper waited on a stage-4-specific internal pulse instead of the real per-variant load event
+  - `after_fix_outcome`: `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` now pass cleanly on their intended `PIPE_STAGES=1/2/3` variants with per-case logs and UCDBs published into the refreshed dashboard
+  - `potential_hazard`: low; the helper is now keyed to the architecturally relevant partition-load/result handshake, but any future encoder debug-signal refactor still needs to preserve a variant-independent load anchor for latency checks
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - this is a harness-only measurement fix with no DUT behavior change
+  - verified by clean reruns of `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on the matching low-stage build variants, plus the refreshed report-generation pass that now links those variant-specific logs correctly
+- Commit: 4c62cd0
