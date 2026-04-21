@@ -58,9 +58,11 @@
 --      Date: Apr 21, 2026
 -- Revision: 2.26 (fix low-stage encoder variant build safety and wrap the live write pointer at the configured ring depth)
 --      Date: Apr 21, 2026
--- Version : 26.2.1
+-- Revision: 2.27 (wrap the overwrite erase address at the configured ring depth for non-power-of-two builds)
+--      Date: Apr 21, 2026
+-- Version : 26.2.2
 -- Date    : 20260421
--- Change  : package the low-stage encoder variant repair plus the non-power-of-two ring-depth write-pointer wrap as release 26.2.1.0421
+-- Change  : package the non-power-of-two wrap-overwrite erase repair as release 26.2.2.0421
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -103,7 +105,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 2;
-	VERSION_PATCH       : natural := 1;
+	VERSION_PATCH       : natural := 2;
 	BUILD				: natural := 421;
 	VERSION_DATE		: natural := 20260421;
 	VERSION_GIT			: natural := 0;
@@ -256,6 +258,19 @@ architecture rtl of ring_buffer_cam_v2_core is
 			next_v := ptr_v + 1;
 		end if;
 		return next_v;
+	end function;
+
+	function ring_ptr_dec (
+		ptr_v : unsigned
+	) return unsigned is
+		variable prev_v : unsigned(ptr_v'range);
+	begin
+		if (to_integer(ptr_v) = 0) then
+			prev_v := to_unsigned(RING_BUFFER_N_ENTRY-1, ptr_v'length);
+		else
+			prev_v := ptr_v - 1;
+		end if;
+		return prev_v;
 	end function;
 
 	function pack_version_func (
@@ -1562,7 +1577,7 @@ begin
 				else
 					cam_erase_en	<= '0';
 				end if;
-				cam_wr_addr		<= std_logic_vector(write_pointer-1); -- wr_ptr has been incr'd in write state, so we go back 1 step
+				cam_wr_addr		<= std_logic_vector(ring_ptr_dec(write_pointer)); -- wr_ptr has been incr'd in write state, so we go back 1 slot in the configured ring
 				cam_wr_data		<= cam_erase_data; -- erase the search key that is occupying this location 
 				-- do not write side-ram, since it has been written for new data in push_write
 				side_ram_we		<= '0';

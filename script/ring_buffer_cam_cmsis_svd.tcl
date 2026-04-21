@@ -1,7 +1,7 @@
 package require Tcl 8.5
 
 set script_dir [file dirname [info script]]
-set helper_file [file normalize [file join $script_dir .. dashboard_infra cmsis_svd lib mu3e_cmsis_svd.tcl]]
+set helper_file [file normalize [file join $script_dir .. .. dashboard_infra cmsis_svd lib mu3e_cmsis_svd.tcl]]
 source $helper_file
 
 namespace eval ::mu3e::cmsis::spec {}
@@ -61,7 +61,7 @@ proc ::mu3e::cmsis::spec::build_device {} {
             -fields [list [::mu3e::cmsis::svd::field value 0 32 -description "Cache-miss or empty-search count." -access read-only]]]]
 
     return [::mu3e::cmsis::svd::device MU3E_RING_BUFFER_CAM \
-        -version 26.2.0.0421 \
+        -version 26.2.2.0421 \
         -description "CMSIS-SVD description of the ring_buffer_cam CSR window." \
         -peripherals [list \
             [::mu3e::cmsis::svd::peripheral RING_BUFFER_CAM_CSR 0x0 \

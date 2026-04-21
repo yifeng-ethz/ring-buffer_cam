@@ -6062,7 +6062,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd2;
-    version_word[15:12] = 4'd1;
+    version_word[15:12] = 4'd2;
     version_word[11:0]  = 12'd421;
     return version_word;
   endfunction
@@ -9430,6 +9430,84 @@ class base_test extends uvm_test;
       end
       terminate_and_drain(120_000, "B133 early SEARCH cross-key guard");
       expect_service_model_accounting("B133 early SEARCH cross-key guard", 1, 0);
+    end else if (case_id == "B134") begin
+      same_key_burst_seq old_seq;
+      same_key_burst_seq new_seq;
+      int unsigned       wrap_slot;
+      int unsigned       observed_erase_addr;
+      int unsigned       watch_cycles;
+      bit                saw_wrap_write;
+      bit                saw_wrap_erase;
+      bit                expect_wrap_erase;
+
+      if (m_cfg.ring_buffer_n_entry < 2) begin
+        `uvm_fatal("B134", $sformatf(
+          "B134 requires ring_buffer_n_entry >= 2, observed=%0d",
+          m_cfg.ring_buffer_n_entry))
+      end
+      if ((m_cfg.ring_buffer_n_entry & (m_cfg.ring_buffer_n_entry - 1)) == 0) begin
+        `uvm_fatal("B134", $sformatf(
+          "B134 targets the non-power-of-two wrap-overwrite path, but ring_buffer_n_entry=%0d is a power of two",
+          m_cfg.ring_buffer_n_entry))
+      end
+
+      configure_and_start(16'hFFFF);
+      wrap_slot = m_cfg.ring_buffer_n_entry - 1;
+
+      old_seq = same_key_burst_seq::type_id::create("b134_first_lap_old_key");
+      old_seq.num_hits = m_cfg.ring_buffer_n_entry;
+      old_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+      old_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 500_000, "B134 first-lap fill");
+
+      saw_wrap_write = 1'b0;
+      saw_wrap_erase = 1'b0;
+      expect_wrap_erase = 1'b0;
+      observed_erase_addr = 0;
+
+      fork
+        begin
+          new_seq = same_key_burst_seq::type_id::create("b134_second_lap_new_key");
+          new_seq.num_hits = m_cfg.ring_buffer_n_entry;
+          new_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+          new_seq.start(m_env.m_hit_seqr);
+        end
+        begin
+          watch_cycles = 0;
+          while (watch_cycles < 2_000_000 && !saw_wrap_erase) begin
+            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+                int'(m_env.m_dbg_mon.vif.cam_wr_addr) == wrap_slot) begin
+              saw_wrap_write = 1'b1;
+              expect_wrap_erase = 1'b1;
+            end else if (expect_wrap_erase &&
+                         m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
+              saw_wrap_erase = 1'b1;
+              observed_erase_addr = int'(m_env.m_dbg_mon.vif.cam_wr_addr);
+              expect_wrap_erase = 1'b0;
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            watch_cycles++;
+          end
+        end
+      join
+
+      wait_for_push_count(2 * m_cfg.ring_buffer_n_entry, 2_000_000, "B134 second-lap fill");
+      if (!saw_wrap_write) begin
+        `uvm_error("B134", $sformatf(
+          "Did not observe the second-lap wrap write at slot%0d under non-power-of-two pressure",
+          wrap_slot))
+      end
+      if (!saw_wrap_erase) begin
+        `uvm_error("B134", "Did not observe the push_erase that should immediately follow the wrap write")
+      end
+      if (observed_erase_addr != wrap_slot) begin
+        `uvm_error("B134", $sformatf(
+          "Wrap-overwrite erased the wrong CAM slot: expected=%0d observed=%0d ring_depth=%0d",
+          wrap_slot, observed_erase_addr, m_cfg.ring_buffer_n_entry))
+      end
+
+      m_env.m_scb.note_intentional_nonempty_end(m_cfg.ring_buffer_n_entry);
+      return_to_idle();
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);
