@@ -24,6 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ✅ | `BUG-060-R` | RTL | `2026-04-21` | `push_erase` recomputed the just-written slot inside the remaining standalone timing-critical CAM erase cone | `1736898` |
 | ✅ | `BUG-059-R` | RTL | `2026-04-21` | Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds | `dab30da` |
 | ✅ | `BUG-058-R` | RTL | `2026-04-21` | Non-power-of-two ring depths let the live write pointer escape the configured ring span | `acb9230` |
 | ✅ | `BUG-057-R` | RTL | `2026-04-21` | Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width | `acb9230` |
@@ -31,7 +32,6 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ✅ | `BUG-055-R` | RTL | `2026-04-21` | Cross-key `push_write` could still perturb the SEARCH match fabric before the pop snapshot was frozen | `07c0dae` |
 | ✅ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `00fc1b8` |
 | ✅ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `00fc1b8` |
-| ✅ | `BUG-052-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT` | `00fc1b8` |
 
 ## Formal / contract cases
 
@@ -55,7 +55,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=95.61, branch=85.60, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 96.9% (125/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=94.59, branch=84.43, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 96.9% (125/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 | 23.26% (30/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 76 | stmt=91.81, branch=81.99, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.17 | 58.91% (76/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 | 71.32% (92/129) |
@@ -64,8 +64,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 96.10 | 95.0 |
-| ⚠️ | branch | 84.22 | 90.0 |
+| ✅ | stmt | 95.09 | 95.0 |
+| ⚠️ | branch | 83.16 | 90.0 |
 | ℹ️ | cond | 72.52 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |

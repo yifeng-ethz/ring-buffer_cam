@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
-**Release under check:** `26.2.2.0421` &nbsp; **Evidence basis:** `dab30da`
+**Release under check:** `26.2.3.0421` &nbsp; **Evidence basis:** `1736898`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,7 +14,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ❌ | standalone_syn_p4_512 | `2026-04-21 rerun on dab30da misses the tightened 137.5 MHz / 7.273 ns signoff target: slow-85C WNS=-0.540 ns, slow-0C WNS=-0.214 ns` |
+| ✅ | standalone_syn_p4_512 | `2026-04-21 rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target: slow-85C WNS=+0.080 ns, slow-0C WNS=+0.347 ns, worst reported hold=+0.149 ns` |
 | ⚠️ | dv_closure | `323/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
@@ -36,13 +36,13 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
-| ❌ | slow 85C WNS / TNS | `-0.540 ns` / `-3.973 ns` |
-| ⚠️ | slow 0C WNS / TNS | `-0.214 ns` / `-0.565 ns` |
+| ✅ | slow 85C WNS / TNS | `+0.080 ns` / `0.000 ns` |
+| ✅ | slow 0C WNS / TNS | `+0.347 ns` / `0.000 ns` |
 | ✅ | worst hold slack | `+0.149 ns` |
-| ⚠️ | slow 85C Fmax | `127.99 MHz` |
-| ⚠️ | nominal 125 MHz headroom | `2.4%` |
-| ⚠️ | fitted resources | `2,547 ALMs`, `2,908 regs`, `19 RAM blocks`, `153,600` bits |
-| ⚠️ | TimeQuest caveat | internal `clk125` domain still has `32` unconstrained `probe_out[31:0]` harness outputs, and the current routed P4 build misses the tightened setup target on both slow corners |
+| ✅ | slow 85C Fmax | `139.02 MHz` |
+| ✅ | nominal 125 MHz headroom | `11.2%` |
+| ✅ | fitted resources | `2,518 ALMs`, `2,938 regs`, `19 RAM blocks`, `153,600` bits |
+| ⚠️ | TimeQuest caveat | internal `clk125` timing now closes across the reported corners, but the standalone harness still leaves `32` unconstrained `probe_out[31:0]` observation outputs outside the DUT reg-to-reg timing domain |
 | ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
 
 ## Fixes In Scope
@@ -57,8 +57,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-055-R` blocks cross-key `push_write` while the SEARCH match fabric is still settling, so the pre-freeze snapshot cannot be perturbed |
 | ✅ | RTL | `BUG-056-R` prevents settled-SEARCH tail overlap from clobbering any slot already captured in the frozen snapshot at the live write pointer |
 | ✅ | RTL | `BUG-057-R`, `BUG-058-R`, and `BUG-059-R` remain in scope: low-stage encoder builds no longer index `pipe_valid` out of range, the live write pointer now wraps modulo `RING_BUFFER_N_ENTRY`, and wrap-overwrite `push_erase` now erases the previous live slot instead of falling outside the configured ring span |
-| ✅ | DV | refreshed evidence closes `P050(pipe1)`, `P050(pipe2)`, `P050(n768)`, `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and the release-metadata smoke `B010`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
-| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.2.0421` / `20260421` with `BUILD=421` and `PATCH=2` |
+| ✅ | RTL | `BUG-060-R` carries the overwrite erase slot from `push_write`, removing the last negative-slack path family on the standalone `P4` CAM erase/write-enable cone without changing overwrite semantics |
+| ✅ | DV | refreshed evidence keeps `B134(n768)` green, adds the same-key overwrite rerun `P111`, rechecks the release-metadata smoke `B010`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.3.0421` / `20260421` with `BUILD=421` and `PATCH=3` |
 
 ## Evidence Index
 
@@ -73,8 +74,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh fixed `BUG-057-R`, `BUG-058-R`, and `BUG-059-R`, reran the low-stage / non-power-of-two screens (`P050(pipe1/pipe2/n768)`), added the directed wrap-overwrite guard `B134(n768)`, reran the `P126(n768, DV_LONG_TXN_OVERRIDE=4000)` overwrite soak, rechecked `B010`, and regenerated the dashboard from the refreshed evidence.
-- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release on commit `dab30da` rather than inherited from an earlier checkpoint.
+- The latest refresh fixed `BUG-060-R`, reran the directed non-power-of-two overwrite guard `B134(n768)`, reran the same-key overwrite stress `P111`, rechecked `B010` after the patch bump, and regenerated the dashboard from the refreshed evidence.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release on commit `1736898` rather than inherited from an earlier checkpoint.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
-- Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete and the refreshed standalone timing/resource gate for the active P4 build is no longer green.
+- Overall signoff remains `⚠️ partial` because DV plan closure and gate-level simulation are still incomplete even though the refreshed standalone timing/resource gate for the active `P4` build is green again.

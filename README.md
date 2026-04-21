@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.2.2.0421
+**Version:** 26.2.3.0421
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,15 +96,14 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.2.2.0421` carries forward the verified SEARCH-window overlap repairs, preserves
-the low-stage encoder and non-power-of-two live-write-pointer fixes from the earlier `26.2.1`
-checkpoint, and now closes the remaining non-power-of-two wrap-overwrite hole: `push_erase`
-decrements modulo the configured ring depth instead of falling off the live CAM span after
-`write_pointer` wraps to zero. This nightly checkpoint refreshes the directed/adversarial
-evidence through `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and the release-metadata
-smoke `B010`, while the live dashboard currently records `323/516` planned DV cases evidenced.
-The authoritative dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
-[`tb/DV_REPORT.md`](tb/DV_REPORT.md).
+Version `26.2.3.0421` carries forward the verified SEARCH-window overlap repairs, preserves
+the low-stage encoder and non-power-of-two ring-depth fixes from the earlier `26.2.2`
+checkpoint, and now carries the overwrite erase slot from `push_write` so the standalone
+`P4` build closes the tightened `137.5 MHz` signoff clock without changing overwrite
+semantics. This nightly checkpoint refreshes the directed/adversarial evidence through
+`B134(n768)`, `P111`, and the release-metadata smoke `B010`, while the live dashboard
+currently records `323/516` planned DV cases evidenced. The authoritative dashboard state
+is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 

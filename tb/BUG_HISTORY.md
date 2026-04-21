@@ -1023,3 +1023,28 @@ Normalization note:
 - Runtime / coverage context:
   - verified by the pre-fix `B134` fail at `N=768`, the clean post-fix `B134` rerun at the same depth, the `P126` `N=768` overwrite soak with `DV_LONG_TXN_OVERRIDE=4000`, and the release-metadata smoke `B010`
 - Commit: dab30da
+
+### BUG-060-R: `push_erase` recomputed the just-written slot inside the remaining standalone timing-critical CAM erase cone
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (standalone Quartus signoff rerun on the tightened 137.5 MHz P4 build; no functional sim-time failure)`
+- First seen in: `ring_buffer_cam_syn_p4` on 2026-04-21 while closing the remaining standalone timing blocker after `BUG-059-R`
+- Symptom:
+  - the delivered `P4` build still missed the tightened standalone signoff clock even after the non-power-of-two overwrite fixes had landed
+  - pre-fix signoff signature:
+    - slow `85C` setup slack `-0.540 ns`
+    - slow `0C` setup slack `-0.214 ns`
+    - the worst path still started at `write_pointer` and ended at `main_cam` `porta_we_reg`, proving the remaining blocker lived on the push/erase-side CAM control cone rather than on functional drain logic
+- Root cause:
+  - `push_erase` still recomputed `ring_ptr_dec(write_pointer)` in the live arbiter / memory-mux combinational path after `write_pointer` had already advanced in the previous `push_write` cycle
+  - that kept the decrement logic and address-selection mux inside the already critical CAM write-enable cone, so the standalone `P4` build missed the tightened `137.5 MHz` setup target even though the overwrite behavior was functionally correct
+- Fix status:
+  - `state`: fixed and verified in the standalone signoff rerun plus directed overwrite-path regressions on `dev`
+  - `mechanism`: capture the erase slot in `push_erase_addr_reg` on `push_write_grant`, default the arbiter/memory mux to the push-write ownership shape, and let `push_erase` consume the captured slot instead of recomputing `write_pointer-1` in the critical comb cone
+  - `before_fix_outcome`: `ring_buffer_cam_syn_p4` missed the tightened standalone signoff target with slow `85C` WNS `-0.540 ns` and slow `0C` WNS `-0.214 ns`, while the overwrite-focused functional reruns were already green
+  - `after_fix_outcome`: `ring_buffer_cam_syn_p4` now closes at slow `85C` WNS `+0.080 ns`, slow `0C` WNS `+0.347 ns`, fast `85C` WNS `+2.771 ns`, fast `0C` WNS `+3.280 ns`, and worst reported hold slack `+0.149 ns`; `B134(n768)`, `P111`, and the patch-bumped metadata smoke `B010` all pass on `26.2.3.0421`
+  - `potential_hazard`: low to moderate; the critical family still originates at `write_pointer` and ends in the `main_cam` write-enable path, so future push/erase-side decode growth on the same cone could reopen the margin
+  - `Claude Opus 4.7 xhigh review decision`: `review completed; the missing-evidence and version-skew findings on the fix-only commit are resolved by the follow-up docs/evidence sync batch, and the remaining idle zero-drive note is treated as a low-risk waveform/toggle caveat rather than a promoted RTL bug`
+- Runtime / coverage context:
+  - this was a timing-only RTL blocker; the intended overwrite behavior stayed the same
+  - verified by the clean standalone `ring_buffer_cam_syn_p4` rerun, the directed `B134` `N=768` rerun, the same-key overwrite stress `P111`, and the post-bump metadata smoke `B010`
+- Commit: 1736898
