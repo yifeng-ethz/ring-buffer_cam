@@ -60,9 +60,11 @@
 --      Date: Apr 21, 2026
 -- Revision: 2.27 (wrap the overwrite erase address at the configured ring depth for non-power-of-two builds)
 --      Date: Apr 21, 2026
--- Version : 26.2.2
+-- Revision: 2.28 (carry the overwrite erase slot from push_write so the remaining CAM erase path closes the tightened standalone signoff clock)
+--      Date: Apr 21, 2026
+-- Version : 26.2.3
 -- Date    : 20260421
--- Change  : package the non-power-of-two wrap-overwrite erase repair as release 26.2.2.0421
+-- Change  : package the overwrite erase-slot carry timing closure as release 26.2.3.0421
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -105,7 +107,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 2;
-	VERSION_PATCH       : natural := 2;
+	VERSION_PATCH       : natural := 3;
 	BUILD				: natural := 421;
 	VERSION_DATE		: natural := 20260421;
 	VERSION_GIT			: natural := 0;
@@ -484,6 +486,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	type push_state_t is (ERASE, WRITE_AND_CHECK);
 	signal push_state					: push_state_t;
 	signal write_pointer				: unsigned(SRAM_ADDR_WIDTH-1 downto 0);
+	signal push_erase_addr_reg			: unsigned(SRAM_ADDR_WIDTH-1 downto 0);
 	signal push_erase_req				: std_logic;
 	signal push_write_req				: std_logic;
 	signal push_erase_grant				: std_logic;
@@ -925,16 +928,19 @@ begin
 			push_write_grant_reg	<= '0';
 			push_write_sk_reg		<= (others => '0');
 			write_pointer			<= (others => '0');
+			push_erase_addr_reg		<= (others => '0');
 		elsif (rising_edge(i_clk)) then 
 			if (csr.soft_reset = '1') then
 				push_write_grant_reg	<= '0';
 				push_write_sk_reg		<= (others => '0');
 				write_pointer			<= (others => '0');
+				push_erase_addr_reg		<= (others => '0');
 			else
 				-- latch the grant comb for switching to erase
 				push_write_grant_reg	<= push_write_grant;
 				if (push_write_grant = '1') then
 					push_write_sk_reg	<= in_hit_sk;
+					push_erase_addr_reg	<= write_pointer;
 				end if;
 				case push_state is		
 					when ERASE => -- erase
@@ -950,6 +956,7 @@ begin
 --							debug_msg.push_cnt			<= (others => '0');
 --							debug_msg.overwrite_cnt		<= (others => '0');
 							write_pointer				<= (others => '0');
+							push_erase_addr_reg		<= (others => '0');
 						else -- maybe pop erase in action
 							-- idle
 						end if;
@@ -1541,43 +1548,44 @@ begin
 --				end if;
 --		end case;
 		
+		push_write_grant			<= '0';
+		push_erase_grant			<= '0';
+		pop_erase_grant				<= '0';
+		pop_flush_grant				<= '0';
+		cam_wr_en					<= '0';
+		cam_erase_en				<= '0';
+		cam_wr_addr					<= std_logic_vector(write_pointer);
+		cam_wr_data					<= in_hit_sk;
+		side_ram_we					<= '0';
+		side_ram_waddr				<= std_logic_vector(write_pointer);
+		side_ram_din				<= '1' & in_hit_side;
+		side_ram_raddr				<= std_logic_vector(write_pointer);
+		side_ram_dout_valid_comb	<= '0';
+
 		-- mux: grant the access based on the decision of the arbiter 
 		case (decision) is 
 			when 0 => -- grant push write
 				push_write_grant	<= '1';
-				push_erase_grant	<= '0';
-				pop_erase_grant		<= '0';
-				pop_flush_grant		<= '0';
 				-- put main cam into "Write-Mode"
 				cam_wr_en		<= '1'; 
-				cam_erase_en	<= '0';
-				cam_wr_addr		<= std_logic_vector(write_pointer);
-				cam_wr_data		<= in_hit_sk; -- search key
 				-- write side-ram, of the current side data
 				side_ram_we		<= '1';
-				side_ram_waddr	<= std_logic_vector(write_pointer);
-				side_ram_din	<= '1' & in_hit_side;
 				-- read side-ram, for occupancy of the next addr, NOTE: RDW must be "old-data"
-				side_ram_raddr	<= std_logic_vector(write_pointer);
 				side_ram_dout_valid_comb		<= '1';
 				
 				
 			when 1 => -- grant push erase
-				push_write_grant	<= '0';
 				push_erase_grant	<= '1';
-				pop_erase_grant		<= '0';
-				pop_flush_grant		<= '0';
 				-- For same-key overwrites the CAM entry stays valid for the
 				-- resident written in the previous cycle. Compare against the
 				-- latched just-written key, not the current input beat, because
 				-- the burst may end before this erase phase is reached.
-				cam_wr_en		<= '0';
 				if (cam_erase_data /= push_write_sk_reg) then
 					cam_erase_en	<= '1';
 				else
 					cam_erase_en	<= '0';
 				end if;
-				cam_wr_addr		<= std_logic_vector(ring_ptr_dec(write_pointer)); -- wr_ptr has been incr'd in write state, so we go back 1 slot in the configured ring
+				cam_wr_addr		<= std_logic_vector(push_erase_addr_reg); -- use the slot captured during push_write instead of recomputing write_pointer-1 here
 				cam_wr_data		<= cam_erase_data; -- erase the search key that is occupying this location 
 				-- do not write side-ram, since it has been written for new data in push_write
 				side_ram_we		<= '0';
@@ -1589,12 +1597,8 @@ begin
 				
 				
 			when 2 =>  -- grant pop erase
-				push_write_grant	<= '0';
-				push_erase_grant	<= '0';
 				pop_erase_grant		<= '1';
-				pop_flush_grant		<= '0';
 				-- put the main cam into "Erase-Mode"
-				cam_wr_en		<= '0';
 				cam_erase_en	<= '1';
 				cam_wr_addr		<= pop_cam_match_addr; -- erase this consumed hit in cam
 				cam_wr_data		<= pop_current_sk(7 downto 0); -- search key for this sub-header -- bug fixed
@@ -1607,12 +1611,8 @@ begin
 				side_ram_dout_valid_comb		<= '1';
 			
 			when 3 => -- flushing the cam and ram 
-				push_write_grant	<= '0';
-				push_erase_grant	<= '0';
-				pop_erase_grant		<= '0';
 				pop_flush_grant		<= '1';
 				-- put main cam into "Erase-Mode"
-				cam_wr_en			<= '0';
 				cam_erase_en		<= '1';
 				cam_wr_addr			<= std_logic_vector(flush_cam_wraddr);
 				cam_wr_data			<= std_logic_vector(flush_cam_wrdata);
@@ -1625,22 +1625,7 @@ begin
 				side_ram_dout_valid_comb		<= '0';
 				
 			when others => -- idle
-				push_write_grant	<= '0';
-				push_erase_grant	<= '0';
-				pop_erase_grant		<= '0';
-				pop_flush_grant		<= '0';
-				-- put the main cam into idle
-				cam_wr_en		<= '0';
-				cam_erase_en	<= '0';
-				cam_wr_addr		<= (others => '0'); -- erase this consumed hit in cam 
-				cam_wr_data		<= (others => '0'); -- search key for this sub-header
-				-- do not write side-ram
-				side_ram_we		<= '0';
-				side_ram_waddr	<= (others => '0'); -- erase this consumed hit in side ram
-				side_ram_din	<= (others => '0'); -- note: clear the occupancy flag is enough
-				-- do not read side ram 
-				side_ram_raddr	<= (others => '0');
-				side_ram_dout_valid_comb		<= '0';
+				null;
 		end case;
 	end process;
 	

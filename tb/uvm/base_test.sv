@@ -6062,7 +6062,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd2;
-    version_word[15:12] = 4'd2;
+    version_word[15:12] = 4'd3;
     version_word[11:0]  = 12'd421;
     return version_word;
   endfunction

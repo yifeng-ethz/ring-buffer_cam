@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.2.2
+-- Version : 26.2.3
 -- Date    : 20260421
--- Change  : package the non-power-of-two wrap-overwrite erase repair as release 26.2.2.0421
+-- Change  : package the overwrite erase-slot carry timing closure as release 26.2.3.0421
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 2;
-        VERSION_PATCH       : natural := 2;
+        VERSION_PATCH       : natural := 3;
         BUILD               : natural := 421;
         VERSION_DATE        : natural := 20260421;
         VERSION_GIT         : natural := 0;
