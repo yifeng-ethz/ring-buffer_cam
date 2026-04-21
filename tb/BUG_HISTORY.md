@@ -1069,7 +1069,7 @@ Normalization note:
 - Runtime / coverage context:
   - this is a control-path RTL bug rather than a payload-corruption datapath bug, but it directly affects the run-control sequencing contract used by the directed BASIC terminate cases
   - verified by clean reruns of `B040`, `B113`, `B114`, and `B132`
-- Commit: pending
+- Commit: b4e0daa
 
 ### BUG-062-H: The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane
 - Severity: `non-datapath-refactor`
@@ -1091,4 +1091,4 @@ Normalization note:
 - Runtime / coverage context:
   - this is a harness/accounting closure fix with no datapath behavior change
   - verified by clean reruns of `B071`, `B040`, `B113`, `B114`, and `B132`
-- Commit: pending
+- Commit: b4e0daa

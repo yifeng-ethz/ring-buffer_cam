@@ -491,7 +491,7 @@
       "date": "2026-04-21",
       "title": "`TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract",
       "fix_status": "fixed and verified in the directed terminate-control reruns on `dev`",
-      "commit": "pending"
+      "commit": "b4e0daa"
     },
     {
       "bug_id": "BUG-062-H",
@@ -499,7 +499,7 @@
       "date": "2026-04-21",
       "title": "The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane",
       "fix_status": "fixed and verified in the terminate cleanup reruns on `dev`",
-      "commit": "pending"
+      "commit": "b4e0daa"
     }
   ],
   "buckets": {

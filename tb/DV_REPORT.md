@@ -24,8 +24,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-062-H` | Harness | `2026-04-21` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane | `pending` |
-| ⚠️ | `BUG-061-R` | RTL | `2026-04-21` | `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract | `pending` |
+| ✅ | `BUG-062-H` | Harness | `2026-04-21` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane | `b4e0daa` |
+| ✅ | `BUG-061-R` | RTL | `2026-04-21` | `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract | `b4e0daa` |
 | ✅ | `BUG-060-R` | RTL | `2026-04-21` | `push_erase` recomputed the just-written slot inside the remaining standalone timing-critical CAM erase cone | `1736898` |
 | ✅ | `BUG-059-R` | RTL | `2026-04-21` | Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds | `dab30da` |
 | ✅ | `BUG-058-R` | RTL | `2026-04-21` | Non-power-of-two ring depths let the live write pointer escape the configured ring span | `acb9230` |
