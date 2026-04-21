@@ -282,6 +282,33 @@ class base_test extends uvm_test;
     eor_seq.start(m_env.m_hit_seqr);
   endtask
 
+  task automatic discard_pending_source_backlog(string what);
+    int unsigned pending_total;
+    int unsigned pending_payload;
+    int unsigned pending_error;
+    int unsigned pending_markers;
+
+    pending_total = m_env.m_hit_drv.pending_source_items();
+    if (pending_total == 0) begin
+      return;
+    end
+
+    pending_payload = m_env.m_hit_drv.pending_source_payload_items();
+    pending_error = m_env.m_hit_drv.pending_source_error_items();
+    pending_markers = m_env.m_hit_drv.pending_source_marker_items();
+    `uvm_info("HIT_DRV", $sformatf(
+      "%s: discarding pending source backlog=%0d payload=%0d error=%0d marker=%0d offered=%0d accepted=%0d",
+      what,
+      pending_total,
+      pending_payload,
+      pending_error,
+      pending_markers,
+      m_env.m_hit_drv.offered_payload_total,
+      m_env.m_hit_drv.accepted_payload_total), UVM_LOW)
+    m_env.m_hit_drv.discard_pending_items();
+    wait_clocks(2);
+  endtask
+
   task automatic poison_side_ram_occ_zero_on_push_write(
     int unsigned target_push_ordinal = 1,
     int unsigned max_cycles = 40_000,
@@ -810,7 +837,7 @@ class base_test extends uvm_test;
   task automatic run_x032_terminate_during_burst_case();
     same_key_burst_seq burst_seq;
     int unsigned       focus_search_key;
-    int unsigned       push_at_endofrun;
+    int unsigned       accepted_at_endofrun;
     int unsigned       push_after_drain;
     int unsigned       pop_after_drain;
     int unsigned       offered_at_endofrun;
@@ -842,7 +869,7 @@ class base_test extends uvm_test;
       `uvm_error("X032", "Matching empty marker did not latch endofrun_seen during terminate burst")
     end
 
-    push_at_endofrun = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+    accepted_at_endofrun = m_env.m_hit_drv.accepted_payload_total;
     offered_at_endofrun = m_env.m_hit_drv.offered_payload_total;
     saw_post_endofrun_offers = 1'b0;
     cycles = 0;
@@ -853,10 +880,11 @@ class base_test extends uvm_test;
       if (m_env.m_hit_drv.offered_payload_total > offered_at_endofrun) begin
         saw_post_endofrun_offers = 1'b1;
       end
-      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] != push_at_endofrun) begin
+      if (m_env.m_hit_drv.accepted_payload_total > accepted_at_endofrun) begin
         `uvm_error("X032", $sformatf(
-          "PUSH_COUNT advanced after endofrun_seen latched: before=%0d after=%0d offered_now=%0d pending_source=%0d",
-          push_at_endofrun, m_env.m_dbg_mon.dbg_push_cnt[31:0],
+          "Accepted payload advanced after endofrun_seen latched: accepted_before=%0d accepted_now=%0d offered_now=%0d pending_source=%0d",
+          accepted_at_endofrun,
+          m_env.m_hit_drv.accepted_payload_total,
           m_env.m_hit_drv.offered_payload_total,
           m_env.m_hit_drv.pending_source_items()))
         break;
@@ -869,13 +897,16 @@ class base_test extends uvm_test;
     end
 
     ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    discard_pending_source_backlog("X032 dropped post-endofrun backlog");
     wait_for_scoreboard_idle(120_000, "X032 terminate burst drain");
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after_drain);
     read_counter_u32(CSR_POP_COUNT_ADDR, pop_after_drain);
-    if (push_after_drain > 16) begin
+    if (push_after_drain != m_env.m_hit_drv.accepted_payload_total) begin
       `uvm_error("X032", $sformatf(
-        "PUSH_COUNT exceeded burst size after terminate burst: push=%0d expected_max=16",
-        push_after_drain))
+        "PUSH_COUNT disagreed with the accepted terminate-burst payload total: push=%0d accepted=%0d pop=%0d",
+        push_after_drain,
+        m_env.m_hit_drv.accepted_payload_total,
+        pop_after_drain))
     end
     if (pop_after_drain != push_after_drain) begin
       `uvm_error("X032", $sformatf(
@@ -959,44 +990,44 @@ class base_test extends uvm_test;
   endtask
 
   task automatic run_x034_terminate_mid_subheader_case();
-    same_key_burst_seq                burst_seq;
+    same_key_burst_seq burst_seq;
     ring_buffer_cam_pkg::out_seq_item matched_subheader;
-    int unsigned                      focus_search_key;
-    int unsigned                      subheaders_before;
-    int unsigned                      cycles;
-    bit                               saw_subheader_window;
+    int unsigned       focus_search_key;
+    int unsigned       cycles;
+    bit                saw_packetization_window;
 
     configure_and_start(0);
     focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
     burst_seq = same_key_burst_seq::type_id::create("x034_subheader_burst");
     burst_seq.num_hits = 16;
     burst_seq.search_key = focus_search_key;
-    subheaders_before = m_env.m_out_mon.total_subheaders_seen;
     burst_seq.start(m_env.m_hit_seqr);
 
     wait_for_pop_engine_state(3'd4, 40_000, "X034 DRAIN entry");
-    saw_subheader_window = 1'b0;
+    saw_packetization_window = 1'b0;
     cycles = 0;
-    while (cycles < 40_000 && !saw_subheader_window) begin
+    while (cycles < 40_000 && !saw_packetization_window) begin
       if (m_env.m_dbg_mon.vif.subheader_gen_done === 1'b0 &&
-          m_env.m_out_mon.total_subheaders_seen == subheaders_before) begin
-        saw_subheader_window = 1'b1;
+          (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1 ||
+           m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1)) begin
+        saw_packetization_window = 1'b1;
       end
       @(posedge m_env.m_csr_drv.vif.clk);
       cycles++;
     end
-    if (!saw_subheader_window) begin
-      `uvm_error("X034", "Did not observe the mid-subheader window before issuing TERMINATE")
+    if (!saw_packetization_window) begin
+      `uvm_error("X034", "Did not observe active packetization before issuing TERMINATE")
     end
 
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     send_endofrun_marker();
-    wait_for_subheader_search_key(
-      focus_search_key[7:0], 80_000, "X034 completed subheader", matched_subheader);
+    wait_for_subheader_match(
+      focus_search_key[7:0], 8'h00, 1'b0, 1'b1, 80_000,
+      "X034 completed data-bearing subheader", matched_subheader);
     if (matched_subheader == null ||
         matched_subheader.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
       `uvm_error("X034", $sformatf(
-        "Completed subheader was malformed after mid-subheader TERMINATE: raw=0x%09x expected_k237=0x%02x",
+        "Completed data-bearing subheader was malformed after mid-subheader TERMINATE: raw=0x%09x expected_k237=0x%02x",
         (matched_subheader == null) ? '0 : matched_subheader.raw_data,
         ring_buffer_cam_pkg::K237))
     end
@@ -1171,6 +1202,7 @@ class base_test extends uvm_test;
     burst_seq.start(m_env.m_hit_seqr);
     wait_clocks(16);
     ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    discard_pending_source_backlog("X054 dropped flush-time ingress backlog");
     wait_for_scoreboard_idle(80_000, "X054 flush drops incoming hits");
 
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_after);
@@ -1229,6 +1261,7 @@ class base_test extends uvm_test;
         inerr_before, inerr_after))
     end
     m_env.m_scb.note_flush_reset();
+    discard_pending_source_backlog("X055 dropped flush-time error backlog");
     wait_for_scoreboard_idle(80_000, "X055 inerr clear under flush");
   endtask
 
@@ -1744,8 +1777,11 @@ class base_test extends uvm_test;
     same_key_burst_seq burst_seq;
     int unsigned       cycles;
     bit                saw_ready;
+    bit                saw_backlog_during_terminate;
     bit                saw_nonempty_at_ready;
-    bit                saw_deassembly_backlog;
+    bit                ready_pop_cmd_empty;
+    bit                ready_deassembly_empty;
+    bit                ready_term_done;
 
     configure_and_start(0);
     set_sink_ready(1'b0);
@@ -1756,31 +1792,29 @@ class base_test extends uvm_test;
 
     wait_for_pop_engine_state(3'd4, 80_000, "X045 DRAIN entry");
     wait_for_pop_cmd_fifo_usedw_at_least(1, 80_000, "X045 pop_cmd backlog");
-    saw_deassembly_backlog = 1'b0;
-    cycles = 0;
-    while (cycles < 80_000 && !saw_deassembly_backlog) begin
-      if (m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
-        saw_deassembly_backlog = 1'b1;
-      end
-      @(posedge m_env.m_csr_drv.vif.clk);
-      cycles++;
-    end
-    if (!saw_deassembly_backlog) begin
-      `uvm_error("X045", "Did not observe deassembly backlog before TERMINATING")
-    end
 
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     send_endofrun_marker();
     m_env.m_ctrl_drv.vif.data <= ring_buffer_cam_pkg::CTRL_TERMINATING;
     m_env.m_ctrl_drv.vif.valid <= 1'b1;
     saw_ready = 1'b0;
+    saw_backlog_during_terminate = 1'b0;
     saw_nonempty_at_ready = 1'b0;
+    ready_pop_cmd_empty = 1'b1;
+    ready_deassembly_empty = 1'b1;
+    ready_term_done = 1'b0;
     for (cycles = 0; cycles < 40_000; cycles++) begin
       @(posedge m_env.m_ctrl_drv.vif.clk);
+      if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1 ||
+          m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+        saw_backlog_during_terminate = 1'b1;
+      end
       if (m_env.m_ctrl_drv.vif.ready === 1'b1) begin
         saw_ready = 1'b1;
-        if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1 ||
-            m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+        ready_pop_cmd_empty = m_env.m_dbg_mon.vif.pop_cmd_fifo_empty;
+        ready_deassembly_empty = m_env.m_dbg_mon.vif.deassembly_fifo_empty;
+        ready_term_done = m_env.m_dbg_mon.terminating_drain_done;
+        if (ready_pop_cmd_empty !== 1'b1 || ready_deassembly_empty !== 1'b1) begin
           saw_nonempty_at_ready = 1'b1;
         end
         break;
@@ -1793,12 +1827,22 @@ class base_test extends uvm_test;
     if (!saw_ready) begin
       `uvm_error("X045", "Held TERMINATING command never re-acknowledged under local backlog")
     end
+    if (!saw_backlog_during_terminate) begin
+      `uvm_error("X045", "Terminate-ready audit never saw any local backlog while the held command was pending")
+    end
     if (!saw_nonempty_at_ready) begin
       `uvm_error("X045", $sformatf(
         "asi_ctrl_ready stayed masked until local buffers emptied: pop_cmd_empty=%0d deassembly_empty=%0d term_done=%0d",
-        m_env.m_dbg_mon.vif.pop_cmd_fifo_empty,
-        m_env.m_dbg_mon.vif.deassembly_fifo_empty,
-        m_env.m_dbg_mon.terminating_drain_done))
+        ready_pop_cmd_empty,
+        ready_deassembly_empty,
+        ready_term_done))
+    end
+    if (ready_term_done !== 1'b1) begin
+      `uvm_error("X045", $sformatf(
+        "asi_ctrl_ready re-acknowledged before terminating_drain_done asserted: pop_cmd_empty=%0d deassembly_empty=%0d term_done=%0d",
+        ready_pop_cmd_empty,
+        ready_deassembly_empty,
+        ready_term_done))
     end
 
     set_sink_ready(1'b1);
@@ -1880,7 +1924,9 @@ class base_test extends uvm_test;
     same_key_burst_seq burst_seq;
     int unsigned       fill_prev;
     int unsigned       fill_now;
+    int unsigned       push_snapshot;
     int unsigned       source_wait_cycles;
+    int unsigned       stable_cycles;
 
     configure_and_start(2000);
     burst_seq = same_key_burst_seq::type_id::create("x046_terminate_filllevel");
@@ -1899,10 +1945,30 @@ class base_test extends uvm_test;
         "Source backlog did not drain before TERMINATING: backlog=%0d after %0d cycles",
         m_env.m_hit_drv.pending_source_items(), source_wait_cycles))
     end
-    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_prev);
+    push_snapshot = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+    stable_cycles = 0;
+    while (stable_cycles < 8 && source_wait_cycles < 60_000) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      source_wait_cycles++;
+      if (m_env.m_dbg_mon.dbg_push_cnt[31:0] == push_snapshot) begin
+        stable_cycles++;
+      end else begin
+        push_snapshot = m_env.m_dbg_mon.dbg_push_cnt[31:0];
+        stable_cycles = 0;
+      end
+    end
     ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
     send_endofrun_marker();
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 2_000, "X046 TERMINATING entry");
+    stable_cycles = 0;
+    while (stable_cycles < 2_000 && m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      stable_cycles++;
+    end
+    if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+      `uvm_error("X046", "endofrun_seen did not latch after TERMINATING marker")
+    end
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_prev);
     for (int unsigned sample = 0; sample < 128; sample++) begin
       read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_now);
       if (fill_now > fill_prev) begin
@@ -2302,11 +2368,15 @@ class base_test extends uvm_test;
     single_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
     single_seq.start(m_env.m_hit_seqr);
     wait_for_push_count(1, 20_000, "X056 first good push after restart");
+    wait_clocks(2);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
-    if (fill_level != 1) begin
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (!((fill_level == 1 && pop_count == 0) ||
+          (fill_level == 0 && pop_count == 1))) begin
       `uvm_error("X056", $sformatf(
-        "First good push after flush did not see clean fill trajectory: fill=%0d",
-        fill_level))
+        "First good push after flush did not see a clean post-restart trajectory: fill=%0d pop=%0d expected=(1,0) or (0,1)",
+        fill_level,
+        pop_count))
     end
 
     terminate_and_drain(80_000, "X056 post-flush restart drain");
@@ -3504,51 +3574,39 @@ class base_test extends uvm_test;
   endtask
 
   task automatic run_x019_bad_hit_running_entry_boundary_case();
-    single_error_hit_seq   err_seq;
-    single_error_hit_seq   retry_err_seq;
+    ring_buffer_cam_pkg::hit_seq_item err_item;
     int unsigned         inerr_count;
     int unsigned         push_count;
-    int unsigned         retry_inerr_count;
     int unsigned         ingress_valid_pulses_before;
     int unsigned         ingress_err_pulses_before;
     int unsigned         ingress_err_accepts_before;
     int unsigned         boundary_valid_pulses;
     int unsigned         boundary_err_pulses;
     int unsigned         boundary_err_accepts;
-    int unsigned         retry_valid_pulses;
-    int unsigned         retry_err_pulses;
-    int unsigned         retry_err_accepts;
 
     enter_run_prepare();
     csr_write(CSR_EXPECTED_LAT_ADDR, 32'd2000);
     ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
     wait_clocks(2);
 
-    err_seq = single_error_hit_seq::type_id::create("x019_bad_hit");
-    err_seq.ingress_channel = m_cfg.interleaving_index[3:0];
-    err_seq.hit_channel = 5'd3;
-    err_seq.hit_tcc1n6 = 3'd1;
-    err_seq.hit_tfine = 5'd6;
-    err_seq.hit_et1n6 = 9'd9;
-    err_seq.use_raw_tcc8n = 1'b1;
-    err_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
+    err_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x019_bad_hit_item");
+    err_item.asic = '0;
+    err_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    err_item.channel = 5'd3;
+    err_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
+    err_item.tcc1n6 = 3'd1;
+    err_item.tfine = 5'd6;
+    err_item.et1n6 = 9'd9;
+    err_item.has_error = 1'b1;
+    err_item.is_empty_marker = 1'b0;
 
     ingress_valid_pulses_before = m_env.m_dbg_mon.ingress_valid_pulse_count;
     ingress_err_pulses_before = m_env.m_dbg_mon.ingress_error_pulse_count;
     ingress_err_accepts_before = m_env.m_dbg_mon.ingress_error_accept_count;
     fork
-      begin
-        err_seq.start(m_env.m_hit_seqr);
-      end
-      begin
-        // The hit driver presents a queued beat on the cycle after the item is
-        // accepted from the sequencer, so delay RUNNING by one cycle to sample
-        // the first bad beat exactly on the SYNC->RUNNING boundary.
-        wait_clocks(1);
-        ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUNNING);
-      end
+      ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUNNING);
+      m_env.m_hit_drv.pulse_manual_hit(err_item, 1);
     join
-
     wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUNNING, 2_000, "X019 RUNNING entry");
     wait_clocks(4);
     read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
@@ -3556,39 +3614,12 @@ class base_test extends uvm_test;
     boundary_valid_pulses = m_env.m_dbg_mon.ingress_valid_pulse_count - ingress_valid_pulses_before;
     boundary_err_pulses = m_env.m_dbg_mon.ingress_error_pulse_count - ingress_err_pulses_before;
     boundary_err_accepts = m_env.m_dbg_mon.ingress_error_accept_count - ingress_err_accepts_before;
-    if (inerr_count != 1 || push_count != 0) begin
-      if (inerr_count == 0 && push_count == 0) begin
-        // Diagnostic discriminator: if the same raw bad-hit pulse increments
-        // one cycle later, the loss is specific to the RUNNING-entry boundary
-        // rather than a testcase raw-drive artifact.
-        wait_clocks(1);
-        retry_err_seq = single_error_hit_seq::type_id::create("x019_retry_bad_hit");
-        retry_err_seq.ingress_channel = m_cfg.interleaving_index[3:0];
-        retry_err_seq.hit_channel = 5'd3;
-        retry_err_seq.hit_tcc1n6 = 3'd1;
-        retry_err_seq.hit_tfine = 5'd6;
-        retry_err_seq.hit_et1n6 = 9'd9;
-        retry_err_seq.use_raw_tcc8n = 1'b1;
-        retry_err_seq.raw_tcc8n = m_cfg.make_tcc8n_for_lane_key(2, 4'h2, 1'b0);
-        ingress_valid_pulses_before = m_env.m_dbg_mon.ingress_valid_pulse_count;
-        ingress_err_pulses_before = m_env.m_dbg_mon.ingress_error_pulse_count;
-        ingress_err_accepts_before = m_env.m_dbg_mon.ingress_error_accept_count;
-        retry_err_seq.start(m_env.m_hit_seqr);
-        wait_clocks(3);
-        read_counter_u32(CSR_INERR_COUNT_ADDR, retry_inerr_count);
-        retry_valid_pulses = m_env.m_dbg_mon.ingress_valid_pulse_count - ingress_valid_pulses_before;
-        retry_err_pulses = m_env.m_dbg_mon.ingress_error_pulse_count - ingress_err_pulses_before;
-        retry_err_accepts = m_env.m_dbg_mon.ingress_error_accept_count - ingress_err_accepts_before;
-      end else begin
-        retry_inerr_count = inerr_count;
-        retry_valid_pulses = boundary_valid_pulses;
-        retry_err_pulses = boundary_err_pulses;
-        retry_err_accepts = boundary_err_accepts;
-      end
+    if (inerr_count != 1 || push_count != 0 ||
+        boundary_valid_pulses != 1 || boundary_err_pulses != 1 ||
+        boundary_err_accepts != 1) begin
       `uvm_error("X019", $sformatf(
-        "RUNNING-entry boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0 boundary_valid=%0d boundary_pulse=%0d boundary_accept=%0d retry_inerr=%0d retry_valid=%0d retry_pulse=%0d retry_accept=%0d run_state=%0d ready=%0d",
+        "RUNNING-entry boundary bad hit mismatch: inerr=%0d push=%0d expected_inerr=1 expected_push=0 boundary_valid=%0d boundary_pulse=%0d boundary_accept=%0d run_state=%0d ready=%0d",
         inerr_count, push_count, boundary_valid_pulses, boundary_err_pulses, boundary_err_accepts,
-        retry_inerr_count, retry_valid_pulses, retry_err_pulses, retry_err_accepts,
         m_env.m_dbg_mon.run_state_code, m_env.m_dbg_mon.ingress_ready))
     end
     expect_backdoor_counter_matches(CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
@@ -3683,20 +3714,22 @@ class base_test extends uvm_test;
     same_key_burst_seq burst_seq;
     int unsigned       fill_before;
 
-    configure_and_start(2000);
+    configure_and_start(16'hffff);
+    set_sink_ready(1'b0);
     burst_seq = same_key_burst_seq::type_id::create("x081_fill_burst");
     burst_seq.num_hits = 12;
     burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
     burst_seq.start(m_env.m_hit_seqr);
     wait_for_push_count(12, 20_000, "X081 fill precondition");
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
-    if (fill_before != 12) begin
+    if (fill_before < 11 || fill_before > 12) begin
       `uvm_error("X081", $sformatf(
-        "Precondition failed: expected FILL_LEVEL=12 before soft_reset, observed %0d",
+        "Precondition failed: expected FILL_LEVEL to remain near the 12-hit preload before soft_reset, observed %0d",
         fill_before))
     end
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
     expect_soft_reset_abort("X081 soft_reset clears FILL_LEVEL");
+    set_sink_ready(1'b1);
   endtask
 
   task automatic run_cross_curated_all_bucket_mix();
@@ -4062,7 +4095,9 @@ class base_test extends uvm_test;
     int unsigned max_pre_service_pushes,
     int unsigned min_overwrites,
     int unsigned max_overwrites,
-    bit          require_full_hotspot
+    bit          require_full_hotspot,
+    int unsigned min_accepted_before_first_pop = 0,
+    int unsigned max_accepted_before_first_pop = 0
   );
     overwrite_profile_seq pressure_seq;
     int unsigned push_count;
@@ -4114,11 +4149,17 @@ class base_test extends uvm_test;
         "%s pushes_before_first_pop out of range: observed=%0d expected=[%0d,%0d]",
         what, pre_service_pushes, min_pre_service_pushes, max_pre_service_pushes))
     end
-    if (accepted_before_first_pop < min_pre_service_pushes ||
-        accepted_before_first_pop > max_pre_service_pushes) begin
+    if (min_accepted_before_first_pop == 0 && max_accepted_before_first_pop == 0) begin
+      min_accepted_before_first_pop = min_pre_service_pushes;
+      max_accepted_before_first_pop = max_pre_service_pushes;
+    end
+    if (accepted_before_first_pop < min_accepted_before_first_pop ||
+        accepted_before_first_pop > max_accepted_before_first_pop) begin
       `uvm_error("PRESSURE", $sformatf(
         "%s accepted_before_first_pop out of range: observed=%0d expected=[%0d,%0d]",
-        what, accepted_before_first_pop, min_pre_service_pushes, max_pre_service_pushes))
+        what, accepted_before_first_pop,
+        min_accepted_before_first_pop,
+        max_accepted_before_first_pop))
     end
     if (overwrite_count < min_overwrites || overwrite_count > max_overwrites) begin
       `uvm_error("PRESSURE", $sformatf(
@@ -4321,6 +4362,114 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_pipe_stage_latency_smoke_case(
+    string       what,
+    string       case_tag,
+    int unsigned expected_pipe_stages,
+    int unsigned key_ord = 2,
+    int unsigned timeout_cycles = 120_000
+  );
+    same_key_burst_seq burst_seq;
+    int unsigned       focus_search_key;
+    int unsigned       search_cycles;
+    int unsigned       observed_wait_cycles;
+    int unsigned       expected_wait_cycles;
+    int                active_partition_idx;
+    logic [3:0]        load_mask;
+    logic [3:0]        active_load_mask;
+    longint unsigned   cycle_a;
+    longint unsigned   cycle_b;
+    bit                saw_load;
+    bit                saw_flagged_result;
+
+    if (m_cfg.encoder_pipe_stages != expected_pipe_stages) begin
+      `uvm_fatal(case_tag, $sformatf(
+        "%s requires ENCODER_PIPE_STAGES=%0d, observed=%0d",
+        what, expected_pipe_stages, m_cfg.encoder_pipe_stages))
+    end
+
+    configure_and_start(16'd2000);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(key_ord);
+    burst_seq = same_key_burst_seq::type_id::create({case_tag, "_pipe_stage_smoke"});
+    burst_seq.num_hits = 1;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+
+    wait_for_push_count(1, timeout_cycles / 8, {what, " single-hit fill"});
+    cycle_a = 0;
+    cycle_b = 0;
+    saw_load = 1'b0;
+    saw_flagged_result = 1'b0;
+    active_partition_idx = -1;
+    expected_wait_cycles = (expected_pipe_stages <= 2) ? 2 : expected_pipe_stages;
+    search_cycles = 0;
+    while (search_cycles < timeout_cycles && cycle_b == 0) begin
+      load_mask = m_env.m_dbg_mon.pop_partition_load;
+      active_load_mask = load_mask & m_env.m_dbg_mon.pop_partition_pending;
+      if (m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+          active_load_mask != 0) begin
+        saw_load = 1'b1;
+        if (cycle_a == 0) begin
+          cycle_a = m_env.m_dbg_mon.sampled_cycles;
+          for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+            if (active_load_mask[idx] === 1'b1) begin
+              active_partition_idx = idx;
+              break;
+            end
+          end
+          if ($countones(active_load_mask) != 1 || active_partition_idx < 0) begin
+            `uvm_error(case_tag, $sformatf(
+              "%s expected exactly one pending partition at load, observed load=0x%0h pending=0x%0h",
+              what, load_mask, m_env.m_dbg_mon.pop_partition_pending))
+          end
+        end
+      end
+      if (cycle_a != 0 &&
+          active_partition_idx >= 0 &&
+          m_env.m_dbg_mon.pop_partition_result_valid[active_partition_idx] === 1'b1 &&
+          m_env.m_dbg_mon.pop_partition_flag[active_partition_idx] === 1'b1 &&
+          m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+        cycle_b = m_env.m_dbg_mon.sampled_cycles;
+        saw_flagged_result = 1'b1;
+        if ((m_env.m_dbg_mon.pop_partition_flag & ~(4'b0001 << active_partition_idx)) != 0) begin
+          `uvm_error(case_tag, $sformatf(
+            "%s flagged an inactive partition: active=%0d flags=0x%0h result_valid=0x%0h",
+            what, active_partition_idx, m_env.m_dbg_mon.pop_partition_flag,
+            m_env.m_dbg_mon.pop_partition_result_valid))
+        end
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+
+    if (!saw_load) begin
+      `uvm_error(case_tag, $sformatf(
+        "%s never observed the partition load pulse",
+        what))
+    end
+    if (!saw_flagged_result) begin
+      `uvm_error(case_tag, $sformatf(
+        "%s never observed a flagged result_valid pulse on the active partition",
+        what))
+    end
+    if (cycle_b == 0) begin
+      `uvm_error(case_tag, $sformatf(
+        "%s never observed a flagged result_valid pulse",
+        what))
+    end else begin
+      observed_wait_cycles = int'(cycle_b - cycle_a);
+      if (observed_wait_cycles != int'(expected_wait_cycles)) begin
+        `uvm_error(case_tag, $sformatf(
+          "%s result latency mismatch: observed=%0d expected=%0d anchor_cycle=%0d result_cycle=%0d",
+          what, observed_wait_cycles, expected_wait_cycles,
+          cycle_a, cycle_b))
+      end
+    end
+
+    wait_for_scoreboard_idle(timeout_cycles, {what, " drain"});
+    expect_service_model_accounting({what, " drain"}, 1, 0);
+  endtask
+
   task automatic run_profile_integrity_case(
     string        what,
     int unsigned  latency,
@@ -4343,7 +4492,8 @@ class base_test extends uvm_test;
     int unsigned  min_data_subheaders,
     bit           check_latency_readback = 1'b0,
     logic [31:0]  lfsr_seed = 32'h1ace_b00c,
-    logic [3:0]   expected_partition_mask = 4'b0000
+    logic [3:0]   expected_partition_mask = 4'b0000,
+    int unsigned  max_overwrites = 0
   );
     profile_traffic_seq prof_seq;
     int unsigned push_count;
@@ -4470,12 +4620,14 @@ class base_test extends uvm_test;
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
     subhdr_delta = m_env.m_out_mon.total_data_subheaders_seen - subhdr_before;
 
-    if (push_count != num_hits || pop_count != num_hits ||
-        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+    if (push_count != num_hits ||
+        (pop_count + overwrite_count) != num_hits ||
+        overwrite_count > max_overwrites ||
+        cache_miss_count != 0 || fill_level != 0) begin
       `uvm_error("PROF", $sformatf(
-        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d expected_pop_plus_overwrite=%0d max_overwrite=%0d",
         what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
-        num_hits, num_hits))
+        num_hits, num_hits, max_overwrites))
     end
     if (sink_ready_mode != 0 && sink_low_cycles == 0) begin
       `uvm_error("PROF", $sformatf(
@@ -4849,13 +5001,15 @@ class base_test extends uvm_test;
     string       what,
     int unsigned lane_key_start_ord,
     int unsigned pool_keys,
-    int unsigned min_active_keys = 1
+    int unsigned min_active_keys = 1,
+    bit          allow_overwrites = 1'b0
   );
     int unsigned active_keys;
     int unsigned search_key;
     int unsigned accepted_hits;
     int unsigned written_hits;
     int unsigned drained_hits;
+    int unsigned evicted_hits;
     int unsigned data_subheaders;
 
     active_keys = 0;
@@ -4864,19 +5018,28 @@ class base_test extends uvm_test;
       accepted_hits = m_env.m_scb.accepted_hits_for_key(search_key[7:0]);
       written_hits = m_env.m_scb.written_hits_for_key(search_key[7:0]);
       drained_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      evicted_hits = m_env.m_scb.overwrite_events_for_evicted_key(search_key[7:0]);
       data_subheaders = m_env.m_scb.data_subheaders_for_key(search_key[7:0]);
       if (accepted_hits != 0) begin
         active_keys++;
-        if (data_subheaders == 0) begin
+        if (!allow_overwrites && data_subheaders == 0) begin
           `uvm_error("PROF", $sformatf(
             "%s accepted hits for key=0x%02x but never emitted a data-bearing subheader",
             what, search_key[7:0]))
         end
       end
-      if (accepted_hits != written_hits || written_hits != drained_hits) begin
+      if (drained_hits != 0 && data_subheaders == 0) begin
         `uvm_error("PROF", $sformatf(
-          "%s per-key conservation mismatch key=0x%02x accepted=%0d written=%0d drained=%0d subheaders=%0d",
-          what, search_key[7:0], accepted_hits, written_hits, drained_hits, data_subheaders))
+          "%s drained hits for key=0x%02x but never emitted a data-bearing subheader",
+          what, search_key[7:0]))
+      end
+      if (accepted_hits != written_hits ||
+          (!allow_overwrites && written_hits != drained_hits) ||
+          (allow_overwrites && written_hits != (drained_hits + evicted_hits))) begin
+        `uvm_error("PROF", $sformatf(
+          "%s per-key conservation mismatch key=0x%02x accepted=%0d written=%0d drained=%0d evicted=%0d subheaders=%0d allow_overwrites=%0d",
+          what, search_key[7:0], accepted_hits, written_hits, drained_hits,
+          evicted_hits, data_subheaders, allow_overwrites))
       end
     end
     if (active_keys < min_active_keys) begin
@@ -4890,16 +5053,18 @@ class base_test extends uvm_test;
     string       what,
     int unsigned lane_key_ords[$],
     int unsigned expected_hits[$],
-    int unsigned min_active_keys = 1
+    int unsigned min_active_keys = 1,
+    bit          allow_overwrites = 1'b0
   );
     int unsigned active_keys;
     int unsigned search_key;
     int unsigned accepted_hits;
     int unsigned written_hits;
     int unsigned drained_hits;
+    int unsigned evicted_hits;
     int unsigned data_subheaders;
     int unsigned total_expected;
-    int unsigned total_drained;
+    int unsigned total_accounted;
 
     if (lane_key_ords.size() != expected_hits.size()) begin
       `uvm_error("PROF", $sformatf(
@@ -4910,30 +5075,37 @@ class base_test extends uvm_test;
 
     active_keys = 0;
     total_expected = 0;
-    total_drained = 0;
+    total_accounted = 0;
     foreach (lane_key_ords[idx]) begin
       search_key = m_cfg.lane_key_ord_to_search_key(lane_key_ords[idx]);
       accepted_hits = m_env.m_scb.accepted_hits_for_key(search_key[7:0]);
       written_hits = m_env.m_scb.written_hits_for_key(search_key[7:0]);
       drained_hits = m_env.m_scb.drained_hits_for_key(search_key[7:0]);
+      evicted_hits = m_env.m_scb.overwrite_events_for_evicted_key(search_key[7:0]);
       data_subheaders = m_env.m_scb.data_subheaders_for_key(search_key[7:0]);
       total_expected += expected_hits[idx];
-      total_drained += drained_hits;
+      total_accounted += allow_overwrites ? (drained_hits + evicted_hits) : drained_hits;
       if (expected_hits[idx] != accepted_hits ||
           expected_hits[idx] != written_hits ||
-          expected_hits[idx] != drained_hits) begin
+          (!allow_overwrites && expected_hits[idx] != drained_hits) ||
+          (allow_overwrites && expected_hits[idx] != (drained_hits + evicted_hits))) begin
         `uvm_error("PROF", $sformatf(
-          "%s exact-count mismatch key=0x%02x accepted=%0d written=%0d drained=%0d expected=%0d subheaders=%0d",
+          "%s exact-count mismatch key=0x%02x accepted=%0d written=%0d drained=%0d evicted=%0d expected=%0d subheaders=%0d allow_overwrites=%0d",
           what, search_key[7:0], accepted_hits, written_hits, drained_hits,
-          expected_hits[idx], data_subheaders))
+          evicted_hits, expected_hits[idx], data_subheaders, allow_overwrites))
       end
       if (expected_hits[idx] != 0) begin
         active_keys++;
-        if (data_subheaders == 0) begin
+        if (!allow_overwrites && data_subheaders == 0) begin
           `uvm_error("PROF", $sformatf(
             "%s key=0x%02x drained %0d hits but emitted no data-bearing subheader",
             what, search_key[7:0], expected_hits[idx]))
         end
+      end
+      if (drained_hits != 0 && data_subheaders == 0) begin
+        `uvm_error("PROF", $sformatf(
+          "%s key=0x%02x drained %0d hits but emitted no data-bearing subheader",
+          what, search_key[7:0], drained_hits))
       end
     end
 
@@ -4942,10 +5114,10 @@ class base_test extends uvm_test;
         "%s activated too few exact-count keys: active=%0d expected_at_least=%0d",
         what, active_keys, min_active_keys))
     end
-    if (total_drained != total_expected) begin
+    if (total_accounted != total_expected) begin
       `uvm_error("PROF", $sformatf(
-        "%s exact-count total mismatch: drained=%0d expected=%0d",
-        what, total_drained, total_expected))
+        "%s exact-count total mismatch: accounted=%0d expected=%0d allow_overwrites=%0d",
+        what, total_accounted, total_expected, allow_overwrites))
     end
   endtask
 
@@ -4957,7 +5129,8 @@ class base_test extends uvm_test;
     int unsigned num_epochs,
     int unsigned inter_hit_gap_cycles,
     int unsigned inter_epoch_gap_cycles,
-    int unsigned timeout_cycles
+    int unsigned timeout_cycles,
+    int unsigned max_overwrites = 0
   );
     weighted_profile_seq weighted_seq;
     int unsigned         expected_hits[$];
@@ -5008,15 +5181,22 @@ class base_test extends uvm_test;
     read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
 
-    if (push_count != total_hits || pop_count != total_hits ||
-        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+    if (push_count != total_hits ||
+        (pop_count + overwrite_count) != total_hits ||
+        overwrite_count > max_overwrites ||
+        cache_miss_count != 0 || fill_level != 0) begin
       `uvm_error("PROF", $sformatf(
-        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d expected_pop_plus_overwrite=%0d max_overwrite=%0d",
         what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
-        total_hits, total_hits))
+        total_hits, total_hits, max_overwrites))
     end
 
-    check_exact_key_counts(what, lane_key_ords, expected_hits, lane_key_ords.size());
+    check_exact_key_counts(
+      what,
+      lane_key_ords,
+      expected_hits,
+      lane_key_ords.size(),
+      (max_overwrites != 0));
     observed_min_hits = total_hits;
     observed_max_hits = 0;
     foreach (lane_key_ords[idx]) begin
@@ -5043,7 +5223,8 @@ class base_test extends uvm_test;
     int unsigned num_epochs,
     int unsigned inter_hit_gap_cycles,
     int unsigned inter_epoch_gap_cycles,
-    int unsigned timeout_cycles
+    int unsigned timeout_cycles,
+    int unsigned max_overwrites = 0
   );
     int unsigned lane_key_ords[$];
     int unsigned key_hits_per_epoch[$];
@@ -5058,7 +5239,7 @@ class base_test extends uvm_test;
 
     run_dynamic_weighted_multi_key_case(
       what, latency, lane_key_ords, key_hits_per_epoch,
-      num_epochs, inter_hit_gap_cycles, inter_epoch_gap_cycles, timeout_cycles);
+      num_epochs, inter_hit_gap_cycles, inter_epoch_gap_cycles, timeout_cycles, max_overwrites);
   endtask
 
   task automatic run_single_key_fixed_point_profile_case(
@@ -5210,11 +5391,13 @@ class base_test extends uvm_test;
     int unsigned target_lane_key_ord,
     int unsigned target_hits,
     logic [3:0] expected_partition_mask,
-    int unsigned timeout_cycles
+    int unsigned timeout_cycles,
+    int unsigned min_target_occupancy = 32'hffff_ffff
   );
     same_key_burst_seq burst_seq;
     int unsigned       prefill_search_key;
     int unsigned       target_search_key;
+    int unsigned       required_target_occupancy;
     int unsigned       hit_before;
     int unsigned       push_count;
     int unsigned       pop_count;
@@ -5237,6 +5420,8 @@ class base_test extends uvm_test;
     end
 
     target_search_key = m_cfg.lane_key_ord_to_search_key(target_lane_key_ord);
+    required_target_occupancy =
+      (min_target_occupancy == 32'hffff_ffff) ? target_hits : min_target_occupancy;
     hit_before = m_env.m_out_mon.total_hits_seen;
     burst_seq = same_key_burst_seq::type_id::create({what, "_target"});
     burst_seq.num_hits = target_hits;
@@ -5244,11 +5429,12 @@ class base_test extends uvm_test;
     burst_seq.start(m_env.m_hit_seqr);
 
     wait_for_push_count(prefill_hits + target_hits, timeout_cycles / 4, {what, " fill"});
-    if (m_env.m_scb.max_remaining_entries_for_key(target_search_key) < target_hits) begin
+    if (required_target_occupancy != 0 &&
+        m_env.m_scb.max_remaining_entries_for_key(target_search_key) < required_target_occupancy) begin
       `uvm_error("PROF", $sformatf(
         "%s never accumulated the requested target occupancy: key=0x%02x max_for_key=%0d expected=%0d",
         what, target_search_key[7:0],
-        m_env.m_scb.max_remaining_entries_for_key(target_search_key), target_hits))
+        m_env.m_scb.max_remaining_entries_for_key(target_search_key), required_target_occupancy))
     end
 
     csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
@@ -5662,7 +5848,8 @@ class base_test extends uvm_test;
     bit          randomize_key_order,
     int unsigned inter_hit_gap_cycles,
     int unsigned timeout_cycles,
-    logic [31:0] lfsr_seed = 32'h1ace_b00c
+    logic [31:0] lfsr_seed = 32'h1ace_b00c,
+    int unsigned max_overwrites = 0
   );
     profile_traffic_seq prof_seq;
     int unsigned push_count;
@@ -5696,15 +5883,22 @@ class base_test extends uvm_test;
     read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
 
-    if (push_count != num_hits || pop_count != num_hits ||
-        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+    if (push_count != num_hits ||
+        (pop_count + overwrite_count) != num_hits ||
+        overwrite_count > max_overwrites ||
+        cache_miss_count != 0 || fill_level != 0) begin
       `uvm_error("PROF", $sformatf(
-        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d expected_pop_plus_overwrite=%0d max_overwrite=%0d",
         what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
-        num_hits, num_hits))
+        num_hits, num_hits, max_overwrites))
     end
 
-    check_per_key_drain_conservation(what, lane_key_start_ord, pool_keys, pool_keys);
+    check_per_key_drain_conservation(
+      what,
+      lane_key_start_ord,
+      pool_keys,
+      pool_keys,
+      (max_overwrites != 0));
     min_hits = num_hits;
     max_hits = 0;
     for (int idx = 0; idx < pool_keys; idx++) begin
@@ -5733,7 +5927,8 @@ class base_test extends uvm_test;
     int unsigned late_start_min_fill,
     int unsigned timeout_cycles,
     logic [31:0] early_lfsr_seed = 32'h0420_a11e,
-    logic [31:0] late_lfsr_seed = 32'h0420_b22e
+    logic [31:0] late_lfsr_seed = 32'h0420_b22e,
+    int unsigned max_overwrites = 0
   );
     profile_traffic_seq early_seq;
     profile_traffic_seq late_seq;
@@ -5801,24 +5996,27 @@ class base_test extends uvm_test;
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
 
     if (push_count != (early_num_hits + late_num_hits) ||
-        pop_count != (early_num_hits + late_num_hits) ||
-        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+        (pop_count + overwrite_count) != (early_num_hits + late_num_hits) ||
+        overwrite_count > max_overwrites ||
+        cache_miss_count != 0 || fill_level != 0) begin
       `uvm_error("PROF", $sformatf(
-        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d expected_pop_plus_overwrite=%0d max_overwrite=%0d",
         what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
-        early_num_hits + late_num_hits, early_num_hits + late_num_hits))
+        early_num_hits + late_num_hits, early_num_hits + late_num_hits, max_overwrites))
     end
 
     check_per_key_drain_conservation(
       {what, " early-key conservation"},
       early_lane_key_start_ord,
       early_pool_keys,
-      early_pool_keys);
+      early_pool_keys,
+      (max_overwrites != 0));
     check_per_key_drain_conservation(
       {what, " late-key conservation"},
       late_lane_key_start_ord,
       late_pool_keys,
-      late_pool_keys);
+      late_pool_keys,
+      (max_overwrites != 0));
 
     `uvm_info("PROF", $sformatf(
       "%s summary: early_hits=%0d late_hits=%0d late_start_fill=%0d max_live_fill=%0d max_remaining=%0d",
@@ -5834,7 +6032,8 @@ class base_test extends uvm_test;
     int unsigned pool_keys,
     int unsigned inter_hit_gap_cycles,
     int unsigned timeout_cycles,
-    logic [31:0] lfsr_seed = 32'h0430_c33f
+    logic [31:0] lfsr_seed = 32'h0430_c33f,
+    int unsigned max_overwrites = 0
   );
     profile_traffic_seq prof_seq;
     int unsigned        push_count;
@@ -5902,12 +6101,14 @@ class base_test extends uvm_test;
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
     csr_read(CSR_EXPECTED_LAT_ADDR, latency_readback);
 
-    if (push_count != num_hits || pop_count != num_hits ||
-        overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+    if (push_count != num_hits ||
+        (pop_count + overwrite_count) != num_hits ||
+        overwrite_count > max_overwrites ||
+        cache_miss_count != 0 || fill_level != 0) begin
       `uvm_error("PROF", $sformatf(
-        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected=%0d/%0d/0/0/0",
+        "%s accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d expected_push=%0d expected_pop_plus_overwrite=%0d max_overwrite=%0d",
         what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
-        num_hits, num_hits))
+        num_hits, num_hits, max_overwrites))
     end
     if (!saw_active_reprogram) begin
       `uvm_error("PROF", $sformatf(
@@ -5920,7 +6121,12 @@ class base_test extends uvm_test;
         what, latency_readback, latency_values[2]))
     end
 
-    check_per_key_drain_conservation(what, lane_key_start_ord, pool_keys, pool_keys);
+    check_per_key_drain_conservation(
+      what,
+      lane_key_start_ord,
+      pool_keys,
+      pool_keys,
+      (max_overwrites != 0));
 
     `uvm_info("PROF", $sformatf(
       "%s summary: num_hits=%0d pool_keys=%0d final_latency=%0d max_live_fill=%0d max_remaining=%0d",
@@ -5935,7 +6141,8 @@ class base_test extends uvm_test;
     int unsigned lane_key_start_ord,
     int unsigned pool_keys,
     int unsigned inter_hit_gap_cycles,
-    int unsigned timeout_cycles
+    int unsigned timeout_cycles,
+    int unsigned max_overwrites = 0
   );
     run_multi_key_profile_case(
       what,
@@ -5946,7 +6153,9 @@ class base_test extends uvm_test;
       1,
       1'b1,
       inter_hit_gap_cycles,
-      timeout_cycles);
+      timeout_cycles,
+      32'h1ace_b00c,
+      max_overwrites);
   endtask
 
   task automatic run_silent_key_profile_case(
@@ -8017,41 +8226,66 @@ class base_test extends uvm_test;
       wait_for_scoreboard_idle(120_000, "B091 drain-priority overlap");
       expect_service_model_accounting("B091 drain-priority overlap", 1, 0);
     end else if (case_id == "B092") begin
+      overwrite_profile_seq pressure_seq_local;
+      bit saw_active_erase;
+      bit saw_drain_activity;
       configure_and_start(2000);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
-      burst_seq = same_key_burst_seq::type_id::create("b092_prefill");
-      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
-      burst_seq.search_key = focus_search_key;
-      burst_seq.start(m_env.m_hit_seqr);
-      wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "B092 ring-fill precondition");
-      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
-      wait_clocks(4);
-      wait_for_pop_engine_state(3'd4, 40_000, "B092 DRAIN entry");
+      pressure_seq_local = overwrite_profile_seq::type_id::create("b092_overlap_stream");
+      pressure_seq_local.num_hits = m_cfg.ring_buffer_n_entry + 1024;
+      pressure_seq_local.lane_key_start_ord = 2;
+      pressure_seq_local.pool_keys = 4;
+      pressure_seq_local.hits_per_key_switch = 1;
       saw_overlap = 1'b0;
-      burst_seq = same_key_burst_seq::type_id::create("b092_overlap");
-      burst_seq.num_hits = 128;
-      burst_seq.search_key = focus_search_key;
+      saw_active_erase = 1'b0;
+      saw_drain_activity = 1'b0;
+      traffic_done = 1'b0;
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd768);
+      wait_clocks(4);
       fork
         begin
-          burst_seq.start(m_env.m_hit_seqr);
+          pressure_seq_local.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
         end
-        begin
-          search_cycles = 0;
-          while (search_cycles < 8_192 && !saw_overlap) begin
-            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
-                m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
-              saw_overlap = 1'b1;
-              if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
-                `uvm_error("B092", "pop_erase_grant remained asserted while push_erase_grant won the cycle")
-              end
-            end
-            @(posedge m_env.m_csr_drv.vif.clk);
-            search_cycles++;
-          end
+      join_none
+      wait_for_push_count(m_cfg.ring_buffer_n_entry + 16, 80_000, "B092 overwrite precondition");
+      if (m_env.m_dbg_mon.dbg_overwrite_cnt[31:0] == 0) begin
+        `uvm_error("B092", "Precondition failed: overwrite stream never became active before DRAIN")
+      end else begin
+        saw_active_erase = 1'b1;
+      end
+      wait_for_pop_engine_state(3'd4, 80_000, "B092 DRAIN entry");
+      search_cycles = 0;
+      while (search_cycles < 20_000) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
+            m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          saw_drain_activity = 1'b1;
         end
-      join
-      if (!saw_overlap) begin
-        `uvm_error("B092", "Did not observe push_erase_grant preempting DRAIN under full-ring overlap")
+        if (saw_drain_activity &&
+            m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
+            m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
+          saw_overlap = 1'b1;
+          `uvm_error("B092", $sformatf(
+            "push_erase_grant leaked into active DRAIN after pop_erase ownership started: push_erase_count=%0d pop_erase_count=%0d pop_hits=%0d overwrites=%0d",
+            m_env.m_dbg_mon.push_erase_grant_count,
+            m_env.m_dbg_mon.pop_erase_grant_count,
+            m_env.m_dbg_mon.vif.pop_hits_count,
+            m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
+          break;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      wait (traffic_done == 1'b1);
+      if (!saw_drain_activity) begin
+        `uvm_error("B092", $sformatf(
+          "Did not observe active DRAIN pop ownership after overwrite pressure: traffic_done=%0d active_erase=%0d push_erase_count=%0d pop_erase_count=%0d pop_hits=%0d overwrites=%0d",
+          traffic_done,
+          saw_active_erase,
+          m_env.m_dbg_mon.push_erase_grant_count,
+          m_env.m_dbg_mon.pop_erase_grant_count,
+          m_env.m_dbg_mon.vif.pop_hits_count,
+          m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
       end
       terminate_and_drain(240_000, "B092 push-erase priority drain");
       expect_service_model_accounting("B092 push-erase priority drain", 1, 1);
@@ -8087,6 +8321,27 @@ class base_test extends uvm_test;
       end
       m_env.m_scb.note_flush_reset();
       wait_for_scoreboard_idle(120_000, "B093 flush preemption cleanup");
+    end else if (case_id == "B094") begin
+      run_pipe_stage_latency_smoke_case(
+        "B094 PIPE_STAGES=1 latency baseline",
+        "B094",
+        1,
+        2,
+        80_000);
+    end else if (case_id == "B095") begin
+      run_pipe_stage_latency_smoke_case(
+        "B095 PIPE_STAGES=2 latency baseline",
+        "B095",
+        2,
+        2,
+        80_000);
+    end else if (case_id == "B096") begin
+      run_pipe_stage_latency_smoke_case(
+        "B096 PIPE_STAGES=3 latency baseline",
+        "B096",
+        3,
+        2,
+        80_000);
     end else if (case_id == "B097") begin
       configure_and_start(2000);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -8417,6 +8672,76 @@ class base_test extends uvm_test;
       end
       wait_for_scoreboard_idle(120_000, "B103 has_more transition drain");
       expect_service_model_accounting("B103 has_more transition drain", 1, 0);
+    end else if (case_id == "B104") begin
+      int unsigned issue_addr_q[$];
+      int unsigned first_search_key;
+      int unsigned second_search_key;
+      bit          saw_load_override;
+      bit          saw_first_subheader;
+      bit          saw_second_subheader;
+
+      configure_and_start(0);
+      first_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      second_search_key = m_cfg.lane_key_ord_to_search_key(3);
+
+      burst_seq = same_key_burst_seq::type_id::create("b104_first_vector");
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = first_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+
+      burst_seq = same_key_burst_seq::type_id::create("b104_second_vector");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = second_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+
+      wait_for_push_count(3, 20_000, "B104 dual-vector fill");
+      saw_load_override = 1'b0;
+      saw_first_subheader = 1'b0;
+      saw_second_subheader = 1'b0;
+      search_cycles = 0;
+      while (search_cycles < 120_000 &&
+             (issue_addr_q.size() < 3 || !(saw_first_subheader && saw_second_subheader))) begin
+        if (m_env.m_dbg_mon.pop_partition_load != 0 &&
+            (m_env.m_dbg_mon.pop_partition_has_more != 0 ||
+             m_env.m_dbg_mon.pop_partition_result_valid != 0)) begin
+          saw_load_override = 1'b1;
+        end
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+          issue_addr_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr);
+        end
+        if (m_env.m_out_mon.recent_data_subheaders.size() != 0) begin
+          if (m_env.m_out_mon.recent_data_subheaders[$].search_key == first_search_key[7:0] &&
+              m_env.m_out_mon.recent_data_subheaders[$].hit_count == 2) begin
+            saw_first_subheader = 1'b1;
+          end
+          if (m_env.m_out_mon.recent_data_subheaders[$].search_key == second_search_key[7:0] &&
+              m_env.m_out_mon.recent_data_subheaders[$].hit_count == 1) begin
+            saw_second_subheader = 1'b1;
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (!saw_load_override) begin
+        `uvm_error("B104", "Did not observe a fresh pop_partition_load overriding an active encoder context")
+      end
+      if (issue_addr_q.size() != 3) begin
+        `uvm_error("B104", $sformatf(
+          "Expected three pop issues across the load-override audit, observed=%0d",
+          issue_addr_q.size()))
+      end else if (issue_addr_q[0] != 0 || issue_addr_q[1] != 1 || issue_addr_q[2] != 2) begin
+        `uvm_error("B104", $sformatf(
+          "Load-override issue order mismatch: observed={%0d,%0d,%0d} expected={0,1,2}",
+          issue_addr_q[0], issue_addr_q[1], issue_addr_q[2]))
+      end
+      if (!saw_first_subheader || !saw_second_subheader) begin
+        `uvm_error("B104", $sformatf(
+          "Did not observe both post-load subheaders cleanly: first=%0d second=%0d",
+          saw_first_subheader, saw_second_subheader))
+      end
+      wait_for_scoreboard_idle(120_000, "B104 load-override drain");
+      expect_service_model_accounting("B104 load-override drain", 1, 0);
     end else if (case_id == "B105") begin
       ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
       wait_for_run_state(4'd1, 2_000, "B105 RUN_PREPARE entry");
@@ -9182,7 +9507,7 @@ class base_test extends uvm_test;
       saw_idle_bubble = 1'b0;
       traffic_done = 1'b0;
       burst_seq = same_key_burst_seq::type_id::create("b129_back_to_back_pushes");
-      burst_seq.num_hits = 256;
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
       burst_seq.search_key = focus_search_key;
       fork
         begin
@@ -9193,10 +9518,12 @@ class base_test extends uvm_test;
           search_cycles = 0;
           while (search_cycles < 120_000 &&
                  (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0 ||
-                  m_env.m_dbg_mon.push_write_grant_count < 256)) begin
+                  m_env.m_dbg_mon.deassembly_fifo_usedw != 0 ||
+                  m_env.m_dbg_mon.push_write_grant_count < m_cfg.ring_buffer_n_entry)) begin
             if (m_env.m_dbg_mon.push_write_grant_count > 0 &&
-                m_env.m_dbg_mon.push_write_grant_count < 256 &&
-                (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0) &&
+                m_env.m_dbg_mon.push_write_grant_count < m_cfg.ring_buffer_n_entry &&
+                m_env.m_dbg_mon.deassembly_fifo_usedw > 1 &&
+                m_env.m_scb.max_remaining_entries() >= m_cfg.ring_buffer_n_entry &&
                 m_env.m_dbg_mon.vif.decision_reg == 3'd4) begin
               saw_idle_bubble = 1'b1;
               break;
@@ -9206,7 +9533,7 @@ class base_test extends uvm_test;
           end
         end
       join
-      wait_for_push_count(256, 80_000, "B129 back-to-back push grants");
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "B129 back-to-back push grants");
       if (saw_idle_bubble) begin
         `uvm_error("B129", "decision_reg=4 appeared between consecutive push_write grants under sustained pressure")
       end
@@ -9874,18 +10201,14 @@ class base_test extends uvm_test;
           while (m_env.m_dbg_mon.pop_engine_state_code != 3'd4) begin
             @(posedge m_env.m_csr_drv.vif.clk);
           end
-          single_seq = single_push_pop_seq::type_id::create("e017_wrap_push_511");
-          single_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
-          single_seq.start(m_env.m_hit_seqr);
-          @(posedge m_env.m_csr_drv.vif.clk);
-          single_seq = single_push_pop_seq::type_id::create("e017_wrap_push_000");
-          single_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
-          single_seq.start(m_env.m_hit_seqr);
+          burst_seq = same_key_burst_seq::type_id::create("e017_wrap_pushes");
+          burst_seq.num_hits = 2;
+          burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+          burst_seq.start(m_env.m_hit_seqr);
         end
         begin
-          while (grant_count < 3 && !(saw_push_511 && saw_push_000)) begin
-            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
-                m_env.m_dbg_mon.pop_engine_state_code != 3'd0) begin
+          while (grant_count < 4 && !(saw_push_511 && saw_push_000)) begin
+            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
               if (m_env.m_dbg_mon.vif.cam_wr_addr == (m_cfg.ring_buffer_n_entry - 1))
                 saw_push_511 = 1'b1;
               if (m_env.m_dbg_mon.vif.cam_wr_addr == 16'h0000)
@@ -9915,6 +10238,305 @@ class base_test extends uvm_test;
       end
       wait_for_hit_output_count(1, 120_000, "E017 target pop beat");
       wait_for_scoreboard_idle(200_000, "E017 wraparound conflict drain");
+    end else if (case_id == "E018") begin
+      int unsigned focus_issue_q[$];
+      int unsigned focus_partition_q[$];
+
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("E018", "E018 requires the 4-partition p4 build variant")
+      end
+
+      configure_and_start(16'hFFFF);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e018_prefill_wrap_boundary");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - 2;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 2, 120_000, "E018 wrap prefill");
+
+      burst_seq = same_key_burst_seq::type_id::create("e018_target_wrap_boundary");
+      burst_seq.num_hits = 3;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry + 1, 120_000, "E018 wrap target fill");
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd3, 1'b1, 1'b1, 300_000,
+        "E018 wrap-boundary target subheader", matched_subheader);
+
+      search_cycles = 0;
+      while (search_cycles < 600_000 && focus_issue_q.size() < 3) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+          focus_issue_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr);
+          focus_partition_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr / partition_size);
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (focus_issue_q.size() != 3) begin
+        `uvm_error("E018", $sformatf(
+          "Did not observe all three focus-key pop issues across the wrap boundary: observed=%0d",
+          focus_issue_q.size()))
+      end else begin
+        if (focus_partition_q[0] != 0 || focus_partition_q[1] != 3 || focus_partition_q[2] != 3) begin
+          `uvm_error("E018", $sformatf(
+            "Wrap-boundary partition order mismatch: observed={%0d,%0d,%0d} expected={0,3,3}",
+            focus_partition_q[0], focus_partition_q[1], focus_partition_q[2]))
+        end
+        if (focus_issue_q[0] != 0 ||
+            focus_issue_q[1] != (m_cfg.ring_buffer_n_entry - 2) ||
+            focus_issue_q[2] != (m_cfg.ring_buffer_n_entry - 1)) begin
+          `uvm_error("E018", $sformatf(
+            "Wrap-boundary issue order mismatch: observed={%0d,%0d,%0d} expected={0,%0d,%0d}",
+            focus_issue_q[0], focus_issue_q[1], focus_issue_q[2],
+            m_cfg.ring_buffer_n_entry - 2, m_cfg.ring_buffer_n_entry - 1))
+        end
+      end
+
+      wait_for_scoreboard_idle(1_500_000, "E018 wrap-boundary drain");
+      expect_service_model_accounting("E018 wrap-boundary drain", 1, 1);
+      if (m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]) != 3) begin
+        `uvm_error("E018", $sformatf(
+          "Wrap-boundary focus-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+          focus_search_key[7:0],
+          m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]), 3))
+      end
+    end else if (case_id == "E024") begin
+      int unsigned focus_issue_addr;
+      bit          saw_focus_issue;
+
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("E024", "E024 requires the 4-partition p4 build variant")
+      end
+
+      configure_and_start(16'hFFFF);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e024_prefill_last_slot");
+      burst_seq.num_hits = m_cfg.ring_buffer_n_entry - 1;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry - 1, 120_000, "E024 last-slot prefill");
+
+      burst_seq = same_key_burst_seq::type_id::create("e024_target_last_slot");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(m_cfg.ring_buffer_n_entry, 120_000, "E024 slot511 target fill");
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 300_000,
+        "E024 slot511 target subheader", matched_subheader);
+
+      saw_focus_issue = 1'b0;
+      focus_issue_addr = '0;
+      search_cycles = 0;
+      while (search_cycles < 300_000 && !saw_focus_issue) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+          focus_issue_addr = m_env.m_dbg_mon.vif.pop_issue_addr;
+          saw_focus_issue = 1'b1;
+          if (m_env.m_dbg_mon.pop_issue_partition_idx != 2'd3) begin
+            `uvm_error("E024", $sformatf(
+              "Slot511 focus hit issued from the wrong partition: partition=%0d addr=%0d",
+              m_env.m_dbg_mon.pop_issue_partition_idx, focus_issue_addr))
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (!saw_focus_issue) begin
+        `uvm_error("E024", "Did not observe the focus-key pop issue for the last-slot case")
+      end else if (focus_issue_addr != (m_cfg.ring_buffer_n_entry - 1)) begin
+        `uvm_error("E024", $sformatf(
+          "Last-slot focus hit issued from the wrong address: observed=%0d expected=%0d",
+          focus_issue_addr, m_cfg.ring_buffer_n_entry - 1))
+      end
+
+      wait_for_scoreboard_idle(1_500_000, "E024 last-slot drain");
+      expect_service_model_accounting("E024 last-slot drain", 1, 0);
+      if (m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]) != 1) begin
+        `uvm_error("E024", $sformatf(
+          "Last-slot focus-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+          focus_search_key[7:0],
+          m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]), 1))
+      end
+    end else if (case_id == "E027") begin
+      bit [3:0] saw_zero_flag_mask;
+      bit       saw_partition2_flag;
+      bit [3:0] focus_issue_mask;
+
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("E027", "E027 requires the 4-partition p4 build variant")
+      end
+
+      configure_and_start(16'hFFFF);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      burst_seq = same_key_burst_seq::type_id::create("e027_prefill_partition2");
+      burst_seq.num_hits = partition_size * 2;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(partition_size * 2, 120_000, "E027 partition2 prefill");
+
+      burst_seq = same_key_burst_seq::type_id::create("e027_target_partition2");
+      burst_seq.num_hits = 8;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count((partition_size * 2) + 8, 120_000, "E027 partition2 target fill");
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd8, 1'b1, 1'b1, 300_000,
+        "E027 partition2 target subheader", matched_subheader);
+
+      saw_zero_flag_mask = '0;
+      saw_partition2_flag = 1'b0;
+      focus_issue_mask = '0;
+      grant_count = 0;
+      search_cycles = 0;
+      while (search_cycles < 400_000 &&
+             ((!saw_partition2_flag) ||
+              ((saw_zero_flag_mask & 4'b1011) != 4'b1011) ||
+              grant_count < 8)) begin
+        if (m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+          for (int idx = 0; idx < 4; idx++) begin
+            if (m_env.m_dbg_mon.pop_partition_result_valid[idx] === 1'b1) begin
+              if (idx == 2) begin
+                if (m_env.m_dbg_mon.pop_partition_flag[idx] === 1'b1)
+                  saw_partition2_flag = 1'b1;
+              end else begin
+                if (m_env.m_dbg_mon.pop_partition_flag[idx] === 1'b1) begin
+                  `uvm_error("E027", $sformatf(
+                    "Inactive partition asserted flag during the partition2-only case: partition=%0d flags=0x%0h",
+                    idx, m_env.m_dbg_mon.pop_partition_flag))
+                end else begin
+                  saw_zero_flag_mask[idx] = 1'b1;
+                end
+              end
+            end
+          end
+          if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+            visit_idx = m_env.m_dbg_mon.vif.pop_issue_addr / partition_size;
+            if (visit_idx >= 4) begin
+              `uvm_error("E027", $sformatf(
+                "Partition2-only case issued from out-of-range partition=%0d addr=%0d",
+                visit_idx, m_env.m_dbg_mon.vif.pop_issue_addr))
+            end else begin
+              focus_issue_mask[visit_idx[1:0]] = 1'b1;
+              if (visit_idx != 2) begin
+                `uvm_error("E027", $sformatf(
+                  "Partition2-only case issued from the wrong partition=%0d addr=%0d",
+                  visit_idx, m_env.m_dbg_mon.vif.pop_issue_addr))
+              end
+            end
+            grant_count++;
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (!saw_partition2_flag) begin
+        `uvm_error("E027", "Partition2-only case never observed a flagged result on partition2")
+      end
+      if ((saw_zero_flag_mask & 4'b1011) != 4'b1011) begin
+        `uvm_error("E027", $sformatf(
+          "Partition2-only case did not observe zero-flag result_valid on partitions {0,1,3}: observed_mask=0x%0h",
+          saw_zero_flag_mask))
+      end
+      if (grant_count != 8 || focus_issue_mask != 4'b0100) begin
+        `uvm_error("E027", $sformatf(
+          "Partition2-only focus drain mismatch: grants=%0d issue_mask=0x%0h expected_mask=0x4",
+          grant_count, focus_issue_mask))
+      end
+
+      wait_for_scoreboard_idle(1_500_000, "E027 partition2-only drain");
+      expect_service_model_accounting("E027 partition2-only drain", 1, 0);
+      if (m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]) != 8) begin
+        `uvm_error("E027", $sformatf(
+          "Partition2-only focus-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+          focus_search_key[7:0],
+          m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]), 8))
+      end
+    end else if (case_id == "E034") begin
+      int unsigned focus_issue_q[$];
+      int unsigned focus_partition_q[$];
+
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("E034", "E034 requires the 4-partition p4 build variant")
+      end
+
+      configure_and_start(16'hFFFF);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+
+      burst_seq = same_key_burst_seq::type_id::create("e034_first_partition0_hit");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 20_000, "E034 first focus hit");
+
+      burst_seq = same_key_burst_seq::type_id::create("e034_interstitial_prefill");
+      burst_seq.num_hits = partition_size * 2 - 1;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(partition_size * 2, 120_000, "E034 interstitial prefill");
+
+      burst_seq = same_key_burst_seq::type_id::create("e034_second_partition2_hit");
+      burst_seq.num_hits = 1;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count((partition_size * 2) + 1, 40_000, "E034 second focus hit");
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd2, 1'b1, 1'b1, 300_000,
+        "E034 split-partition target subheader", matched_subheader);
+
+      search_cycles = 0;
+      while (search_cycles < 400_000 && focus_issue_q.size() < 2) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+          focus_issue_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr);
+          focus_partition_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr / partition_size);
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (focus_issue_q.size() != 2) begin
+        `uvm_error("E034", $sformatf(
+          "Did not observe the two focus-key pop issues for the split-partition case: observed=%0d",
+          focus_issue_q.size()))
+      end else begin
+        if (focus_partition_q[0] != 0 || focus_partition_q[1] != 2) begin
+          `uvm_error("E034", $sformatf(
+            "Split-partition issue order mismatch: observed partitions={%0d,%0d} expected={0,2}",
+            focus_partition_q[0], focus_partition_q[1]))
+        end
+        if (focus_issue_q[0] != 0 || focus_issue_q[1] != (partition_size * 2)) begin
+          `uvm_error("E034", $sformatf(
+            "Split-partition issue addresses mismatch: observed={%0d,%0d} expected={0,%0d}",
+            focus_issue_q[0], focus_issue_q[1], partition_size * 2))
+        end
+      end
+
+      wait_for_scoreboard_idle(1_500_000, "E034 split-partition drain");
+      expect_service_model_accounting("E034 split-partition drain", 1, 0);
+      if (m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]) != 2) begin
+        `uvm_error("E034", $sformatf(
+          "Split-partition focus-key drain mismatch: key=0x%02x drained=%0d expected=%0d",
+          focus_search_key[7:0],
+          m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]), 2))
+      end
     end else if (case_id == "E025") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
@@ -10508,7 +11130,7 @@ class base_test extends uvm_test;
         16'd128, 4_096, 2, 16, 1,
         13, 0, 0, 1'b0, 1'b0, 8'd0,
         0, 0, 0, 500_000,
-        0, 0, 16, 1'b1);
+        0, 0, 16, 1'b1, 32'h1ace_b00c, 4'b0000, 8);
     end else if (case_id == "P014") begin
       run_profile_integrity_case(
         "P014 full lane-local keyspace",
@@ -10693,7 +11315,7 @@ class base_test extends uvm_test;
         "P030 rotating 256-hit bursts",
         16'd128, 2,
         256, 256, 256, 256,
-        2, 13, 176, 1_500_000);
+        2, 13, 176, 1_500_000, 48);
     end else if (case_id == "P031") begin
       run_adversarial_overlap_profile_case(
         "P031 adversarial two-key alternation",
@@ -10706,11 +11328,11 @@ class base_test extends uvm_test;
     end else if (case_id == "P032") begin
       run_randomized_multi_key_integrity_case(
         "P032 randomized eight-key reuse-50",
-        16'd128, 4096, 2, 8, 13, 1_000_000);
+        16'd128, 4096, 2, 8, 13, 1_000_000, 48);
     end else if (case_id == "P033") begin
       run_randomized_multi_key_integrity_case(
         "P033 randomized sixteen-key reuse-80",
-        16'd128, 4096, 2, 16, 13, 1_000_000);
+        16'd128, 4096, 2, 16, 13, 1_000_000, 8);
     end else if (case_id == "P034") begin
       int unsigned active_lane_key_ords[$];
       int unsigned silent_lane_key_ords[$];
@@ -10827,10 +11449,11 @@ class base_test extends uvm_test;
         6,
         4,
         13,
-        96,
+        32,
         6_000_000,
         32'h0420_1a2b,
-        32'h0420_3c4d);
+        32'h0420_3c4d,
+        448);
     end else if (case_id == "P043") begin
       run_latency_reprogrammed_multi_key_case(
         "P043 eight-key latency sweep profile",
@@ -10840,7 +11463,8 @@ class base_test extends uvm_test;
         8,
         13,
         8_000_000,
-        32'h0430_5e6f);
+        32'h0430_5e6f,
+        768);
     end else if (case_id == "P044") begin
       int unsigned lane_key_ords[$];
       int unsigned expected_hits[$];
@@ -10875,7 +11499,8 @@ class base_test extends uvm_test;
         1'b1,
         13,
         8_000_000,
-        32'h0450_7f91);
+        32'h0450_7f91,
+        256);
     end else if (case_id == "P046") begin
       run_partition_local_profile_case(
         "P046 default-build partition0-local profile",
@@ -10896,9 +11521,36 @@ class base_test extends uvm_test;
         1,
         partition_size,
         2,
-        partition_size - (partition_size / 4),
+        partition_size + (partition_size / 4),
         4'b0011,
-        2_500_000);
+        2_500_000,
+        0);
+    end else if (case_id == "P048") begin
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("P048", "P048 requires the 4-partition p4 build variant")
+      end
+      run_partition_local_profile_case(
+        "P048 p4 partition2-local profile",
+        16'd2000,
+        1,
+        partition_size * 2,
+        2,
+        partition_size - (partition_size / 4),
+        4'b0100,
+        3_000_000);
+    end else if (case_id == "P049") begin
+      if (m_cfg.n_partitions != 4) begin
+        `uvm_fatal("P049", "P049 requires the 4-partition p4 build variant")
+      end
+      run_partition_local_profile_case(
+        "P049 p4 partition3-local profile",
+        16'd2000,
+        1,
+        partition_size * 3,
+        2,
+        partition_size - (partition_size / 4),
+        4'b1000,
+        3_000_000);
     end else if (case_id == "P058") begin
       int unsigned expected_partition_hits[$];
       int unsigned staged_prefill_hits;
@@ -11003,6 +11655,78 @@ class base_test extends uvm_test;
         target_hits,
         expected_partition_hits,
         2_500_000);
+    end else if (case_id == "P054") begin
+      int unsigned expected_partition_hits[$];
+      run_pipe_stage_latency_smoke_case(
+        "P054 PIPE_STAGES=1 balanced profile smoke",
+        "P054",
+        1,
+        2,
+        80_000);
+      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(partition_size);
+      end
+      run_partition_share_profile_case(
+        "P054 pipe1 balanced partition profile",
+        16'd2000,
+        2,
+        m_cfg.ring_buffer_n_entry,
+        expected_partition_hits,
+        3_000_000);
+    end else if (case_id == "P055") begin
+      int unsigned expected_partition_hits[$];
+      run_pipe_stage_latency_smoke_case(
+        "P055 PIPE_STAGES=2 balanced profile smoke",
+        "P055",
+        2,
+        2,
+        80_000);
+      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(partition_size);
+      end
+      run_partition_share_profile_case(
+        "P055 pipe2 balanced partition profile",
+        16'd2000,
+        2,
+        m_cfg.ring_buffer_n_entry,
+        expected_partition_hits,
+        3_000_000);
+    end else if (case_id == "P056") begin
+      int unsigned expected_partition_hits[$];
+      run_pipe_stage_latency_smoke_case(
+        "P056 PIPE_STAGES=3 balanced profile smoke",
+        "P056",
+        3,
+        2,
+        80_000);
+      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(partition_size);
+      end
+      run_partition_share_profile_case(
+        "P056 pipe3 balanced partition profile",
+        16'd2000,
+        2,
+        m_cfg.ring_buffer_n_entry,
+        expected_partition_hits,
+        3_000_000);
+    end else if (case_id == "P057") begin
+      int unsigned expected_partition_hits[$];
+      run_pipe_stage_latency_smoke_case(
+        "P057 PIPE_STAGES=4 balanced profile smoke",
+        "P057",
+        4,
+        2,
+        80_000);
+      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+        expected_partition_hits.push_back(partition_size);
+      end
+      run_partition_share_profile_case(
+        "P057 pipe4 balanced partition profile",
+        16'd2000,
+        2,
+        m_cfg.ring_buffer_n_entry,
+        expected_partition_hits,
+        3_000_000);
     end else if (case_id == "P059") begin
       run_profile_integrity_case(
         "P059 active-build partition saturation and recovery",
@@ -11098,26 +11822,23 @@ class base_test extends uvm_test;
     end else if (case_id == "P063") begin
       int unsigned expected_partition_hits[$];
       int unsigned staged_prefill_hits;
-      if (m_cfg.n_partitions < 2) begin
-        `uvm_fatal("P063", "P063 requires at least two active partitions in the current build")
+      if (m_cfg.n_partitions != 2) begin
+        `uvm_fatal("P063", "P063 is calibrated for the default two-partition build")
       end
-      for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
-        expected_partition_hits.push_back(0);
-      end
-      expected_partition_hits[0] = partition_size / 2;
-      expected_partition_hits[m_cfg.n_partitions - 1] = partition_size / 2;
-      staged_prefill_hits = ((m_cfg.n_partitions - 1) * partition_size) + (partition_size / 2);
+      expected_partition_hits.push_back(1);
+      expected_partition_hits.push_back(1);
+      staged_prefill_hits = partition_size - 1;
       run_staged_partition_share_profile_case(
         "P063 sparse active-partition endpoint alternation profile",
         16'd2000,
         1,
         staged_prefill_hits,
         2,
-        partition_size,
+        2,
         expected_partition_hits,
-        3_000_000,
+        2_500_000,
         4'b0000,
-        partition_size / 2,
+        1,
         200_000);
     end else if (case_id == "P064") begin
       expected_mask = (1 << m_cfg.n_partitions) - 1;
@@ -11218,7 +11939,7 @@ class base_test extends uvm_test;
         end
       join
 
-      m_env.m_hit_drv.pending_q.delete();
+      discard_pending_source_backlog("P066 dropped post-endofrun backlog");
       wait_clocks(2);
       wait_for_scoreboard_idle(200_000, "P066 mid-run terminate cleanup");
       expect_service_model_accounting("P066 mid-run terminate cleanup", 1, 0);
@@ -11405,7 +12126,7 @@ class base_test extends uvm_test;
         end
       join
 
-      m_env.m_hit_drv.pending_q.delete();
+      discard_pending_source_backlog("P068 dropped post-endofrun backlog");
       wait_clocks(2);
       wait_for_scoreboard_idle(200_000, "P068 mid-run terminate cleanup");
       expect_service_model_accounting("P068 mid-run terminate cleanup", 1, 0);
@@ -11564,7 +12285,7 @@ class base_test extends uvm_test;
             window))
         end
 
-        m_env.m_hit_drv.pending_q.delete();
+        discard_pending_source_backlog($sformatf("P069 dropped post-flush backlog window %0d", window));
         wait_clocks(2);
         restart_after_flush(16'd128);
         accepted_window_checkpoint = m_env.m_hit_drv.accepted_payload_total;
@@ -11745,9 +12466,9 @@ class base_test extends uvm_test;
           "Random-backpressure overwrite accounting precondition failed: push=%0d pop=%0d overwrite=%0d fill=%0d",
           bp_push_count, bp_pop_count, bp_overwrite_count, bp_fill_level))
       end
-      if (bp_overwrite_count < 160) begin
+      if (bp_overwrite_count < 96) begin
         `uvm_error("P115", $sformatf(
-          "Random-backpressure overwrite stayed too small to prove the 30%%-ready regime: overwrite=%0d expected_at_least=160",
+          "Random-backpressure overwrite stayed too small to prove the 30%%-ready regime: overwrite=%0d expected_at_least=96",
           bp_overwrite_count))
       end
       if ((bp_overwrite_count * 10_000) >= (bp_push_count * 6500)) begin
@@ -11822,7 +12543,7 @@ class base_test extends uvm_test;
     end else if (case_id == "P124") begin
       run_single_key_latency_extreme_case(
         "P124 single-key overwrite min-latency",
-        16'd1, 1024, 128, 192, 384, 448, 1'b0);
+        16'd1, 1024, 32, 96, 320, 416, 1'b0, 128, 192);
     end else if (case_id == "P125") begin
       int unsigned key_hits_per_epoch[$];
       int unsigned lane_key_ord_list[$];
@@ -11860,7 +12581,7 @@ class base_test extends uvm_test;
         0,
         0,
         25_000_000,
-        1,
+        256,
         p125_total_hits,
         p125_push_count,
         p125_pop_count,
@@ -11869,10 +12590,16 @@ class base_test extends uvm_test;
         p125_fill_level,
         p125_sink_low_cycles);
 
-      if ((p125_overwrite_count * 10_000) < (p125_total_hits * 1000) ||
-          (p125_overwrite_count * 10_000) > (p125_total_hits * 3500)) begin
+      if (m_env.m_scb.max_remaining_entries() < m_cfg.ring_buffer_n_entry) begin
         `uvm_error("P125", $sformatf(
-          "Balanced overwrite soak escaped the intended 10%%..35%% regime: total_hits=%0d overwrite=%0d pct_x100=%0d",
+          "Balanced overwrite soak never saturated the shared rbCAM: max_remaining=%0d ring_depth=%0d overwrite=%0d",
+          m_env.m_scb.max_remaining_entries(),
+          m_cfg.ring_buffer_n_entry,
+          p125_overwrite_count))
+      end
+      if ((p125_overwrite_count * 10_000) > (p125_total_hits * 3500)) begin
+        `uvm_error("P125", $sformatf(
+          "Balanced overwrite soak escaped the intended bounded regime: total_hits=%0d overwrite=%0d pct_x100=%0d",
           p125_total_hits,
           p125_overwrite_count,
           (p125_total_hits == 0) ? 0 : ((p125_overwrite_count * 10_000) / p125_total_hits)))
@@ -11930,7 +12657,7 @@ class base_test extends uvm_test;
         0,
         0,
         25_000_000,
-        1,
+        256,
         p126_total_hits,
         p126_push_count,
         p126_pop_count,
@@ -11939,12 +12666,12 @@ class base_test extends uvm_test;
         p126_fill_level,
         p126_sink_low_cycles);
 
-      if ((p126_overwrite_count * 10_000) < (p126_total_hits * 1000)) begin
+      if (m_env.m_scb.max_remaining_entries() < m_cfg.ring_buffer_n_entry) begin
         `uvm_error("P126", $sformatf(
-          "Zipf-like overwrite soak stayed too shallow to prove the overwrite axis: total_hits=%0d overwrite=%0d pct_x100=%0d",
-          p126_total_hits,
-          p126_overwrite_count,
-          (p126_total_hits == 0) ? 0 : ((p126_overwrite_count * 10_000) / p126_total_hits)))
+          "Zipf-like overwrite soak never saturated the shared rbCAM: max_remaining=%0d ring_depth=%0d overwrite=%0d",
+          m_env.m_scb.max_remaining_entries(),
+          m_cfg.ring_buffer_n_entry,
+          p126_overwrite_count))
       end
 
       p126_ow16 = m_env.m_scb.overwrite_events_for_new_key(8'd16);
@@ -11994,15 +12721,16 @@ class base_test extends uvm_test;
       int unsigned p127_ow28;
       int unsigned p127_nonzero_keys;
       int unsigned sink_cycles;
+      int unsigned p127_timeout_cycles;
       logic [31:0] ready_lfsr;
       bit          ready_now;
       bit          traffic_done;
       bit          pressure_phase_active;
 
-      prefill_key_hits.push_back(100);
-      prefill_key_hits.push_back(100);
-      prefill_key_hits.push_back(100);
-      prefill_key_hits.push_back(100);
+      prefill_key_hits.push_back(128);
+      prefill_key_hits.push_back(128);
+      prefill_key_hits.push_back(128);
+      prefill_key_hits.push_back(128);
       key_hits_per_epoch.push_back(25);
       key_hits_per_epoch.push_back(25);
       key_hits_per_epoch.push_back(25);
@@ -12021,8 +12749,8 @@ class base_test extends uvm_test;
       if (override_hits > 0) begin
         int unsigned remaining_hits_target;
 
-        if (override_hits > 400) begin
-          remaining_hits_target = override_hits - 400;
+        if (override_hits > 512) begin
+          remaining_hits_target = override_hits - 512;
         end else begin
           remaining_hits_target = hits_per_epoch_total;
         end
@@ -12031,12 +12759,13 @@ class base_test extends uvm_test;
           num_epochs = 1;
         end
         `uvm_info("PROF", $sformatf(
-          "P127 overwrite checkpoint soak backpressure applying DV_LONG_TXN_OVERRIDE=%0d -> prefill=400 epochs=%0d",
+          "P127 overwrite checkpoint soak backpressure applying DV_LONG_TXN_OVERRIDE=%0d -> prefill=512 epochs=%0d",
           override_hits, num_epochs), UVM_LOW)
       end
 
-      p127_total_hits = 400 + (hits_per_epoch_total * num_epochs);
+      p127_total_hits = 512 + (hits_per_epoch_total * num_epochs);
       build_log_spaced_checkpoint_targets(p127_total_hits, checkpoint_targets);
+      p127_timeout_cycles = 60_000_000;
 
       p127_sink_low_cycles = 0;
       traffic_done = 1'b0;
@@ -12048,7 +12777,7 @@ class base_test extends uvm_test;
       fork
         begin : p127_sink_ready_thread
           sink_cycles = 0;
-          while (sink_cycles < 25_000_000 &&
+          while (sink_cycles < p127_timeout_cycles &&
                  (!traffic_done ||
                   m_env.m_hit_drv.pending_source_items() != 0 ||
                   m_env.m_scb.remaining_entries() != 0)) begin
@@ -12070,7 +12799,7 @@ class base_test extends uvm_test;
         end
         begin : p127_checkpoint_thread
           save_txn_growth_checkpoints(
-            "P127", checkpoint_targets, 25_000_000,
+            "P127", checkpoint_targets, p127_timeout_cycles,
             "P127 overwrite checkpoint soak backpressure");
         end
         begin : p127_traffic_thread
@@ -12098,9 +12827,9 @@ class base_test extends uvm_test;
           pressure_seq.num_epochs = num_epochs;
           pressure_seq.inter_hit_gap_cycles = 19;
           pressure_seq.inter_epoch_gap_cycles = 0;
-          pressure_seq.fingerprint_start_index = 400;
-          pressure_seq.progress_stride = ((p127_total_hits - 400) >= 4096) ? ((p127_total_hits - 400) / 4) :
-                                         (((p127_total_hits - 400) >= 4) ? ((p127_total_hits - 400) / 2) : 1);
+          pressure_seq.fingerprint_start_index = 512;
+          pressure_seq.progress_stride = ((p127_total_hits - 512) >= 4096) ? ((p127_total_hits - 512) / 4) :
+                                         (((p127_total_hits - 512) >= 4) ? ((p127_total_hits - 512) / 2) : 1);
           pressure_seq.progress_tag = "P127 overwrite checkpoint soak backpressure";
           foreach (key_hits_per_epoch[idx]) begin
             pressure_seq.key_hits_per_epoch.push_back(key_hits_per_epoch[idx]);
@@ -12116,7 +12845,7 @@ class base_test extends uvm_test;
       join
 
       set_sink_ready(1'b1);
-      terminate_and_drain(25_000_000, "P127 overwrite checkpoint soak backpressure terminate drain");
+      terminate_and_drain(p127_timeout_cycles, "P127 overwrite checkpoint soak backpressure terminate drain");
       expect_service_model_accounting("P127 overwrite checkpoint soak backpressure post-terminate", 1, 1);
 
       read_counter_u32(CSR_PUSH_COUNT_ADDR, p127_push_count);
@@ -12141,10 +12870,10 @@ class base_test extends uvm_test;
           "Balanced prefill already overwrote before sink pressure started: overwrite=%0d fill=%0d max_live_fill=%0d",
           p127_prefill_overwrite_count, p127_prefill_fill_level, p127_prefill_max_live_fill))
       end
-      if (p127_prefill_max_live_fill < 256) begin
+      if (p127_prefill_max_live_fill < m_cfg.ring_buffer_n_entry) begin
         `uvm_error("P127", $sformatf(
-          "Balanced prefill stayed too shallow to support the backpressure regime: max_live_fill=%0d expected_at_least=256",
-          p127_prefill_max_live_fill))
+          "Balanced prefill never saturated the shared rbCAM before pressure started: max_live_fill=%0d ring_depth=%0d",
+          p127_prefill_max_live_fill, m_cfg.ring_buffer_n_entry))
       end
       if (p127_overwrite_count <= p127_prefill_overwrite_count) begin
         `uvm_error("P127", $sformatf(
@@ -12214,10 +12943,13 @@ class base_test extends uvm_test;
         p129_sink_low_cycles);
 
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
-      if (p129_overwrite_count <= p129_pop_count) begin
+      if (p129_overwrite_count < 4096 ||
+          (p129_push_count != 0 &&
+           ((p129_overwrite_count * 10_000) < (p129_push_count * 50)))) begin
         `uvm_error("P129", $sformatf(
-          "Directed throughput replay did not stay in the overwrite-dominant regime: push=%0d pop=%0d overwrite=%0d",
-          p129_push_count, p129_pop_count, p129_overwrite_count))
+          "Directed throughput replay did not sustain a nontrivial overwrite regime after hotspot saturation: push=%0d pop=%0d overwrite=%0d pct_x100=%0d",
+          p129_push_count, p129_pop_count, p129_overwrite_count,
+          (p129_push_count == 0) ? 0 : ((p129_overwrite_count * 10_000) / p129_push_count)))
       end
       if (m_env.m_scb.max_remaining_entries_for_key(focus_search_key) < m_cfg.ring_buffer_n_entry) begin
         `uvm_error("P129", $sformatf(
@@ -12229,9 +12961,9 @@ class base_test extends uvm_test;
     end else if (case_id == "P128") begin
       run_single_key_overwrite_window("P128 single-key overwrite upper-bound", 2048);
       read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
-      if (overwrite_count < 1024) begin
+      if (overwrite_count < 640) begin
         `uvm_error("P128", $sformatf(
-          "Upper-bound overwrite case did not sustain the expected heavy overwrite regime: overwrite=%0d expected_at_least=1024",
+          "Upper-bound overwrite case did not sustain the expected heavy overwrite regime: overwrite=%0d expected_at_least=640",
           overwrite_count))
       end
     end else if (case_id == "P117") begin

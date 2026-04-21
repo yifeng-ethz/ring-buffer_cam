@@ -22,6 +22,7 @@ PUB_COV = TB / "uvm" / "cov_after"
 REPORT_ROOT = TB / "REPORT"
 REPORT_JSON = TB / "DV_REPORT.json"
 SKILL_REPORT_GEN = Path.home() / ".codex" / "skills" / "dv-workflow" / "scripts" / "dv_report_gen.py"
+RTL_DOC_STYLE_LINTER = Path.home() / ".codex" / "skills" / "rtl-doc-style" / "scripts" / "rtl_doc_style_check.py"
 
 RTL_VARIANT = "default_p2_pipe4"
 SEED = 1
@@ -29,7 +30,8 @@ PLACEHOLDER_LOG_MARKER = "has no live log artifact."
 PLACEHOLDER_UCDB_MARKER = "has no standalone UCDB artifact yet."
 
 VCOVER_CANDIDATES = [
-    Path("/data1/intelFPGA_pro/23.1/questa_fse/bin/vcover"),
+    Path("/data1/questaone_sim/questasim/bin/vcover"),
+    Path("/data1/questaone_sim/questasim/linux_x86_64/vcover"),
 ]
 VCOVER_BIN = next((path for path in VCOVER_CANDIDATES if path.exists()), None)
 if VCOVER_BIN is None:
@@ -73,6 +75,21 @@ def normalize_alias(cell: str) -> str | None:
     return None
 
 
+def derive_build_tag(implementation: str, case_id: str) -> str:
+    text = implementation.lower()
+    if "p4_n4_pipe4" in text or "p4 variant" in text:
+        return "p4_n4_pipe4"
+    if "p2_pipe1" in text or "pipe_stages=1" in text:
+        return "p2_pipe1"
+    if "p2_pipe2" in text or "pipe_stages=2" in text:
+        return "p2_pipe2"
+    if "p2_pipe3" in text or "pipe_stages=3" in text:
+        return "p2_pipe3"
+    if "default_p2_pipe4" in text or "pipe_stages=4" in text:
+        return "default_p2_pipe4"
+    return RTL_VARIANT
+
+
 def parse_markdown_table(path: Path) -> list[list[str]]:
     rows: list[list[str]] = []
     for raw in path.read_text(encoding="utf-8").splitlines():
@@ -114,7 +131,7 @@ def parse_bucket_cases(bucket: str, path: Path) -> list[dict]:
                 "primary_checks": primary_checks,
                 "contract_anchor": "",
                 "seed": SEED,
-                "build_tag": RTL_VARIANT,
+                "build_tag": derive_build_tag(implementation, case_id),
                 "isolated_effort": "smoke",
                 "standalone_coverage": {},
                 "isolated_cov_per_txn": {},
@@ -447,15 +464,16 @@ def materialize_artifact(target: Path, src: Path) -> None:
 def case_log_candidates(case_data: dict) -> list[Path]:
     case_id = case_data["case_id"]
     alias = case_data.get("alias")
+    build_tag = case_data.get("build_tag", RTL_VARIANT)
     candidates = [
         WORK_LOGS / f"test_case_engine_{case_id}_s{SEED}.log",
-        PUB_LOGS / f"{case_id}_{RTL_VARIANT}_s{SEED}.log",
+        PUB_LOGS / f"{case_id}_{build_tag}_s{SEED}.log",
     ]
     if alias:
         candidates.extend(
             [
                 WORK_LOGS / f"{alias}_s{SEED}.log",
-                PUB_LOGS / f"{alias}_{RTL_VARIANT}_s{SEED}.log",
+                PUB_LOGS / f"{alias}_{build_tag}_s{SEED}.log",
             ]
         )
     return unique_paths(candidates)
@@ -463,9 +481,10 @@ def case_log_candidates(case_data: dict) -> list[Path]:
 
 def case_ucdb_candidates(case_data: dict) -> list[Path]:
     case_id = case_data["case_id"]
+    build_tag = case_data.get("build_tag", RTL_VARIANT)
     return unique_paths(
         [
-            TB / "uvm" / f"cov_{RTL_VARIANT}" / f"{case_id}_s{SEED}.ucdb",
+            TB / "uvm" / f"cov_{build_tag}" / f"{case_id}_s{SEED}.ucdb",
             PUB_COV / f"{case_id}_s{SEED}.ucdb",
         ]
     )
@@ -513,8 +532,14 @@ def cross_ucdb_candidates(run_data: dict) -> list[Path]:
     )
 
 
-def publish_log_artifact(name: str, src: Path | None, scenario: str, implemented: bool) -> None:
-    target = PUB_LOGS / f"{name}_{RTL_VARIANT}_s{SEED}.log"
+def publish_log_artifact(
+    name: str,
+    src: Path | None,
+    scenario: str,
+    implemented: bool,
+    build_tag: str,
+) -> None:
+    target = PUB_LOGS / f"{name}_{build_tag}_s{SEED}.log"
     if src and src.is_file():
         materialize_artifact(target, src)
         return
@@ -614,7 +639,13 @@ def build_case(case_data: dict) -> dict:
         if txn_growth_curve:
             entry["txn_growth_curve"] = txn_growth_curve
 
-    publish_log_artifact(entry["case_id"], chosen_log, entry["scenario"], implemented)
+    publish_log_artifact(
+        entry["case_id"],
+        chosen_log,
+        entry["scenario"],
+        implemented,
+        entry.get("build_tag", RTL_VARIANT),
+    )
     publish_cov_artifact(entry["case_id"], chosen_ucdb)
     entry["_ucdb_src"] = chosen_ucdb
     entry["_standalone_metrics"] = standalone_metrics or {}
@@ -893,6 +924,11 @@ def main() -> int:
         return 0
 
     subprocess.run(["python3", str(SKILL_REPORT_GEN), "--tb", str(TB)], check=True)
+    if RTL_DOC_STYLE_LINTER.exists():
+        subprocess.run(
+            ["python3", str(RTL_DOC_STYLE_LINTER), str(TB), "--quiet", "--generator-only"],
+            check=True,
+        )
     return 0
 
 

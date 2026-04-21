@@ -1,8 +1,12 @@
-# DV Coverage Summary — ring_buffer_cam
+# DV Coverage Summary — `ring_buffer_cam`
 
 This page is the coverage summary only. Per-case incremental coverage lives under
 [`REPORT/cases/`](REPORT/cases/); per-bucket ordered-merge traces live under
 [`REPORT/buckets/`](REPORT/buckets/).
+
+## Legend
+
+✅ pass / closed &middot; ⚠️ partial / below target &middot; ❌ failed / missing evidence &middot; ❓ pending &middot; ℹ️ informational
 
 ## Targets vs merged totals
 
@@ -10,22 +14,22 @@ This page is the coverage summary only. Per-case incremental coverage lives unde
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 97.35 | 95.0 |
-| ✅ | branch | 90.97 | 90.0 |
-| ℹ️ | cond | 76.73 | - |
+| ✅ | stmt | 97.17 | 95.0 |
+| ✅ | branch | 90.63 | 90.0 |
+| ℹ️ | cond | 75.68 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 80.00 | 90.0 |
-| ⚠️ | toggle | 72.53 | 80.0 |
+| ✅ | toggle | 86.67 | 80.0 |
 
 ## Per-bucket merged totals
 
 | status | bucket | stmt | branch | cond | expr | fsm_state | fsm_trans | toggle |
 |:---:|---|---|---|---|---|---|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 97.30 | 89.66 | 75.47 | 40.00 | 100.00 | 73.33 | 70.74 |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 92.49 | 83.42 | 69.81 | 40.00 | 100.00 | 66.67 | 65.77 |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 92.68 | 84.24 | 71.70 | 40.00 | 100.00 | 66.67 | 68.29 |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 96.77 | 88.83 | 74.84 | 40.00 | 100.00 | 80.00 | 66.48 |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 99.09 | 93.76 | 81.76 | 40.00 | 100.00 | 73.33 | 70.74 |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 91.43 | 81.12 | 64.32 | 40.00 | 100.00 | 66.67 | 82.96 |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 93.13 | 85.14 | 71.35 | 40.00 | 100.00 | 66.67 | 81.60 |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 96.77 | 88.83 | 74.84 | 40.00 | 100.00 | 80.00 | 67.00 |
 
 ## Continuous-frame baselines by build
 
