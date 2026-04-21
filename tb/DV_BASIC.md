@@ -20,7 +20,7 @@
 | case_id | method | implementation | legacy alias | scenario | primary checks |
 |---|---|---|---|---|---|
 | B009 | D | live UVM | none | CSR[0] UID readback returns literal IP_UID generic (1380074317) on every read regardless of prior run-control activity | UID CSR word 0 equals IP_UID generic across reset, RUNNING, TERMINATING reads; catches accidental writability or mux swap with META |
-| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,2,3,421) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
+| B010 | D | live UVM | none | CSR[1] META with `meta_sel=00` (VERSION) returns pack_version_func(26,2,4,421) bit layout | META word 1 reads `{major[31:24], minor[23:16], patch[15:12], build[11:0]}`; catches bit-field packing regression |
 | B011 | D | live UVM | none | CSR[1] META with `meta_sel=01` (DATE) returns VERSION_DATE generic (20260421) | META word 1 reads the 32-bit date integer; catches a stale META mux leftover after meta_sel write |
 | B012 | D | live UVM | none | CSR[1] META with `meta_sel=10` (GIT) returns VERSION_GIT generic | META reads git hash constant; catches mis-decoded 2-bit selector |
 | B013 | D | live UVM | none | CSR[1] META with `meta_sel=11` (INSTANCE) returns INSTANCE_ID generic | META reads instance id constant; catches default-branch fallthrough when other selectors are live |

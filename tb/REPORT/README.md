@@ -161,7 +161,7 @@
 - evidenced_cases = `342`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=97.35, branch=90.97, cond=76.73, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=72.53`
-- functional coverage: `60.47% (312/516)`
+- functional coverage: `60.85% (314/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

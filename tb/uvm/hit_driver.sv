@@ -54,6 +54,10 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     return pending_q.size();
   endfunction
 
+  function bit head_pending_item_is_empty_marker();
+    return (pending_q.size() > 0) && pending_q[0].is_empty_marker;
+  endfunction
+
   function void reset_stats();
     pending_q.delete();
     manual_override = 1'b0;

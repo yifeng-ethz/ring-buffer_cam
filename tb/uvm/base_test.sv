@@ -610,13 +610,19 @@ class base_test extends uvm_test;
     string what = "scoreboard drain"
   );
     int unsigned cycles;
+    bit          lone_pending_eor_marker;
     cycles = 0;
     while (cycles < max_cycles) begin
+      lone_pending_eor_marker =
+          (m_env.m_hit_drv.pending_source_items() == 1) &&
+          m_env.m_hit_drv.head_pending_item_is_empty_marker() &&
+          (m_env.m_dbg_mon.vif.endofrun_seen === 1'b1) &&
+          (m_env.m_dbg_mon.terminating_drain_done === 1'b1);
       if (m_env.m_scb.remaining_entries() == 0 &&
           m_env.m_scb.pending_drain_entries() == 0 &&
           m_env.m_scb.epoch_idle() &&
           m_env.m_scb.total_written == m_env.m_scb.total_ingress_accepted &&
-          m_env.m_hit_drv.pending_source_items() == 0 &&
+          (m_env.m_hit_drv.pending_source_items() == 0 || lone_pending_eor_marker) &&
           m_env.m_dbg_mon.vif.deassembly_fifo_empty === 1'b1 &&
           m_env.m_dbg_mon.vif.pop_cmd_fifo_empty === 1'b1) begin
         return;
@@ -625,12 +631,15 @@ class base_test extends uvm_test;
       cycles++;
     end
     `uvm_info("TIMEOUT", $sformatf(
-      "%s debug: remaining=%0d pending_drain=%0d max_remaining=%0d source_backlog=%0d source_backlog_max=%0d source_offered=%0d source_accepted=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
+      "%s debug: remaining=%0d pending_drain=%0d max_remaining=%0d source_backlog=%0d source_head_empty_marker=%0d source_markers_offered=%0d source_markers_accepted=%0d source_backlog_max=%0d source_offered=%0d source_accepted=%0d live_fill=%0d max_live_fill=%0d push=%0d pop=%0d overwrite=%0d term_done=%0d endofrun_seen=%0d pop_cmd_empty=%0d pop_cmd_usedw=%0d deassm_empty=%0d deassm_full=%0d deassm_usedw=%0d first_push_cycle=%0d first_pop_cycle=%0d first_overwrite_cycle=%0d",
       what,
       m_env.m_scb.remaining_entries(),
       m_env.m_scb.pending_drain_entries(),
       m_env.m_scb.max_remaining_entries(),
       m_env.m_hit_drv.pending_source_items(),
+      m_env.m_hit_drv.head_pending_item_is_empty_marker(),
+      m_env.m_hit_drv.offered_marker_total,
+      m_env.m_hit_drv.accepted_marker_total,
       m_env.m_hit_drv.max_source_backlog,
       m_env.m_hit_drv.offered_payload_total,
       m_env.m_hit_drv.accepted_payload_total,
@@ -6062,7 +6071,7 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd2;
-    version_word[15:12] = 4'd3;
+    version_word[15:12] = 4'd4;
     version_word[11:0]  = 12'd421;
     return version_word;
   endfunction

@@ -62,15 +62,16 @@ Ordered so every step reuses artifacts from earlier steps:
   - `P119` passes with `push=768 pop=512 overwrite=256 remaining=0`.
   - `B005` baseline still passes with `push=128 pop=128 remaining=0`.
 - Validation note on `2026-04-21`: after rerunning all `342` implemented isolated
-  cases on the supported QuestaOne 2026 flow and regenerating
-  `scripts/generate_dv_report.py`, the generated dashboard now records `30`
-  failing isolated cases in the current evidence set (`B040`, `B071`, `B092`,
-  `B129`, `E017`, `P013`, `P030`, `P032`, `P033`, `P042`, `P043`, `P045`,
-  `P047`, `P063`, `P115`, `P124-P129`, `X019`, `X032`, `X034`, `X045`,
-  `X046`, `X054-X056`, `X081`). The broad nightly rerun is therefore not a
-  clean signoff pass yet.
+  cases on the supported QuestaOne 2026 flow, fixing the `B040` terminate-ready RTL
+  contract bug plus the `B071` lone-marker cleanup bug, rerunning
+  `B010` / `B040` / `B071` / `B113` / `B114` / `B132`, and regenerating
+  `scripts/generate_dv_report.py`, the generated dashboard now records `28`
+  failing isolated cases in the current evidence set (`B092`, `B129`, `E017`,
+  `P013`, `P030`, `P032`, `P033`, `P042`, `P043`, `P045`, `P047`, `P063`,
+  `P115`, `P124-P129`, `X019`, `X032`, `X034`, `X045`, `X046`, `X054-X056`,
+  `X081`). The broad nightly rerun is therefore not a clean signoff pass yet.
 - The next closure gap is now both breadth and the active failing set: `174`
   planned cases are still unimplemented, the current passing functional
-  coverage is `60.47% (312/516)`, and every continuous-frame `CROSS-*` run
+  coverage is `60.85% (314/516)`, and every continuous-frame `CROSS-*` run
   remains open. The generated dashboard surfaces that explicitly.
 - See [`DV_REPORT.md`](DV_REPORT.md) for the current per-bucket evidence snapshot and [`BUG_HISTORY.md`](BUG_HISTORY.md) for the open ledger.

@@ -4,7 +4,7 @@
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
 **Evidence basis:** `1736898`
 
-This file is the detailed standalone synthesis and timing report for the active `ring_buffer_cam` bug-fix release. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+This file is the detailed standalone synthesis and timing report for the last standalone Quartus rerun of `ring_buffer_cam`. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
@@ -12,6 +12,7 @@ This file is the detailed standalone synthesis and timing report for the active 
 - use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
+- note that the later `26.2.4.0421` terminate-control patch bump has not yet been rerun through this standalone Quartus flow
 
 ## Pre-Fit Model
 
@@ -36,7 +37,7 @@ The standalone project already compiled the live wrapper cleanly; this refresh r
 2. the earlier RTL closure for the SEARCH-window and non-power-of-two live-pointer hazards remains in place, including `BUG-057-R` and `BUG-058-R`.
 3. the earlier overwrite-address repair `BUG-059-R` remains in place: wrap-overwrite `push_erase` still decrements modulo `RING_BUFFER_N_ENTRY` instead of erasing outside the live CAM span after `write_pointer` wraps.
 4. the new `2026-04-21` closure adds `BUG-060-R`: `push_erase` now consumes a slot captured during `push_write` instead of recomputing `write_pointer-1` in the live arbiter / CAM control cone.
-5. delivered metadata defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.3.0421` / `20260421` with `BUILD=421` and `PATCH=3`.
+5. this standalone compile itself still reflects the earlier `26.2.3.0421` metadata-aligned image; the active packaging defaults have since moved to `26.2.4.0421` / `20260421` with `BUILD=421` and `PATCH=4`, but that patch bump has not yet been rerun through Quartus in this report.
 6. the DV refresh paired with this compile includes `B134(n768)`, `P111`, and the release-metadata smoke `B010`, so the synthesis report is tied to the same delivered image described in the active DV dashboard.
 
 ## Timing Summary

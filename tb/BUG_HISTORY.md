@@ -1048,3 +1048,47 @@ Normalization note:
   - this was a timing-only RTL blocker; the intended overwrite behavior stayed the same
   - verified by the clean standalone `ring_buffer_cam_syn_p4` rerun, the directed `B134` `N=768` rerun, the same-key overwrite stress `P111`, and the post-bump metadata smoke `B010`
 - Commit: 1736898
+
+### BUG-061-R: `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract
+- Severity: `hard stuck error`
+- Encounter sim-time: `n/a (directed-only terminate-ack guard repro; the failing B040 log was superseded by the verification rerun after the patch landed)`
+- First seen in: `B040` on 2026-04-21 while reopening the live failing BASIC terminate-control slice after the full implemented isolated rerun
+- Symptom:
+  - the DUT could enter `TERMINATING` from an otherwise quiescent state and raise `asi_ctrl_ready` before any lane-local end-of-run marker had been observed
+  - that violated the documented run-control contract and allowed software to see an apparent terminate ack before `endofrun_seen`, FIFO drain, and `push=pop+overwrite` had all converged
+- Root cause:
+  - `proc_run_control_mgmt` drove `asi_ctrl_ready` in `TERMINATING` from `terminating_drain_done OR terminating_entry_quiescent`
+  - the `terminating_entry_quiescent` bypass ignored the required `endofrun_seen` conjunct, so an empty entry into `TERMINATING` could acknowledge immediately even though the true drain-done condition had not yet been met
+- Fix status:
+  - `state`: fixed and verified in the directed terminate-control reruns on `dev`
+  - `mechanism`: remove the `terminating_entry_quiescent` shortcut and gate `TERMINATING` host acknowledgement only on `terminating_drain_done`
+  - `before_fix_outcome`: `B040` observed `asi_ctrl_ready=1` a few cycles after `TERMINATING` entry while the testcase was still deliberately withholding the lane-local end-of-run marker
+  - `after_fix_outcome`: `B040` now passes cleanly, and the neighboring terminate guards `B113`, `B114`, and `B132` remain green on the same `default_p2_pipe4` rerun batch
+  - `potential_hazard`: low to moderate; any future refactor of the `TERMINATING` handshake still has to preserve the rule that host acknowledgement is downstream of the full `endofrun_seen & fifo-empty & pop-idle & push=pop+overwrite` drain contract
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - this is a control-path RTL bug rather than a payload-corruption datapath bug, but it directly affects the run-control sequencing contract used by the directed BASIC terminate cases
+  - verified by clean reruns of `B040`, `B113`, `B114`, and `B132`
+- Commit: pending
+
+### BUG-062-H: The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane
+- Severity: `non-datapath-refactor`
+- Encounter sim-time: `3493980 ns (seed-1 B071 terminate-condition audit before the lone-marker cleanup exception was added)`
+- First seen in: `B071` on 2026-04-21 immediately after `BUG-061-R` was fixed and the terminate-condition audit was rerun against the updated RTL
+- Symptom:
+  - `B071` timed out in its final cleanup wait even though every real drain condition was already satisfied: `remaining=0`, `pending_drain=0`, `accepted=written=1024`, `deassm_empty=1`, `pop_cmd_empty=1`, and `terminating_drain_done=1`
+  - the only remaining blocker was `source_backlog=1`, which made the generic idle helper report a failure even though there was no live payload left in the DUT or scoreboard
+- Root cause:
+  - the source driver can still hold one queued empty end-of-run marker after the DUT has already latched `endofrun_seen`, because the RTL samples the marker from `valid/endofpacket` even if ingress `ready` is already low in `TERMINATING`
+  - `wait_for_scoreboard_idle()` required `pending_source_items()==0` unconditionally, so it treated that lone queued marker the same as real unaccepted payload backlog
+- Fix status:
+  - `state`: fixed and verified in the terminate cleanup reruns on `dev`
+  - `mechanism`: add a `hit_driver` helper that identifies a head pending empty marker and let `wait_for_scoreboard_idle()` ignore exactly one such marker once `endofrun_seen=1` and `terminating_drain_done=1`
+  - `before_fix_outcome`: seed-1 `B071` timed out after 300000 cycles with `source_backlog=1` while all scoreboard and internal drain counters had already converged
+  - `after_fix_outcome`: `B071` now passes cleanly, and the same rerun cluster keeps `B040`, `B113`, `B114`, and `B132` green, showing the cleanup relaxation did not mask real payload backlog
+  - `potential_hazard`: low; the helper still blocks on any payload backlog, multiple queued markers, or lone markers before the DUT has actually latched `endofrun_seen` and reached `terminating_drain_done`
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - this is a harness/accounting closure fix with no datapath behavior change
+  - verified by clean reruns of `B071`, `B040`, `B113`, `B114`, and `B132`
+- Commit: pending

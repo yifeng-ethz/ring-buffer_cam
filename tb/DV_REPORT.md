@@ -13,7 +13,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | field | value |
 |:---:|---|---|
-| ❌ | failed_cases | `30` |
+| ❌ | failed_cases | `28` |
 | ✅ | signoff_runs_with_failures | `0` |
 | ⚠️ | unimplemented_cases | `174` |
 | ✅ | stale_artifacts | `0` |
@@ -24,14 +24,14 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ⚠️ | `BUG-062-H` | Harness | `2026-04-21` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane | `pending` |
+| ⚠️ | `BUG-061-R` | RTL | `2026-04-21` | `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract | `pending` |
 | ✅ | `BUG-060-R` | RTL | `2026-04-21` | `push_erase` recomputed the just-written slot inside the remaining standalone timing-critical CAM erase cone | `1736898` |
 | ✅ | `BUG-059-R` | RTL | `2026-04-21` | Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds | `dab30da` |
 | ✅ | `BUG-058-R` | RTL | `2026-04-21` | Non-power-of-two ring depths let the live write pointer escape the configured ring span | `acb9230` |
 | ✅ | `BUG-057-R` | RTL | `2026-04-21` | Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width | `acb9230` |
 | ✅ | `BUG-056-R` | RTL | `2026-04-21` | Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer | `07c0dae` |
 | ✅ | `BUG-055-R` | RTL | `2026-04-21` | Cross-key `push_write` could still perturb the SEARCH match fabric before the pop snapshot was frozen | `07c0dae` |
-| ✅ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `00fc1b8` |
-| ✅ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `00fc1b8` |
 
 ## Formal / contract cases
 
@@ -43,11 +43,11 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
-| ❌ | `BASIC` | 129 | 125 | 96.90% | 13765 | 4 | 5 | 0 |
+| ❌ | `BASIC` | 129 | 125 | 96.90% | 13765 | 2 | 3 | 0 |
 | ❌ | `EDGE` | 129 | 30 | 23.26% | 25560 | 1 | 1 | 0 |
 | ❌ | `PROF` | 129 | 81 | 62.79% | 557365 | 16 | 59 | 0 |
 | ❌ | `ERROR` | 129 | 106 | 82.17% | 2067 | 9 | 13 | 0 |
-| ❌ | `TOTAL` | 516 | 342 | 66.28% | 598757 | 30 | 78 | 0 |
+| ❌ | `TOTAL` | 516 | 342 | 66.28% | 598757 | 28 | 76 | 0 |
 
 ## Bucket summary
 
@@ -55,7 +55,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=97.30, branch=89.66, cond=75.47, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 | 93.8% (121/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 125 | stmt=97.30, branch=89.66, cond=75.47, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 | 95.35% (123/129) |
 | ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 30 | stmt=92.49, branch=83.42, cond=69.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=65.77 | 22.48% (29/129) |
 | ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 81 | stmt=92.68, branch=84.24, cond=71.70, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.29 | 50.39% (65/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 106 | stmt=96.77, branch=88.83, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=66.48 | 75.19% (97/129) |
@@ -72,7 +72,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ⚠️ | fsm_trans | 80.00 | 90.0 |
 | ⚠️ | toggle | 72.53 | 80.0 |
 
-- functional coverage: `60.47% (312/516)`
+- functional coverage: `60.85% (314/516)`
 
 ## Cross / continuous-frame signoff
 

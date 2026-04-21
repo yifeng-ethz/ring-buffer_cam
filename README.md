@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.2.3.0421
+**Version:** 26.2.4.0421
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,15 +96,15 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.2.3.0421` carries forward the verified SEARCH-window overlap repairs, preserves
+Version `26.2.4.0421` carries forward the verified SEARCH-window overlap repairs, preserves
 the low-stage encoder and non-power-of-two ring-depth fixes from the earlier `26.2.2`
-checkpoint, and now carries the overwrite erase slot from `push_write` so the standalone
-`P4` build closes the tightened `137.5 MHz` signoff clock without changing overwrite
-semantics. This nightly checkpoint refreshes the directed/adversarial evidence through
-`B134(n768)`, `P111`, and the release-metadata smoke `B010`, and it also reruns the full
-implemented isolated DV set on the supported QuestaOne 2026 flow. The live dashboard now
-records `342/516` implemented cases exercised, `30` active failing isolated cases,
-`174` still-unimplemented cases, and `60.47% (312/516)` passing functional coverage.
+checkpoint, keeps the overwrite erase-slot carry that closed the standalone `P4`
+`137.5 MHz` signoff clock, and now adds the terminate-control handshake repair plus the
+lone pending end-of-run marker cleanup used by the live BASIC terminate guards. This
+checkpoint reruns the release-metadata smoke `B010` and the terminate cluster
+`B040` / `B071` / `B113` / `B114` / `B132` on the supported QuestaOne 2026 flow. The live
+dashboard now records `342/516` implemented cases exercised, `28` active failing isolated
+cases, `174` still-unimplemented cases, and `60.85% (314/516)` passing functional coverage.
 The authoritative dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
 and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 

@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
-**Release under check:** `26.2.3.0421` &nbsp; **Evidence basis:** `1736898`
+**Release under check:** `26.2.4.0421` &nbsp; **Evidence basis:** `pending current bug-fix batch`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ✅ | standalone_syn_p4_512 | `2026-04-21 rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target: slow-85C WNS=+0.080 ns, slow-0C WNS=+0.347 ns, worst reported hold=+0.149 ns` |
-| ❌ | dv_closure | `342/516` implemented isolated cases exercised, `30` currently failing |
+| ⚠️ | standalone_syn_p4_512 | `the last standalone Quartus rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target (slow-85C WNS=+0.080 ns, slow-0C WNS=+0.347 ns, worst reported hold=+0.149 ns), but that compile has not yet been rerun after the current 26.2.4.0421 terminate-control patch bump` |
+| ❌ | dv_closure | `342/516` implemented isolated cases exercised, `28` currently failing |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,9 +24,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ❌ | isolated DV closure | `60.47% (312/516)` passing functional proxy, `30` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ❌ | isolated DV closure | `60.85% (314/516)` passing functional proxy, `28` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ⚠️ | bucket / continuous-frame signoff | `174` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | implemented isolated matrix | current supported-QuestaOne isolated refresh executes `342` implemented cases and regenerates the dashboard from that evidence, but `30` cases still fail | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
+| ⚠️ | implemented isolated matrix | current supported-QuestaOne isolated refresh executes `342` implemented cases and regenerates the dashboard from that evidence, but `28` cases still fail | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
 ## Synthesis
@@ -58,8 +58,10 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-056-R` prevents settled-SEARCH tail overlap from clobbering any slot already captured in the frozen snapshot at the live write pointer |
 | ✅ | RTL | `BUG-057-R`, `BUG-058-R`, and `BUG-059-R` remain in scope: low-stage encoder builds no longer index `pipe_valid` out of range, the live write pointer now wraps modulo `RING_BUFFER_N_ENTRY`, and wrap-overwrite `push_erase` now erases the previous live slot instead of falling outside the configured ring span |
 | ✅ | RTL | `BUG-060-R` carries the overwrite erase slot from `push_write`, removing the last negative-slack path family on the standalone `P4` CAM erase/write-enable cone without changing overwrite semantics |
-| ✅ | DV | refreshed evidence keeps `B134(n768)` green, adds the same-key overwrite rerun `P111`, rechecks the release-metadata smoke `B010`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
-| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.3.0421` / `20260421` with `BUILD=421` and `PATCH=3` |
+| ✅ | RTL | `BUG-061-R` removes the premature `TERMINATING` host-ack shortcut, so `asi_ctrl_ready` now waits for the full lane-local drain-done contract instead of acknowledging from an entry-quiescent bypass |
+| ✅ | Harness | `BUG-062-H` lets the generic idle helper ignore exactly one queued empty end-of-run marker once `endofrun_seen` and `terminating_drain_done` are already high, so terminate cleanup no longer misclassifies that marker as live payload backlog |
+| ✅ | DV | refreshed evidence keeps `B010`, `B040`, `B071`, `B113`, `B114`, and `B132` green and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.4.0421` / `20260421` with `BUILD=421` and `PATCH=4` |
 
 ## Evidence Index
 
@@ -74,8 +76,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh fixed `BUG-060-R`, reran the directed non-power-of-two overwrite guard `B134(n768)`, reran the same-key overwrite stress `P111`, rechecked `B010` after the patch bump, and regenerated the dashboard from the refreshed evidence.
-- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release on commit `1736898` rather than inherited from an earlier checkpoint.
+- The latest refresh fixes `BUG-061-R` and `BUG-062-H`, reruns `B010`, `B040`, `B071`, `B113`, `B114`, and `B132`, bumps the delivered metadata to `26.2.4.0421`, and regenerates the dashboard from the refreshed evidence.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) still reflects the last Quartus rerun on commit `1736898`; the current 26.2.4.0421 terminate-control patch has not yet been recompiled through that standalone flow.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
 - Overall signoff remains `⚠️ partial` because DV plan closure and gate-level simulation are still incomplete even though the refreshed standalone timing/resource gate for the active `P4` build is green again.

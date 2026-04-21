@@ -5,8 +5,8 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh packages the overwrite-erase-slot carry timing closure as `26.2.3.0421`, refreshes the DV evidence through `B134(n768)`, `P111`, and `B010`, and reruns the standalone `ring_buffer_cam_syn_p4` compile on the same release tree.
-- Sign-off status: the current isolated DV dashboard still passes on the live RTL, the refreshed standalone `ring_buffer_cam_syn_p4` compile closes the tightened `137.5 MHz` signoff target again, and gate-level simulation plus full DV-plan closure remain open.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh carries forward the overwrite-erase-slot timing closure from `26.2.3.0421`, packages the terminate-control fixes as `26.2.4.0421`, refreshes the DV evidence through `B010`, `B040`, `B071`, `B113`, `B114`, and `B132`, and keeps the earlier standalone `ring_buffer_cam_syn_p4` compile as the latest Quartus timing evidence.
+- Sign-off status: the isolated DV dashboard is improved but still not closed, the last standalone `ring_buffer_cam_syn_p4` compile continues to show positive timing margin on the tightened `137.5 MHz` target, and gate-level simulation plus full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
@@ -15,9 +15,9 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup, the guarded descriptor / stale-request handling used by the current DV closure, and the carried overwrite erase slot that removes the last negative-slack standalone path family
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,518` ALMs, `2,938` registers, slow-85C setup slack `+0.080 ns`, slow-0C setup slack `+0.347 ns`, and worst reported hold slack `+0.149 ns`
-  - current DV dashboard: refreshed after the `B134(n768)`, `P111`, and `B010` reruns plus the full supported-QuestaOne isolated rerun of all `342` implemented cases; current state is `30` failing isolated cases, `174` unimplemented cases, and `60.47% (312/516)` passing functional coverage
-  - latest closure slice: the active tree now closes four release-blocking RTL bugs in the current 2026-04-21 tranche, covering low-stage encoder valid-width safety (`BUG-057-R`), non-power-of-two live write-pointer wrap (`BUG-058-R`), non-power-of-two wrap-overwrite erase addressing (`BUG-059-R`), and the remaining standalone timing blocker on the overwrite erase path (`BUG-060-R`)
-  - delivered package metadata: `26.2.3.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
+  - current DV dashboard: refreshed after the full supported-QuestaOne isolated rerun of all `342` implemented cases plus the focused `B010`, `B040`, `B071`, `B113`, `B114`, and `B132` reruns; current state is `28` failing isolated cases, `174` unimplemented cases, and `60.85% (314/516)` passing functional coverage
+  - latest closure slice: the active tree now adds the terminate-control RTL repair (`BUG-061-R`) and the lone pending end-of-run marker cleanup (`BUG-062-H`) on top of the earlier 2026-04-21 low-stage, non-power-of-two, and standalone timing fixes (`BUG-057-R` through `BUG-060-R`)
+  - delivered package metadata: `26.2.4.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
   - the current release now has refreshed DV evidence on top of the earlier architectural refactor and restores standalone timing closure by carrying the overwrite erase slot out of the live CAM erase cone
@@ -192,7 +192,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - current delivered version `26.2.3.0421`
+  - current delivered version `26.2.4.0421`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`
