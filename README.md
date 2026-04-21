@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.2.0.0421
+**Version:** 26.2.2.0421
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,15 +96,15 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.2.0.0421` keeps the verified same-key overwrite-tail RTL fix, carries forward
-the soft-reset abort-to-`IDLE` cleanup plus descriptor / stale-request guards, preserves the
-equal-load partition round-robin scheduler fix, and now closes the remaining SEARCH-window
-overlap hazards: cross-key writes are blocked while the match fabric is still settling, and
-the settled SEARCH tail only reopens cross-key overlap when the live write pointer is outside
-the frozen snapshot. This nightly checkpoint also refreshes the directed/adversarial evidence
-through `B056`, `B133`, `P031`, `P125`, and `P126` so Platform Designer picks up the current
-verified IP image. The live dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
-and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
+Version `26.2.2.0421` carries forward the verified SEARCH-window overlap repairs, preserves
+the low-stage encoder and non-power-of-two live-write-pointer fixes from the earlier `26.2.1`
+checkpoint, and now closes the remaining non-power-of-two wrap-overwrite hole: `push_erase`
+decrements modulo the configured ring depth instead of falling off the live CAM span after
+`write_pointer` wraps to zero. This nightly checkpoint refreshes the directed/adversarial
+evidence through `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and the release-metadata
+smoke `B010`, while the live dashboard currently records `323/516` planned DV cases evidenced.
+The authoritative dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
+[`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 

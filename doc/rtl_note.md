@@ -5,8 +5,8 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh packages the latest SEARCH-window overlap RTL fixes as `26.2.0.0421`, refreshes the seed-1 DV evidence through `B056`, `B133`, `P031`, `P125`, and `P126`, and keeps the standalone `ring_buffer_cam_syn_p4` compile as the current nightly synthesis checkpoint.
-- Sign-off status: the current isolated DV dashboard passes on the live RTL; the standalone `ring_buffer_cam_syn_p4` timing/resource numbers were rerun and close for the current release; gate-level simulation and full DV-plan closure remain open.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh packages the low-stage / non-power-of-two closure fixes as `26.2.2.0421`, refreshes the DV evidence through `P050(pipe1)`, `P050(pipe2)`, `P050(n768)`, `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and `B010`, and reruns the standalone `ring_buffer_cam_syn_p4` compile on the same release tree.
+- Sign-off status: the current isolated DV dashboard passes on the live RTL, but the refreshed standalone `ring_buffer_cam_syn_p4` timing rerun no longer closes the tightened `137.5 MHz` signoff target on the active release; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
@@ -14,13 +14,13 @@ Author: Codex
   - added standalone Quartus revisions for legacy baseline (`v23`), partitioned full-IP modes (`p2`, `p3`, `p4`), and standalone encoder modes (`addr_enc_logic_syn_p2`, `addr_enc_logic_syn_p3`, `addr_enc_logic_syn_p4`)
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
-  - standalone `ring_buffer_cam_syn_p4`: `2,327` ALMs, `2,770` registers, slow-85C setup slack `+0.809 ns`, worst hold slack `+0.169 ns`, slow-corner Fmax `154.70 MHz`
-  - current DV dashboard: refreshed after the `B010`, `B011`, `B056`, `P031`, `P125`, and `P126` seed-1 reruns for the new nightly checkpoint, now covering `322/516` planned cases
-  - latest closure slice: two new SEARCH-window RTL bugs are trapped by `B133` plus the `P125` checkpoint overwrite soak, while `B056`, `P031`, and `P126` prove the retimed SEARCH tail keeps the wait-count contract, adversarial two-key overlap, and skewed overwrite accounting intact
-  - delivered package metadata: `26.2.0.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
+  - standalone `ring_buffer_cam_syn_p4`: `2,547` ALMs, `2,908` registers, slow-85C setup slack `-0.540 ns`, worst hold slack `+0.149 ns`, slow-corner Fmax `127.99 MHz`
+  - current DV dashboard: refreshed after the `P050(pipe1)`, `P050(pipe2)`, `P050(n768)`, `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and `B010` reruns for the new nightly checkpoint, now covering `323/516` planned cases
+  - latest closure slice: three new release-blocking RTL bugs are now closed on the active tree, covering low-stage encoder valid-width safety (`BUG-057-R`), non-power-of-two live write-pointer wrap (`BUG-058-R`), and non-power-of-two wrap-overwrite erase addressing (`BUG-059-R`)
+  - delivered package metadata: `26.2.2.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
-  - the current release now has refreshed DV evidence on top of the earlier architectural refactor, with a matching standalone timing/resource refresh completed for this nightly checkpoint
+  - the current release now has refreshed DV evidence on top of the earlier architectural refactor, but the matching standalone timing/resource refresh reopened the tightened `137.5 MHz` timing signoff gate and therefore needs follow-up before synthesis signoff can return green
   - the detailed historical sweep below is still useful background, but the authoritative current status lives in [`doc/SIGNOFF.md`](SIGNOFF.md) and [`syn/SYN_REPORT.md`](../syn/SYN_REPORT.md)
 
 ## 1. Targets
@@ -192,7 +192,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - current delivered version `26.2.0.0421`
+  - current delivered version `26.2.2.0421`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`

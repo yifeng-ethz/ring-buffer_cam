@@ -1002,3 +1002,24 @@ Normalization note:
 - Runtime / coverage context:
   - verified by the clean `P050` rerun at `RING_BUFFER_N_ENTRY=768`, alongside the release-metadata smoke `B010` after the patch/build bump
 - Commit: acb9230
+
+### BUG-059-R: Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds
+- Severity: `signoff block`
+- Encounter sim-time: `2116020 ns (first B134 directed N=768 wrap-overwrite guard repro before the erase-address wrap fix)`
+- First seen in: `B134` with `RING_BUFFER_N_ENTRY=768` on 2026-04-21 during the post-review audit of the non-power-of-two overwrite path
+- Symptom:
+  - the second-lap wrap-overwrite path drove `cam_wr_addr=1023` instead of erasing slot `767`, so the old resident could stay live in CAM after the slot was rewritten
+  - pre-fix directed guard signature: `Wrap-overwrite erased the wrong CAM slot: expected=767 observed=1023 ring_depth=768`
+- Root cause:
+  - `push_erase` used raw `write_pointer-1` after `write_pointer` had already wrapped to zero, instead of decrementing modulo `RING_BUFFER_N_ENTRY`
+  - at `RING_BUFFER_N_ENTRY=768`, the resulting address `1023` falls outside the live CAM span that `cam_mem_a5` decodes, so the intended erase becomes a no-op
+- Fix status:
+  - `state`: fixed and verified in the directed guard and overwrite-soak reruns on `dev`
+  - `mechanism`: add a ring-depth-aware `ring_ptr_dec()` helper and use it for the `push_erase` CAM address, so the post-wrap overwrite erase targets the previous live slot inside the configured ring span
+  - `before_fix_outcome`: `B134` failed deterministically at `N=768` with `expected=767 observed=1023`, proving the wrap-overwrite erase path could miss the live slot entirely
+  - `after_fix_outcome`: `B134` now passes cleanly at `N=768`, `P126` with `RING_BUFFER_N_ENTRY=768` and `DV_LONG_TXN_OVERRIDE=4000` closes at `push=4000`, `pop=3377`, `overwrite=623`, `remaining=0`, and the post-bump metadata smoke `B010` still passes
+  - `potential_hazard`: low to moderate; the direct wrap-overwrite hole is now closed, but future non-power-of-two geometry changes still need to preserve modulo-safe pointer decrement behavior on every overwrite-side address path
+  - `Claude Opus 4.7 xhigh review decision`: `not run in this turn; a standard Claude CLI review prompted the follow-up audit, and the bug was then confirmed locally with the directed B134 repro`
+- Runtime / coverage context:
+  - verified by the pre-fix `B134` fail at `N=768`, the clean post-fix `B134` rerun at the same depth, the `P126` `N=768` overwrite soak with `DV_LONG_TXN_OVERRIDE=4000`, and the release-metadata smoke `B010`
+- Commit: dab30da

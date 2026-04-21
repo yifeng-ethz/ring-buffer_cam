@@ -24,6 +24,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
+| ✅ | `BUG-059-R` | RTL | `2026-04-21` | Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds | `dab30da` |
 | ✅ | `BUG-058-R` | RTL | `2026-04-21` | Non-power-of-two ring depths let the live write pointer escape the configured ring span | `acb9230` |
 | ✅ | `BUG-057-R` | RTL | `2026-04-21` | Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width | `acb9230` |
 | ✅ | `BUG-056-R` | RTL | `2026-04-21` | Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer | `07c0dae` |
@@ -31,7 +32,6 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ✅ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `00fc1b8` |
 | ✅ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `00fc1b8` |
 | ✅ | `BUG-052-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT` | `00fc1b8` |
-| ✅ | `BUG-051-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN` | `00fc1b8` |
 
 ## Formal / contract cases
 

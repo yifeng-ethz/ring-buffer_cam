@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
-**Release under check:** `26.2.0.0421` &nbsp; **Evidence basis:** `07c0dae`
+**Release under check:** `26.2.2.0421` &nbsp; **Evidence basis:** `dab30da`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ✅ | standalone_syn_p4_512 | `2026-04-21 rerun closes cleanly at 137.5 MHz / 7.273 ns on ring_buffer_cam_syn_p4` |
-| ⚠️ | dv_closure | `322/516` planned cases evidenced |
+| ❌ | standalone_syn_p4_512 | `2026-04-21 rerun on dab30da misses the tightened 137.5 MHz / 7.273 ns signoff target: slow-85C WNS=-0.540 ns, slow-0C WNS=-0.214 ns` |
+| ⚠️ | dv_closure | `323/516` planned cases evidenced |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,8 +24,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `62.40% (322/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `177` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | isolated DV closure | `62.60% (323/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `174` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
@@ -36,12 +36,13 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
-| ✅ | slow 85C WNS / TNS | `+0.809 ns` / `0.000 ns` |
-| ✅ | worst hold slack | `+0.169 ns` |
-| ✅ | slow 85C Fmax | `154.70 MHz` |
-| ✅ | nominal 125 MHz headroom | `23.8%` |
-| ✅ | fitted resources | `2,327 ALMs`, `2,770 regs`, `19 RAM blocks`, `153,600` bits |
-| ⚠️ | TimeQuest caveat | internal `clk125` domain closes, but `probe_out[31:0]` is left unconstrained in the standalone harness |
+| ❌ | slow 85C WNS / TNS | `-0.540 ns` / `-3.973 ns` |
+| ⚠️ | slow 0C WNS / TNS | `-0.214 ns` / `-0.565 ns` |
+| ✅ | worst hold slack | `+0.149 ns` |
+| ⚠️ | slow 85C Fmax | `127.99 MHz` |
+| ⚠️ | nominal 125 MHz headroom | `2.4%` |
+| ⚠️ | fitted resources | `2,547 ALMs`, `2,908 regs`, `19 RAM blocks`, `153,600` bits |
+| ⚠️ | TimeQuest caveat | internal `clk125` domain still has `32` unconstrained `probe_out[31:0]` harness outputs, and the current routed P4 build misses the tightened setup target on both slow corners |
 | ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
 
 ## Fixes In Scope
@@ -55,8 +56,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-053-R` and `BUG-054-R` remain in scope: `TERMINATING` still clamps post-EOR ingress and drains already-buffered deassembly residue to completion |
 | ✅ | RTL | `BUG-055-R` blocks cross-key `push_write` while the SEARCH match fabric is still settling, so the pre-freeze snapshot cannot be perturbed |
 | ✅ | RTL | `BUG-056-R` prevents settled-SEARCH tail overlap from clobbering any slot already captured in the frozen snapshot at the live write pointer |
-| ✅ | DV | refreshed seed-1 evidence closes `B010`, `B011`, `B056`, `P031`, `P125`, and `P126`, with extra directed guard evidence from `B133`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
-| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.2.0.0421` / `20260421`; `MINOR` rolls to `2` because the 4-bit META patch field had already reached `15` in the prior packaged release |
+| ✅ | RTL | `BUG-057-R`, `BUG-058-R`, and `BUG-059-R` remain in scope: low-stage encoder builds no longer index `pipe_valid` out of range, the live write pointer now wraps modulo `RING_BUFFER_N_ENTRY`, and wrap-overwrite `push_erase` now erases the previous live slot instead of falling outside the configured ring span |
+| ✅ | DV | refreshed evidence closes `P050(pipe1)`, `P050(pipe2)`, `P050(n768)`, `B134(n768)`, `P126(n768, DV_LONG_TXN_OVERRIDE=4000)`, and the release-metadata smoke `B010`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.2.0421` / `20260421` with `BUILD=421` and `PATCH=2` |
 
 ## Evidence Index
 
@@ -71,8 +73,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh fixed `BUG-055-R` and `BUG-056-R`, reran `B010`, `B011`, `B056`, `P031`, `P125`, and `P126` on seed `1`, cross-checked the early-window guard with `B133`, and regenerated the dashboard from the refreshed evidence.
-- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release rather than inherited from an earlier checkpoint.
+- The latest refresh fixed `BUG-057-R`, `BUG-058-R`, and `BUG-059-R`, reran the low-stage / non-power-of-two screens (`P050(pipe1/pipe2/n768)`), added the directed wrap-overwrite guard `B134(n768)`, reran the `P126(n768, DV_LONG_TXN_OVERRIDE=4000)` overwrite soak, rechecked `B010`, and regenerated the dashboard from the refreshed evidence.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release on commit `dab30da` rather than inherited from an earlier checkpoint.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
-- Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete even though the standalone timing/resource gate for the active P4 build is now green.
+- Overall signoff remains `⚠️ partial` because DV plan closure is still incomplete and the refreshed standalone timing/resource gate for the active P4 build is no longer green.

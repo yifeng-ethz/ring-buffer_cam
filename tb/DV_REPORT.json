@@ -468,6 +468,14 @@
       "title": "Non-power-of-two ring depths let the live write pointer escape the configured ring span",
       "fix_status": "fixed and verified in the non-power-of-two depth reruns on `dev`",
       "commit": "acb9230"
+    },
+    {
+      "bug_id": "BUG-059-R",
+      "class": "RTL",
+      "date": "2026-04-21",
+      "title": "Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds",
+      "fix_status": "fixed and verified in the directed N=768 wrap-overwrite and overwrite-soak reruns on `dev`",
+      "commit": "dab30da"
     }
   ],
   "buckets": {
