@@ -11138,6 +11138,142 @@ class base_test extends uvm_test;
           "Zero-hit subheader valid-pulse audit emitted unexpected hit beats: hits_before=%0d hits_after=%0d",
           hit_before, m_env.m_out_mon.total_hits_seen))
       end
+    end else if (case_id == "E111") begin
+      configure_and_start(1);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("e111_min_latency_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E111 minimum-latency push");
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'h0001) begin
+        `uvm_error("E111", $sformatf(
+          "EXPECTED_LATENCY=1 did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      search_cycles = 0;
+      while (search_cycles < 128 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E111", "EXPECTED_LATENCY=1 did not trigger an early pop descriptor")
+      end
+      wait_clocks(4);
+      dbg48_a = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if (dbg48_a > 48'd2) begin
+        `uvm_error("E111", $sformatf(
+          "EXPECTED_LATENCY=1 did not hold read_time_ptr within the minimum-latency window: observed_delta=%0d",
+          dbg48_a))
+      end
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 80_000,
+        "E111 minimum-latency single-hit subheader", matched_subheader);
+      wait_for_scoreboard_idle(80_000, "E111 minimum-latency drain");
+      expect_service_model_accounting("E111 minimum-latency drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 1 || pop_count != 1 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E111", $sformatf(
+          "Minimum-latency accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, fill_level))
+      end
+    end else if (case_id == "E112") begin
+      configure_and_start(0);
+      focus_search_key = m_cfg.interleaving_index;
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'h0000) begin
+        `uvm_error("E112", $sformatf(
+          "EXPECTED_LATENCY=0 did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      dbg48_a = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if (dbg48_a > 48'd1) begin
+        `uvm_error("E112", $sformatf(
+          "EXPECTED_LATENCY=0 did not collapse the read_time_ptr delta: observed=%0d",
+          dbg48_a))
+      end
+      search_cycles = 0;
+      while (search_cycles < 128 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E112", "EXPECTED_LATENCY=0 did not trigger the immediate pop descriptor")
+      end
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd0, 1'b1, 1'b0, 80_000,
+        "E112 immediate zero-hit subheader", matched_subheader);
+      if (matched_subheader == null || !(matched_subheader.sop && matched_subheader.eop)) begin
+        `uvm_error("E112", "Immediate zero-hit descriptor did not emit a single-beat SOP+EOP subheader")
+      end
+      if (m_env.m_out_mon.total_subheaders_seen <= subhdr_before) begin
+        `uvm_error("E112", $sformatf(
+          "Immediate zero-hit descriptor did not retire any subheader: before=%0d after=%0d",
+          subhdr_before, m_env.m_out_mon.total_subheaders_seen))
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("E112", $sformatf(
+          "Immediate zero-hit descriptor unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+    end else if (case_id == "E113") begin
+      configure_and_start(16'hFFFF);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'hFFFF) begin
+        `uvm_error("E113", $sformatf(
+          "EXPECTED_LATENCY=max did not reach the DUT: observed=0x%04x",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+      wait_clocks(60_000);
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before ||
+          m_env.m_out_mon.total_subheaders_seen != subhdr_before) begin
+        `uvm_error("E113", $sformatf(
+          "Maximum-latency idle run started draining too early: cmd_before=%0d cmd_after=%0d subhdr_before=%0d subhdr_after=%0d",
+          cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count,
+          subhdr_before, m_env.m_out_mon.total_subheaders_seen))
+      end
+      search_cycles = 0;
+      while (search_cycles < 20_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E113", "Maximum-latency idle run never emitted the delayed pop descriptor")
+      end
+      dbg48_a = m_env.m_dbg_mon.gts_8n - m_env.m_dbg_mon.read_time_ptr;
+      if ((dbg48_a < 48'd65534) || (dbg48_a > 48'd65536)) begin
+        `uvm_error("E113", $sformatf(
+          "Maximum-latency idle run observed the wrong read_time_ptr delta: observed=%0d expected~=65535",
+          dbg48_a))
+      end
+      wait_for_subheader_count(subhdr_before + 1, 120_000, "E113 delayed zero-hit subheader");
+      if (m_env.m_out_mon.recent_subheaders.size() == 0) begin
+        `uvm_error("E113", "Maximum-latency idle run did not retain the delayed zero-hit subheader")
+      end else begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        if (!(matched_subheader.sop && matched_subheader.eop) ||
+            matched_subheader.hit_count != 8'd0) begin
+          `uvm_error("E113", $sformatf(
+            "Maximum-latency idle run emitted malformed delayed zero-hit framing: sop=%0d eop=%0d hit_count=%0d",
+            matched_subheader.sop, matched_subheader.eop, matched_subheader.hit_count))
+        end
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("E113", $sformatf(
+          "Maximum-latency idle run unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
     end else if (case_id == "E124") begin
       profile_traffic_seq e124_seq;
       int unsigned outstanding;
