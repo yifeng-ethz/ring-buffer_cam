@@ -443,7 +443,7 @@
       "date": "2026-04-21",
       "title": "Cross-key `push_write` could still perturb the SEARCH match fabric before the pop snapshot was frozen",
       "fix_status": "fixed and verified in the directed SEARCH-window guard slice on `dev`",
-      "commit": "pending"
+      "commit": "07c0dae"
     },
     {
       "bug_id": "BUG-056-R",
@@ -451,7 +451,7 @@
       "date": "2026-04-21",
       "title": "Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer",
       "fix_status": "fixed and verified in the checkpoint overwrite-soak reruns on `dev`",
-      "commit": "pending"
+      "commit": "07c0dae"
     }
   ],
   "buckets": {

@@ -935,7 +935,7 @@ Normalization note:
 - Runtime / coverage context:
   - the early SEARCH overlap rule is now explicit: same-key writes may still overlap, cross-key writes may not
   - verified by clean isolated reruns of `B133` and `P031`
-- Commit: pending
+- Commit: 07c0dae
 
 ### BUG-056-R: Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer
 - Severity: `soft error`
@@ -957,4 +957,4 @@ Normalization note:
 - Runtime / coverage context:
   - settled-tail overlap is now reopened only when the live write pointer sits outside the frozen snapshot, so SEARCH can keep limited throughput overlap without mutating an already-captured retirement set
   - verified by clean isolated reruns of `B056`, `P125`, and `P126`
-- Commit: pending
+- Commit: 07c0dae
