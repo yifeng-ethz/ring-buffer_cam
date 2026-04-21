@@ -13,9 +13,9 @@
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
-| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 125 | stmt=95.64, branch=85.90, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 |
+| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 125 | stmt=95.61, branch=85.60, cond=70.23, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 |
 | ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 30 | stmt=94.76, branch=83.42, cond=69.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.47 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 75 | stmt=91.68, branch=81.78, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.16 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 76 | stmt=91.81, branch=81.99, cond=70.75, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.17 |
 | ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 92 | stmt=95.38, branch=85.44, cond=70.97, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.10 |
 
 ## Cross / continuous-frame runs
@@ -148,9 +148,9 @@
 | ❓ | [`P122`](cases/P122.md) | PROF | 640 | [growth](txn_growth/P122.md) |
 | ❓ | [`P123`](cases/P123.md) | PROF | 1024 | [growth](txn_growth/P123.md) |
 | ❓ | [`P124`](cases/P124.md) | PROF | 1024 | [growth](txn_growth/P124.md) |
-| ❓ | [`P125`](cases/P125.md) | PROF | 0 | [growth](txn_growth/P125.md) |
+| ✅ | [`P125`](cases/P125.md) | PROF | 2500 | [growth](txn_growth/P125.md) |
 | ✅ | [`P126`](cases/P126.md) | PROF | 2500 | [growth](txn_growth/P126.md) |
-| ❓ | [`P127`](cases/P127.md) | PROF | 0 | [growth](txn_growth/P127.md) |
+| ✅ | [`P127`](cases/P127.md) | PROF | 0 | [growth](txn_growth/P127.md) |
 | ❓ | [`P128`](cases/P128.md) | PROF | 2048 | [growth](txn_growth/P128.md) |
 
 ## Totals
@@ -158,10 +158,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `322`
+- evidenced_cases = `323`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=96.13, branch=84.49, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=72.37`
-- functional coverage: `62.4% (322/516)`
+- merged total code coverage: `stmt=96.10, branch=84.22, cond=72.52, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=72.38`
+- functional coverage: `62.6% (323/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-21` &nbsp;
-**Release under check:** `26.1.15.0421` &nbsp; **Evidence basis:** `00fc1b8`
+**Release under check:** `26.2.0.0421` &nbsp; **Evidence basis:** `pending current bug-fix batch`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -51,12 +51,12 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-039-R` through `BUG-045-R` remain in scope for this release: descriptor FIFO overrun is blocked, soft-reset is a real abort-to-`IDLE`, stale post-reset work cannot retire, and equal-load partition drain still rotates fairly |
 | ✅ | Harness | `BUG-043-H`, `BUG-044-H`, and `BUG-046-H` remain in scope: the staged late-arrival helper is rate-correct, PROF sink backpressure remains active through drain, and clean terminate waits for the DUT-side deassembly FIFO |
 | ✅ | Harness | `BUG-050-H` removes exact-full compat `scfifo` warning floods so nightly logs only carry the remaining benign startup/tool warnings |
-| ✅ | RTL | `BUG-051-R` blocks `push_write` once the pop engine has entered `DRAIN`, protecting the frozen resident snapshot during retirement |
-| ✅ | RTL | `BUG-052-R` further narrows overlap so `LOAD` and `COUNT` also keep the pop snapshot immutable until drain completes |
-| ✅ | RTL | `BUG-053-R` clamps ingress `ready` after lane-local end-of-run in `TERMINATING`, preventing accepted-but-dropped post-EOR beats |
-| ✅ | RTL | `BUG-054-R` lets the push engine keep draining already-buffered deassembly entries during `TERMINATING`, restoring `terminating_drain_done` reachability |
-| ✅ | DV | refreshed seed-1 evidence closes `B010`, `B011`, `B130`, `B131`, `B132`, `P066`, and `P126`, and regenerated the `tb/REPORT/` dashboard for the current nightly checkpoint |
-| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.1.15.0421` / `20260421`; the patch stays at `15` because the META patch field is only `4` bits wide |
+| ✅ | RTL | `BUG-051-R` and `BUG-052-R` remain in scope: `DRAIN`, `LOAD`, and `COUNT` still keep the frozen pop snapshot immutable until drain completes |
+| ✅ | RTL | `BUG-053-R` and `BUG-054-R` remain in scope: `TERMINATING` still clamps post-EOR ingress and drains already-buffered deassembly residue to completion |
+| ✅ | RTL | `BUG-055-R` blocks cross-key `push_write` while the SEARCH match fabric is still settling, so the pre-freeze snapshot cannot be perturbed |
+| ✅ | RTL | `BUG-056-R` prevents settled-SEARCH tail overlap from clobbering any slot already captured in the frozen snapshot at the live write pointer |
+| ✅ | DV | refreshed seed-1 evidence closes `B010`, `B011`, `B056`, `P031`, `P125`, and `P126`, with extra directed guard evidence from `B133`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | Metadata | wrapper defaults and Platform Designer packaging are aligned to `26.2.0.0421` / `20260421`; `MINOR` rolls to `2` because the 4-bit META patch field had already reached `15` in the prior packaged release |
 
 ## Evidence Index
 
@@ -71,7 +71,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The latest refresh fixed `BUG-050-H` through `BUG-054-R`, reran `B010`, `B011`, `B130`, `B131`, `B132`, `P066`, and `P126` on seed `1`, and regenerated the dashboard from the refreshed evidence.
+- The latest refresh fixed `BUG-055-R` and `BUG-056-R`, reran `B010`, `B011`, `B056`, `P031`, `P125`, and `P126` on seed `1`, cross-checked the early-window guard with `B133`, and regenerated the dashboard from the refreshed evidence.
 - The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) was rerun on `2026-04-21` for this release rather than inherited from an earlier checkpoint.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.

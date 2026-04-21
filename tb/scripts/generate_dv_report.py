@@ -157,6 +157,7 @@ def parse_bug_history(path: Path) -> list[dict]:
     bugs: list[dict] = []
     current_date = ""
     current: dict | None = None
+    in_fix_status_block = False
 
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.rstrip()
@@ -170,6 +171,7 @@ def parse_bug_history(path: Path) -> list[dict]:
                 bugs.append(current)
             bug_id = bug_match.group(1)
             tag = bug_match.group(2)
+            in_fix_status_block = False
             current = {
                 "bug_id": bug_id,
                 "class": "Harness" if tag == "H" else "RTL",
@@ -185,8 +187,14 @@ def parse_bug_history(path: Path) -> list[dict]:
 
         if line.startswith("- Fix status:"):
             current["fix_status"] = line.split(":", 1)[1].strip()
+            in_fix_status_block = True
+        elif in_fix_status_block and line.strip().startswith("- `state`:"):
+            current["fix_status"] = line.split(":", 1)[1].strip()
         elif line.startswith("- Commit:"):
             current["commit"] = line.split(":", 1)[1].strip()
+            in_fix_status_block = False
+        elif line.startswith("- ") and not line.startswith("- Fix status:"):
+            in_fix_status_block = False
 
     if current is not None:
         bugs.append(current)

@@ -49,6 +49,12 @@ The current 2026-04-21 evidence set establishes:
 - the new overlap guards now explicitly prove the frozen pop snapshot cannot be mutated by `push_write` once the engine has entered `LOAD`, `COUNT`, or `DRAIN`:
   - `B130` guards `DRAIN`
   - `B131` guards `LOAD/COUNT`
+- the SEARCH-window closure now has an explicit early-window guard as well:
+  - `B133` proves a cross-key `push_write_grant` cannot slip into the unstable SEARCH window before the snapshot is frozen
+  - `B056` still anchors the SEARCH wait-count contract at `0..5` after the settled-tail retiming
+- the final SEARCH-tail policy now preserves both throughput and snapshot integrity:
+  - `P031` still passes the adversarial two-key alternation with `push=20000`, `pop=20000`, `overwrite=0`
+  - `P125` and `P126` still close their reduced checkpoint overwrite soaks while the frozen-snapshot write-pointer guard is active
 - the terminate path is now closed around the real DUT contract:
   - `B132` proves ingress `ready` clamps after lane-local end-of-run
   - `P066` proves already-buffered deassembly payload still drains to completion in `TERMINATING`

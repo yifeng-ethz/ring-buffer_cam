@@ -282,6 +282,7 @@ class debug_monitor extends uvm_monitor;
           pop_item.raw_hit = vif.side_ram_dout[38:0];
           pop_item.occupied = vif.side_ram_dout[39];
           pop_item.pop_count = vif.dbg_pop_cnt;
+          pop_item.active_search_key = vif.pop_current_sk[7:0];
           pop_ap.write(pop_item);
         end
       end

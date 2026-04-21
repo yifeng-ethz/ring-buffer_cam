@@ -3698,9 +3698,12 @@ class base_test extends uvm_test;
     int unsigned         inerr_count;
     int unsigned         push_count;
     int unsigned         pop_count;
+    int unsigned         accepted_checkpoint;
+    int unsigned         accepted_delta;
 
     `uvm_info("CASE", "CASE_BEGIN run=CROSS-015", UVM_LOW)
     configure_and_start(2000);
+    accepted_checkpoint = m_env.m_hit_drv.accepted_payload_total;
 
     for (int round = 0; round < 3; round++) begin
       burst_seq = same_key_burst_seq::type_id::create($sformatf("cross015_basic_%0d", round));
@@ -3729,6 +3732,7 @@ class base_test extends uvm_test;
       wait_clocks(16);
 
       restart_after_flush(2000);
+      accepted_checkpoint = m_env.m_hit_drv.accepted_payload_total;
 
       pressure_seq = overwrite_profile_seq::type_id::create($sformatf("cross015_pressure_%0d", round));
       pressure_seq.num_hits = 2048;
@@ -3738,6 +3742,14 @@ class base_test extends uvm_test;
       pressure_seq.progress_stride = 256;
       pressure_seq.progress_tag = $sformatf("CROSS-015 round %0d", round);
       pressure_seq.start(m_env.m_hit_seqr);
+      accepted_delta = m_env.m_hit_drv.accepted_payload_total - accepted_checkpoint;
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      `uvm_info("CROSS-015", $sformatf(
+        "round=%0d post-pressure epoch: driver_accepted_delta=%0d push=%0d pop=%0d overwrite=%0d remaining=%0d pending_drain=%0d",
+        round, accepted_delta, push_count, pop_count,
+        m_env.m_dbg_mon.dbg_overwrite_cnt[31:0],
+        m_env.m_scb.remaining_entries(), m_env.m_scb.pending_drain_entries()), UVM_LOW)
       wait_clocks($urandom_range(0, 200));
     end
 
@@ -6049,8 +6061,8 @@ class base_test extends uvm_test;
     logic [31:0] version_word;
     version_word = '0;
     version_word[31:24] = 8'd26;
-    version_word[23:16] = 8'd1;
-    version_word[15:12] = 4'd15;
+    version_word[23:16] = 8'd2;
+    version_word[15:12] = 4'd0;
     version_word[11:0]  = 12'd421;
     return version_word;
   endfunction
@@ -9333,6 +9345,91 @@ class base_test extends uvm_test;
       wait_clocks(2);
       wait_for_scoreboard_idle(120_000, "B132 post-terminate cleanup");
       expect_service_model_accounting("B132 terminate ingress-ready guard", 1, 0);
+    end else if (case_id == "B133") begin
+      same_key_burst_seq focus_burst_seq;
+      same_key_burst_seq cross_burst_seq;
+      bit                saw_early_cross_key_overlap;
+      bit                cross_injected;
+      int unsigned       pushed_key;
+      int unsigned       active_key;
+
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      focus_burst_seq = same_key_burst_seq::type_id::create("b133_focus_burst");
+      focus_burst_seq.num_hits = 16;
+      focus_burst_seq.search_key = focus_search_key;
+      focus_burst_seq.start(m_env.m_hit_seqr);
+
+      wait_for_pop_engine_state(3'd1, 40_000, "B133 SEARCH entry");
+      search_cycles = 0;
+      while (search_cycles < 128 &&
+             !(m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+               m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+               m_env.m_dbg_mon.pop_search_wait_cnt <= 3'd1)) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (!(m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+            m_env.m_dbg_mon.pop_search_wait_cnt <= 3'd1)) begin
+        `uvm_error("B133", $sformatf(
+          "Did not observe the focus-key early SEARCH guard window before injection: pop_state=%0d active_key=%0d wait_cnt=%0d focus_key=%0d",
+          m_env.m_dbg_mon.pop_engine_state_code,
+          m_env.m_dbg_mon.vif.pop_current_sk[7:0],
+          m_env.m_dbg_mon.pop_search_wait_cnt,
+          focus_search_key[7:0]))
+      end
+
+      saw_early_cross_key_overlap = 1'b0;
+      cross_injected = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin
+          cross_burst_seq = same_key_burst_seq::type_id::create("b133_cross_burst");
+          cross_burst_seq.num_hits = 8;
+          cross_burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+          cross_burst_seq.start(m_env.m_hit_seqr);
+          cross_injected = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 512 &&
+                 (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 ||
+                  !cross_injected ||
+                  m_env.m_hit_drv.pending_source_items() != 0)) begin
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+                m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+                m_env.m_dbg_mon.pop_search_wait_cnt < 3'd5 &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              pushed_key = m_env.m_dbg_mon.vif.side_ram_din[
+                             ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO] >> 4;
+              active_key = m_env.m_dbg_mon.vif.pop_current_sk[7:0];
+              if (pushed_key != active_key) begin
+                saw_early_cross_key_overlap = 1'b1;
+                `uvm_error("B133", $sformatf(
+                  "Cross-key push_write_grant slipped into the unstable SEARCH window: pop_wait=%0d active_key=%0d pushed_key=%0d decision_reg=%0d",
+                  m_env.m_dbg_mon.pop_search_wait_cnt,
+                  active_key,
+                  pushed_key,
+                  m_env.m_dbg_mon.vif.decision_reg))
+                break;
+              end
+            end
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+          traffic_done = 1'b1;
+        end
+      join
+
+      if (!cross_injected) begin
+        `uvm_error("B133", "Cross-key SEARCH guard never injected the competing burst")
+      end
+      if (saw_early_cross_key_overlap) begin
+        `uvm_error("B133", "Observed a cross-key push_write_grant before SEARCH match validity was guaranteed")
+      end
+      terminate_and_drain(120_000, "B133 early SEARCH cross-key guard");
+      expect_service_model_accounting("B133 early SEARCH cross-key guard", 1, 0);
     end else if (case_id == "E001") begin
       configure_and_start();
       wait_clocks(512);
@@ -11055,6 +11152,371 @@ class base_test extends uvm_test;
         `uvm_error("P066", $sformatf(
           "Mid-run TERMINATING left unexpected residual accounting: fill=%0d cache_miss=%0d push=%0d pop=%0d overwrite=%0d",
           fill_level, cache_miss_count, push_count, pop_count, overwrite_count))
+      end
+    end else if (case_id == "P067") begin
+      profile_traffic_seq flush_seq;
+      int unsigned accepted_before_flush;
+      int unsigned accepted_after_flush;
+      int unsigned push_count;
+      int unsigned pop_count;
+      int unsigned overwrite_count;
+      int unsigned cache_miss_count;
+      int unsigned fill_level;
+      int unsigned hits_after_flush;
+      int unsigned hits_after_flush_wait;
+      bit          stop_requested;
+      bit          p067_traffic_done;
+      int unsigned burst_idx;
+
+      configure_and_start(16'd128);
+      stop_requested = 1'b0;
+      p067_traffic_done = 1'b0;
+
+      fork
+        begin : p067_traffic_thread
+          burst_idx = 0;
+          while (!stop_requested && burst_idx < 256) begin
+            flush_seq = profile_traffic_seq::type_id::create($sformatf("p067_uniform_flush_%0d", burst_idx));
+            flush_seq.num_hits = 64;
+            flush_seq.lane_key_start_ord = 4;
+            flush_seq.pool_keys = 4;
+            flush_seq.hits_per_key_switch = 1;
+            flush_seq.randomize_key_order = 1'b0;
+            flush_seq.inter_hit_gap_cycles = 13;
+            flush_seq.fingerprint_start_index = burst_idx * 64;
+            flush_seq.progress_stride = 0;
+            flush_seq.start(m_env.m_hit_seqr);
+            burst_idx++;
+          end
+          p067_traffic_done = 1'b1;
+        end
+        begin : p067_flush_thread
+          wait_for_accepted_payload_count(1_024, 2_000_000, "P067 pre-FLUSH accepted threshold");
+          stop_requested = 1'b1;
+          accepted_before_flush = m_env.m_hit_drv.accepted_payload_total;
+          enter_run_prepare();
+          accepted_after_flush = m_env.m_hit_drv.accepted_payload_total;
+          hits_after_flush = m_env.m_out_mon.total_hits_seen;
+          wait_clocks(64);
+          hits_after_flush_wait = m_env.m_out_mon.total_hits_seen;
+        end
+      join
+
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 0 || pop_count != 0 || overwrite_count != 0 ||
+          cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P067", $sformatf(
+          "Mid-run FLUSH did not clear the DUT accounting state: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d accepted_before=%0d accepted_after=%0d",
+          push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+          accepted_before_flush, accepted_after_flush))
+      end
+      if (m_env.m_scb.remaining_entries() != 0 ||
+          m_env.m_scb.pending_drain_entries() != 0) begin
+        `uvm_error("P067", $sformatf(
+          "Mid-run FLUSH left scoreboard residual state: remaining=%0d pending_drain=%0d accepted_before=%0d accepted_after=%0d",
+          m_env.m_scb.remaining_entries(), m_env.m_scb.pending_drain_entries(),
+          accepted_before_flush, accepted_after_flush))
+      end
+      if (m_env.m_dbg_mon.vif.pop_cmd_fifo_empty !== 1'b1 ||
+          m_env.m_dbg_mon.vif.deassembly_fifo_empty !== 1'b1) begin
+        `uvm_error("P067", $sformatf(
+          "Mid-run FLUSH left internal FIFOs non-empty: pop_cmd_empty=%0d deassm_empty=%0d pop_cmd_usedw=%0d deassm_usedw=%0d",
+          m_env.m_dbg_mon.vif.pop_cmd_fifo_empty,
+          m_env.m_dbg_mon.vif.deassembly_fifo_empty,
+          m_env.m_dbg_mon.vif.pop_cmd_fifo_usedw,
+          m_env.m_dbg_mon.vif.deassembly_fifo_usedw))
+      end
+      if (hits_after_flush_wait != hits_after_flush) begin
+        `uvm_error("P067", $sformatf(
+          "Mid-run FLUSH leaked output activity after the flush-complete handshake: hits_after_flush=%0d hits_after_wait=%0d",
+          hits_after_flush, hits_after_flush_wait))
+      end
+      if (!p067_traffic_done) begin
+        `uvm_error("P067", "Traffic thread did not quiesce after the stop request")
+      end
+
+      m_env.m_hit_drv.pending_q.delete();
+      wait_clocks(2);
+      return_to_idle();
+    end else if (case_id == "P068") begin
+      profile_traffic_seq term_seq;
+      profile_traffic_seq final_seq;
+      int unsigned term_inject_cycles;
+      int unsigned accepted_at_endofrun;
+      int unsigned offered_at_endofrun;
+      int unsigned push_count;
+      int unsigned pop_count;
+      int unsigned overwrite_count;
+      int unsigned cache_miss_count;
+      int unsigned fill_level;
+      int unsigned post_eor_cycles;
+      int unsigned accepted_after_restart_checkpoint;
+      bit          p068_traffic_done;
+      bit          saw_post_endofrun_offers;
+
+      configure_and_start(16'd128);
+      p068_traffic_done = 1'b0;
+      term_inject_cycles = 1_000 + ((get_dv_seed() * 193) % 8_001);
+
+      fork
+        begin : p068_traffic_thread
+          term_seq = profile_traffic_seq::type_id::create("p068_uniform_term");
+          term_seq.num_hits = 1_024;
+          term_seq.lane_key_start_ord = 4;
+          term_seq.pool_keys = 4;
+          term_seq.hits_per_key_switch = 1;
+          term_seq.randomize_key_order = 1'b0;
+          term_seq.inter_hit_gap_cycles = 13;
+          term_seq.progress_stride = 256;
+          term_seq.progress_tag = "P068 mid-run terminate profile";
+          term_seq.start(m_env.m_hit_seqr);
+          p068_traffic_done = 1'b1;
+        end
+        begin : p068_term_thread
+          wait_clocks(term_inject_cycles);
+          ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+          wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 20_000, "P068 TERMINATING entry");
+          send_endofrun_marker();
+          wait_clocks(2);
+          if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
+            `uvm_error("P068", "endofrun_seen did not latch after the mid-run TERMINATING marker")
+          end
+
+          accepted_at_endofrun = m_env.m_hit_drv.accepted_payload_total;
+          offered_at_endofrun = m_env.m_hit_drv.offered_payload_total;
+          saw_post_endofrun_offers = 1'b0;
+          post_eor_cycles = 0;
+          while (post_eor_cycles < 512 &&
+                 (!p068_traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
+            @(posedge m_env.m_csr_drv.vif.clk);
+            post_eor_cycles++;
+            if (m_env.m_hit_drv.offered_payload_total > offered_at_endofrun) begin
+              saw_post_endofrun_offers = 1'b1;
+            end
+            if (m_env.m_hit_drv.accepted_payload_total > accepted_at_endofrun) begin
+              `uvm_error("P068", $sformatf(
+                "Accepted payload advanced after endofrun_seen latched: accepted_before=%0d accepted_now=%0d offered_now=%0d pending_source=%0d",
+                accepted_at_endofrun,
+                m_env.m_hit_drv.accepted_payload_total,
+                m_env.m_hit_drv.offered_payload_total,
+                m_env.m_hit_drv.pending_source_items()))
+              accepted_at_endofrun = m_env.m_hit_drv.accepted_payload_total;
+            end
+          end
+          if (!saw_post_endofrun_offers) begin
+            `uvm_error("P068", $sformatf(
+              "Mid-run TERMINATING never observed additional offered traffic after endofrun_seen: offered_at_eor=%0d final_offered=%0d",
+              offered_at_endofrun,
+              m_env.m_hit_drv.offered_payload_total))
+          end
+
+          ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+        end
+      join
+
+      m_env.m_hit_drv.pending_q.delete();
+      wait_clocks(2);
+      wait_for_scoreboard_idle(200_000, "P068 mid-run terminate cleanup");
+      expect_service_model_accounting("P068 mid-run terminate cleanup", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != m_env.m_hit_drv.accepted_payload_total) begin
+        `uvm_error("P068", $sformatf(
+          "PUSH_COUNT disagreed with accepted payload total before RESTART: push=%0d accepted=%0d pop=%0d overwrite=%0d",
+          push_count,
+          m_env.m_hit_drv.accepted_payload_total,
+          pop_count,
+          overwrite_count))
+      end
+      if (cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P068", $sformatf(
+          "Mid-run TERMINATING left unexpected residual accounting before RESTART: fill=%0d cache_miss=%0d push=%0d pop=%0d overwrite=%0d",
+          fill_level, cache_miss_count, push_count, pop_count, overwrite_count))
+      end
+
+      restart_after_flush(16'd128);
+      accepted_after_restart_checkpoint = m_env.m_hit_drv.accepted_payload_total;
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 0 || pop_count != 0 || overwrite_count != 0 ||
+          cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P068", $sformatf(
+          "RESTART did not begin from a clean accounting state: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, cache_miss_count, fill_level))
+      end
+
+      final_seq = profile_traffic_seq::type_id::create("p068_final_postrestart_window");
+      final_seq.num_hits = 1_024;
+      final_seq.lane_key_start_ord = 4;
+      final_seq.pool_keys = 4;
+      final_seq.hits_per_key_switch = 1;
+      final_seq.randomize_key_order = 1'b0;
+      final_seq.inter_hit_gap_cycles = 13;
+      final_seq.fingerprint_start_index = 16_384;
+      final_seq.progress_stride = 256;
+      final_seq.progress_tag = "P068 final post-restart window";
+      final_seq.start(m_env.m_hit_seqr);
+
+      terminate_and_drain(400_000, "P068 final post-restart terminate");
+      expect_service_model_accounting("P068 final post-restart terminate", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != (m_env.m_hit_drv.accepted_payload_total - accepted_after_restart_checkpoint)) begin
+        `uvm_error("P068", $sformatf(
+          "Post-restart PUSH_COUNT drifted from the accepted delta of the final window: push=%0d accepted_restart_delta=%0d accepted_total=%0d accepted_restart_checkpoint=%0d pop=%0d overwrite=%0d",
+          push_count,
+          m_env.m_hit_drv.accepted_payload_total - accepted_after_restart_checkpoint,
+          m_env.m_hit_drv.accepted_payload_total,
+          accepted_after_restart_checkpoint,
+          pop_count,
+          overwrite_count))
+      end
+      if (overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P068", $sformatf(
+          "Final post-restart accounting was not lossless-clean: pop=%0d overwrite=%0d cache_miss=%0d fill=%0d",
+          pop_count, overwrite_count, cache_miss_count, fill_level))
+      end
+    end else if (case_id == "P069") begin
+      profile_traffic_seq flush_seq;
+      profile_traffic_seq final_seq;
+      int unsigned accepted_window_checkpoint;
+      int unsigned accepted_before_flush;
+      int unsigned accepted_after_flush;
+      int unsigned accepted_after_final_restart;
+      int unsigned push_count;
+      int unsigned pop_count;
+      int unsigned overwrite_count;
+      int unsigned cache_miss_count;
+      int unsigned fill_level;
+      int unsigned hits_after_flush;
+      int unsigned hits_after_flush_wait;
+      bit          stop_requested;
+      bit          p069_traffic_done;
+      int unsigned burst_idx;
+
+      configure_and_start(16'd128);
+      accepted_window_checkpoint = m_env.m_hit_drv.accepted_payload_total;
+
+      for (int window = 0; window < 2; window++) begin
+        stop_requested = 1'b0;
+        p069_traffic_done = 1'b0;
+
+        fork
+          begin
+            burst_idx = 0;
+            while (!stop_requested && burst_idx < 256) begin
+              flush_seq = profile_traffic_seq::type_id::create($sformatf("p069_uniform_flush_w%0d_b%0d", window, burst_idx));
+              flush_seq.num_hits = 64;
+              flush_seq.lane_key_start_ord = 4;
+              flush_seq.pool_keys = 4;
+              flush_seq.hits_per_key_switch = 1;
+              flush_seq.randomize_key_order = 1'b0;
+              flush_seq.inter_hit_gap_cycles = 13;
+              flush_seq.fingerprint_start_index = (window * 16_384) + (burst_idx * 64);
+              flush_seq.progress_stride = 0;
+              flush_seq.start(m_env.m_hit_seqr);
+              burst_idx++;
+            end
+            p069_traffic_done = 1'b1;
+          end
+          begin
+            wait_for_accepted_payload_count(
+              accepted_window_checkpoint + 1_024,
+              2_000_000,
+              $sformatf("P069 window %0d pre-FLUSH accepted threshold", window));
+            stop_requested = 1'b1;
+            accepted_before_flush = m_env.m_hit_drv.accepted_payload_total;
+            enter_run_prepare();
+            accepted_after_flush = m_env.m_hit_drv.accepted_payload_total;
+            hits_after_flush = m_env.m_out_mon.total_hits_seen;
+            wait_clocks(64);
+            hits_after_flush_wait = m_env.m_out_mon.total_hits_seen;
+          end
+        join
+
+        read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+        read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+        read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+        read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+        read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+        if (push_count != 0 || pop_count != 0 || overwrite_count != 0 ||
+            cache_miss_count != 0 || fill_level != 0) begin
+          `uvm_error("P069", $sformatf(
+            "FLUSH window %0d did not clear the DUT accounting state: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d accepted_before=%0d accepted_after=%0d",
+            window, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+            accepted_before_flush, accepted_after_flush))
+        end
+        if (m_env.m_scb.remaining_entries() != 0 ||
+            m_env.m_scb.pending_drain_entries() != 0) begin
+          `uvm_error("P069", $sformatf(
+            "FLUSH window %0d left scoreboard residual state: remaining=%0d pending_drain=%0d accepted_before=%0d accepted_after=%0d",
+            window, m_env.m_scb.remaining_entries(), m_env.m_scb.pending_drain_entries(),
+            accepted_before_flush, accepted_after_flush))
+        end
+        if (hits_after_flush_wait != hits_after_flush) begin
+          `uvm_error("P069", $sformatf(
+            "FLUSH window %0d leaked output activity after flush-complete: hits_after_flush=%0d hits_after_wait=%0d",
+            window, hits_after_flush, hits_after_flush_wait))
+        end
+        if (!p069_traffic_done) begin
+          `uvm_error("P069", $sformatf(
+            "FLUSH window %0d traffic thread did not quiesce after the stop request",
+            window))
+        end
+
+        m_env.m_hit_drv.pending_q.delete();
+        wait_clocks(2);
+        restart_after_flush(16'd128);
+        accepted_window_checkpoint = m_env.m_hit_drv.accepted_payload_total;
+      end
+
+      accepted_after_final_restart = m_env.m_hit_drv.accepted_payload_total;
+      final_seq = profile_traffic_seq::type_id::create("p069_final_postflush_window");
+      final_seq.num_hits = 1_024;
+      final_seq.lane_key_start_ord = 4;
+      final_seq.pool_keys = 4;
+      final_seq.hits_per_key_switch = 1;
+      final_seq.randomize_key_order = 1'b0;
+      final_seq.inter_hit_gap_cycles = 13;
+      final_seq.fingerprint_start_index = 32_768;
+      final_seq.progress_stride = 256;
+      final_seq.progress_tag = "P069 final post-flush window";
+      final_seq.start(m_env.m_hit_seqr);
+
+      terminate_and_drain(400_000, "P069 final post-flush terminate");
+      expect_service_model_accounting("P069 final post-flush terminate", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != (m_env.m_hit_drv.accepted_payload_total - accepted_after_final_restart)) begin
+        `uvm_error("P069", $sformatf(
+          "Post-restart PUSH_COUNT drifted from the accepted delta of the final window: push=%0d accepted_restart_delta=%0d accepted_total=%0d accepted_restart_checkpoint=%0d pop=%0d overwrite=%0d",
+          push_count,
+          m_env.m_hit_drv.accepted_payload_total - accepted_after_final_restart,
+          m_env.m_hit_drv.accepted_payload_total,
+          accepted_after_final_restart,
+          pop_count,
+          overwrite_count))
+      end
+      if (overwrite_count != 0 || cache_miss_count != 0 || fill_level != 0) begin
+        `uvm_error("P069", $sformatf(
+          "Final post-restart accounting was not lossless-clean: pop=%0d overwrite=%0d cache_miss=%0d fill=%0d",
+          pop_count, overwrite_count, cache_miss_count, fill_level))
       end
     end else if (case_id == "P111") begin
       run_single_key_overwrite_window("P111 single-key overwrite 10pct-ish", 576);

@@ -54,9 +54,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.24 (no RTL logic delta; package the clean terminate/deassembly-drain harness fix and PROF P005/P006 closure)
 --      Date: Apr 20, 2026
--- Version : 26.1.15
+-- Revision: 2.25 (guard the unstable SEARCH window against cross-key overlap and keep the frozen SEARCH snapshot immutable at the write pointer)
+--      Date: Apr 21, 2026
+-- Version : 26.2.0
 -- Date    : 20260421
--- Change  : package the DRAIN/LOAD push-overlap fixes plus the TERMINATING end-of-run ingress/drain fixes as release 26.1.15.0421
+-- Change  : package the SEARCH-window cross-key overlap closure plus the frozen-snapshot write-pointer guard as release 26.2.0.0421
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -98,8 +100,8 @@ generic(
 	ENCODER_PIPE_STAGES	: natural := 4;
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
-	VERSION_MINOR		: natural := 1;
-	VERSION_PATCH       : natural := 15;
+	VERSION_MINOR		: natural := 2;
+	VERSION_PATCH       : natural := 0;
 	BUILD				: natural := 421;
 	VERSION_DATE		: natural := 20260421;
 	VERSION_GIT			: natural := 0;
@@ -481,6 +483,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal pop_hits_count							: unsigned(MAIN_CAM_ADDR_WIDTH downto 0); -- + 1 bit
 	signal pop_engine_match_exist					: std_logic;
 	signal pop_search_wait_cnt						: unsigned(2 downto 0);
+	signal pop_write_pointer_in_snapshot			: std_logic;
 	-- pop engine (flushing)
 	constant POP_FLUSH_CAM_DATA_MAX					: unsigned(MAIN_CAM_DATA_WIDTH-1 downto 0) := (others => '1'); -- for flushing
 	constant POP_FLUSH_CAM_ADDR_MAX					: unsigned(MAIN_CAM_ADDR_WIDTH-1 downto 0) := (others => '1'); -- for flushing
@@ -957,6 +960,18 @@ begin
 			end case;
 		end if;
 	end process;
+
+	proc_pop_write_pointer_snapshot_guard : process (all)
+		variable slot_idx_v : natural range 0 to MAIN_CAM_SIZE-1;
+		variable part_idx_v : natural range 0 to N_PARTITIONS-1;
+		variable part_slot_v : natural range 0 to MATCH_PARTITION_SIZE_CONST-1;
+	begin
+		slot_idx_v := to_integer(write_pointer);
+		part_idx_v := slot_idx_v / MATCH_PARTITION_SIZE_CONST;
+		part_slot_v := slot_idx_v mod MATCH_PARTITION_SIZE_CONST;
+		pop_write_pointer_in_snapshot <= pop_partition_snapshot(part_idx_v)(part_slot_v);
+	end process;
+
 	
 
 	
@@ -1129,17 +1144,18 @@ begin
 						pop_cmd_fifo_empty /= '1') then -- only pop descriptors while the DUT is in an active drain state
 						pop_current_sk		<= pop_cmd_fifo_dout; -- latch pop search key for this round, ts[11:4]
 						pop_engine_state	<= SEARCH;
-							pop_total_hits		<= (others => '0');
-							pop_hits_count		<= (others => '0');
-							pop_partition_pending <= (others => '0');
-							pop_count_partition_idx	<= 0;
-							pop_count_chunk_idx		<= 0;
-							pop_count_total_acc		<= (others => '0');
-							pop_count_done			<= '0';
-							pop_rr_idx			<= 0;
-							pop_load_idx		<= 0;
-							pop_issue_valid		<= '0';
-						end if;
+						pop_total_hits			<= (others => '0');
+						pop_hits_count			<= (others => '0');
+						pop_partition_snapshot	<= (others => (others => '0'));
+						pop_partition_pending	<= (others => '0');
+						pop_count_partition_idx	<= 0;
+						pop_count_chunk_idx		<= 0;
+						pop_count_total_acc		<= (others => '0');
+						pop_count_done			<= '0';
+						pop_rr_idx				<= 0;
+						pop_load_idx			<= 0;
+						pop_issue_valid			<= '0';
+					end if;
 					-- inter-fsm communication (with run state mgmt)
 					if (run_mgmt_flush_memory_start = '1' and run_mgmt_flush_memory_done = '0') then
 						pop_engine_state	<= FLUSHING; -- start the sub-routine
@@ -1150,9 +1166,9 @@ begin
 					end if;
 				-- ============= OP POP ==============
 				when SEARCH =>	-- pop_current_sk was connected to the read port of cam
-					if (to_integer(pop_search_wait_cnt)	< 5) then -- wait for 4 more cycle until the cam lookup result is available (guard band to prevent push to the same address)
+					if (to_integer(pop_search_wait_cnt)	< 3) then -- wait until the match fabric has settled before freezing this search snapshot
 						pop_search_wait_cnt		<= pop_search_wait_cnt + 1;
-					else -- latch at result 2nd cycle and exit
+					elsif (pop_search_wait_cnt = to_unsigned(3, pop_search_wait_cnt'length)) then -- freeze the snapshot, then hold SEARCH for two settled overlap cycles
 						pop_partition_snapshot		<= cam_match_addr_oh_partitioned_comb;
 						for i in 0 to N_PARTITIONS-1 loop
 							if (or_reduce(cam_match_addr_oh_partitioned_comb(i)) = '1') then
@@ -1161,6 +1177,10 @@ begin
 								pop_partition_pending(i) <= '0';
 							end if;
 						end loop;
+						pop_search_wait_cnt			<= to_unsigned(4, pop_search_wait_cnt'length);
+					elsif (pop_search_wait_cnt = to_unsigned(4, pop_search_wait_cnt'length)) then
+						pop_search_wait_cnt			<= to_unsigned(5, pop_search_wait_cnt'length);
+					else -- exit after the settled SEARCH tail
 						pop_engine_state			<= LOAD;
 						pop_search_wait_cnt			<= (others => '0');
 						pop_load_idx				<= 0;
@@ -1394,10 +1414,18 @@ begin
 			decision		<= 3;
 		elsif (req(1) = '1') then -- always grant erase even in pop phase (appear in the first cycle as last push write is just granted)
 			decision		<= 1;
-		elsif (pop_engine_state = SEARCH) then -- SEARCH is the last phase before the pop snapshot is frozen; later phases must preserve it
+		elsif (pop_engine_state = SEARCH) then
+			-- Any cross-key CAM write can perturb the in-flight match fabric
+			-- before the SEARCH snapshot is frozen. Re-open cross-key overlap
+			-- only after the snapshot has been captured and SEARCH is in its
+			-- settled tail cycles, and even then only when the current write
+			-- pointer is outside the frozen snapshot.
 			if (req(2) = '1') then
 				decision		<= 2;
-			elsif (req(0) = '1') then
+			elsif (req(0) = '1' and
+			       (in_hit_sk = pop_current_sk(7 downto 0) or
+			        (pop_search_wait_cnt >= to_unsigned(5, pop_search_wait_cnt'length) and
+			         pop_write_pointer_in_snapshot = '0'))) then
 				decision		<= 0;
 			end if;
 		elsif (pop_engine_state /= IDLE) then -- once DRAIN starts, preserve the frozen pop snapshot until retirement completes

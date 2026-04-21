@@ -363,6 +363,7 @@ package ring_buffer_cam_pkg;
     bit [38:0] raw_hit;
     bit        occupied;
     bit [47:0] pop_count;
+    bit [7:0]  active_search_key;
 
     function new(string name = "debug_pop_item");
       super.new(name);

@@ -408,6 +408,12 @@ class scoreboard extends uvm_scoreboard;
     end
 
     pop_fp = debug_pop_item_to_fp(item);
+    if (item.active_search_key != pop_fp.search_key) begin
+      `uvm_error("SCB", $sformatf(
+        "Pop-side key mismatch at slot %0d: pop_current_sk=%0d raw_hit_key=%0d occupied=%0b pop_count=%0d",
+        slot_addr, item.active_search_key, pop_fp.search_key,
+        item.occupied, item.pop_count))
+    end
     model_match_idx = -1;
     if (slot_model[slot_addr].valid &&
         fp_matches(slot_model[slot_addr].fp, pop_fp)) begin

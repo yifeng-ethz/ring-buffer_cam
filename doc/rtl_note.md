@@ -5,7 +5,7 @@ Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh packages the latest run-control / overlap RTL fixes as `26.1.15.0421`, including the buffered deassembly-drain completion fix discovered while promoting `P066` on the report seed, refreshes the seed-1 DV evidence through `B132`, `P066`, and `P126`, and reruns the standalone `ring_buffer_cam_syn_p4` compile for this nightly checkpoint.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh packages the latest SEARCH-window overlap RTL fixes as `26.2.0.0421`, refreshes the seed-1 DV evidence through `B056`, `B133`, `P031`, `P125`, and `P126`, and keeps the standalone `ring_buffer_cam_syn_p4` compile as the current nightly synthesis checkpoint.
 - Sign-off status: the current isolated DV dashboard passes on the live RTL; the standalone `ring_buffer_cam_syn_p4` timing/resource numbers were rerun and close for the current release; gate-level simulation and full DV-plan closure remain open.
 - Key deltas:
   - added `rtl/addr_enc_logic_partitioned.vhd`
@@ -15,9 +15,9 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup and the guarded descriptor / stale-request handling used by the current DV closure
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,327` ALMs, `2,770` registers, slow-85C setup slack `+0.809 ns`, worst hold slack `+0.169 ns`, slow-corner Fmax `154.70 MHz`
-  - current DV dashboard: refreshed after the `B010`, `B011`, `B130`, `B131`, `B132`, `P066`, and `P126` seed-1 reruns for the new nightly checkpoint, now covering `322/516` planned cases
-  - latest closure slice: the three new RTL bugs are trapped by `B130/B131/B132`, the mid-run terminate profile `P066` now passes cleanly, and the skewed checkpoint overwrite soak `P126` still closes with explicit overwrite accounting
-  - delivered package metadata: `26.1.15.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
+  - current DV dashboard: refreshed after the `B010`, `B011`, `B056`, `P031`, `P125`, and `P126` seed-1 reruns for the new nightly checkpoint, now covering `322/516` planned cases
+  - latest closure slice: two new SEARCH-window RTL bugs are trapped by `B133` plus the `P125` checkpoint overwrite soak, while `B056`, `P031`, and `P126` prove the retimed SEARCH tail keeps the wait-count contract, adversarial two-key overlap, and skewed overwrite accounting intact
+  - delivered package metadata: `26.2.0.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
   - the current release now has refreshed DV evidence on top of the earlier architectural refactor, with a matching standalone timing/resource refresh completed for this nightly checkpoint
@@ -192,7 +192,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 9. Packaging and Local Platform Designer Environment
 
 - `script/ring_buffer_cam_hw.tcl` was reworked into the current project style used by the newer MAX10/JESD204B-style components:
-  - current delivered version `26.1.15.0421`
+  - current delivered version `26.2.0.0421`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
   - lint check passed against `rtl/ring_buffer_cam.vhd`

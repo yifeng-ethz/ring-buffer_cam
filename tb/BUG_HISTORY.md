@@ -914,3 +914,47 @@ Normalization note:
   - allowed the push engine to continue servicing buffered local payload while the DUT is in `TERMINATING`, while keeping ingress `wrreq` / `ready` clamped after lane-local end-of-run
   - verified by the clean seed-1 reruns of `P066`, `B132`, and `P126`; `P066` now closes at `accepted=85`, `push=85`, `pop=85`, `remaining=0`
 - Commit: 00fc1b8
+
+### BUG-055-R: Cross-key `push_write` could still perturb the SEARCH match fabric before the pop snapshot was frozen
+- Severity: `soft error`
+- Encounter sim-time: `n/a (directed-only early-SEARCH cross-key guard repro)`
+- First seen in: `B133` on 2026-04-21 while extending the post-`BUG-051/052` overlap closure back into the unstable SEARCH window
+- Symptom:
+  - a competing key could still win `push_write_grant` while the pop engine was in the early SEARCH wait window
+  - that meant the resident set feeding `cam_match_addr_oh_partitioned_comb` could change before the pop engine froze its snapshot, risking wrong pending masks or later drain corruption under mixed-key overlap
+- Root cause:
+  - the arbiter still allowed general push/pop overlap throughout SEARCH instead of distinguishing between the unstable pre-freeze SEARCH cycles and the later settled tail
+  - same-key overlap is harmless in that window because it preserves the active match population, but cross-key writes can perturb the in-flight match fabric before snapshot freeze
+- Fix status:
+  - `state`: fixed and verified in the directed SEARCH-window guard slice on `dev`
+  - `mechanism`: `proc_mem_arbitor_comb` now allows only same-key `push_write` overlap while SEARCH is still in the pre-freeze window; cross-key overlap is deferred until the settled SEARCH tail
+  - `before_fix_outcome`: the new `B133` guard could observe a cross-key `push_write_grant` while the active SEARCH key was still in its unstable wait window, proving the resident set was still mutable before snapshot freeze
+  - `after_fix_outcome`: `B133` now stays clean and the adversarial two-key alternation case `P031` still closes at `push=20000`, `pop=20000`, `overwrite=0`, `remaining=0`
+  - `potential_hazard`: low to moderate; the unstable SEARCH window is now directly guarded, but any future SEARCH timing retime must keep the same-key-only rule aligned with the actual snapshot-freeze point
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - the early SEARCH overlap rule is now explicit: same-key writes may still overlap, cross-key writes may not
+  - verified by clean isolated reruns of `B133` and `P031`
+- Commit: pending
+
+### BUG-056-R: Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer
+- Severity: `soft error`
+- Encounter sim-time: `n/a (reduced checkpoint overwrite-soak repro in pre-fix P125; failing intermediate log not retained as a published artifact)`
+- First seen in: `P125` on 2026-04-21 after the early SEARCH guard had already landed, while re-opening safe cross-key overlap in the settled SEARCH tail
+- Symptom:
+  - the early SEARCH guard fixed the pre-freeze perturbation, but the balanced checkpoint overwrite soak could still corrupt later drain ownership with pop-side key mismatches and unexpected drained hits
+  - the corruption only appeared once SEARCH had already frozen its snapshot, proving the remaining hazard was no longer the match-fabric settle window itself
+- Root cause:
+  - the settled SEARCH tail reopened cross-key overlap without checking whether the current `write_pointer` targeted a slot already present in `pop_partition_snapshot`
+  - a late cross-key write could therefore overwrite a resident that the pop engine had already captured for retirement, so the later drain observed the wrong key/data at that frozen address
+- Fix status:
+  - `state`: fixed and verified in the checkpoint overwrite-soak reruns on `dev`
+  - `mechanism`: the arbiter now allows settled-tail cross-key overlap only when the live `write_pointer` is outside the frozen `pop_partition_snapshot`
+  - `before_fix_outcome`: the intermediate post-`BUG-055-R` `P125` rerun still produced pop-side key-mismatch / unexpected-drain corruption, proving a frozen snapshot slot could still be clobbered in the settled SEARCH tail
+  - `after_fix_outcome`: `P125` now closes at `push=2500`, `pop=1711`, `overwrite=789`, `remaining=0`, while `P126` still closes at `push=2500`, `pop=1713`, `overwrite=787`, `remaining=0`
+  - `potential_hazard`: low to moderate; the frozen-slot guard is local and directly tied to the snapshot image, but any future write-pointer or partition-snapshot refactor must preserve that address-exclusion rule
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - settled-tail overlap is now reopened only when the live write pointer sits outside the frozen snapshot, so SEARCH can keep limited throughput overlap without mutating an already-captured retirement set
+  - verified by clean isolated reruns of `B056`, `P125`, and `P126`
+- Commit: pending

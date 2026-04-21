@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.1.15
+-- Version : 26.2.0
 -- Date    : 20260421
--- Change  : package the DRAIN/LOAD push-overlap fixes plus the TERMINATING end-of-run ingress/drain fixes as release 26.1.15.0421
+-- Change  : package the SEARCH-window cross-key overlap closure plus the frozen-snapshot write-pointer guard as release 26.2.0.0421
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -19,8 +19,8 @@ entity ring_buffer_cam is
         ENCODER_PIPE_STAGES : natural := 4;
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
-        VERSION_MINOR       : natural := 1;
-        VERSION_PATCH       : natural := 15;
+        VERSION_MINOR       : natural := 2;
+        VERSION_PATCH       : natural := 0;
         BUILD               : natural := 421;
         VERSION_DATE        : natural := 20260421;
         VERSION_GIT         : natural := 0;
