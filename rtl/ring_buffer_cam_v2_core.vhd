@@ -56,9 +56,11 @@
 --      Date: Apr 20, 2026
 -- Revision: 2.25 (guard the unstable SEARCH window against cross-key overlap and keep the frozen SEARCH snapshot immutable at the write pointer)
 --      Date: Apr 21, 2026
--- Version : 26.2.0
+-- Revision: 2.26 (fix low-stage encoder variant build safety and wrap the live write pointer at the configured ring depth)
+--      Date: Apr 21, 2026
+-- Version : 26.2.1
 -- Date    : 20260421
--- Change  : package the SEARCH-window cross-key overlap closure plus the frozen-snapshot write-pointer guard as release 26.2.0.0421
+-- Change  : package the low-stage encoder variant repair plus the non-power-of-two ring-depth write-pointer wrap as release 26.2.1.0421
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -101,7 +103,7 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 2;
-	VERSION_PATCH       : natural := 0;
+	VERSION_PATCH       : natural := 1;
 	BUILD				: natural := 421;
 	VERSION_DATE		: natural := 20260421;
 	VERSION_GIT			: natural := 0;
@@ -241,6 +243,19 @@ architecture rtl of ring_buffer_cam_v2_core is
 		sum1_v   := resize(count2_v, sum1_v'length) + resize(count3_v, sum1_v'length);
 		total_v  := resize(sum0_v, total_v'length) + resize(sum1_v, total_v'length);
 		return to_integer(total_v);
+	end function;
+
+	function ring_ptr_inc (
+		ptr_v : unsigned
+	) return unsigned is
+		variable next_v : unsigned(ptr_v'range);
+	begin
+		if (to_integer(ptr_v) >= RING_BUFFER_N_ENTRY-1) then
+			next_v := (others => '0');
+		else
+			next_v := ptr_v + 1;
+		end if;
+		return next_v;
 	end function;
 
 	function pack_version_func (
@@ -913,7 +928,7 @@ begin
 						end if;
 					when WRITE_AND_CHECK => -- write 
 						if (push_write_grant = '1') then -- incr ptr and cnt
-							write_pointer				<= write_pointer + 1; 
+							write_pointer				<= ring_ptr_inc(write_pointer); 
 --							debug_msg.push_cnt			<= debug_msg.push_cnt + 1;
 						elsif (pop_flush_cam_done = '1') then -- reset when pop has flushed
 							-- reset in this push state, not in ERASE, because push should in this state while flush has been executed
@@ -962,14 +977,18 @@ begin
 	end process;
 
 	proc_pop_write_pointer_snapshot_guard : process (all)
-		variable slot_idx_v : natural range 0 to MAIN_CAM_SIZE-1;
+		variable slot_idx_v : natural;
 		variable part_idx_v : natural range 0 to N_PARTITIONS-1;
 		variable part_slot_v : natural range 0 to MATCH_PARTITION_SIZE_CONST-1;
 	begin
 		slot_idx_v := to_integer(write_pointer);
-		part_idx_v := slot_idx_v / MATCH_PARTITION_SIZE_CONST;
-		part_slot_v := slot_idx_v mod MATCH_PARTITION_SIZE_CONST;
-		pop_write_pointer_in_snapshot <= pop_partition_snapshot(part_idx_v)(part_slot_v);
+		if (slot_idx_v < MAIN_CAM_SIZE) then
+			part_idx_v := slot_idx_v / MATCH_PARTITION_SIZE_CONST;
+			part_slot_v := slot_idx_v mod MATCH_PARTITION_SIZE_CONST;
+			pop_write_pointer_in_snapshot <= pop_partition_snapshot(part_idx_v)(part_slot_v);
+		else
+			pop_write_pointer_in_snapshot <= '0';
+		end if;
 	end process;
 
 	

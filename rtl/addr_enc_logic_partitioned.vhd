@@ -92,7 +92,10 @@ architecture rtl of addr_enc_logic_partitioned is
     constant N_MIDS_CONST               : natural := ceil_div(N_LEAVES_CONST, MID_GROUP_SIZE_CONST);
 
     subtype part_addr_t       is unsigned(PARTITION_ADDR_BITS-1 downto 0);
-    subtype pipe_valid_t      is std_logic_vector(PIPE_STAGES-1 downto 0);
+    -- Only the active encoder datapath uses up to 4 pipeline-valid bits.
+    -- Wider PIPE_STAGES are handled by result_valid_extra, and low-stage
+    -- builds must not index beyond the physical valid vector width.
+    subtype pipe_valid_t      is std_logic_vector(3 downto 0);
     subtype extra_valid_t     is std_logic_vector(EXTRA_VALID_VEC_LEN_CONST-1 downto 0);
 
     type part_addr_arr_t is array (natural range <>) of part_addr_t;
@@ -322,8 +325,9 @@ begin
             mid_has_more_reg  <= mid_has_more_reg;
             mid_lsb_addr_reg  <= mid_lsb_addr_reg;
 
-            if (PIPE_STAGES > 1) then
-                pipe_valid_v(PIPE_STAGES-1 downto 1) := pipe_valid(PIPE_STAGES-2 downto 0);
+            if (ACTIVE_PIPE_STAGES_CONST > 1) then
+                pipe_valid_v(ACTIVE_PIPE_STAGES_CONST-1 downto 1)
+                    := pipe_valid(ACTIVE_PIPE_STAGES_CONST-2 downto 0);
             end if;
             pipe_valid_v(0) := start_eval;
 

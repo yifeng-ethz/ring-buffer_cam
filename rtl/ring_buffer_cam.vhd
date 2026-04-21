@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.2.0
+-- Version : 26.2.1
 -- Date    : 20260421
--- Change  : package the SEARCH-window cross-key overlap closure plus the frozen-snapshot write-pointer guard as release 26.2.0.0421
+-- Change  : package the low-stage encoder variant repair plus the non-power-of-two ring-depth write-pointer wrap as release 26.2.1.0421
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 2;
-        VERSION_PATCH       : natural := 0;
+        VERSION_PATCH       : natural := 1;
         BUILD               : natural := 421;
         VERSION_DATE        : natural := 20260421;
         VERSION_GIT         : natural := 0;
