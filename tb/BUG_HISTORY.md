@@ -13,6 +13,13 @@ Encounter sim-time legend:
 - `min / p50 / max` = first encounter in simulation time under a still-traceable randomized screen with multiple seeded reruns
 - `n/a (...)` = promotion-audit, directed-only, reporting-only, or otherwise not honestly measurable in the current randomized harness
 
+Fix status detail contract for active entries and future updates:
+- `state` = fixed / open / partial plus the current verification gate
+- `mechanism` = how the implemented repair changes the RTL or harness behavior
+- `before_fix_outcome` and `after_fix_outcome` = concise evidence showing what changed
+- `potential_hazard` = whether the fix looks permanent or is still provisional / profile-limited
+- `Claude Opus 4.7 xhigh review decision` = explicit review state; use `pending / not run` until that review has actually happened
+
 Normalization note:
 - `BUG-033` onward follows the `packet_scheduler` severity / encounter-sim-time style explicitly.
 - Earlier entries remain valid historical content and are being backfilled incrementally instead of rewritten in one opaque bulk edit.
@@ -742,7 +749,13 @@ Normalization note:
 - Root cause:
   - `write_pop()` returned immediately whenever the debug pop item reported `occupied=0`
   - in the stale-slot contract that exact `occupied=0` observation is still a real resident retirement, because the pop-side raw payload can still identify the written slot that is being drained as a cache miss
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in the stale-slot closure tranche on `dev`
+  - `mechanism`: `write_pop()` now treats `occupied=0` cache-miss pops as real resident retirements by recovering the live fingerprint from the raw pop payload instead of returning early
+  - `before_fix_outcome`: `B029` / `B067` timed out in `wait_for_scoreboard_idle()` with `remaining=1` even though the DUT had already emitted the cache-miss-tagged hit beat
+  - `after_fix_outcome`: `B029`, `B067`, and the mixed FLUSH counter-clear case `B030` now retire the stale-slot resident cleanly with no residual resident drift
+  - `potential_hazard`: low for the current stale-slot/cache-miss slice; this path is now anchored by multiple directed cases but has not yet been stress-screened in a broader random stale-slot campaign
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - the scoreboard now recovers the matching live fingerprint from the raw pop payload even when `occupied=0`, retires the resident immediately, and leaves the later output beat to classify the drain as `cache_miss`
   - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
@@ -758,7 +771,13 @@ Normalization note:
 - Root cause:
   - `write_out()` treated `item.cache_miss` as a special classification path, but it never deleted the corresponding fingerprint from `pending_drain_q`
   - the stale-slot epoch therefore remained artificially non-quiescent forever, even after the visible output beat had closed the packet
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in the stale-slot closure tranche on `dev`
+  - `mechanism`: `write_out()` now consumes the matching `pending_drain_q` fingerprint on cache-miss output beats before final packet-accounting checks run
+  - `before_fix_outcome`: after `BUG-047-H` retired the resident, `B029` still timed out with `remaining=0` but `pending_drain=1`, leaving the stale-slot epoch permanently non-quiescent
+  - `after_fix_outcome`: `B029`, `B067`, and `B030` now close both resident and pending-drain accounting cleanly when the cache-miss output beat arrives
+  - `potential_hazard`: low for the current stale-slot/accounting slice; the fix is local to scoreboard pending-drain retirement and did not reopen the overwrite-path control case `B027`
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - the cache-miss output path now consumes the matching pending-drain fingerprint before final packet-accounting checks run
   - verified by clean isolated reruns of `B029`, `B067`, and the mixed FLUSH counter-clear case `B030`
@@ -774,7 +793,13 @@ Normalization note:
 - Root cause:
   - the first helper overrode `dut.v2_core.side_ram_dout[39]` directly with `force/release`
   - that approach perturbed the live read bus instead of editing one stored side-RAM word, so later pop-side reads in the same testcase could inherit the stale forced occupancy value and collapse both overwrite detection and cache-miss attribution
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in the stale-slot helper closure tranche on `dev`
+  - `mechanism`: replaced the live-bus `force/release` hack with a dedicated debug patch lane in `alt_simple_dpram` / `ring_buffer_cam_v2_core`, then rewrote the BASIC helper to patch exactly one stored side-RAM word for one clock
+  - `before_fix_outcome`: `B030` polluted later reads across the ring and collapsed into `push=514 pop=513 overwrite=0 cache_miss=513`, proving the helper was perturbing the live side-RAM read bus rather than one target resident
+  - `after_fix_outcome`: `B029`, `B030`, and `B067` now exercise one stale-slot resident without contaminating later overwrite or cache-miss attribution, while `B027` stays clean as the overwrite control
+  - `potential_hazard`: low for the current directed helper flow; the patch lane is debug-only, but any future stale-slot helper changes still need to avoid touching the live read bus
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - replaced the live-bus force with a dedicated debug patch lane in `alt_simple_dpram` / `ring_buffer_cam_v2_core`, then rewrote the BASIC stale-slot helpers to patch exactly one written side-RAM entry for one clock
   - verified by clean isolated reruns of `B029`, `B030`, and `B067`, with `B027` remaining clean as the overwrite-path control
@@ -790,7 +815,13 @@ Normalization note:
 - Root cause:
   - the compat model encoded `count` directly into a `usedw` vector whose width is only `log2(depth)`
   - Intel's generated wrappers use that narrow debug width, so the exact-full count is not representable and must saturate rather than convert lossily
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in isolated BASIC warning-floor refresh on `dev`
+  - `mechanism`: added a saturating `encode_usedw()` helper to `tb/sim/compat/scfifo.vhd` and made the compat source a real Makefile dependency so exact-full occupancy rebuilds deterministically
+  - `before_fix_outcome`: exact-full FIFO occupancy flooded `B072` and other long regressions with repeated `NUMERIC_STD.TO_UNSIGNED: vector truncated` style warnings, obscuring real failures
+  - `after_fix_outcome`: `B072` reruns now keep only the remaining benign startup/tool warnings instead of the previous exact-full `usedw` flood
+  - `potential_hazard`: low; this is a simulator-compatibility repair, but the compat helper must continue matching Intel's exact-full saturation semantics rather than reintroducing lossy narrow-width conversion
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - added a saturating `encode_usedw()` helper to `tb/sim/compat/scfifo.vhd` and made the compat source a real Makefile dependency so reruns rebuild it deterministically
   - verified by a clean isolated rerun of `B072`; warning count dropped from the previous full-occupancy flood to the remaining benign startup/tool warnings only
@@ -806,7 +837,13 @@ Normalization note:
 - Root cause:
   - `proc_mem_arbitor_comb` still treated every non-IDLE pop state as eligible for push/pop overlap
   - once the engine had entered `DRAIN`, that overlap policy was no longer legal because the frozen pop snapshot had to retire without further push-side mutation
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in directed overlap guards on `dev`
+  - `mechanism`: `proc_mem_arbitor_comb` no longer allows push/pop overlap once the pop engine has reached `DRAIN`; overlap is now restricted to the pre-freeze search window
+  - `before_fix_outcome`: the new `B130` guard showed that a late push could still win arbitration in a `DRAIN` bubble and mutate RAM/CAM state underneath an active frozen drain epoch
+  - `after_fix_outcome`: `B130` now stays clean, and the follow-on guards `B131` plus the skewed overwrite soak `P126` still pass with the overlap restriction in place
+  - `potential_hazard`: low to moderate; the repair is guarded by dedicated directed cases, but broad continuous-frame overlap closure is still open because the all-bucket signoff matrix has not been completed yet
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - restricted overlap to the pre-freeze search window and added the dedicated `B130` guard so any future `push_write` in `DRAIN` fails immediately
   - verified by clean isolated reruns of `B130`, `B131`, and the skewed overwrite soak `P126`
@@ -822,7 +859,13 @@ Normalization note:
 - Root cause:
   - overlap had been left enabled for all non-IDLE pop states instead of only the final pre-freeze `SEARCH` phase
   - the pop-side snapshot therefore was not protected once the engine had already started loading/counting the matched partitions
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in directed frozen-snapshot guards on `dev`
+  - `mechanism`: the arbiter now allows push/pop overlap only during `SEARCH`; `LOAD`, `COUNT`, and `DRAIN` preserve the frozen pop snapshot until retirement completes
+  - `before_fix_outcome`: after the first `DRAIN` fix, `B131` still showed `push_write` could slip into `LOAD` or `COUNT`, meaning the issue mask and exact-hit count could be computed from one resident set and drained against another
+  - `after_fix_outcome`: `B131` is now clean and `P126` still closes with explicit overwrite accounting (`push=2500`, `pop=1693`, `overwrite=807`, `remaining=0`)
+  - `potential_hazard`: low to moderate; the frozen-snapshot contract now has a direct guard, but wider mixed random space still depends on future DV-plan closure rather than this one directed slice alone
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - the arbiter now allows overlap only during `SEARCH`, while `LOAD`, `COUNT`, and `DRAIN` preserve the frozen snapshot until retirement completes
   - verified by clean isolated reruns of `B131` and the reduced checkpoint overwrite soak `P126`, which still closes at `push=2500`, `pop=1693`, `overwrite=807`, `remaining=0`
@@ -838,7 +881,13 @@ Normalization note:
 - Root cause:
   - `deassembly_fifo_wrreq` correctly stopped once the DUT entered `TERMINATING` with `endofrun_seen=1`, but `asi_hit_type1_ready` still depended only on FIFO fullness
   - the DUT therefore advertised acceptance after end-of-run even though the local write path had already closed
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in the report-seed terminate-path reruns on `dev`
+  - `mechanism`: `asi_hit_type1_ready` now requires `csr.go=1`, no soft-reset, and an active `RUNNING` or pre-EOR `TERMINATING` state instead of depending only on FIFO fullness
+  - `before_fix_outcome`: pre-fix `P066` kept advancing `accepted_payload_total` after lane-local end-of-run while `PUSH_COUNT` stopped, proving the DUT still advertised acceptance after the local write path had already closed
+  - `after_fix_outcome`: `P066`, `B132`, `B131`, and `P126` now keep `ready` and `dbg_push_cnt` flat after lane-local end-of-run, eliminating accepted-but-dropped post-EOR beats
+  - `potential_hazard`: low to moderate; the ingress contract is now guarded directly by `B132`, but terminate behavior still relies on the broader drain path staying aligned with the buffered-local-work contract fixed by `BUG-054-R`
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - `asi_hit_type1_ready` now also requires `csr.go=1`, no soft-reset, and an active `RUNNING` / pre-EOR `TERMINATING` state; the new `B132` guard checks that `ready` and `dbg_push_cnt` stay flat after lane-local end-of-run
   - verified by clean isolated reruns of `P066`, `B132`, `B131`, and `P126`
@@ -854,7 +903,13 @@ Normalization note:
 - Root cause:
   - `proc_push_engine_comb` still blocked both `push_write_req` and `push_erase_req` once `run_state_cmd=TERMINATING` and `endofrun_seen=1`
   - that was too aggressive: new ingress had to stop, but already-buffered deassembly entries and their follow-on erase work still had to drain to make `terminating_drain_done` reachable
-- Fix status: fixed and verified
+- Fix status:
+  - `state`: fixed and verified in the report-seed terminate-path reruns on `dev`
+  - `mechanism`: `proc_push_engine_comb` now keeps servicing already-buffered deassembly payload and follow-on erase work during `TERMINATING`, while leaving ingress `wrreq` / `ready` clamped after lane-local end-of-run
+  - `before_fix_outcome`: after `BUG-053-R`, seed-1 `P066` still wedged in `TERMINATING` with `deassm_usedw=2`, `push=83`, `pop=83`, and `accepted=85`, proving two pre-EOR entries were stranded in the local FIFO forever
+  - `after_fix_outcome`: seed-1 `P066` now closes cleanly at `accepted=85`, `push=85`, `pop=85`, `remaining=0`, and the directed terminate guard `B132` plus the checkpoint overwrite soak `P126` remain green
+  - `potential_hazard`: low to moderate; the buffered-local-work drain rule is now covered by the report-seed terminate repro, but long mixed terminate/no-restart space still needs broader DV-plan closure
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - allowed the push engine to continue servicing buffered local payload while the DUT is in `TERMINATING`, while keeping ingress `wrreq` / `ready` clamped after lane-local end-of-run
   - verified by the clean seed-1 reruns of `P066`, `B132`, and `P126`; `P066` now closes at `accepted=85`, `push=85`, `pop=85`, `remaining=0`
