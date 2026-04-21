@@ -794,7 +794,7 @@ Normalization note:
 - Runtime / coverage context:
   - added a saturating `encode_usedw()` helper to `tb/sim/compat/scfifo.vhd` and made the compat source a real Makefile dependency so reruns rebuild it deterministically
   - verified by a clean isolated rerun of `B072`; warning count dropped from the previous full-occupancy flood to the remaining benign startup/tool warnings only
-- Commit: pending
+- Commit: 00fc1b8
 
 ### BUG-051-R: The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN`
 - Severity: `soft error`
@@ -810,7 +810,7 @@ Normalization note:
 - Runtime / coverage context:
   - restricted overlap to the pre-freeze search window and added the dedicated `B130` guard so any future `push_write` in `DRAIN` fails immediately
   - verified by clean isolated reruns of `B130`, `B131`, and the skewed overwrite soak `P126`
-- Commit: pending
+- Commit: 00fc1b8
 
 ### BUG-052-R: The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT`
 - Severity: `soft error`
@@ -826,7 +826,7 @@ Normalization note:
 - Runtime / coverage context:
   - the arbiter now allows overlap only during `SEARCH`, while `LOAD`, `COUNT`, and `DRAIN` preserve the frozen snapshot until retirement completes
   - verified by clean isolated reruns of `B131` and the reduced checkpoint overwrite soak `P126`, which still closes at `push=2500`, `pop=1693`, `overwrite=807`, `remaining=0`
-- Commit: pending
+- Commit: 00fc1b8
 
 ### BUG-053-R: Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped
 - Severity: `soft error`
@@ -842,7 +842,7 @@ Normalization note:
 - Runtime / coverage context:
   - `asi_hit_type1_ready` now also requires `csr.go=1`, no soft-reset, and an active `RUNNING` / pre-EOR `TERMINATING` state; the new `B132` guard checks that `ready` and `dbg_push_cnt` stay flat after lane-local end-of-run
   - verified by clean isolated reruns of `P066`, `B132`, `B131`, and `P126`
-- Commit: pending
+- Commit: 00fc1b8
 
 ### BUG-054-R: The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING`
 - Severity: `soft error`
@@ -858,4 +858,4 @@ Normalization note:
 - Runtime / coverage context:
   - allowed the push engine to continue servicing buffered local payload while the DUT is in `TERMINATING`, while keeping ingress `wrreq` / `ready` clamped after lane-local end-of-run
   - verified by the clean seed-1 reruns of `P066`, `B132`, and `P126`; `P066` now closes at `accepted=85`, `push=85`, `pop=85`, `remaining=0`
-- Commit: pending
+- Commit: 00fc1b8

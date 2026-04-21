@@ -2,7 +2,7 @@
 
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-21` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Evidence basis:** `pending commit`
+**Evidence basis:** `00fc1b8`
 
 This file is the detailed standalone synthesis and timing report for the active `ring_buffer_cam` bug-fix release. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 

@@ -24,11 +24,11 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bug_id | class | date | title | commit |
 |:---:|---|---|---|---|---|
-| ⚠️ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `pending` |
-| ⚠️ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `pending` |
-| ⚠️ | `BUG-052-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT` | `pending` |
-| ⚠️ | `BUG-051-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN` | `pending` |
-| ⚠️ | `BUG-050-H` | Harness | `2026-04-21` | The compat `scfifo` model truncated exact-full `usedw` and flooded long regressions with false warnings | `pending` |
+| ✅ | `BUG-054-R` | RTL | `2026-04-21` | The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING` | `00fc1b8` |
+| ✅ | `BUG-053-R` | RTL | `2026-04-21` | Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped | `00fc1b8` |
+| ✅ | `BUG-052-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT` | `00fc1b8` |
+| ✅ | `BUG-051-R` | RTL | `2026-04-21` | The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN` | `00fc1b8` |
+| ✅ | `BUG-050-H` | Harness | `2026-04-21` | The compat `scfifo` model truncated exact-full `usedw` and flooded long regressions with false warnings | `00fc1b8` |
 | ✅ | `BUG-049-H` | Harness | `2026-04-21` | The first stale-slot injector forced the live side-RAM read bus and contaminated later reads in the same testcase | `2fd3115` |
 | ✅ | `BUG-048-H` | Harness | `2026-04-21` | Cache-miss output beats left the scoreboard pending-drain queue uncleared | `2fd3115` |
 | ✅ | `BUG-047-H` | Harness | `2026-04-21` | Cache-miss pop observations with `occupied=0` did not retire the live resident in the scoreboard | `2fd3115` |

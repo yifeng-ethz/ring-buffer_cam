@@ -403,7 +403,7 @@
       "date": "2026-04-21",
       "title": "The compat `scfifo` model truncated exact-full `usedw` and flooded long regressions with false warnings",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "00fc1b8"
     },
     {
       "bug_id": "BUG-051-R",
@@ -411,7 +411,7 @@
       "date": "2026-04-21",
       "title": "The memory arbiter could still grant `push_write` while the pop engine was already in `DRAIN`",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "00fc1b8"
     },
     {
       "bug_id": "BUG-052-R",
@@ -419,7 +419,7 @@
       "date": "2026-04-21",
       "title": "The memory arbiter could still grant `push_write` after the pop snapshot had frozen in `LOAD/COUNT`",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "00fc1b8"
     },
     {
       "bug_id": "BUG-053-R",
@@ -427,7 +427,7 @@
       "date": "2026-04-21",
       "title": "Ingress `ready` stayed high after lane-local end-of-run in `TERMINATING`, so accepted beats were silently dropped",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "00fc1b8"
     },
     {
       "bug_id": "BUG-054-R",
@@ -435,7 +435,7 @@
       "date": "2026-04-21",
       "title": "The push engine stopped draining already-buffered deassembly entries after lane-local end-of-run in `TERMINATING`",
       "fix_status": "fixed and verified",
-      "commit": "pending"
+      "commit": "00fc1b8"
     }
   ],
   "buckets": {
