@@ -11274,6 +11274,164 @@ class base_test extends uvm_test;
           "Maximum-latency idle run unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
           hit_before, m_env.m_out_mon.total_hits_seen))
       end
+    end else if (case_id == "E114") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("e114_first_latency");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E114 first-latency push");
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      search_cycles = 0;
+      while (search_cycles < 160_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E114", "First-latency hit never emitted a descriptor before the rewrite")
+      end
+      search_cycles = int'(m_env.m_dbg_mon.sampled_cycles - cycle_a);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 160_000,
+        "E114 first-latency subheader", matched_subheader);
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd1);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'd1) begin
+        `uvm_error("E114", $sformatf(
+          "Latency rewrite to 1 did not reach the DUT: observed=%0d",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      cmd_after = m_cfg.lane_key_ord_to_search_key(4);
+      single_seq = single_push_pop_seq::type_id::create("e114_second_latency");
+      single_seq.search_key = cmd_after;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(2, 10_000, "E114 second-latency push");
+      cycle_b = m_env.m_dbg_mon.sampled_cycles;
+      wait_min = 0;
+      while (wait_min < 2_048 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        wait_min++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E114", "Latency rewrite to 1 did not accelerate the second descriptor window")
+      end
+      wait_min = int'(m_env.m_dbg_mon.sampled_cycles - cycle_b);
+      if (wait_min >= search_cycles || wait_min > 256) begin
+        `uvm_error("E114", $sformatf(
+          "Latency rewrite did not shorten the descriptor window enough: before=%0d after=%0d",
+          search_cycles, wait_min))
+      end
+      wait_for_subheader_match(
+        cmd_after[7:0], 8'd1, 1'b1, 1'b1, 80_000,
+        "E114 post-rewrite single-hit subheader", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "E114 latency rewrite drain");
+      expect_service_model_accounting("E114 latency rewrite drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 2 || pop_count != 2 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E114", $sformatf(
+          "Latency rewrite accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, fill_level))
+      end
+    end else if (case_id == "E116") begin
+      configure_and_start(2000);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      wait_clocks(64);
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before ||
+          m_env.m_out_mon.total_subheaders_seen != subhdr_before) begin
+        `uvm_error("E116", $sformatf(
+          "No-push generator case emitted traffic before the latency rewrite: cmd_before=%0d cmd_after=%0d subhdr_before=%0d subhdr_after=%0d",
+          cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count,
+          subhdr_before, m_env.m_out_mon.total_subheaders_seen))
+      end
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd128);
+      wait_clocks(4);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'd128) begin
+        `uvm_error("E116", $sformatf(
+          "No-push latency rewrite to 128 did not reach the DUT: observed=%0d",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      wait_for_subheader_count(subhdr_before + 1, 1_024, "E116 zero-hit post-rewrite subheader");
+      wait_min = int'(m_env.m_dbg_mon.sampled_cycles - cycle_a);
+      if (wait_min > 512) begin
+        `uvm_error("E116", $sformatf(
+          "No-push latency rewrite did not advance the zero-hit descriptor soon enough: wait=%0d cycles",
+          wait_min))
+      end
+      if (m_env.m_out_mon.recent_subheaders.size() == 0) begin
+        `uvm_error("E116", "No-push latency rewrite did not retain the zero-hit subheader")
+      end else begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        if (!(matched_subheader.sop && matched_subheader.eop) ||
+            matched_subheader.hit_count != 8'd0) begin
+          `uvm_error("E116", $sformatf(
+            "No-push latency rewrite emitted malformed zero-hit framing: sop=%0d eop=%0d hit_count=%0d",
+            matched_subheader.sop, matched_subheader.eop, matched_subheader.hit_count))
+        end
+      end
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+      if (push_count != 0 || pop_count != 0 || overwrite_count != 0 || cache_miss_count != 0) begin
+        `uvm_error("E116", $sformatf(
+          "No-push latency rewrite changed the accounting counters: push=%0d pop=%0d overwrite=%0d cache_miss=%0d",
+          push_count, pop_count, overwrite_count, cache_miss_count))
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("E116", $sformatf(
+          "No-push latency rewrite unexpectedly emitted hit data: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+    end else if (case_id == "E120") begin
+      configure_and_start(0);
+      wait_for_pop_engine_state(3'd5, 80_000, "E120 sync RESET");
+      while (m_env.m_dbg_mon.pop_engine_state_code == 3'd5) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      wait_for_pop_engine_state(3'd3, 40_000, "E120 fresh COUNT entry");
+      subhdr_before = m_env.m_out_mon.total_subheaders_seen;
+      reads_needed = (((partition_size + 15) / 16) * m_cfg.n_partitions) + 1;
+      search_cycles = 0;
+      while (search_cycles < (reads_needed + 4) &&
+             m_env.m_dbg_mon.pop_engine_state_code == 3'd3) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_engine_state_code == 3'd3) begin
+        `uvm_error("E120", $sformatf(
+          "Zero-hit COUNT phase did not complete near the expected budget: observed_at_least=%0d expected=%0d",
+          search_cycles, reads_needed))
+      end
+      if (search_cycles < reads_needed || search_cycles > (reads_needed + 1)) begin
+        `uvm_error("E120", $sformatf(
+          "Zero-hit COUNT duration mismatch: observed=%0d expected=%0d..%0d",
+          search_cycles, reads_needed, reads_needed + 1))
+      end
+      wait_for_subheader_count(subhdr_before + 1, 40_000, "E120 zero-hit subheader");
+      if (m_env.m_out_mon.recent_subheaders.size() == 0) begin
+        `uvm_error("E120", "Zero-hit COUNT timing case did not retain the subheader")
+      end else begin
+        matched_subheader = m_env.m_out_mon.recent_subheaders[$];
+        if (matched_subheader.hit_count != 8'd0) begin
+          `uvm_error("E120", $sformatf(
+            "Zero-hit COUNT timing case emitted a non-zero subheader hit_count=%0d",
+            matched_subheader.hit_count))
+        end
+      end
     end else if (case_id == "E124") begin
       profile_traffic_seq e124_seq;
       int unsigned outstanding;
