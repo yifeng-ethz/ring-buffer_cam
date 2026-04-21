@@ -10960,6 +10960,67 @@ class base_test extends uvm_test;
           "Lane-local key sweep accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d expected_push_pop=%0d",
           push_count, pop_count, overwrite_count, fill_level, m_cfg.ring_buffer_n_entry))
       end
+    end else if (case_id == "E022") begin
+      profile_traffic_seq e022_seq;
+      int unsigned        outstanding;
+      int unsigned        max_outstanding;
+      int unsigned        max_usedw;
+      bit                 saw_saturation;
+
+      configure_and_start(128);
+      max_outstanding = 0;
+      max_usedw = 0;
+      saw_saturation = 1'b0;
+      traffic_done = 1'b0;
+      fork
+        begin
+          e022_seq = profile_traffic_seq::type_id::create("e022_fifo_fill");
+          e022_seq.num_hits = 12_000;
+          e022_seq.lane_key_start_ord = 2;
+          e022_seq.pool_keys = 1;
+          e022_seq.hits_per_key_switch = 1;
+          e022_seq.inter_hit_gap_cycles = 16;
+          e022_seq.progress_stride = 3_000;
+          e022_seq.progress_tag = "E022";
+          e022_seq.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
+        end
+        begin
+          search_cycles = 0;
+          while (search_cycles < 2_500_000 &&
+                 (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_dbg_mon.pop_cmd_fifo_usedw != 0)) begin
+            outstanding = m_env.m_dbg_mon.pop_cmd_wrreq_count -
+                          m_env.m_dbg_mon.pop_cmd_rdack_count;
+            if (outstanding > max_outstanding)
+              max_outstanding = outstanding;
+            if (int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw) > max_usedw)
+              max_usedw = int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw);
+            if (int'(m_env.m_dbg_mon.pop_cmd_fifo_usedw) >= 14)
+              saw_saturation = 1'b1;
+            @(posedge m_env.m_csr_drv.vif.clk);
+            search_cycles++;
+          end
+        end
+      join
+
+      wait_for_scoreboard_idle(2_500_000, "E022 descriptor fifo saturation drain");
+      expect_service_model_accounting("E022 descriptor fifo saturation drain", 1, 0);
+      if (!saw_saturation) begin
+        `uvm_error("E022", $sformatf(
+          "Descriptor saturation case never reached the pop_cmd fifo saturation band: max_usedw=%0d",
+          max_usedw))
+      end
+      if (max_usedw > 15) begin
+        `uvm_error("E022", $sformatf(
+          "Descriptor saturation case exceeded the physical pop_cmd fifo depth: max_usedw=%0d expected<=15",
+          max_usedw))
+      end
+      if (max_outstanding > 16) begin
+        `uvm_error("E022", $sformatf(
+          "Descriptor saturation case exceeded the outstanding descriptor budget: max_outstanding=%0d expected<=16",
+          max_outstanding))
+      end
     end else if (case_id == "E023") begin
       configure_and_start(2000);
       pressure_seq = overwrite_profile_seq::type_id::create("e023_steady_state");
@@ -10986,6 +11047,96 @@ class base_test extends uvm_test;
         `uvm_error("E023", $sformatf(
           "Steady-state backlog escaped the expected bounded window: max_remaining=%0d expected_range=[32,128]",
           m_env.m_scb.max_remaining_entries()))
+      end
+    end else if (case_id == "E039") begin
+      int unsigned                     second_search_key;
+      ring_buffer_cam_pkg::out_seq_item prev_subheader;
+
+      configure_and_start(0);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      second_search_key = m_cfg.lane_key_ord_to_search_key(3);
+      subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
+      hit_before = m_env.m_out_mon.total_hits_seen;
+
+      single_seq = single_push_pop_seq::type_id::create("e039_first_single");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_clocks(16);
+      single_seq = single_push_pop_seq::type_id::create("e039_second_single");
+      single_seq.search_key = second_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+
+      wait_for_scoreboard_idle(200_000, "E039 one-descriptor-gap two-key drain");
+      expect_service_model_accounting("E039 one-descriptor-gap two-key drain", 1, 0);
+      if (m_env.m_out_mon.total_hits_seen != hit_before + 2) begin
+        `uvm_error("E039", $sformatf(
+          "One-descriptor-gap two-key case emitted the wrong hit count: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
+      end
+      if (m_env.m_out_mon.total_data_subheaders_seen != subhdr_before + 2) begin
+        `uvm_error("E039", $sformatf(
+          "One-descriptor-gap two-key case emitted the wrong number of data subheaders: subhdr_before=%0d subhdr_after=%0d",
+          subhdr_before, m_env.m_out_mon.total_data_subheaders_seen))
+      end else if (m_env.m_out_mon.recent_data_subheaders.size() < 2) begin
+        `uvm_error("E039", "Did not retain the two expected data subheaders in monitor history")
+      end else begin
+        prev_subheader =
+          m_env.m_out_mon.recent_data_subheaders[m_env.m_out_mon.recent_data_subheaders.size()-2];
+        matched_subheader = m_env.m_out_mon.recent_data_subheaders[$];
+        if (prev_subheader.search_key != focus_search_key[7:0] ||
+            matched_subheader.search_key != second_search_key[7:0] ||
+            prev_subheader.hit_count != 8'd1 ||
+            matched_subheader.hit_count != 8'd1) begin
+          `uvm_error("E039", $sformatf(
+            "One-descriptor-gap key order/framing mismatch: first_key=0x%02x first_hits=%0d second_key=0x%02x second_hits=%0d expected=(0x%02x,1)->(0x%02x,1)",
+            prev_subheader.search_key, prev_subheader.hit_count,
+            matched_subheader.search_key, matched_subheader.hit_count,
+            focus_search_key[7:0], second_search_key[7:0]))
+        end
+      end
+    end else if (case_id == "E043") begin
+      int unsigned max_subheader_valid_streak;
+      int unsigned current_subheader_valid_streak;
+      int unsigned zero_subheaders_seen;
+
+      configure_and_start(0);
+      hit_before = m_env.m_out_mon.total_hits_seen;
+      max_subheader_valid_streak = 0;
+      current_subheader_valid_streak = 0;
+      zero_subheaders_seen = 0;
+      search_cycles = 0;
+      while (search_cycles < 120_000 && zero_subheaders_seen < 3) begin
+        if (m_env.m_out_mon.vif.valid === 1'b1 &&
+            m_env.m_out_mon.vif.data[35:32] == 4'b0001) begin
+          current_subheader_valid_streak++;
+          if (current_subheader_valid_streak > max_subheader_valid_streak)
+            max_subheader_valid_streak = current_subheader_valid_streak;
+          if (m_env.m_out_mon.vif.data[15:8] != 8'd0) begin
+            `uvm_error("E043", $sformatf(
+              "Subheader-only valid-pulse audit observed a non-zero hit_count=%0d",
+              m_env.m_out_mon.vif.data[15:8]))
+          end
+          zero_subheaders_seen++;
+        end else begin
+          current_subheader_valid_streak = 0;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (zero_subheaders_seen < 3) begin
+        `uvm_error("E043", $sformatf(
+          "Did not observe enough zero-hit subheaders for the valid-pulse audit: observed=%0d expected_at_least=3",
+          zero_subheaders_seen))
+      end
+      if (max_subheader_valid_streak != 1) begin
+        `uvm_error("E043", $sformatf(
+          "Subheader valid stayed asserted across multiple cycles: max_streak=%0d expected=1",
+          max_subheader_valid_streak))
+      end
+      if (m_env.m_out_mon.total_hits_seen != hit_before) begin
+        `uvm_error("E043", $sformatf(
+          "Zero-hit subheader valid-pulse audit emitted unexpected hit beats: hits_before=%0d hits_after=%0d",
+          hit_before, m_env.m_out_mon.total_hits_seen))
       end
     end else if (case_id == "E124") begin
       profile_traffic_seq e124_seq;

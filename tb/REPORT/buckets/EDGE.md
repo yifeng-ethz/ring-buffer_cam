@@ -1,6 +1,6 @@
 # ⚠️ EDGE bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `34` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `37` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -48,28 +48,28 @@
 | ✅ | 19 | `E019` | stmt=91.39, branch=80.99, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.58 | [case](../cases/E019.md) |
 | ✅ | 20 | `E020` | stmt=91.39, branch=80.99, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.58 | [case](../cases/E020.md) |
 | ✅ | 21 | `E021` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.74 | [case](../cases/E021.md) |
-| ❓ | 22 | `E022` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E022.md) |
-| ✅ | 23 | `E023` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E023.md) |
-| ✅ | 24 | `E024` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E024.md) |
-| ✅ | 25 | `E025` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E025.md) |
-| ✅ | 26 | `E026` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E026.md) |
-| ✅ | 27 | `E027` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E027.md) |
+| ✅ | 22 | `E022` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.92 | [case](../cases/E022.md) |
+| ✅ | 23 | `E023` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E023.md) |
+| ✅ | 24 | `E024` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E024.md) |
+| ✅ | 25 | `E025` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E025.md) |
+| ✅ | 26 | `E026` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E026.md) |
+| ✅ | 27 | `E027` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E027.md) |
 | ❓ | 28 | `E028` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E028.md) |
 | ❓ | 29 | `E029` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E029.md) |
 | ❓ | 30 | `E030` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E030.md) |
-| ✅ | 31 | `E031` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E031.md) |
-| ✅ | 32 | `E032` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E032.md) |
-| ✅ | 33 | `E033` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E033.md) |
-| ✅ | 34 | `E034` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E034.md) |
-| ✅ | 35 | `E035` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E035.md) |
-| ✅ | 36 | `E036` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E036.md) |
-| ✅ | 37 | `E037` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.77 | [case](../cases/E037.md) |
+| ✅ | 31 | `E031` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E031.md) |
+| ✅ | 32 | `E032` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E032.md) |
+| ✅ | 33 | `E033` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E033.md) |
+| ✅ | 34 | `E034` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E034.md) |
+| ✅ | 35 | `E035` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E035.md) |
+| ✅ | 36 | `E036` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E036.md) |
+| ✅ | 37 | `E037` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E037.md) |
 | ❓ | 38 | `E038` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E038.md) |
-| ❓ | 39 | `E039` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E039.md) |
+| ✅ | 39 | `E039` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E039.md) |
 | ❓ | 40 | `E040` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E040.md) |
 | ❓ | 41 | `E041` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E041.md) |
 | ❓ | 42 | `E042` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E042.md) |
-| ❓ | 43 | `E043` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E043.md) |
+| ✅ | 43 | `E043` | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.93 | [case](../cases/E043.md) |
 | ❓ | 44 | `E044` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E044.md) |
 | ❓ | 45 | `E045` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E045.md) |
 | ❓ | 46 | `E046` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/E046.md) |
