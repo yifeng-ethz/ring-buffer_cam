@@ -10,22 +10,22 @@ This page is the coverage summary only. Per-case incremental coverage lives unde
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 95.09 | 95.0 |
-| ⚠️ | branch | 83.16 | 90.0 |
-| ℹ️ | cond | 72.52 | - |
+| ✅ | stmt | 97.35 | 95.0 |
+| ✅ | branch | 90.97 | 90.0 |
+| ℹ️ | cond | 76.73 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
-| ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 72.38 | 80.0 |
+| ⚠️ | fsm_trans | 80.00 | 90.0 |
+| ⚠️ | toggle | 72.53 | 80.0 |
 
 ## Per-bucket merged totals
 
 | status | bucket | stmt | branch | cond | expr | fsm_state | fsm_trans | toggle |
 |:---:|---|---|---|---|---|---|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 94.59 | 84.43 | 70.23 | 40.00 | 100.00 | 66.67 | 70.60 |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 94.76 | 83.42 | 69.35 | 40.00 | 100.00 | 66.67 | 67.47 |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 91.81 | 81.99 | 70.75 | 40.00 | 100.00 | 66.67 | 68.17 |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 95.38 | 85.44 | 70.97 | 40.00 | 100.00 | 66.67 | 68.10 |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 97.30 | 89.66 | 75.47 | 40.00 | 100.00 | 73.33 | 70.74 |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 92.49 | 83.42 | 69.81 | 40.00 | 100.00 | 66.67 | 65.77 |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 92.68 | 84.24 | 71.70 | 40.00 | 100.00 | 66.67 | 68.29 |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 96.77 | 88.83 | 74.84 | 40.00 | 100.00 | 80.00 | 66.48 |
 
 ## Continuous-frame baselines by build
 

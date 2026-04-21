@@ -101,9 +101,12 @@ the low-stage encoder and non-power-of-two ring-depth fixes from the earlier `26
 checkpoint, and now carries the overwrite erase slot from `push_write` so the standalone
 `P4` build closes the tightened `137.5 MHz` signoff clock without changing overwrite
 semantics. This nightly checkpoint refreshes the directed/adversarial evidence through
-`B134(n768)`, `P111`, and the release-metadata smoke `B010`, while the live dashboard
-currently records `323/516` planned DV cases evidenced. The authoritative dashboard state
-is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
+`B134(n768)`, `P111`, and the release-metadata smoke `B010`, and it also reruns the full
+implemented isolated DV set on the supported QuestaOne 2026 flow. The live dashboard now
+records `342/516` implemented cases exercised, `30` active failing isolated cases,
+`174` still-unimplemented cases, and `60.47% (312/516)` passing functional coverage.
+The authoritative dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
+and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 

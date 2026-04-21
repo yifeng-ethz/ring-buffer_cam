@@ -15,7 +15,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
 | ✅ | standalone_syn_p4_512 | `2026-04-21 rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target: slow-85C WNS=+0.080 ns, slow-0C WNS=+0.347 ns, worst reported hold=+0.149 ns` |
-| ⚠️ | dv_closure | `323/516` planned cases evidenced |
+| ❌ | dv_closure | `342/516` implemented isolated cases exercised, `30` currently failing |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,9 +24,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ⚠️ | isolated DV closure | `62.60% (323/516)` functional proxy, `0` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ❌ | isolated DV closure | `60.47% (312/516)` passing functional proxy, `30` active failed implemented cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
 | ⚠️ | bucket / continuous-frame signoff | `174` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ✅ | implemented isolated matrix | current implemented isolated refresh passes cleanly | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
+| ⚠️ | implemented isolated matrix | current supported-QuestaOne isolated refresh executes `342` implemented cases and regenerates the dashboard from that evidence, but `30` cases still fail | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
 ## Synthesis

@@ -15,7 +15,7 @@ Author: Codex
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup, the guarded descriptor / stale-request handling used by the current DV closure, and the carried overwrite erase slot that removes the last negative-slack standalone path family
 - Current evidence:
   - standalone `ring_buffer_cam_syn_p4`: `2,518` ALMs, `2,938` registers, slow-85C setup slack `+0.080 ns`, slow-0C setup slack `+0.347 ns`, and worst reported hold slack `+0.149 ns`
-  - current DV dashboard: refreshed after the `B134(n768)`, `P111`, and `B010` reruns for the new nightly checkpoint, still covering `323/516` planned cases
+  - current DV dashboard: refreshed after the `B134(n768)`, `P111`, and `B010` reruns plus the full supported-QuestaOne isolated rerun of all `342` implemented cases; current state is `30` failing isolated cases, `174` unimplemented cases, and `60.47% (312/516)` passing functional coverage
   - latest closure slice: the active tree now closes four release-blocking RTL bugs in the current 2026-04-21 tranche, covering low-stage encoder valid-width safety (`BUG-057-R`), non-power-of-two live write-pointer wrap (`BUG-058-R`), non-power-of-two wrap-overwrite erase addressing (`BUG-059-R`), and the remaining standalone timing blocker on the overwrite erase path (`BUG-060-R`)
   - delivered package metadata: `26.2.3.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
 - Main conclusion:
