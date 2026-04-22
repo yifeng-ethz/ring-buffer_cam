@@ -1,7 +1,7 @@
 # ⚠️ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
-**Release under check:** `26.2.4.0421` &nbsp; **Evidence basis:** `c70c3a8`
+**Release under check:** `26.2.4.0421` &nbsp; **Evidence basis:** `DV=8cd88cd, SYN=1736898`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | field | value |
 |:---:|---|---|
 | ⚠️ | overall_signoff | `partial` |
-| ⚠️ | standalone_syn_p4_512 | `the last standalone Quartus rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target (slow-85C WNS=+0.080 ns, slow-0C WNS=+0.347 ns, worst reported hold=+0.149 ns), but that compile has not yet been rerun after the current DV refresh on 2026-04-22` |
-| ❌ | dv_closure | `367/516` isolated cases are implemented in the case engine, `365/516` are evidenced in the current dashboard, and `17` still fail on `default_p2_pipe4` |
+| ⚠️ | standalone_syn_p4_512 | `the last standalone Quartus rerun on 1736898 closes the tightened 137.5 MHz / 7.273 ns signoff target (slow-85C WNS=+0.308 ns, slow-0C WNS=+0.429 ns, worst reported hold=+0.149 ns), but later RTL commits from BUG-061-R onward have not yet been rerun through that standalone flow` |
+| ✅ | dv_closure | `the promoted isolated dashboard is green: failed_cases=0, signoff_runs_with_failures=0, unimplemented_cases=0, and 464/464 promoted signoff cases are evidenced; 55 catalog backlog cases remain explicitly outside the current signoff scope` |
 | ⚠️ | cross_bucket_signoff | `0` continuous-frame signoff runs |
 | ⚠️ | gate_level_sim | `not rerun in this refresh` |
 | ⚠️ | harness_output_constraints | `32 unconstrained probe_out paths` |
@@ -24,9 +24,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ❌ | isolated DV closure | `67.44% (348/516)` passing functional proxy, `17` active failed cases on `default_p2_pipe4` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | bucket / continuous-frame signoff | `149` planned cases still unimplemented, `0` cross runs recorded | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ⚠️ | implemented isolated matrix | the current supported QuestaOne 2026 isolated refresh evidences `365` runs from `367` implemented case-engine rows and regenerates the dashboard from that evidence, but `17` cases still fail | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
+| ✅ | isolated DV closure | `100.0% (464/464)` promoted functional coverage, `0` failed promoted cases, and top-level totals are green on stmt/branch/fsm_state/fsm_trans/toggle | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | bucket / continuous-frame signoff | `0` cross runs recorded; the current DV dashboard keeps this scope as an explicit non-claim | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ✅ | implemented isolated matrix | the current supported QuestaOne 2026 isolated refresh evidences all `464` promoted signoff cases with `0` stale artifacts and `0` implemented-case failures in the published dashboard | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
 | ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
 ## Synthesis
@@ -36,12 +36,12 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
-| ✅ | slow 85C WNS / TNS | `+0.080 ns` / `0.000 ns` |
-| ✅ | slow 0C WNS / TNS | `+0.347 ns` / `0.000 ns` |
+| ✅ | slow 85C WNS / TNS | `+0.308 ns` / `0.000 ns` |
+| ✅ | slow 0C WNS / TNS | `+0.429 ns` / `0.000 ns` |
 | ✅ | worst hold slack | `+0.149 ns` |
-| ✅ | slow 85C Fmax | `139.02 MHz` |
-| ✅ | nominal 125 MHz headroom | `11.2%` |
-| ✅ | fitted resources | `2,518 ALMs`, `2,938 regs`, `19 RAM blocks`, `153,600` bits |
+| ✅ | slow 85C Fmax | `143.58 MHz` |
+| ✅ | nominal 125 MHz headroom | `14.9%` |
+| ✅ | fitted resources | `2,519 ALMs`, `2,928 regs`, `19 RAM blocks`, `153,600` bits |
 | ⚠️ | TimeQuest caveat | internal `clk125` timing now closes across the reported corners, but the standalone harness still leaves `32` unconstrained `probe_out[31:0]` observation outputs outside the DUT reg-to-reg timing domain |
 | ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
 
@@ -60,7 +60,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | RTL | `BUG-060-R` carries the overwrite erase slot from `push_write`, removing the last negative-slack path family on the standalone `P4` CAM erase/write-enable cone without changing overwrite semantics |
 | ✅ | RTL | `BUG-061-R` removes the premature `TERMINATING` host-ack shortcut, so `asi_ctrl_ready` now waits for the full lane-local drain-done contract instead of acknowledging from an entry-quiescent bypass |
 | ✅ | Harness | `BUG-062-H` lets the generic idle helper ignore exactly one queued empty end-of-run marker once `endofrun_seen` and `terminating_drain_done` are already high, so terminate cleanup no longer misclassifies that marker as live payload backlog |
-| ✅ | DV | refreshed evidence keeps the earlier terminate / marker fixes green, promotes `E115` and `E119`, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
+| ✅ | DV | refreshed evidence keeps the promoted isolated matrix green, evidences `464/464` promoted signoff cases, and regenerates the `tb/REPORT/` dashboard for the current nightly checkpoint |
 | ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the CMSIS-SVD source/emit flow are aligned to `26.2.4.0421` / `20260421` with `BUILD=421` and `PATCH=4` |
 
 ## Evidence Index
@@ -76,8 +76,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow plus the standalone synthesis report.
-- The current 2026-04-22 refresh keeps the earlier terminate / marker fixes from `b4e0daa` green, reruns `E115` and `E119`, and regenerates the dashboard from the refreshed isolated evidence.
-- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) still reflects the last Quartus rerun on commit `1736898`; the current DV-only refresh on 2026-04-22 has not yet been recompiled through that standalone flow.
+- The current 2026-04-22 refresh keeps the promoted isolated DV matrix green, refreshes the dashboard through `8cd88cd`, and records the bug-ledger encounterability cleanup required by the live workflow linter.
+- The standalone synthesis report in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) still reflects the last Quartus rerun on commit `1736898`; later RTL commits, including `BUG-061-R`, have not yet been recompiled through that standalone flow.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
-- The active DV dashboard is currently built and evidenced on the `default_p2_pipe4` simulation variant. The differing P4/P2 build shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
-- Overall signoff remains `⚠️ partial` because DV plan closure and gate-level simulation are still incomplete even though the refreshed standalone timing/resource gate for the active `P4` build is green again.
+- The active DV dashboard is currently built and evidenced across the promoted build matrix `default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4`. The differing `P4` / `P2` / `P4-N4` shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
+- Overall signoff remains `⚠️ partial` because continuous-frame signoff, gate-level simulation, and a standalone Quartus rerun after the latest RTL changes are still open even though the isolated DV dashboard and the last published standalone timing/resource gate are green.

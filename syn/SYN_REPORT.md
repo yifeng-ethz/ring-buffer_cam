@@ -50,25 +50,25 @@ Signoff target:
 
 | status | model | setup WNS (ns) | hold WNS (ns) | Fmax |
 |:---:|---|---:|---:|---:|
-| ✅ | Slow 1100mV 85C | `+0.080` | `+0.259` | `139.02 MHz` |
-| ✅ | Slow 1100mV 0C | `+0.347` | `+0.244` | `144.38 MHz` |
-| ✅ | Fast 1100mV 85C | `+2.771` | `+0.165` | n/a |
-| ✅ | Fast 1100mV 0C | `+3.280` | `+0.149` | n/a |
+| ✅ | Slow 1100mV 85C | `+0.308` | `+0.256` | `143.58 MHz` |
+| ✅ | Slow 1100mV 0C | `+0.429` | `+0.239` | `149.45 MHz` |
+| ✅ | Fast 1100mV 85C | `+2.897` | `+0.161` | n/a |
+| ✅ | Fast 1100mV 0C | `+3.369` | `+0.149` | n/a |
 
 Key conclusions:
 
 - the active `P4` build now closes setup at the tightened `137.5 MHz` signoff clock on both slow corners
-- worst-case setup is the slow `85C` corner at `+0.080 ns`; the slow `0C` corner has additional margin at `+0.347 ns`
+- worst-case setup is the slow `85C` corner at `+0.308 ns`; the slow `0C` corner has additional margin at `+0.429 ns`
 - hold still closes in every reported corner, with worst-case hold at the fast `0C` corner (`+0.149 ns`)
-- the equivalent slow-corner internal Fmax is now `139.02 MHz`, which is about `11.2%` above the nominal `125 MHz` operating target and `1.52 MHz` above the tightened signoff target
+- the equivalent slow-corner internal Fmax is now `143.58 MHz`, which is about `14.9%` above the nominal `125 MHz` operating target and `6.08 MHz` above the tightened signoff target
 - the critical path family still starts at `write_pointer` and ends at the `main_cam` write-enable register, but the carried overwrite erase slot shortens that cone enough to restore positive setup slack without an extra behavioral pipeline stage
 
 ## Resource Summary
 
 | item | value |
 |---|---|
-| Logic utilization | `2,518 / 91,680 ALMs (3%)` |
-| Registers | `2,938` |
+| Logic utilization | `2,519 / 91,680 ALMs (3%)` |
+| Registers | `2,928` |
 | Pins | `34 / 426 (8%)` |
 | Block memory bits | `153,600 / 13,987,840 (1%)` |
 | RAM blocks | `19 / 1,366 (1%)` |
@@ -77,7 +77,7 @@ Key conclusions:
 
 Synthesis-only visibility:
 
-- fitter preserved the RAM-centric implementation at `19` RAM blocks / `153,600` bits while logic settled at `2,518` ALMs and `2,938` registers
+- fitter preserved the RAM-centric implementation at `19` RAM blocks / `153,600` bits while logic settled at `2,519` ALMs and `2,928` registers
 - no seed scan or timing-only netlist tricks were used; the positive slow-corner slack is therefore the honest current standalone signoff state for this tree
 
 ## Flow Runtime
@@ -101,7 +101,7 @@ TimeQuest reports the design as not fully constrained. This is understood and is
   - no exact pin locations for the standalone harness I/O
   - incomplete I/O assignments on the harness pins
   - non-dedicated clock routing on harness input `clk125`
-  - shared-VREF use on harness pin `probe_out[3]`
+  - shared-VREF use on harness pin `probe_out[8]`
 
 The internal `clk125` register-to-register domain is constrained. The unconstrained paths are harness-observation outputs only, not DUT internal timing paths, and the constrained `clk125` domain now closes timing across all reported corners.
 
@@ -120,4 +120,4 @@ The internal `clk125` register-to-register domain is constrained. The unconstrai
 
 **✅ Full compilation PASS, tightened standalone timing signoff PASS for the active P4 bug-fix release**
 
-The delivered `512`-entry `P4` build compiles cleanly and keeps positive setup and hold slack on the tightened `137.5 MHz` standalone signoff clock. The remaining signoff-open items are now DV-plan closure and gate-level simulation, not standalone timing.
+The delivered `512`-entry `P4` build compiles cleanly and keeps positive setup and hold slack on the tightened `137.5 MHz` standalone signoff clock. The remaining signoff-open items are the continuous-frame DV signoff runs, gate-level simulation, and a fresh standalone rerun after later RTL changes, not standalone timing for this published checkpoint.
