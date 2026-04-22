@@ -2,6 +2,7 @@
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
 **Release under check:** `26.2.6.0422` &nbsp; **Evidence basis:** `DV/SYN/GATE=1069e0b`
+**Release packaging note:** `the final release tag may carry package-only _hw.tcl provenance / GUI updates beyond the DV/SYN/GATE evidence basis; those follow-ups do not modify rtl/, tb/, or syn/ evidence-producing sources`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -74,6 +75,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow, the standalone synthesis report, and the regenerated gate-smoke evidence.
 - The 2026-04-22 refresh closes the last residual signoff blockers: the promoted isolated matrix is green at `519/519`, continuous-frame signoff is published with `6` clean runs, and the standalone Quartus `P4` rerun plus gate netlist smoke both pass on the live `26.2.6.0422` image.
+- The release tag for `26.2.6.0422` may be moved onto a package-only follow-up commit so Platform Designer metadata can expose the delivered signoff footprint and live git provenance in `_hw.tcl`. That follow-up is intentionally non-functional and does not invalidate the `DV/SYN/GATE=1069e0b` evidence basis.
 - The branch total in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) excludes `16` compile-time-dead bins in `addr_enc_logic_partitioned`; this is a documented report adjustment for constant-generic dead code, not a hidden testcase waiver.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is built and evidenced across the promoted build matrix `default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4`. The differing `P4` / `P2` / `P4-N4` shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.

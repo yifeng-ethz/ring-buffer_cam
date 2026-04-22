@@ -3,6 +3,7 @@
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-22` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
 **Evidence basis:** `1069e0b`
+**Release packaging note:** `the final release tag may carry package-only _hw.tcl provenance / GUI updates beyond this Quartus evidence basis; those follow-ups do not modify rtl/ or syn/quartus/ compile inputs`
 
 This file is the detailed standalone synthesis and timing report for the last standalone Quartus rerun of `ring_buffer_cam`. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
@@ -13,6 +14,7 @@ This file is the detailed standalone synthesis and timing report for the last st
 - use Quartus Standard Fit effort with no seed scan
 - keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
 - regenerate the gate-level simulation netlist from the same rerun so synthesis, gate smoke, and authored signoff evidence are aligned to one image
+- allow a later package-only `_hw.tcl` metadata refresh for release publication without changing the compile inputs captured by this report
 
 ## Pre-Fit Model
 
