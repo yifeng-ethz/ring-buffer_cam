@@ -2,7 +2,7 @@
 
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-22` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Evidence basis:** `pending signoff commit`
+**Evidence basis:** `1069e0b`
 
 This file is the detailed standalone synthesis and timing report for the last standalone Quartus rerun of `ring_buffer_cam`. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 

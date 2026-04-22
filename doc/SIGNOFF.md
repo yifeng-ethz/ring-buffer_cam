@@ -1,7 +1,7 @@
 # ✅ Signoff — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
-**Release under check:** `26.2.6.0422` &nbsp; **Evidence basis:** `pending signoff commit`
+**Release under check:** `26.2.6.0422` &nbsp; **Evidence basis:** `DV/SYN/GATE=1069e0b`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 

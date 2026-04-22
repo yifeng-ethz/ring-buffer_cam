@@ -515,7 +515,7 @@
       "date": "2026-04-22",
       "title": "Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker",
       "fix_status": "fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master`",
-      "commit": "pending"
+      "commit": "1069e0b"
     }
   ],
   "signoff_scope": {
