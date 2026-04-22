@@ -177,25 +177,26 @@ Interactive HTML table of the 10-word CSR window and the common identity header.
 ### Tab Overview
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│  Platform Designer Component Editor: ring_buffer_cam                 │
-│                                                                       │
-│  [Configuration Tab]                                                  │
-│    ├─ Overview ── function and clocking summary                       │
-│    ├─ Sizing ── search key, ring depth, side-data width              │
-│    ├─ Match Engine ── interleaving, partitions, encoder shape        │
-│    ├─ Throughput ── validation-derived pop-rate estimates            │
-│    └─ Advanced ── integration notes and CSR aperture                 │
-│                                                                       │
-│  [Identity Tab]                                                       │
-│    ├─ Delivered Profile ── packaged revision                          │
-│    ├─ Versioning ── UID, META pages, VERSION_*, DATE, GIT            │
-│    └─ Debug ── debug-level parameter                                  │
-│                                                                       │
-│  [Interfaces Tab] ── clock/reset, AVST, CSR, filllevel               │
-│  [Register Map Tab] ── 10-word CSR window                            │
-│                                                                       │
-└────────────────────────────────────────────────────────────────────────┘
++------------------------------------------------------------------------+
+|  Platform Designer Component Editor: ring_buffer_cam                   |
+|                                                                        |
+|  [Configuration Tab]                                                   |
+|    |- Overview -- function and clocking summary                        |
+|    |- Sizing -- search key, ring depth, side-data width                |
+|    |- Delivered Footprint -- packaged signoff area / timing            |
+|    |- Match Engine -- interleaving, partitions, encoder shape          |
+|    |- Throughput -- validation-derived pop-rate estimates              |
+|    `- Advanced -- integration notes and CSR aperture                   |
+|                                                                        |
+|  [Identity Tab]                                                        |
+|    |- Delivered Profile -- packaged revision                           |
+|    |- Versioning -- UID, META pages, VERSION_*, DATE, GIT              |
+|    `- Debug -- debug-level parameter                                   |
+|                                                                        |
+|  [Interfaces Tab] -- clock/reset, AVST, CSR, filllevel                 |
+|  [Register Map Tab] -- 10-word CSR window                              |
+|                                                                        |
++------------------------------------------------------------------------+
 ```
 
 ---
