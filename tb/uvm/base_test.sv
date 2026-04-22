@@ -11341,6 +11341,124 @@ class base_test extends uvm_test;
           "Latency rewrite accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d",
           push_count, pop_count, overwrite_count, fill_level))
       end
+    end else if (case_id == "E115") begin
+      configure_and_start(2000);
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      single_seq = single_push_pop_seq::type_id::create("e115_focus_latency");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E115 first-latency push");
+      cycle_a = m_env.m_dbg_mon.sampled_cycles;
+      search_cycles = 0;
+      while (search_cycles < 160_000 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E115", "First-latency hit never emitted a descriptor before the mid-SEARCH rewrite")
+      end
+      search_cycles = int'(m_env.m_dbg_mon.sampled_cycles - cycle_a);
+
+      wait_for_pop_engine_state(3'd1, 40_000, "E115 SEARCH entry");
+      wait_min = 0;
+      while (wait_min < 128 &&
+             !(m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+               m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+               m_env.m_dbg_mon.pop_search_wait_cnt <= 3'd1)) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        wait_min++;
+      end
+      if (!(m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+            m_env.m_dbg_mon.pop_search_wait_cnt <= 3'd1)) begin
+        `uvm_error("E115", $sformatf(
+          "Did not observe the early SEARCH guard before rewriting EXPECTED_LATENCY: pop_state=%0d active_key=%0d wait_cnt=%0d focus_key=%0d",
+          m_env.m_dbg_mon.pop_engine_state_code,
+          m_env.m_dbg_mon.vif.pop_current_sk[7:0],
+          m_env.m_dbg_mon.pop_search_wait_cnt,
+          focus_search_key[7:0]))
+      end
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'd5);
+      wait_clocks(1);
+      if (m_env.m_dbg_mon.expected_latency_48b[15:0] != 16'd5) begin
+        `uvm_error("E115", $sformatf(
+          "Mid-SEARCH latency rewrite to 5 did not reach the DUT: observed=%0d",
+          m_env.m_dbg_mon.expected_latency_48b[15:0]))
+      end
+
+      saw_overlap = 1'b0;
+      saw_load = 1'b0;
+      wait_max = m_env.m_dbg_mon.pop_search_wait_cnt;
+      wait_min = 0;
+      while (wait_min < 16 && !saw_load) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1) begin
+          if (m_env.m_dbg_mon.vif.pop_current_sk[7:0] != focus_search_key[7:0]) begin
+            saw_overlap = 1'b1;
+          end
+          if (m_env.m_dbg_mon.pop_search_wait_cnt > wait_max) begin
+            wait_max = m_env.m_dbg_mon.pop_search_wait_cnt;
+          end
+        end
+        if (m_env.m_dbg_mon.pop_partition_load != 0) begin
+          saw_load = 1'b1;
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        wait_min++;
+      end
+      if (saw_overlap) begin
+        `uvm_error("E115", $sformatf(
+          "SEARCH key changed while the mid-SEARCH latency rewrite was in flight: active_key=%0d expected_focus=%0d",
+          m_env.m_dbg_mon.vif.pop_current_sk[7:0], focus_search_key[7:0]))
+      end
+      if (!saw_load || wait_max != 5) begin
+        `uvm_error("E115", $sformatf(
+          "SEARCH guard tail changed after the mid-SEARCH latency rewrite: saw_load=%0d wait_max=%0d",
+          saw_load, wait_max))
+      end
+
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 160_000,
+        "E115 pre-rewrite single-hit subheader", matched_subheader);
+
+      cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+      cmd_after = m_cfg.lane_key_ord_to_search_key(4);
+      single_seq = single_push_pop_seq::type_id::create("e115_postsearch_latency");
+      single_seq.search_key = cmd_after;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(2, 10_000, "E115 post-rewrite push");
+      cycle_b = m_env.m_dbg_mon.sampled_cycles;
+      wait_min = 0;
+      while (wait_min < 2_048 &&
+             m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        @(posedge m_env.m_csr_drv.vif.clk);
+        wait_min++;
+      end
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+        `uvm_error("E115", "Mid-SEARCH latency rewrite to 5 did not accelerate the next descriptor window")
+      end
+      wait_min = int'(m_env.m_dbg_mon.sampled_cycles - cycle_b);
+      if (wait_min >= search_cycles || wait_min > 256) begin
+        `uvm_error("E115", $sformatf(
+          "Mid-SEARCH rewrite did not shorten the next descriptor window enough: before=%0d after=%0d",
+          search_cycles, wait_min))
+      end
+      wait_for_subheader_match(
+        cmd_after[7:0], 8'd1, 1'b1, 1'b1, 120_000,
+        "E115 post-rewrite single-hit subheader", matched_subheader);
+      wait_for_scoreboard_idle(120_000, "E115 mid-SEARCH latency rewrite drain");
+      expect_service_model_accounting("E115 mid-SEARCH latency rewrite drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 2 || pop_count != 2 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E115", $sformatf(
+          "Mid-SEARCH latency rewrite accounting mismatch: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, fill_level))
+      end
     end else if (case_id == "E116") begin
       configure_and_start(2000);
       cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
@@ -11431,6 +11549,83 @@ class base_test extends uvm_test;
             "Zero-hit COUNT timing case emitted a non-zero subheader hit_count=%0d",
             matched_subheader.hit_count))
         end
+      end
+    end else if (case_id == "E119") begin
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+
+      configure_and_start(16'd1);
+      single_seq = single_push_pop_seq::type_id::create("e119_latency1");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E119 latency=1 push");
+      wait_for_pop_engine_state(3'd1, 20_000, "E119 SEARCH entry latency=1");
+      search_cycles = 0;
+      wait_min = 32'hffff_ffff;
+      wait_max = 0;
+      saw_load = 1'b0;
+      while (search_cycles < 32 && !saw_load) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1) begin
+          search_cycles++;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt < wait_min)
+            wait_min = m_env.m_dbg_mon.pop_search_wait_cnt;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt > wait_max)
+            wait_max = m_env.m_dbg_mon.pop_search_wait_cnt;
+        end
+        if (m_env.m_dbg_mon.pop_partition_load != 0)
+          saw_load = 1'b1;
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      if (!saw_load || search_cycles != 6 || wait_min != 0 || wait_max != 5) begin
+        `uvm_error("E119", $sformatf(
+          "SEARCH guard mismatch at EXPECTED_LATENCY=1: saw_load=%0d search_cycles=%0d wait_min=%0d wait_max=%0d",
+          saw_load, search_cycles, wait_min, wait_max))
+      end
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 40_000,
+        "E119 latency=1 subheader", matched_subheader);
+      wait_for_scoreboard_idle(80_000, "E119 latency=1 drain");
+      expect_service_model_accounting("E119 latency=1 drain", 1, 0);
+
+      configure_and_start(16'd65535);
+      single_seq = single_push_pop_seq::type_id::create("e119_latency65535");
+      single_seq.search_key = focus_search_key;
+      single_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(1, 10_000, "E119 latency=65535 push");
+      wait_for_pop_engine_state(3'd1, 80_000, "E119 SEARCH entry latency=65535");
+      search_cycles = 0;
+      wait_min = 32'hffff_ffff;
+      wait_max = 0;
+      saw_load = 1'b0;
+      while (search_cycles < 32 && !saw_load) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1) begin
+          search_cycles++;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt < wait_min)
+            wait_min = m_env.m_dbg_mon.pop_search_wait_cnt;
+          if (m_env.m_dbg_mon.pop_search_wait_cnt > wait_max)
+            wait_max = m_env.m_dbg_mon.pop_search_wait_cnt;
+        end
+        if (m_env.m_dbg_mon.pop_partition_load != 0)
+          saw_load = 1'b1;
+        @(posedge m_env.m_csr_drv.vif.clk);
+      end
+      if (!saw_load || search_cycles != 6 || wait_min != 0 || wait_max != 5) begin
+        `uvm_error("E119", $sformatf(
+          "SEARCH guard mismatch at EXPECTED_LATENCY=65535: saw_load=%0d search_cycles=%0d wait_min=%0d wait_max=%0d",
+          saw_load, search_cycles, wait_min, wait_max))
+      end
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd1, 1'b1, 1'b1, 120_000,
+        "E119 latency=65535 subheader", matched_subheader);
+      wait_for_scoreboard_idle(140_000, "E119 latency=65535 drain");
+      expect_service_model_accounting("E119 latency=65535 drain", 1, 0);
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+      read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+      read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
+      if (push_count != 1 || pop_count != 1 || overwrite_count != 0 || fill_level != 0) begin
+        `uvm_error("E119", $sformatf(
+          "SEARCH guard audit left unexpected accounting after the rearmed max-latency phase: push=%0d pop=%0d overwrite=%0d fill=%0d",
+          push_count, pop_count, overwrite_count, fill_level))
       end
     end else if (case_id == "E124") begin
       profile_traffic_seq e124_seq;

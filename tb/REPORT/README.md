@@ -14,7 +14,7 @@
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 129 | stmt=99.09, branch=93.76, cond=81.76, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 |
-| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 41 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 |
+| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 43 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 |
 | ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 87 | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.60 |
 | ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 106 | stmt=96.77, branch=88.83, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=67.00 |
 
@@ -158,10 +158,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `516`
-- evidenced_cases = `363`
+- evidenced_cases = `365`
 - excluded_cases = `0`
 - merged total code coverage: `stmt=97.17, branch=90.63, cond=75.68, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=86.67`
-- functional coverage: `67.05% (346/516)`
+- functional coverage: `67.44% (348/516)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_
