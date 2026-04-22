@@ -1,4 +1,4 @@
-# ❌ DV Report — `ring_buffer_cam`
+# ⚠️ DV Report — `ring_buffer_cam`
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
 **RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
@@ -13,7 +13,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | field | value |
 |:---:|---|---|
-| ❌ | failed_cases | `17` |
+| ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
 | ⚠️ | unimplemented_cases | `149` |
 | ✅ | stale_artifacts | `0` |
@@ -43,11 +43,11 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
 |:---:|---|---:|---:|---:|---:|---:|---:|---:|
-| ❌ | `BASIC` | 129 | 129 | 100.00% | 13771 | 2 | 3 | 0 |
-| ❌ | `EDGE` | 129 | 43 | 33.33% | 39112 | 1 | 1 | 0 |
-| ❌ | `PROF` | 129 | 87 | 67.44% | 2560245 | 14 | 59 | 0 |
+| ✅ | `BASIC` | 129 | 129 | 100.00% | 14923 | 0 | 0 | 0 |
+| ⚠️ | `EDGE` | 129 | 45 | 34.88% | 39114 | 0 | 0 | 0 |
+| ⚠️ | `PROF` | 129 | 87 | 67.44% | 4560502 | 0 | 0 | 0 |
 | ⚠️ | `ERROR` | 129 | 106 | 82.17% | 2067 | 0 | 0 | 0 |
-| ❌ | `TOTAL` | 516 | 365 | 70.74% | 2615195 | 17 | 63 | 0 |
+| ⚠️ | `TOTAL` | 516 | 367 | 71.12% | 4616606 | 0 | 0 | 0 |
 
 ## Bucket summary
 
@@ -55,9 +55,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
 |:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 129 | stmt=99.09, branch=93.76, cond=81.76, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 | 98.45% (127/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 43 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 | 32.56% (42/129) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 87 | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.60 | 56.59% (73/129) |
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 129 | stmt=99.09, branch=93.76, cond=81.76, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 | 100.0% (129/129) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 45 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 | 34.88% (45/129) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 87 | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 | 67.44% (87/129) |
 | ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 106 | stmt=96.77, branch=88.83, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=67.00 | 82.17% (106/129) |
 
 ## Totals
@@ -70,9 +70,9 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 80.00 | 90.0 |
-| ✅ | toggle | 86.67 | 80.0 |
+| ✅ | toggle | 86.72 | 80.0 |
 
-- functional coverage: `67.44% (348/516)`
+- functional coverage: `71.12% (367/516)`
 
 ## Cross / continuous-frame signoff
 
