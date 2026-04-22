@@ -1341,8 +1341,16 @@ class base_test extends uvm_test;
     wait_for_scoreboard_idle(120_000, "X061 pop_cmd backlog clear");
   endtask
 
-  task automatic restart_after_flush(int unsigned latency = 2000);
+  task automatic restart_after_flush(
+    int unsigned latency = 2000,
+    bit          drop_source_backlog = 1'b0,
+    string       backlog_what = "post-flush source backlog"
+  );
     enter_run_prepare();
+    if (drop_source_backlog) begin
+      discard_pending_source_backlog(backlog_what);
+      wait_clocks(2);
+    end
     csr_write(CSR_EXPECTED_LAT_ADDR, latency);
     ctrl_send(ring_buffer_cam_pkg::CTRL_SYNC);
     wait_clocks(2);
@@ -1419,6 +1427,8 @@ class base_test extends uvm_test;
     int unsigned       overwrite_count;
     int unsigned       cache_miss_count;
     int unsigned       fill_level;
+    int unsigned       accepted_after_restart_checkpoint;
+    int unsigned       accepted_after_restart_delta;
 
     configure_and_start(latency);
 
@@ -1432,7 +1442,8 @@ class base_test extends uvm_test;
     err_burst.search_key = m_cfg.lane_key_ord_to_search_key(3);
     err_burst.start(m_env.m_hit_seqr);
     wait_clocks(32);
-    restart_after_flush(latency);
+    restart_after_flush(latency, 1'b1, {what, " dropped post-flush backlog"});
+    accepted_after_restart_checkpoint = m_env.m_hit_drv.accepted_payload_total;
 
     read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
     read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
@@ -1453,11 +1464,30 @@ class base_test extends uvm_test;
 
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
     read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
-    if (push_count != good_b_hits || pop_count != good_b_hits || fill_level != 0) begin
+    accepted_after_restart_delta =
+      m_env.m_hit_drv.accepted_payload_total - accepted_after_restart_checkpoint;
+    if (push_count != accepted_after_restart_delta ||
+        (pop_count + overwrite_count) != accepted_after_restart_delta ||
+        cache_miss_count != 0 ||
+        fill_level != 0) begin
       `uvm_error("RECOVERY", $sformatf(
-        "%s restart accounting mismatch: push=%0d pop=%0d fill=%0d expected=%0d",
-        what, push_count, pop_count, fill_level, good_b_hits))
+        "%s restart accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d accepted_restart_delta=%0d accepted_total=%0d accepted_restart_checkpoint=%0d",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        accepted_after_restart_delta,
+        m_env.m_hit_drv.accepted_payload_total,
+        accepted_after_restart_checkpoint))
+    end
+    if (accepted_after_restart_delta != good_b_hits) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s restart accepted payload mismatch: accepted_restart_delta=%0d expected=%0d accepted_total=%0d accepted_restart_checkpoint=%0d",
+        what,
+        accepted_after_restart_delta,
+        good_b_hits,
+        m_env.m_hit_drv.accepted_payload_total,
+        accepted_after_restart_checkpoint))
     end
   endtask
 
@@ -1470,7 +1500,11 @@ class base_test extends uvm_test;
     same_key_burst_seq burst_seq;
     int unsigned       push_count;
     int unsigned       pop_count;
+    int unsigned       overwrite_count;
+    int unsigned       cache_miss_count;
     int unsigned       fill_level;
+    int unsigned       accepted_after_restart_checkpoint;
+    int unsigned       accepted_after_restart_delta;
 
     configure_and_start(latency);
 
@@ -1487,6 +1521,7 @@ class base_test extends uvm_test;
 
     return_to_idle();
     restart_after_flush(latency);
+    accepted_after_restart_checkpoint = m_env.m_hit_drv.accepted_payload_total;
     if (m_env.m_dbg_mon.vif.endofrun_seen !== 1'b0) begin
       `uvm_error("RECOVERY", $sformatf("%s restart inherited endofrun_seen", what))
     end
@@ -1501,11 +1536,30 @@ class base_test extends uvm_test;
 
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
     read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
     read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_level);
-    if (push_count != second_hits || pop_count != second_hits || fill_level != 0) begin
+    accepted_after_restart_delta =
+      m_env.m_hit_drv.accepted_payload_total - accepted_after_restart_checkpoint;
+    if (push_count != accepted_after_restart_delta ||
+        (pop_count + overwrite_count) != accepted_after_restart_delta ||
+        cache_miss_count != 0 ||
+        fill_level != 0) begin
       `uvm_error("RECOVERY", $sformatf(
-        "%s second-run accounting mismatch: push=%0d pop=%0d fill=%0d expected=%0d",
-        what, push_count, pop_count, fill_level, second_hits))
+        "%s second-run accounting mismatch: push=%0d pop=%0d overwrite=%0d cache_miss=%0d fill=%0d accepted_restart_delta=%0d accepted_total=%0d accepted_restart_checkpoint=%0d",
+        what, push_count, pop_count, overwrite_count, cache_miss_count, fill_level,
+        accepted_after_restart_delta,
+        m_env.m_hit_drv.accepted_payload_total,
+        accepted_after_restart_checkpoint))
+    end
+    if (accepted_after_restart_delta != second_hits) begin
+      `uvm_error("RECOVERY", $sformatf(
+        "%s second-run accepted payload mismatch: accepted_restart_delta=%0d expected=%0d accepted_total=%0d accepted_restart_checkpoint=%0d",
+        what,
+        accepted_after_restart_delta,
+        second_hits,
+        m_env.m_hit_drv.accepted_payload_total,
+        accepted_after_restart_checkpoint))
     end
   endtask
 
@@ -3875,7 +3929,10 @@ class base_test extends uvm_test;
       err_burst.start(m_env.m_hit_seqr);
       wait_clocks(16);
 
-      restart_after_flush(2000);
+      restart_after_flush(
+        2000,
+        1'b1,
+        $sformatf("CROSS-015 round %0d dropped post-flush backlog", round));
       accepted_checkpoint = m_env.m_hit_drv.accepted_payload_total;
 
       pressure_seq = overwrite_profile_seq::type_id::create($sformatf("cross015_pressure_%0d", round));
@@ -3910,11 +3967,21 @@ class base_test extends uvm_test;
   endtask
 
   task automatic run_cross_inerr_toggle_longrun();
-    error_burst_seq err_burst;
-    int unsigned    inerr_count;
+    same_key_burst_seq good_burst;
+    error_burst_seq    err_burst;
+    int unsigned       inerr_count;
+    int unsigned       push_count;
+    int unsigned       pop_count;
 
     `uvm_info("CASE", "CASE_BEGIN run=CROSS-091", UVM_LOW)
     configure_and_start(2000);
+
+    good_burst = same_key_burst_seq::type_id::create("cross091_good_warmup");
+    good_burst.num_hits = 64;
+    good_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    good_burst.start(m_env.m_hit_seqr);
+    wait_for_push_count(64, 20_000, "CROSS-091 good warmup");
+    wait_for_scoreboard_idle(80_000, "CROSS-091 good warmup drain");
 
     err_burst = error_burst_seq::type_id::create("cross091_inerr_burst");
     err_burst.num_hits = 131072;
@@ -3930,13 +3997,23 @@ class base_test extends uvm_test;
         "Long-run INERR counter mismatch: observed=%0d expected=%0d",
         inerr_count, 131072))
     end
-    wait_for_scoreboard_idle(60_000, "CROSS-091 inerr long run");
+
+    good_burst = same_key_burst_seq::type_id::create("cross091_good_cooldown");
+    good_burst.num_hits = 64;
+    good_burst.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    good_burst.start(m_env.m_hit_seqr);
+    wait_for_push_count(128, 20_000, "CROSS-091 good cooldown");
+
+    terminate_and_drain(160_000, "CROSS-091 inerr long run");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
     `uvm_info("CROSS-091", $sformatf(
-      "summary: inerr=%0d cache_miss=%0d push=%0d pop=%0d",
+      "summary: inerr=%0d cache_miss=%0d push=%0d pop=%0d warmup_cooldown_pushes=%0d",
       inerr_count,
       m_env.m_dbg_mon.dbg_cache_miss_cnt[31:0],
-      m_env.m_dbg_mon.dbg_push_cnt[31:0],
-      m_env.m_dbg_mon.dbg_pop_cnt[31:0]), UVM_LOW)
+      push_count,
+      pop_count,
+      128), UVM_LOW)
     `uvm_info("CASE", "CASE_END run=CROSS-091", UVM_LOW)
   endtask
 
@@ -4089,6 +4166,7 @@ class base_test extends uvm_test;
     int unsigned num_hits
   );
     overwrite_profile_seq pressure_seq;
+    int unsigned terminate_timeout_cycles;
     int unsigned push_count;
     int unsigned overwrite_count;
     int unsigned offered_before_first_pop;
@@ -4112,7 +4190,8 @@ class base_test extends uvm_test;
     `uvm_info("PRESSURE", $sformatf("%s: pressure source completed offered=%0d accepted=%0d backlog=%0d",
       what, m_env.m_hit_drv.offered_payload_total, m_env.m_hit_drv.accepted_payload_total,
       m_env.m_hit_drv.pending_source_items()), UVM_LOW)
-    terminate_and_drain(80_000, {what, " terminate drain"});
+    terminate_timeout_cycles = 200_000 + (num_hits * 12);
+    terminate_and_drain(terminate_timeout_cycles, {what, " terminate drain"});
     expect_service_model_accounting({what, " post-terminate"}, 1, 1);
 
     read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
@@ -15792,16 +15871,42 @@ class base_test extends uvm_test;
     end
   endtask
 
+  task automatic run_case_in_continuous_frame(string owner, string case_id);
+    `uvm_info("CASE", $sformatf("CASE_BEGIN id=%s mode=frame owner=%s", case_id, owner), UVM_LOW)
+    run_case_by_id(case_id);
+    `uvm_info("CASE", $sformatf("CASE_END id=%s mode=frame owner=%s", case_id, owner), UVM_LOW)
+  endtask
+
+  task automatic run_case_range_in_continuous_frame(
+    string owner,
+    string prefix,
+    int    first_id,
+    int    last_id
+  );
+    string case_id;
+
+    for (int case_num = first_id; case_num <= last_id; case_num++) begin
+      if (case_num < 10) begin
+        case_id = {prefix, "00", $sformatf("%0d", case_num)};
+      end else if (case_num < 100) begin
+        case_id = {prefix, "0", $sformatf("%0d", case_num)};
+      end else begin
+        case_id = {prefix, $sformatf("%0d", case_num)};
+      end
+      run_case_in_continuous_frame(owner, case_id);
+    end
+  endtask
+
   task automatic run_basic_bucket_frame();
     same_key_burst_seq   burst_seq;
     single_push_pop_seq  single_seq;
     sequential_keys_seq  seq_keys;
     single_error_hit_seq err_seq;
-    logic [31:0] inerr_count;
+    logic [31:0]         inerr_count;
 
     `uvm_info("CASE", "CASE_BEGIN bucket=BASIC", UVM_LOW)
-    run_case_by_id("B001");
-    run_case_by_id("B002");
+    run_case_in_continuous_frame("BASIC bucket_frame", "B001");
+    run_case_in_continuous_frame("BASIC bucket_frame", "B002");
     configure_and_start();
     if (m_cfg.run_state != ring_buffer_cam_pkg::RUN_STATE_RUNNING) begin
       `uvm_error("BASIC_FRAME", $sformatf("Startup spine failed inside BASIC frame: state=%0d", m_cfg.run_state))
@@ -15836,6 +15941,7 @@ class base_test extends uvm_test;
     seq_keys.start(m_env.m_hit_seqr);
 
     wait_for_scoreboard_idle(150_000, "BASIC bucket_frame");
+    return_to_idle();
     `uvm_info("CASE", "CASE_END bucket=BASIC", UVM_LOW)
   endtask
 

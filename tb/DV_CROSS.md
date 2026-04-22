@@ -230,7 +230,7 @@ One run per X101-X115 direct case, promoted to a long-soak with the backdoor obs
 
 | case_id | ladder | anchor | scenario | bug / coverage target |
 |---|---|---|---|---|
-| CROSS-091 | `seed_sweep` | X101-X102 promoted to a 131072-txn sustained bad-hit burst | `INERR` backdoor vs frontdoor within 4 clk plus deeper error-counter toggle accumulation |
+| CROSS-091 | `seed_sweep` | X101-X102 promoted to a sustained bad-hit burst bracketed by 64-hit GOOD warmup/cooldown windows | `INERR` backdoor vs frontdoor within 4 clk plus deeper error-counter toggle accumulation without losing a real payload epoch in the same continuous frame |
 | CROSS-092 | `seed_sweep` | X103 | bad hit concurrent with good push at 10% rate, 500k txn | both counters advance on same cycle |
 | CROSS-093 | `seed_sweep` | X104 | push near TERM, TERM rate 1/5k, 500k txn | final push captured before TERMINATING freezes |
 | CROSS-094 | `seed_sweep` | X105 | pop near TERM, TERM rate 1/5k, 500k txn | final pop 1 clk before asi_ctrl_ready |

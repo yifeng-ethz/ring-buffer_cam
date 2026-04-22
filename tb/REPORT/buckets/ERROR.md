@@ -1,6 +1,6 @@
 # ⚠️ ERROR bucket
 
-**Planned:** `132` &nbsp; **Evidenced:** `128` &nbsp; **Status:** ⚠️
+**Planned:** `132` &nbsp; **Evidenced:** `132` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -19,7 +19,7 @@
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 70.60 | 80.0 |
+| ⚠️ | toggle | 70.63 | 80.0 |
 
 ## Ordered merge trace
 
@@ -129,36 +129,36 @@
 | ✅ | 100 | `X100` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X100.md) |
 | ✅ | 101 | `X101` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X101.md) |
 | ✅ | 102 | `X102` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X102.md) |
-| ❓ | 103 | `X103` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X103.md) |
+| ✅ | 103 | `X103` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X103.md) |
 | ✅ | 104 | `X104` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X104.md) |
 | ✅ | 105 | `X105` | stmt=96.87, branch=89.33, cond=74.21, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X105.md) |
 | ✅ | 106 | `X106` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X106.md) |
-| ❓ | 107 | `X107` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X107.md) |
+| ✅ | 107 | `X107` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X107.md) |
 | ✅ | 108 | `X108` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X108.md) |
 | ✅ | 109 | `X109` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X109.md) |
-| ❓ | 110 | `X110` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X110.md) |
+| ✅ | 110 | `X110` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X110.md) |
 | ✅ | 111 | `X111` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X111.md) |
 | ✅ | 112 | `X112` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X112.md) |
 | ✅ | 113 | `X113` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X113.md) |
 | ✅ | 114 | `X114` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X114.md) |
-| ❓ | 115 | `X115` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/X115.md) |
-| ✅ | 116 | `X116` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X116.md) |
-| ✅ | 117 | `X117` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.47 | [case](../cases/X117.md) |
-| ✅ | 118 | `X118` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.52 | [case](../cases/X118.md) |
-| ✅ | 119 | `X119` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.15 | [case](../cases/X119.md) |
-| ✅ | 120 | `X120` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.34 | [case](../cases/X120.md) |
-| ✅ | 121 | `X121` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.34 | [case](../cases/X121.md) |
-| ✅ | 122 | `X122` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X122.md) |
-| ✅ | 123 | `X123` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X123.md) |
-| ✅ | 124 | `X124` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X124.md) |
-| ✅ | 125 | `X125` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X125.md) |
-| ✅ | 126 | `X126` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X126.md) |
-| ✅ | 127 | `X127` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.54 | [case](../cases/X127.md) |
-| ✅ | 128 | `X128` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.58 | [case](../cases/X128.md) |
-| ✅ | 129 | `X129` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X129.md) |
-| ✅ | 130 | `X130` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X130.md) |
-| ✅ | 131 | `X131` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X131.md) |
-| ✅ | 132 | `X132` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X132.md) |
+| ✅ | 115 | `X115` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.79 | [case](../cases/X115.md) |
+| ✅ | 116 | `X116` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.79 | [case](../cases/X116.md) |
+| ✅ | 117 | `X117` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.79 | [case](../cases/X117.md) |
+| ✅ | 118 | `X118` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.81 | [case](../cases/X118.md) |
+| ✅ | 119 | `X119` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.40 | [case](../cases/X119.md) |
+| ✅ | 120 | `X120` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.40 | [case](../cases/X120.md) |
+| ✅ | 121 | `X121` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.40 | [case](../cases/X121.md) |
+| ✅ | 122 | `X122` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X122.md) |
+| ✅ | 123 | `X123` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X123.md) |
+| ✅ | 124 | `X124` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X124.md) |
+| ✅ | 125 | `X125` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X125.md) |
+| ✅ | 126 | `X126` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X126.md) |
+| ✅ | 127 | `X127` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | [case](../cases/X127.md) |
+| ✅ | 128 | `X128` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.61 | [case](../cases/X128.md) |
+| ✅ | 129 | `X129` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X129.md) |
+| ✅ | 130 | `X130` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X130.md) |
+| ✅ | 131 | `X131` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X131.md) |
+| ✅ | 132 | `X132` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X132.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

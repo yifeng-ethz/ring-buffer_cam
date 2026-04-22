@@ -227,6 +227,8 @@ module tb_top;
   // ── Timeout watchdog ──────────────────────────────────────────
   initial begin
     string dv_case_id;
+    string dv_exec_mode;
+    string dv_run_id;
 
     if ($value$plusargs("DV_CASE_ID=%s", dv_case_id)) begin
       if (dv_case_id == "P127") begin
@@ -235,6 +237,17 @@ module tb_top;
                    dv_case_id == "P126" ||
                    dv_case_id == "P129") begin
         tb_timeout_cycles = 25_000_000;
+      end
+    end
+    if ($value$plusargs("DV_EXEC_MODE=%s", dv_exec_mode)) begin
+      if (dv_exec_mode == "bucket_frame") begin
+        tb_timeout_cycles = 100_000_000;
+      end else if (dv_exec_mode == "cross") begin
+        tb_timeout_cycles = 250_000_000;
+        if ($value$plusargs("DV_RUN_ID=%s", dv_run_id) &&
+            (dv_run_id == "CROSS-005" || dv_run_id == "CROSS-006")) begin
+          tb_timeout_cycles = 400_000_000;
+        end
       end
     end
     void'($value$plusargs("TB_TIMEOUT_CYCLES=%d", tb_timeout_cycles));

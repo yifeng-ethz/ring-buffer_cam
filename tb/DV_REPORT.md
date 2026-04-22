@@ -15,7 +15,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | catalog_backlog_cases | `55` |
+| ✅ | catalog_backlog_cases | `0` |
 | ✅ | unimplemented_cases | `0` |
 | ✅ | stale_artifacts | `0` |
 
@@ -33,7 +33,7 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 ## Non-Claims
 
 - cross scope: DV_CROSS continuous-frame ladders are tracked separately from the canonical per-case isolated matrix in this refresh.
-- branch total excludes 4 compile-time-dead bins from the p4-only `gen_addr_enc_logic(2/3)` instances where `PIPE_STAGES=4` fixes `ACTIVE_PIPE_STAGES_CONST=4` and `EXTRA_VALID_STAGES_CONST=0`.
+- branch total excludes 16 compile-time-dead bins in `addr_enc_logic_partitioned`: the `clear_onehot_bit()` out-of-range guard is unreachable for the generated callers, and the `result_valid_extra` branches are unreachable across the promoted `PIPE_STAGES=1..4` build matrix, including the p4-only `gen_addr_enc_logic(2/3)` instances.
 
 ## Bucket Summary
 
@@ -42,26 +42,26 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 | status | bucket | catalog_planned | promoted | evidenced | backlog | merged | promoted functional |
 |:---:|---|---:|---:|---:|---:|---|---|
 | ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 129 | 129 | 0 | stmt=99.13, branch=93.87, cond=81.46, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.72 | 100.0% (129/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 123 | 123 | 0 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | 100.0% (123/123) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 84 | 84 | 0 | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 | 100.0% (84/84) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 132 | 128 | 128 | 0 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 100.0% (128/128) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 129 | 129 | 0 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | 100.0% (129/129) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 129 | 129 | 0 | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 | 100.0% (129/129) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 132 | 132 | 132 | 0 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | 100.0% (132/132) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 97.16 | 95.0 |
-| ✅ | branch | 90.11 | 90.0 |
+| ✅ | stmt | 96.79 | 95.0 |
+| ✅ | branch | 90.95 | 90.0 |
 | ℹ️ | cond | 74.58 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ✅ | fsm_trans | 100.00 | 90.0 |
-| ✅ | toggle | 86.71 | 80.0 |
+| ✅ | toggle | 86.72 | 80.0 |
 
 - catalog_planned_cases: `519`
-- promoted_signoff_cases: `464`
-- evidenced_promoted_cases: `464`
-- promoted functional coverage: `100.0% (464/464)`
+- promoted_signoff_cases: `519`
+- evidenced_promoted_cases: `519`
+- promoted functional coverage: `100.0% (519/519)`
 
 ## Signoff Runs
 
@@ -69,6 +69,12 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 
 | status | run_id | kind | build | seq | txns | cross_pct |
 |:---:|---|---|---|---|---:|---:|
+| ✅ | [`CROSS-008`](REPORT/cross/CROSS-008.md) | anchored_hybrid | default_p2_pipe4 | nightly promoted X117 anchor: GOOD(2048) → ERROR(64) → FLUSH → GOOD(2048) | 2048 | 88.8 |
+| ✅ | [`CROSS-009`](REPORT/cross/CROSS-009.md) | anchored_hybrid | default_p2_pipe4 | nightly promoted X118 anchor: GOOD(2048) → TERM → IDLE → RUN_PREPARE → RUN → GOOD(2048) | 2048 | 88.8 |
+| ✅ | [`CROSS-010`](REPORT/cross/CROSS-010.md) | anchored_hybrid | default_p2_pipe4 | overwrite-pressure GOOD(pool=1, λ=1.0, 10k) → X119 anchor → recovery GOOD(random, 10k) | 784 | 80.9 |
+| ✅ | [`CROSS-015`](REPORT/cross/CROSS-015.md) | anchored_hybrid | default_p2_pipe4 | nightly curated all-bucket mix: B005/B006, E002, P001-style random push-pop, X117-style error+flush recovery, plus overwrite-pressure windows, all separated by random idle gaps | 2048 | 88.8 |
+| ✅ | [`CROSS-076`](REPORT/cross/CROSS-076.md) | seed_sweep | default_p2_pipe4 | nightly hotspot overwrite soak derived from P111, 131072 txn same-ts pressure | 131072 | 88.8 |
+| ✅ | [`CROSS-091`](REPORT/cross/CROSS-091.md) | seed_sweep | default_p2_pipe4 | X101-X102 promoted to a sustained bad-hit burst bracketed by 64-hit GOOD warmup/cooldown windows | 128 | 86.2 |
 
 ## Index
 

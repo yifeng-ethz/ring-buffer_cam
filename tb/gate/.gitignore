@@ -1,0 +1,6 @@
+logs/
+work_gate_rtl/
+work_gate_netlist/
+verilog_libs/
+transcript
+vsim.wlf

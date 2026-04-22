@@ -63,11 +63,14 @@ METRIC_ROWS = OrderedDict(
     ]
 )
 
-TOTAL_BRANCH_EXCLUSION_BINS = 4
+TOTAL_BRANCH_EXCLUSION_BINS = 16
 TOTAL_BRANCH_EXCLUSION_NOTE = (
-    "branch total excludes 4 compile-time-dead bins from the p4-only "
-    "`gen_addr_enc_logic(2/3)` instances where `PIPE_STAGES=4` fixes "
-    "`ACTIVE_PIPE_STAGES_CONST=4` and `EXTRA_VALID_STAGES_CONST=0`."
+    "branch total excludes 16 compile-time-dead bins in "
+    "`addr_enc_logic_partitioned`: the `clear_onehot_bit()` out-of-range "
+    "guard is unreachable for the generated callers, and the "
+    "`result_valid_extra` branches are unreachable across the promoted "
+    "`PIPE_STAGES=1..4` build matrix, including the p4-only "
+    "`gen_addr_enc_logic(2/3)` instances."
 )
 
 
@@ -550,6 +553,7 @@ def checkpoint_ucdb_candidates(case_data: dict) -> list[tuple[int, Path]]:
 
 def cross_log_candidates(run_data: dict) -> list[Path]:
     run_id = run_data["run_id"]
+    build_tag = run_data.get("build_tag", RTL_VARIANT)
     work_names = []
     if run_id == "CROSS-001":
         work_names.append("test_case_engine_BASIC_bucket_frame_s1.log")
@@ -563,15 +567,16 @@ def cross_log_candidates(run_data: dict) -> list[Path]:
         work_names.append(f"test_case_engine_{run_id}_s{SEED}.log")
 
     candidates = [WORK_LOGS / name for name in work_names]
-    candidates.append(PUB_LOGS / f"{run_id}_{RTL_VARIANT}_s{SEED}.log")
+    candidates.append(PUB_LOGS / f"{run_id}_{build_tag}_s{SEED}.log")
     return unique_paths(candidates)
 
 
 def cross_ucdb_candidates(run_data: dict) -> list[Path]:
     run_id = run_data["run_id"]
+    build_tag = run_data.get("build_tag", RTL_VARIANT)
     return unique_paths(
         [
-            TB / "uvm" / f"cov_{RTL_VARIANT}" / f"{run_id}_s{SEED}.ucdb",
+            TB / "uvm" / f"cov_{build_tag}" / f"{run_id}_s{SEED}.ucdb",
             PUB_COV / f"{run_id}_s{SEED}.ucdb",
         ]
     )
@@ -807,7 +812,13 @@ def build_signoff_run(run_data: dict) -> dict | None:
             code_coverage = metrics_to_raw(summary)
             break
 
-    publish_log_artifact(entry["run_id"], chosen_log, entry["sequence_name"], True)
+    publish_log_artifact(
+        entry["run_id"],
+        chosen_log,
+        entry["sequence_name"],
+        True,
+        entry.get("build_tag", RTL_VARIANT),
+    )
     publish_cov_artifact(entry["run_id"], chosen_ucdb)
 
     summary = log_info["summary"]

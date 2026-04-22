@@ -62,9 +62,13 @@
 --      Date: Apr 21, 2026
 -- Revision: 2.28 (carry the overwrite erase slot from push_write so the remaining CAM erase path closes the tightened standalone signoff clock)
 --      Date: Apr 21, 2026
--- Version : 26.2.3
--- Date    : 20260421
--- Change  : package the terminate-control closure refresh as release 26.2.4.0421
+-- Revision: 2.29 (count frozen SEARCH snapshots by indexed chunks so COUNT no longer rewrites the full partition vectors every cycle)
+--      Date: Apr 22, 2026
+-- Revision: 2.30 (re-open settled SEARCH-tail overlap with a conservative overwrite-slot guard so standalone timing stays closed)
+--      Date: Apr 22, 2026
+-- Version : 26.2.6
+-- Date    : 20260422
+-- Change  : keep settled SEARCH-tail overlap safe without re-opening the standalone timing failure in 26.2.6.0422
 --
 -- =========
 -- Description:	[Ring-buffer Shaped Content-Addressable-Memory (CAM)] 
@@ -107,9 +111,9 @@ generic(
 	IP_UID				: natural := 1380074317;
 	VERSION_MAJOR		: natural := 26;
 	VERSION_MINOR		: natural := 2;
-	VERSION_PATCH       : natural := 4;
-	BUILD				: natural := 421;
-	VERSION_DATE		: natural := 20260421;
+	VERSION_PATCH       : natural := 6;
+	BUILD				: natural := 422;
+	VERSION_DATE		: natural := 20260422;
 	VERSION_GIT			: natural := 0;
 	INSTANCE_ID			: natural := 0;
 	DEBUG				: natural := 1
@@ -247,6 +251,23 @@ architecture rtl of ring_buffer_cam_v2_core is
 		sum1_v   := resize(count2_v, sum1_v'length) + resize(count3_v, sum1_v'length);
 		total_v  := resize(sum0_v, total_v'length) + resize(sum1_v, total_v'length);
 		return to_integer(total_v);
+	end function;
+
+	function snapshot_chunk_16 (
+		vec_v   : std_logic_vector;
+		chunk_v : natural
+	) return std_logic_vector is
+		variable chunk_vec_v : std_logic_vector(15 downto 0);
+		variable src_idx_v   : natural;
+	begin
+		chunk_vec_v := (others => '0');
+		for bit_idx in 0 to 15 loop
+			src_idx_v := chunk_v * 16 + bit_idx;
+			if (src_idx_v < vec_v'length) then
+				chunk_vec_v(bit_idx) := vec_v(src_idx_v);
+			end if;
+		end loop;
+		return chunk_vec_v;
 	end function;
 
 	function ring_ptr_inc (
@@ -516,7 +537,6 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal pop_hits_count							: unsigned(MAIN_CAM_ADDR_WIDTH downto 0); -- + 1 bit
 	signal pop_engine_match_exist					: std_logic;
 	signal pop_search_wait_cnt						: unsigned(2 downto 0);
-	signal pop_write_pointer_in_snapshot			: std_logic;
 	-- pop engine (flushing)
 	constant POP_FLUSH_CAM_DATA_MAX					: unsigned(MAIN_CAM_DATA_WIDTH-1 downto 0) := (others => '1'); -- for flushing
 	constant POP_FLUSH_CAM_ADDR_MAX					: unsigned(MAIN_CAM_ADDR_WIDTH-1 downto 0) := (others => '1'); -- for flushing
@@ -580,7 +600,7 @@ architecture rtl of ring_buffer_cam_v2_core is
 	signal dbg_pop_partition_flag			: std_logic_vector(3 downto 0);
 	signal dbg_pop_partition_has_more		: std_logic_vector(3 downto 0);
 	signal dbg_pop_partition_eval_stage0_valid : std_logic_vector(3 downto 0);
-	
+
 begin
 
 	dbg_run_state_code <= to_unsigned(run_state_t'pos(run_state_cmd), dbg_run_state_code'length);
@@ -996,24 +1016,6 @@ begin
 		end if;
 	end process;
 
-	proc_pop_write_pointer_snapshot_guard : process (all)
-		variable slot_idx_v : natural;
-		variable part_idx_v : natural range 0 to N_PARTITIONS-1;
-		variable part_slot_v : natural range 0 to MATCH_PARTITION_SIZE_CONST-1;
-	begin
-		slot_idx_v := to_integer(write_pointer);
-		if (slot_idx_v < MAIN_CAM_SIZE) then
-			part_idx_v := slot_idx_v / MATCH_PARTITION_SIZE_CONST;
-			part_slot_v := slot_idx_v mod MATCH_PARTITION_SIZE_CONST;
-			pop_write_pointer_in_snapshot <= pop_partition_snapshot(part_idx_v)(part_slot_v);
-		else
-			pop_write_pointer_in_snapshot <= '0';
-		end if;
-	end process;
-
-	
-
-	
 	proc_pop_descriptor_generator : process (i_clk,i_rst)
 	-- the pop descriptor generator will generate the 8 bit command ts[11:4] for the search key, 
 	-- which is processed by the pop engine to pop out all match hits.
@@ -1245,8 +1247,9 @@ begin
 							end if;
 						end loop;
 						if (pop_count_done /= '1') then
-							chunk_vec_v := pop_partition_snapshot(pop_count_partition_idx)(
-								MATCH_COUNT_CHUNK_WIDTH_CONST-1 downto 0
+							chunk_vec_v := snapshot_chunk_16(
+								pop_partition_snapshot(pop_count_partition_idx),
+								pop_count_chunk_idx
 							);
 							chunk_hits_v := count_ones_16(chunk_vec_v);
 							total_hits_v := pop_count_total_acc + to_unsigned(
@@ -1254,12 +1257,6 @@ begin
 								total_hits_v'length
 							);
 							pop_count_total_acc <= total_hits_v;
-							pop_partition_snapshot(pop_count_partition_idx) <= std_logic_vector(
-								shift_right(
-									unsigned(pop_partition_snapshot(pop_count_partition_idx)),
-									MATCH_COUNT_CHUNK_WIDTH_CONST
-								)
-							);
 							if (pop_count_chunk_idx = MATCH_COUNT_CHUNKS_CONST-1) then
 								pop_count_chunk_idx <= 0;
 								if (pop_count_partition_idx = N_PARTITIONS-1) then
@@ -1454,17 +1451,18 @@ begin
 		elsif (req(1) = '1') then -- always grant erase even in pop phase (appear in the first cycle as last push write is just granted)
 			decision		<= 1;
 		elsif (pop_engine_state = SEARCH) then
-			-- Any cross-key CAM write can perturb the in-flight match fabric
-			-- before the SEARCH snapshot is frozen. Re-open cross-key overlap
-			-- only after the snapshot has been captured and SEARCH is in its
-			-- settled tail cycles, and even then only when the current write
-			-- pointer is outside the frozen snapshot.
+			-- Keep the unstable pre-freeze SEARCH window on the same-key-only
+			-- rule, then reopen limited cross-key overlap only in the settled
+			-- tail when the observed overwrite slot is aligned and its old
+			-- resident is provably not part of the frozen pop key set.
 			if (req(2) = '1') then
 				decision		<= 2;
 			elsif (req(0) = '1' and
 			       (in_hit_sk = pop_current_sk(7 downto 0) or
 			        (pop_search_wait_cnt >= to_unsigned(5, pop_search_wait_cnt'length) and
-			         pop_write_pointer_in_snapshot = '0'))) then
+			         push_write_grant_reg = '0' and
+			         not (addr_occupied = '1' and
+			              cam_erase_data = pop_current_sk(7 downto 0))))) then
 				decision		<= 0;
 			end if;
 		elsif (pop_engine_state /= IDLE) then -- once DRAIN starts, preserve the frozen pop snapshot until retirement completes

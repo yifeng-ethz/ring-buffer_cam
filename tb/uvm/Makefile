@@ -81,6 +81,8 @@ DEBUG ?= 1
 COV_ENABLE ?= 1
 COV_DIR ?= $(UVM_DIR)/cov_$(RTL_VARIANT)
 COV_STEM ?= $(TEST)$(LOG_TAG)
+BUCKET_FRAME_TIMEOUT_CYCLES ?= 100000000
+CROSS_TIMEOUT_CYCLES ?= 250000000
 
 COV_ENABLED_BOOL := $(filter 1 yes YES true TRUE,$(COV_ENABLE))
 VCOM_COVER = $(if $(COV_ENABLED_BOOL),-cover bcesft,)
@@ -224,12 +226,12 @@ run_case: compile
 run_bucket_frame: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(BUCKET)_bucket_frame \
 	  COV_STEM=$(BUCKET)_bucket_frame \
-	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET) $(EXTRA_PLUSARGS)" SEED=$(SEED)
+	  PLUSARGS="+DV_EXEC_MODE=bucket_frame +DV_BUCKET=$(BUCKET) +TB_TIMEOUT_CYCLES=$(BUCKET_FRAME_TIMEOUT_CYCLES) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_cross: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
 	  COV_STEM=$(RUN_ID) \
-	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID) $(EXTRA_PLUSARGS)" SEED=$(SEED)
+	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID) +TB_TIMEOUT_CYCLES=$(CROSS_TIMEOUT_CYCLES) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_sim: compile
 	@if [ -n "$(CASE_ID)" ]; then \

@@ -181,16 +181,16 @@ begin
             if aso_hit_type2_valid = '1' then
                 signature_v := signature_v xor aso_hit_type2_data(31 downto 0);
                 signature_v(3 downto 0) := signature_v(3 downto 0) xor aso_hit_type2_data(35 downto 32);
+                signature_v(19 downto 16) := signature_v(19 downto 16) xor aso_hit_type2_channel;
+                signature_v(20)           := signature_v(20) xor aso_hit_type2_sop;
+                signature_v(21)           := signature_v(21) xor aso_hit_type2_eop;
+                signature_v(22)           := signature_v(22) xor aso_hit_type2_error;
             end if;
 
             if aso_filllevel_valid = '1' then
                 signature_v(15 downto 0) := signature_v(15 downto 0) xor aso_filllevel_data;
             end if;
 
-            signature_v(19 downto 16) := signature_v(19 downto 16) xor aso_hit_type2_channel;
-            signature_v(20)           := signature_v(20) xor aso_hit_type2_sop;
-            signature_v(21)           := signature_v(21) xor aso_hit_type2_eop;
-            signature_v(22)           := signature_v(22) xor aso_hit_type2_error;
             signature_v(30 downto 23) := signature_v(30 downto 23) xor std_logic_vector(hit_counter(7 downto 0));
             signature_v(31)           := signature_v(31) xor asi_hit_type1_ready;
 

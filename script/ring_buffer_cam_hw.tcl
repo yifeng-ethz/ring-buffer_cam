@@ -2,8 +2,8 @@ package require -exact qsys 16.1
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
-set_module_property VERSION 26.2.4.0421
-set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, preserves the earlier non-power-of-two pointer-wrap repairs, carries the overwrite erase slot from push_write to close the remaining standalone timing blocker, and refreshes the supporting signoff evidence."
+set_module_property VERSION 26.2.6.0422
+set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, preserves the earlier non-power-of-two pointer-wrap repairs, carries the overwrite erase slot from push_write, and removes COUNT-stage full-snapshot rewrites so the live LVDS integration can close timing more cleanly."
 set_module_property GROUP "Mu3e Data Plane/Modules"
 set_module_property AUTHOR "Yifeng Wang"
 set_module_property INTERNAL false
@@ -38,11 +38,11 @@ set FILLLEVEL_WIDTH_CONST       16
 set DEFAULT_RING_DEPTH_CONST    512
 set DEFAULT_PIPE_STAGES_CONST   4
 set IP_UID_DEFAULT_CONST        1380074317
-set BUILD_DEFAULT_CONST         421
+set BUILD_DEFAULT_CONST         422
 set VERSION_MAJOR_DEFAULT_CONST 26
 set VERSION_MINOR_DEFAULT_CONST 2
-set VERSION_PATCH_DEFAULT_CONST 4
-set VERSION_DATE_DEFAULT_CONST  20260421
+set VERSION_PATCH_DEFAULT_CONST 6
+set VERSION_DATE_DEFAULT_CONST  20260422
 set VERSION_GIT_DEFAULT_CONST   0
 set INSTANCE_ID_DEFAULT_CONST   0
 
@@ -394,7 +394,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.2.4.0421</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=421</b> / <b>VERSION_DATE=20260421</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, and the refreshed terminate-control evidence through <b>B040</b>, <b>B071</b>, <b>B113</b>, <b>B114</b>, and <b>B132</b>.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
+add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.2.6.0422</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=422</b> / <b>VERSION_DATE=20260422</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, the COUNT-stage frozen-snapshot chunk counter that removes per-cycle full-vector rewrites, and the settled SEARCH-tail conservative overwrite-slot guard that keeps safe cross-key overlap without reopening the standalone timing path.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
 add_html_text "Versioning" versioning_html {<html><b>Common identity header</b><br/>Word <b>0</b> is <b>UID</b>.<br/>Word <b>1</b> is <b>META</b>: write 0=VERSION, 1=DATE, 2=GIT, 3=INSTANCE_ID.<br/><br/><b>VERSION encoding</b><br/>VERSION[31:24] = MAJOR, VERSION[23:16] = MINOR, VERSION[15:12] = PATCH, VERSION[11:0] = BUILD.</html>}
 add_display_item "Versioning" IP_UID parameter
 add_display_item "Versioning" VERSION_MAJOR parameter

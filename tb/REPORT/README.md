@@ -14,14 +14,20 @@
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
 | ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 129 | stmt=99.13, branch=93.87, cond=81.46, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.72 |
-| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 123 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 84 | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 132 | 128 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 |
+| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 129 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 129 | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 132 | 132 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 |
 
 ## Cross / continuous-frame runs
 
 | status | run_id | kind | build | bucket | seq | txns | cross_pct |
 |:---:|---|---|---|---|---|---:|---:|
+| ✅ | [`CROSS-008`](cross/CROSS-008.md) | anchored_hybrid | default_p2_pipe4 | - | nightly promoted X117 anchor: GOOD(2048) → ERROR(64) → FLUSH → GOOD(2048) | 2048 | 88.8 |
+| ✅ | [`CROSS-009`](cross/CROSS-009.md) | anchored_hybrid | default_p2_pipe4 | - | nightly promoted X118 anchor: GOOD(2048) → TERM → IDLE → RUN_PREPARE → RUN → GOOD(2048) | 2048 | 88.8 |
+| ✅ | [`CROSS-010`](cross/CROSS-010.md) | anchored_hybrid | default_p2_pipe4 | - | overwrite-pressure GOOD(pool=1, λ=1.0, 10k) → X119 anchor → recovery GOOD(random, 10k) | 784 | 80.9 |
+| ✅ | [`CROSS-015`](cross/CROSS-015.md) | anchored_hybrid | default_p2_pipe4 | - | nightly curated all-bucket mix: B005/B006, E002, P001-style random push-pop, X117-style error+flush recovery, plus overwrite-pressure windows, all separated by random idle gaps | 2048 | 88.8 |
+| ✅ | [`CROSS-076`](cross/CROSS-076.md) | seed_sweep | default_p2_pipe4 | - | nightly hotspot overwrite soak derived from P111, 131072 txn same-ts pressure | 131072 | 88.8 |
+| ✅ | [`CROSS-091`](cross/CROSS-091.md) | seed_sweep | default_p2_pipe4 | - | X101-X102 promoted to a sustained bad-hit burst bracketed by 64-hit GOOD warmup/cooldown windows | 128 | 86.2 |
 
 ## Random long-run cases
 
@@ -88,7 +94,52 @@
 | ❓ | [`P062`](cases/P062.md) | PROF | 384 | [growth](txn_growth/P062.md) |
 | ❓ | [`P063`](cases/P063.md) | PROF | 257 | [growth](txn_growth/P063.md) |
 | ❓ | [`P064`](cases/P064.md) | PROF | 1024 | [growth](txn_growth/P064.md) |
+| ❓ | [`P065`](cases/P065.md) | PROF | 1024 | [growth](txn_growth/P065.md) |
 | ❓ | [`P066`](cases/P066.md) | PROF | 85 | [growth](txn_growth/P066.md) |
+| ❓ | [`P067`](cases/P067.md) | PROF | 0 | [growth](txn_growth/P067.md) |
+| ❓ | [`P068`](cases/P068.md) | PROF | 1024 | [growth](txn_growth/P068.md) |
+| ❓ | [`P069`](cases/P069.md) | PROF | 1024 | [growth](txn_growth/P069.md) |
+| ❓ | [`P070`](cases/P070.md) | PROF | 85 | [growth](txn_growth/P070.md) |
+| ❓ | [`P071`](cases/P071.md) | PROF | 0 | [growth](txn_growth/P071.md) |
+| ❓ | [`P072`](cases/P072.md) | PROF | 125 | [growth](txn_growth/P072.md) |
+| ❓ | [`P073`](cases/P073.md) | PROF | 1024 | [growth](txn_growth/P073.md) |
+| ❓ | [`P074`](cases/P074.md) | PROF | 125 | [growth](txn_growth/P074.md) |
+| ❓ | [`P075`](cases/P075.md) | PROF | 16 | [growth](txn_growth/P075.md) |
+| ❓ | [`P076`](cases/P076.md) | PROF | 0 | [growth](txn_growth/P076.md) |
+| ❓ | [`P077`](cases/P077.md) | PROF | 7 | [growth](txn_growth/P077.md) |
+| ❓ | [`P078`](cases/P078.md) | PROF | 85 | [growth](txn_growth/P078.md) |
+| ❓ | [`P079`](cases/P079.md) | PROF | 0 | [growth](txn_growth/P079.md) |
+| ❓ | [`P080`](cases/P080.md) | PROF | 0 | [growth](txn_growth/P080.md) |
+| ❓ | [`P081`](cases/P081.md) | PROF | 512 | [growth](txn_growth/P081.md) |
+| ❓ | [`P082`](cases/P082.md) | PROF | 1 | [growth](txn_growth/P082.md) |
+| ❓ | [`P083`](cases/P083.md) | PROF | 85 | [growth](txn_growth/P083.md) |
+| ❓ | [`P084`](cases/P084.md) | PROF | 1024 | [growth](txn_growth/P084.md) |
+| ❓ | [`P085`](cases/P085.md) | PROF | 30000 | [growth](txn_growth/P085.md) |
+| ❓ | [`P086`](cases/P086.md) | PROF | 30000 | [growth](txn_growth/P086.md) |
+| ❓ | [`P087`](cases/P087.md) | PROF | 30000 | [growth](txn_growth/P087.md) |
+| ❓ | [`P088`](cases/P088.md) | PROF | 40000 | [growth](txn_growth/P088.md) |
+| ❓ | [`P089`](cases/P089.md) | PROF | 50000 | [growth](txn_growth/P089.md) |
+| ❓ | [`P090`](cases/P090.md) | PROF | 4096 | [growth](txn_growth/P090.md) |
+| ❓ | [`P091`](cases/P091.md) | PROF | 30000 | [growth](txn_growth/P091.md) |
+| ❓ | [`P092`](cases/P092.md) | PROF | 85 | [growth](txn_growth/P092.md) |
+| ❓ | [`P093`](cases/P093.md) | PROF | 0 | [growth](txn_growth/P093.md) |
+| ❓ | [`P094`](cases/P094.md) | PROF | 512 | [growth](txn_growth/P094.md) |
+| ❓ | [`P095`](cases/P095.md) | PROF | 288 | [growth](txn_growth/P095.md) |
+| ❓ | [`P096`](cases/P096.md) | PROF | 64 | [growth](txn_growth/P096.md) |
+| ❓ | [`P097`](cases/P097.md) | PROF | 30000 | [growth](txn_growth/P097.md) |
+| ❓ | [`P098`](cases/P098.md) | PROF | 4096 | [growth](txn_growth/P098.md) |
+| ❓ | [`P099`](cases/P099.md) | PROF | 512 | [growth](txn_growth/P099.md) |
+| ❓ | [`P100`](cases/P100.md) | PROF | 512 | [growth](txn_growth/P100.md) |
+| ❓ | [`P101`](cases/P101.md) | PROF | 40000 | [growth](txn_growth/P101.md) |
+| ❓ | [`P102`](cases/P102.md) | PROF | 4096 | [growth](txn_growth/P102.md) |
+| ❓ | [`P103`](cases/P103.md) | PROF | 30000 | [growth](txn_growth/P103.md) |
+| ❓ | [`P104`](cases/P104.md) | PROF | 125 | [growth](txn_growth/P104.md) |
+| ❓ | [`P105`](cases/P105.md) | PROF | 20000 | [growth](txn_growth/P105.md) |
+| ❓ | [`P106`](cases/P106.md) | PROF | 3072 | [growth](txn_growth/P106.md) |
+| ❓ | [`P107`](cases/P107.md) | PROF | 2048 | [growth](txn_growth/P107.md) |
+| ❓ | [`P108`](cases/P108.md) | PROF | 30000 | [growth](txn_growth/P108.md) |
+| ❓ | [`P109`](cases/P109.md) | PROF | 30000 | [growth](txn_growth/P109.md) |
+| ❓ | [`P110`](cases/P110.md) | PROF | 20000 | [growth](txn_growth/P110.md) |
 | ❓ | [`P111`](cases/P111.md) | PROF | 576 | [growth](txn_growth/P111.md) |
 | ❓ | [`P112`](cases/P112.md) | PROF | 736 | [growth](txn_growth/P112.md) |
 | ❓ | [`P113`](cases/P113.md) | PROF | 1024 | [growth](txn_growth/P113.md) |
@@ -113,10 +164,10 @@
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
 - planned_cases = `519`
-- evidenced_cases = `464`
+- evidenced_cases = `519`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=97.16, branch=90.11, cond=74.58, expr=40.00, fsm_state=100.00, fsm_trans=100.00, toggle=86.71`
-- functional coverage: `100.0% (464/464)`
+- merged total code coverage: `stmt=96.79, branch=90.95, cond=74.58, expr=40.00, fsm_state=100.00, fsm_trans=100.00, toggle=86.72`
+- functional coverage: `100.0% (519/519)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

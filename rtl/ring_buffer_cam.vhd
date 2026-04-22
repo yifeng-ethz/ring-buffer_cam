@@ -1,8 +1,8 @@
 -- File name: ring_buffer_cam.vhd
 -- Author  : Yifeng Wang (yifenwan@phys.ethz.ch)
--- Version : 26.2.3
--- Date    : 20260421
--- Change  : package the terminate-control closure refresh as release 26.2.4.0421
+-- Version : 26.2.6
+-- Date    : 20260422
+-- Change  : package the settled SEARCH-tail timing-safe overlap guard as release 26.2.6.0422
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,9 +20,9 @@ entity ring_buffer_cam is
         IP_UID              : natural := 1380074317;
         VERSION_MAJOR       : natural := 26;
         VERSION_MINOR       : natural := 2;
-        VERSION_PATCH       : natural := 4;
-        BUILD               : natural := 421;
-        VERSION_DATE        : natural := 20260421;
+        VERSION_PATCH       : natural := 6;
+        BUILD               : natural := 422;
+        VERSION_DATE        : natural := 20260422;
         VERSION_GIT         : natural := 0;
         INSTANCE_ID         : natural := 0;
         DEBUG               : natural := 1

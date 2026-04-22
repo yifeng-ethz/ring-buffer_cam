@@ -101,6 +101,7 @@ Historical formal note:
 | [BUG-061-R](#bug-061-r-terminating-control-ready-could-acknowledge-before-lane-local-end-of-run-had-actually-closed-the-drain-contract) | R | hard stuck error | `directed-only (terminate-control guard)` | fixed and verified in the directed terminate-control reruns on `dev` | `B040` on 2026-04-21 while reopening the live failing BASIC terminate-control slice after the full implemented isolated rerun | `b4e0daa` | `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract |
 | [BUG-062-H](#bug-062-h-the-generic-idle-helper-treated-a-lone-pending-end-of-run-marker-as-live-traffic-even-after-the-dut-had-already-closed-the-lane) | H | non-datapath-refactor | `directed-only (terminate cleanup audit)` | fixed and verified in the terminate cleanup reruns on `dev` | `B071` on 2026-04-21 immediately after `BUG-061-R` was fixed and the terminate-condition audit was rerun against the updated RTL | `b4e0daa` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane |
 | [BUG-063-H](#bug-063-h-the-shared-low-stage-partition-latency-helper-anchored-on-a-stage-4-only-pulse-instead-of-the-real-active-partition-load-event) | H | non-datapath-refactor | `directed-only (low-stage build-axis latency)` | fixed and verified in the low-stage directed and profile reruns on `dev` | `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on 2026-04-21 while closing the PIPE_STAGES build axis with standalone per-variant evidence | `4c62cd0` | The shared low-stage partition-latency helper anchored on a stage-4-only pulse instead of the real active-partition load event |
+| [BUG-064-R](#bug-064-r-restoring-exact-settled-search-tail-snapshot-membership-reopened-the-standalone-p4-timing-blocker) | R | signoff block | `directed-only (standalone signoff rerun after the exact settled-SEARCH-tail guard restore)` | fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master` | standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree | `pending` | Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker |
 
 ## 2026-04-16
 
@@ -1192,3 +1193,27 @@ Historical formal note:
   - this is a harness-only measurement fix with no DUT behavior change
   - verified by clean reruns of `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on the matching low-stage build variants, plus the refreshed report-generation pass that now links those variant-specific logs correctly
 - Commit: 4c62cd0
+
+## 2026-04-22
+
+### BUG-064-R: Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (standalone timing signoff blocker; the exact-guard regression was found by the standalone Quartus rerun and then revalidated with directed SEARCH-tail overwrite regressions)`
+- First seen in: standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree
+- Symptom:
+  - the exact settled-SEARCH-tail snapshot-membership restoration repaired the earlier functional regression, and the directed reruns `B133`, `P031`, and `P125` were green again, but the standalone `P4` timing rerun reopened the last slow-corner setup miss
+  - the pre-fix standalone report missed the tightened `137.5 MHz` signoff target at slow `85C` with `WNS=-0.116 ns`, even though the same image still kept slow `0C=+0.158 ns`, fast `85C=+2.777 ns`, fast `0C=+3.276 ns`, and worst reported hold slack `+0.151 ns`
+- Root cause:
+  - the exact settled-tail predicate pulled the live write-pointer / frozen-snapshot membership test back into the `push_write` / CAM write-enable cone
+  - that restored the SEARCH-tail correctness behavior, but it also rebuilt the same `write_pointer` to `main_cam` write-enable critical family that `BUG-060-R` had shortened
+- Fix status:
+  - `state`: fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master`
+  - `mechanism`: keep the pre-freeze same-key-only guard, but replace the exact settled-tail snapshot-membership test with a cheaper conservative overwrite-slot predicate that only reopens cross-key overlap when the SEARCH tail is settled, `push_write_grant_reg='0'`, and the observed overwrite slot is not the live resident for `pop_current_sk`
+  - `before_fix_outcome`: `B133`, `P031`, and `P125` passed on the exact settled-tail image, but standalone `ring_buffer_cam_syn_p4` still missed slow `85C` by `-0.116 ns`
+  - `after_fix_outcome`: standalone `ring_buffer_cam_syn_p4` now closes at slow `85C=+0.515 ns`, slow `0C=+0.575 ns`, fast `85C=+3.295 ns`, fast `0C=+3.648 ns`, and worst reported hold slack `+0.171 ns`; `B133`, `P031`, `P125`, and `P126` all pass on the same image, and the regenerated gate netlist passes the functional smoke harness
+  - `potential_hazard`: low to moderate; the settled-tail reopen is intentionally conservative and blocks the ambiguous one-cycle window immediately after a same-key tail write, so any future push/erase-side refactor still has to preserve both the SEARCH-tail safety rule and the standalone write-enable timing margin
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - this was a real signoff blocker because it sat exactly at the standalone Quartus timing gate while the functional SEARCH-window regressions were already green
+  - verified by clean reruns of `B133`, `P031`, `P125`, and `P126`, the regenerated `tb/DV_REPORT.md` dashboard, the standalone `ring_buffer_cam_syn_p4` rerun, and the gate smoke compare on `ring_buffer_cam_syn_p4.vo`
+- Commit: pending

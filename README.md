@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.2.4.0421
+**Version:** 26.2.6.0422
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -96,16 +96,14 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.2.4.0421` carries forward the verified SEARCH-window overlap repairs, preserves
-the low-stage encoder and non-power-of-two ring-depth fixes from the earlier `26.2.2`
-checkpoint, keeps the overwrite erase-slot carry that closed the standalone `P4`
-`137.5 MHz` signoff clock, and now adds the terminate-control handshake repair plus the
-lone pending end-of-run marker cleanup used by the live BASIC terminate guards. The current
-isolated dashboard on `2026-04-22` records `367/516` implemented case-engine rows,
-`365/516` evidenced isolated runs, `17` active failing cases, `149`
-still-unimplemented cases, and `67.44% (348/516)` passing functional coverage on the live
-`default_p2_pipe4` DV build. The authoritative dashboard state is maintained in
-[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
+Version `26.2.6.0422` keeps the verified SEARCH-window and non-power-of-two ring-depth
+repairs from the earlier `26.2.x` closure batches, preserves the overwrite erase-slot carry
+and COUNT-stage snapshot-counter cleanup from `26.2.5.0422`, and now re-opens settled
+SEARCH-tail cross-key overlap with a conservative overwrite-slot predicate that restores the
+`137.5 MHz` standalone `P4` signoff margin without regressing the `BUG-055-R` /
+`BUG-056-R` overwrite guards. The authoritative release status, DV dashboard, and signoff
+evidence are maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
+[`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 

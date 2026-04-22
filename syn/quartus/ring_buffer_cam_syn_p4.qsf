@@ -25,3 +25,11 @@ set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_harness.vhd
 set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_p4_top.vhd
 
 set_global_assignment -name SDC_FILE ring_buffer_cam_syn.sdc
+set_instance_assignment -name VIRTUAL_PIN ON -to clk125
+set_instance_assignment -name VIRTUAL_PIN ON -to reset_n
+set_instance_assignment -name VIRTUAL_PIN ON -to probe_out[*]
+
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim (Verilog)"
+set_global_assignment -name EDA_NETLIST_WRITER_OUTPUT_DIR gate_sim -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
+set_global_assignment -name EDA_GENERATE_GATE_LEVEL_SIMULATION_COMMAND_SCRIPT ON -section_id eda_simulation

@@ -1,3 +1,203 @@
-CROSS-015 has no live log artifact.
-State: planned only
-Scenario: `repeated-case interleaving` with B/E/P repeats
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb" "+DV_SEED=1" "+DV_EXEC_MODE=cross" "+DV_RUN_ID=CROSS-015" "+TB_TIMEOUT_CYCLES=250000000" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/CROSS-015_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 16:01:01 on Apr 22,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/CROSS-015_s1.ucdb
+#  run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 1  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 2  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 3  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3902) @ 100000: uvm_test_top [CASE] CASE_BEGIN run=CROSS-015
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 160116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=78 flush_cam_wrdata=31 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 320116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=156 flush_cam_wrdata=63 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 480116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=234 flush_cam_wrdata=95 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 640116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=312 flush_cam_wrdata=127 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 800116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=390 flush_cam_wrdata=159 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 960116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=468 flush_cam_wrdata=191 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 1249300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=78 flush_cam_wrdata=12 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 1409300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=156 flush_cam_wrdata=44 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 1489164000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=32 after 50000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=4768 accepted_payload=1645 backlog=3123
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 1569300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=234 flush_cam_wrdata=76 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 1729300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=312 flush_cam_wrdata=108 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 1889164000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=32 after 100000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=4768 accepted_payload=1645 backlog=3123
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 1889300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=390 flush_cam_wrdata=140 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2049300000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=468 flush_cam_wrdata=172 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(318) @ 2138068000: uvm_test_top [HIT_DRV] CROSS-015 round 0 dropped post-flush backlog: discarding pending source backlog=3123 payload=3123 error=32 marker=0 offered=4768 accepted=1645
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2140380000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=256/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2142428000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=512/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2144476000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=768/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2146524000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=1024/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2148572000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=1280/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2150620000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=1536/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2152668000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=1792/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 2154716000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 progress: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(380) @ 2154716000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_0 [SEQ] CROSS-015 round 0 completed: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3949) @ 2154764000: uvm_test_top [CROSS-015] round=0 post-pressure epoch: driver_accepted_delta=1515 push=1259 pop=0 overwrite=747 remaining=512 pending_drain=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2356628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=76 flush_cam_wrdata=46 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2516628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=154 flush_cam_wrdata=78 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 2588044000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=8 after 50000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=11712 accepted_payload=3487 backlog=5102
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2676628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=232 flush_cam_wrdata=110 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2836628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=310 flush_cam_wrdata=142 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 2988044000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=8 after 100000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=11712 accepted_payload=3487 backlog=5102
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 2996628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=388 flush_cam_wrdata=174 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 3156628000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=466 flush_cam_wrdata=206 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(318) @ 3249220000: uvm_test_top [HIT_DRV] CROSS-015 round 1 dropped post-flush backlog: discarding pending source backlog=5102 payload=5102 error=32 marker=0 offered=11712 accepted=3487
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3251532000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=256/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3253580000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=512/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3255628000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=768/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3257676000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=1024/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3259724000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=1280/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3261772000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=1536/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3263820000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=1792/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 3265868000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 progress: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(380) @ 3265868000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_1 [SEQ] CROSS-015 round 1 completed: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3949) @ 3265916000: uvm_test_top [CROSS-015] round=1 post-pressure epoch: driver_accepted_delta=1515 push=1259 pop=0 overwrite=747 remaining=512 pending_drain=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 3499940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=76 flush_cam_wrdata=223 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 3659940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=154 flush_cam_wrdata=255 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 3737540000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=16 after 50000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=18656 accepted_payload=5640 backlog=4791
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 3819940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=233 flush_cam_wrdata=31 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 3979940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=311 flush_cam_wrdata=63 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/hit_driver.sv(301) @ 4137540000: uvm_test_top.m_env.m_hit_drv [HIT_DRV] Backpressured source on sk=16 after 100000 cycles: ready=0 deassm_full=0 deassm_usedw=0 push=0 pop=0 overwrite=0 offered_payload=18656 accepted_payload=5640 backlog=4791
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 4139940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=389 flush_cam_wrdata=95 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 4299940000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=467 flush_cam_wrdata=127 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(318) @ 4391116000: uvm_test_top [HIT_DRV] CROSS-015 round 2 dropped post-flush backlog: discarding pending source backlog=4791 payload=4791 error=32 marker=0 offered=18656 accepted=5640
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4393428000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=256/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4395476000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=512/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4397524000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=768/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4399572000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=1024/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4401620000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=1280/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4403668000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=1536/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4405716000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=1792/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(369) @ 4407764000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 progress: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(380) @ 4407764000: uvm_test_top.m_env.m_hit_seqr@@cross015_pressure_2 [SEQ] CROSS-015 round 2 completed: sent=2048/2048
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3949) @ 4407812000: uvm_test_top [CROSS-015] round=2 post-pressure epoch: driver_accepted_delta=1515 push=1259 pop=0 overwrite=747 remaining=512 pending_drain=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4023) @ 4471668000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: source backlog drained before TERMINATING after 7798 cycles (offered=20704 accepted=7688)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4040) @ 4499348000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: deassembly fifo drained before TERMINATING after 3460 cycles (usedw=0)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4045) @ 4499380000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: issue TERMINATING entry pulse
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4047) @ 4499396000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: send end-of-run marker
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4049) @ 4499396000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: poll TERMINATING drain-done
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4066) @ 4522932000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: terminating_drain_done asserted after 2942 cycles
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4071) @ 4522964000: uvm_test_top [TERM] CROSS-015 curated all-bucket mix: waiting for scoreboard/source idle
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3962) @ 4523284000: uvm_test_top [CROSS-015] summary: inerr=0 push=2048 pop=1262 overwrites=786 max_remaining=512 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3966) @ 4523284000: uvm_test_top [CASE] CASE_END run=CROSS-015
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 4523284000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 4523284000: uvm_test_top.m_env.m_cov [COV] cg_output=88.8% cg_hit_data=68.8%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 4523284000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=2048 popped=1262 remaining=0 pending_drain=0 overlap_evicted=786 overlap_fallback=0 overwrites=786 unexpected=0 subheaders=207 zero_hit_subheaders=203 accepted=2048 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 4523284000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=512 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(16030) @ 4523284000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 4523284000: reporter [UVM/REPORT/SERVER] 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :   80
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [CASE]     2
+# [COV]     1
+# [CROSS-015]     4
+# [CTRL_DRV]    24
+# [HIT_DRV]     9
+# [RNTST]     1
+# [SCB]     2
+# [SEQ]    27
+# [TERM]     7
+# [TEST]     1
+# [TEST_DONE]     1
+# [UVM/RELNOTES]     1
+# 
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 4523284 ns  Iteration: 75  Instance: /tb_top
+# 
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 16:01:14 on Apr 22,2026, Elapsed time: 0:00:13
+# Errors: 0, Warnings: 23
