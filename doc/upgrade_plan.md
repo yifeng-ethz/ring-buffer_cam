@@ -145,8 +145,10 @@ round-robin, no partition is starved.
 ### 2.6 Pop Engine State Machine (New)
 
 ```
-IDLE → SEARCH (5 cyc) → LOAD (P cyc stagger) → DRAIN (round-robin) → RESET → IDLE
-                                                   ↑_____reload________|
+[IDLE] → [SEARCH (5 cyc)] → [LOAD (P cyc stagger)] → [DRAIN (round-robin)] → [RESET] → [IDLE]
+
+If the drain step still has live hits queued after a pop, the machine reloads back into
+the `LOAD → DRAIN` loop instead of returning directly to `IDLE`.
 ```
 
 **DRAIN sub-states per partition `p`:**

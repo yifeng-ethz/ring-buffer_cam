@@ -37,25 +37,23 @@ buffer, not an unbounded queue: burst pattern matters, not just average arrival 
 ## Architecture
 
 ```
- asi_hit_type1 ----> ingress filter / deassembly_fifo ----> push engine ----+
-       |                                                                     |
-       |                                                                     v
-       |                                                           main_cam + side_ram
-       |                                                                     |
- asi_ctrl ------> run control / expected latency ----> pop_cmd_fifo ----> SEARCH / LOAD / DRAIN
-       |                                                                     |
- avs_csr  <---------------------- CSR / counters / identity -----------------+
-                                                                             |
-                                                                             v
-                                                             output assembly / subheaders
-                                                                             |
-                                                                             v
-                                                                      aso_hit_type2
-
-                                                             +----------------------+
-                                                             | fill level / debug    |
-                                                             | push/pop/overwrite    |
-                                                             +----------------------+
++----------------------------------------------------------------------------------------+
+|  hit_type1 --> [ingress filter / deassembly_fifo] --> [push engine] ----+              |
+|                                                                          |             |
+|                                                                          v             |
+|                                                             [main_cam + side_ram]      |
+|                                                                          |             |
+|  run_control --> [expected latency] --> [pop_cmd_fifo] --> [SEARCH / LOAD / DRAIN]     |
+|  avs_csr <--------------------------- [CSR / counters / identity] -------+             |
+|                                                                          |             |
+|                                                                          v             |
+|                                                      [output assembly / subheaders]    |
+|                                                                          |             |
+|                                                                          v             |
+|                                                                     hit_type2          |
+|                                                                                        |
+|  filllevel ------------------------------> [fill level / debug / push-pop counters]    |
++----------------------------------------------------------------------------------------+
 ```
 
 ### Pipeline Stages
