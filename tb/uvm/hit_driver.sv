@@ -58,6 +58,45 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     return (pending_q.size() > 0) && pending_q[0].is_empty_marker;
   endfunction
 
+  function int unsigned pending_source_payload_items();
+    int unsigned count;
+    count = 0;
+    foreach (pending_q[idx]) begin
+      if (!pending_q[idx].is_empty_marker) begin
+        count++;
+      end
+    end
+    return count;
+  endfunction
+
+  function int unsigned pending_source_error_items();
+    int unsigned count;
+    count = 0;
+    foreach (pending_q[idx]) begin
+      if (!pending_q[idx].is_empty_marker && pending_q[idx].has_error) begin
+        count++;
+      end
+    end
+    return count;
+  endfunction
+
+  function int unsigned pending_source_marker_items();
+    int unsigned count;
+    count = 0;
+    foreach (pending_q[idx]) begin
+      if (pending_q[idx].is_empty_marker) begin
+        count++;
+      end
+    end
+    return count;
+  endfunction
+
+  function void discard_pending_items();
+    pending_q.delete();
+    current_source_backlog = 0;
+    current_ready_low_streak = 0;
+  endfunction
+
   function void reset_stats();
     pending_q.delete();
     manual_override = 1'b0;
@@ -185,23 +224,25 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     ring_buffer_cam_pkg::hit_seq_item item,
     int unsigned hold_cycles = 1
   );
+    @(negedge vif.clk);
     manual_override = 1'b1;
-    vif.data    <= item.is_empty_marker ? '0 : item.pack_hit();
-    vif.valid   <= 1'b1;
-    vif.channel <= item.input_channel();
-    vif.startofpacket <= item.is_empty_marker;
-    vif.endofpacket   <= item.is_empty_marker;
-    vif.empty   <= item.is_empty_marker;
-    vif.error   <= item.has_error;
+    vif.data    = item.is_empty_marker ? '0 : item.pack_hit();
+    vif.valid   = 1'b1;
+    vif.channel = item.input_channel();
+    vif.startofpacket = item.is_empty_marker;
+    vif.endofpacket   = item.is_empty_marker;
+    vif.empty   = item.is_empty_marker;
+    vif.error   = item.has_error;
     repeat (hold_cycles) @(posedge vif.clk);
+    @(negedge vif.clk);
     manual_override = 1'b0;
-    vif.data    <= '0;
-    vif.valid   <= 1'b0;
-    vif.channel <= '0;
-    vif.startofpacket <= 1'b0;
-    vif.endofpacket   <= 1'b0;
-    vif.empty   <= 1'b0;
-    vif.error   <= 1'b0;
+    vif.data    = '0;
+    vif.valid   = 1'b0;
+    vif.channel = '0;
+    vif.startofpacket = 1'b0;
+    vif.endofpacket   = 1'b0;
+    vif.empty   = 1'b0;
+    vif.error   = 1'b0;
   endtask
 
   task automatic sample_first_pop_snapshot();
