@@ -42,10 +42,10 @@ Style rules the Codex checker does not enforce are caught by the three-layer lin
 2. **Questa elaboration check** — `vopt -check_synthesis` / `vcom -check_synthesis`
 3. **Quartus Design Assistant** — post-netlist structural rules (CDC, reset sync, clock tree)
 
-Invoke via the `rtl-lint` Claude Code skill:
+Invoke via the local `rtl-lint` skill:
 
 ```
 /rtl-lint <ip-directory>
 ```
 
-See `~/.claude/skills/rtl-lint/SKILL.md` for the rule catalog and per-layer flags.
+See the local `rtl-lint` skill documentation for the rule catalog and per-layer flags.

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This note summarizes the recovery work after Claude deleted submodule worktrees and local IP catalog content under `mu3e-ip-cores`.
+This note summarizes the recovery work after an earlier assistant session deleted submodule worktrees and local IP catalog content under `mu3e-ip-cores`.
 
 The goal of the restore was:
 
@@ -33,7 +33,7 @@ Recovery was done from the best surviving source available per IP:
    - `/home/yifeng/packages/online_dpv2/online/fe_board/fe_scifi/*/synthesis`
    - especially `submodules/` content for exact RTL recovery
 5. Quartus vendor IP content where needed, notably for `altera_lvds`
-6. Claude local session artifacts under `~/.claude` as a tracker for which folders/files had been deleted
+6. Local assistant session artifacts in the operator home directory as a tracker for which folders/files had been deleted
 
 Rule used during restore:
 
