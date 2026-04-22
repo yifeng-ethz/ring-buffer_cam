@@ -100,13 +100,12 @@ Version `26.2.4.0421` carries forward the verified SEARCH-window overlap repairs
 the low-stage encoder and non-power-of-two ring-depth fixes from the earlier `26.2.2`
 checkpoint, keeps the overwrite erase-slot carry that closed the standalone `P4`
 `137.5 MHz` signoff clock, and now adds the terminate-control handshake repair plus the
-lone pending end-of-run marker cleanup used by the live BASIC terminate guards. This
-checkpoint reruns the release-metadata smoke `B010` and the terminate cluster
-`B040` / `B071` / `B113` / `B114` / `B132` on the supported QuestaOne 2026 flow. The live
-dashboard now records `342/516` implemented cases exercised, `28` active failing isolated
-cases, `174` still-unimplemented cases, and `60.85% (314/516)` passing functional coverage.
-The authoritative dashboard state is maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md)
-and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
+lone pending end-of-run marker cleanup used by the live BASIC terminate guards. The current
+isolated dashboard on `2026-04-22` records `367/516` implemented case-engine rows,
+`365/516` evidenced isolated runs, `17` active failing cases, `149`
+still-unimplemented cases, and `67.44% (348/516)` passing functional coverage on the live
+`default_p2_pipe4` DV build. The authoritative dashboard state is maintained in
+[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
 
