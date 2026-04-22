@@ -10,15 +10,19 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-mentor_questa_home="/data1/intelFPGA_pro/23.1/questa_fse"
-default_local_lic="${mentor_questa_home}/LR-287689_License.dat"
-default_chain="${default_local_lic}:8161@lic-mentor.ethz.ch"
-legacy_bad_lic="/data1/intelFPGA/LR-121070_License.dat"
+mentor_server="8161@lic-mentor.ethz.ch"
+: "${QUESTA_HOME:=/data1/questaone_sim/questasim}"
 
-if [[ -z "${LM_LICENSE_FILE:-}" || "${LM_LICENSE_FILE}" == *"${legacy_bad_lic}"* ]]; then
-  export LM_LICENSE_FILE="${default_chain}"
+if [[ "${QUESTA_HOME}" != "/data1/questaone_sim/questasim" ]]; then
+  echo "ERROR: QUESTA_HOME must use /data1/questaone_sim/questasim, not ${QUESTA_HOME}" >&2
+  exit 2
 fi
-export MGLS_LICENSE_FILE="${LM_LICENSE_FILE}"
+
+export QUESTA_HOME
+export SALT_LICENSE_SERVER="${mentor_server}"
+export LM_LICENSE_FILE="${mentor_server}"
+export MGLS_LICENSE_FILE="${mentor_server}"
+export QSIM_INI="${QUESTA_HOME}/modelsim.ini"
 
 cmd="${1:-run}"
 arg="${2:-}"

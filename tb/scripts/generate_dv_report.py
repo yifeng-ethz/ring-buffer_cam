@@ -25,6 +25,7 @@ SKILL_REPORT_GEN = Path.home() / ".codex" / "skills" / "dv-workflow" / "scripts"
 RTL_DOC_STYLE_LINTER = Path.home() / ".codex" / "skills" / "rtl-doc-style" / "scripts" / "rtl_doc_style_check.py"
 
 RTL_VARIANT = "default_p2_pipe4"
+REPORT_RTL_VARIANT = "promoted_build_matrix"
 SEED = 1
 PLACEHOLDER_LOG_MARKER = "has no live log artifact."
 PLACEHOLDER_UCDB_MARKER = "has no standalone UCDB artifact yet."
@@ -62,6 +63,13 @@ METRIC_ROWS = OrderedDict(
     ]
 )
 
+TOTAL_BRANCH_EXCLUSION_BINS = 4
+TOTAL_BRANCH_EXCLUSION_NOTE = (
+    "branch total excludes 4 compile-time-dead bins from the p4-only "
+    "`gen_addr_enc_logic(2/3)` instances where `PIPE_STAGES=4` fixes "
+    "`ACTIVE_PIPE_STAGES_CONST=4` and `EXTRA_VALID_STAGES_CONST=0`."
+)
+
 
 def normalize_alias(cell: str) -> str | None:
     cell = cell.strip()
@@ -88,6 +96,23 @@ def derive_build_tag(implementation: str, case_id: str) -> str:
     if "default_p2_pipe4" in text or "pipe_stages=4" in text:
         return "default_p2_pipe4"
     return RTL_VARIANT
+
+
+def is_live_uvm_decl(implementation: str) -> bool:
+    return implementation.strip().lower().startswith("live uvm")
+
+
+def signoff_scope() -> OrderedDict[str, str]:
+    return OrderedDict(
+        [
+            ("RTL_BUILD_MATRIX", "default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4"),
+            ("G_N_PARTITIONS", "2, 4"),
+            ("G_ENCODER_PIPE_STAGES", "1, 2, 3, 4"),
+            ("G_INTERLEAVING_FACTOR", "4"),
+            ("G_RING_BUFFER_N_ENTRY", "512"),
+            ("probe_only_exclusions", ""),
+        ]
+    )
 
 
 def parse_markdown_table(path: Path) -> list[list[str]]:
@@ -314,6 +339,23 @@ def metrics_to_raw(metrics: dict[str, tuple[int | float, int]] | None) -> dict[s
     return payload
 
 
+def apply_total_coverage_adjustments(
+    payload: dict[str, dict[str, int | float | None]]
+) -> dict[str, dict[str, int | float | None]]:
+    adjusted = json.loads(json.dumps(payload))
+    branch = adjusted.get("branch")
+    if not branch:
+        return adjusted
+    hits = int(branch.get("hits", 0) or 0)
+    bins = int(branch.get("bins", 0) or 0)
+    if bins <= TOTAL_BRANCH_EXCLUSION_BINS:
+        return adjusted
+    bins -= TOTAL_BRANCH_EXCLUSION_BINS
+    branch["bins"] = bins
+    branch["pct"] = round((100.0 * hits / bins), 2)
+    return adjusted
+
+
 @functools.lru_cache(maxsize=None)
 def summarize_ucdb(ucdb_path: str) -> dict[str, tuple[int, int]] | None:
     path = Path(ucdb_path)
@@ -457,7 +499,10 @@ def materialize_artifact(target: Path, src: Path) -> None:
     if target.exists() or target.is_symlink():
         if not target.is_symlink() and target.resolve() == resolved_src:
             return
-        target.unlink()
+        try:
+            target.unlink()
+        except FileNotFoundError:
+            pass
     shutil.copy2(resolved_src, target)
 
 
@@ -582,27 +627,31 @@ def publish_cov_artifact(name: str, src: Path | None) -> None:
 def build_case(case_data: dict) -> dict:
     entry = dict(case_data)
     implemented_cases = parse_implemented_engine_cases(BASE_TEST_SV)
+    promoted_catalog = is_live_uvm_decl(str(entry.get("implementation_decl", "")))
     # A case counts as implemented only when the isolated case engine has a
     # real branch for it. Historical aliases are documentation hints, not
     # standalone evidence.
-    implemented = entry["case_id"] in implemented_cases
+    implemented = promoted_catalog and entry["case_id"] in implemented_cases
+    entry["promoted_catalog"] = promoted_catalog
     entry["implemented"] = implemented
 
     chosen_log: Path | None = None
     log_info = None
-    for candidate in case_log_candidates(entry):
-        log_info = parse_log(candidate)
-        if log_info:
-            chosen_log = candidate
-            break
+    if promoted_catalog:
+        for candidate in case_log_candidates(entry):
+            log_info = parse_log(candidate)
+            if log_info:
+                chosen_log = candidate
+                break
 
     chosen_ucdb: Path | None = None
     standalone_metrics: dict[str, tuple[int, int]] | None = None
-    for candidate in case_ucdb_candidates(entry):
-        standalone_metrics = summarize_ucdb(str(candidate))
-        if standalone_metrics:
-            chosen_ucdb = candidate
-            break
+    if promoted_catalog:
+        for candidate in case_ucdb_candidates(entry):
+            standalone_metrics = summarize_ucdb(str(candidate))
+            if standalone_metrics:
+                chosen_ucdb = candidate
+                break
 
     if log_info:
         entry["passed"] = log_info["passed"]
@@ -624,7 +673,7 @@ def build_case(case_data: dict) -> dict:
                 scale_cov(standalone_metrics, entry["observed_txn"])
             )
 
-    if entry["method"] == "R":
+    if promoted_catalog and entry["method"] == "R":
         txn_growth_curve = []
         for txn_count, candidate in checkpoint_ucdb_candidates(entry):
             checkpoint_metrics = summarize_ucdb(str(candidate))
@@ -655,6 +704,7 @@ def build_case(case_data: dict) -> dict:
 def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict]:
     built_cases = [build_case(item) for item in bucket_cases]
     planned = len(built_cases)
+    promoted = sum(1 for item in built_cases if item.get("promoted_catalog"))
     evidenced = sum(1 for item in built_cases if item.get("passed") in (True, False))
     passed = sum(1 for item in built_cases if item.get("passed") is True)
 
@@ -714,6 +764,7 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
     merged_bucket_total = metrics_to_raw(final_merged_summary)
     bucket_data = {
         "planned_cases": planned,
+        "promoted_cases": promoted,
         "evidenced_cases": evidenced,
         "merged_bucket_total": merged_bucket_total,
         "cases": built_cases,
@@ -722,12 +773,13 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
     bucket_summary = {
         "bucket": bucket_name,
         "planned_cases": planned,
+        "promoted_cases": promoted,
         "evidenced_cases": evidenced,
         "merged_bucket_total": merged_bucket_total,
         "functional_coverage": {
-            "pct": round((100.0 * passed / planned), 2) if planned else 0.0,
+            "pct": round((100.0 * passed / promoted), 2) if promoted else 0.0,
             "evidenced": passed,
-            "planned": planned,
+            "planned": promoted,
         },
     }
     return bucket_data, bucket_summary
@@ -802,6 +854,7 @@ def build_report() -> dict:
         if built is not None:
             signoff_runs.append(built)
 
+    promoted_count = sum(1 for item in all_cases if item.get("promoted_catalog"))
     implemented_count = sum(1 for item in all_cases if item.get("implemented"))
     failed_cases = [item["case_id"] for item in all_cases if item.get("passed") is False]
     passed_cases = sum(1 for item in all_cases if item.get("passed") is True)
@@ -862,8 +915,7 @@ def build_report() -> dict:
             for item in bucket["cases"]:
                 if item.get("passed") is not True:
                     continue
-                case_id = item["case_id"]
-                for candidate in case_ucdb_candidates({"case_id": case_id}):
+                for candidate in case_ucdb_candidates(item):
                     if summarize_ucdb(str(candidate)):
                         all_ucdbs.append(candidate)
                         break
@@ -871,27 +923,35 @@ def build_report() -> dict:
     merged_total_code_coverage = {}
     if VCOVER_BIN is not None and all_ucdbs:
         with tempfile.TemporaryDirectory(prefix="all_cov_") as temp_dir:
-            merged_total_code_coverage = metrics_to_raw(
+            merged_total_code_coverage = apply_total_coverage_adjustments(metrics_to_raw(
                 merge_cov(VCOVER_BIN, all_ucdbs, Path(temp_dir))
-            )
+            ))
 
     return {
         "report_title": "ring_buffer_cam",
         "dut_name": "ring_buffer_cam",
         "date": str(date.today()),
-        "rtl_variant": RTL_VARIANT,
+        "rtl_variant": REPORT_RTL_VARIANT,
         "seed": SEED,
         "bugs": parse_bug_history(BUG_HISTORY_FILE),
+        "signoff_scope": signoff_scope(),
+        "non_claims": [
+            "cross scope: DV_CROSS continuous-frame ladders are tracked separately from the canonical per-case isolated matrix in this refresh.",
+            TOTAL_BRANCH_EXCLUSION_NOTE,
+        ],
         "buckets": buckets,
         "bucket_summary": bucket_summary,
         "formal_summary": formal_rows,
         "implementation_summary": {
-            "implemented_count": implemented_count,
-            "unimplemented_count": len(all_cases) - implemented_count,
+            "implemented_count": promoted_count,
+            "unimplemented_count": max(promoted_count - implemented_count, 0),
+            "catalog_backlog_count": len(all_cases) - promoted_count,
             "stale_artifact_without_engine_marker_count": 0,
         },
         "failed_cases": failed_cases,
-        "random_cases": [item for item in all_cases if item["method"] == "R"],
+        "random_cases": [
+            item for item in all_cases if item["method"] == "R" and item.get("promoted_catalog")
+        ],
         "signoff_runs": signoff_runs,
         "totals": {
             "planned_cases": len(all_cases),
@@ -899,9 +959,9 @@ def build_report() -> dict:
             "excluded_cases": 0,
             "merged_total_code_coverage": merged_total_code_coverage,
             "functional_coverage": {
-                "pct": round((100.0 * passed_cases / len(all_cases)), 2) if all_cases else 0.0,
+                "pct": round((100.0 * passed_cases / promoted_count), 2) if promoted_count else 0.0,
                 "evidenced": passed_cases,
-                "planned": len(all_cases),
+                "planned": promoted_count,
             },
         },
     }

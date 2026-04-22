@@ -1,7 +1,7 @@
 # ring_buffer_cam — REPORT index
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
-**RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
+**RTL variant:** `promoted_build_matrix` &nbsp; **Seed:** `1`
 
 ## Legend
 
@@ -13,10 +13,10 @@
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
-| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 129 | stmt=99.09, branch=93.76, cond=81.76, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 |
-| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 45 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 87 | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 129 | 106 | stmt=96.77, branch=88.83, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=67.00 |
+| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 129 | stmt=99.13, branch=93.87, cond=81.46, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.72 |
+| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 123 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 84 | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 132 | 128 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 |
 
 ## Cross / continuous-frame runs
 
@@ -88,52 +88,7 @@
 | ❓ | [`P062`](cases/P062.md) | PROF | 384 | [growth](txn_growth/P062.md) |
 | ❓ | [`P063`](cases/P063.md) | PROF | 257 | [growth](txn_growth/P063.md) |
 | ❓ | [`P064`](cases/P064.md) | PROF | 1024 | [growth](txn_growth/P064.md) |
-| ❓ | [`P065`](cases/P065.md) | PROF | 0 | [growth](txn_growth/P065.md) |
 | ❓ | [`P066`](cases/P066.md) | PROF | 85 | [growth](txn_growth/P066.md) |
-| ❓ | [`P067`](cases/P067.md) | PROF | 0 | [growth](txn_growth/P067.md) |
-| ❓ | [`P068`](cases/P068.md) | PROF | 1024 | [growth](txn_growth/P068.md) |
-| ❓ | [`P069`](cases/P069.md) | PROF | 1024 | [growth](txn_growth/P069.md) |
-| ❓ | [`P070`](cases/P070.md) | PROF | 0 | [growth](txn_growth/P070.md) |
-| ❓ | [`P071`](cases/P071.md) | PROF | 0 | [growth](txn_growth/P071.md) |
-| ❓ | [`P072`](cases/P072.md) | PROF | 0 | [growth](txn_growth/P072.md) |
-| ❓ | [`P073`](cases/P073.md) | PROF | 0 | [growth](txn_growth/P073.md) |
-| ❓ | [`P074`](cases/P074.md) | PROF | 0 | [growth](txn_growth/P074.md) |
-| ❓ | [`P075`](cases/P075.md) | PROF | 0 | [growth](txn_growth/P075.md) |
-| ❓ | [`P076`](cases/P076.md) | PROF | 0 | [growth](txn_growth/P076.md) |
-| ❓ | [`P077`](cases/P077.md) | PROF | 0 | [growth](txn_growth/P077.md) |
-| ❓ | [`P078`](cases/P078.md) | PROF | 0 | [growth](txn_growth/P078.md) |
-| ❓ | [`P079`](cases/P079.md) | PROF | 0 | [growth](txn_growth/P079.md) |
-| ❓ | [`P080`](cases/P080.md) | PROF | 0 | [growth](txn_growth/P080.md) |
-| ❓ | [`P081`](cases/P081.md) | PROF | 0 | [growth](txn_growth/P081.md) |
-| ❓ | [`P082`](cases/P082.md) | PROF | 0 | [growth](txn_growth/P082.md) |
-| ❓ | [`P083`](cases/P083.md) | PROF | 0 | [growth](txn_growth/P083.md) |
-| ❓ | [`P084`](cases/P084.md) | PROF | 0 | [growth](txn_growth/P084.md) |
-| ❓ | [`P085`](cases/P085.md) | PROF | 0 | [growth](txn_growth/P085.md) |
-| ❓ | [`P086`](cases/P086.md) | PROF | 0 | [growth](txn_growth/P086.md) |
-| ❓ | [`P087`](cases/P087.md) | PROF | 0 | [growth](txn_growth/P087.md) |
-| ❓ | [`P088`](cases/P088.md) | PROF | 0 | [growth](txn_growth/P088.md) |
-| ❓ | [`P089`](cases/P089.md) | PROF | 0 | [growth](txn_growth/P089.md) |
-| ❓ | [`P090`](cases/P090.md) | PROF | 0 | [growth](txn_growth/P090.md) |
-| ❓ | [`P091`](cases/P091.md) | PROF | 0 | [growth](txn_growth/P091.md) |
-| ❓ | [`P092`](cases/P092.md) | PROF | 0 | [growth](txn_growth/P092.md) |
-| ❓ | [`P093`](cases/P093.md) | PROF | 0 | [growth](txn_growth/P093.md) |
-| ❓ | [`P094`](cases/P094.md) | PROF | 0 | [growth](txn_growth/P094.md) |
-| ❓ | [`P095`](cases/P095.md) | PROF | 0 | [growth](txn_growth/P095.md) |
-| ❓ | [`P096`](cases/P096.md) | PROF | 0 | [growth](txn_growth/P096.md) |
-| ❓ | [`P097`](cases/P097.md) | PROF | 0 | [growth](txn_growth/P097.md) |
-| ❓ | [`P098`](cases/P098.md) | PROF | 0 | [growth](txn_growth/P098.md) |
-| ❓ | [`P099`](cases/P099.md) | PROF | 0 | [growth](txn_growth/P099.md) |
-| ❓ | [`P100`](cases/P100.md) | PROF | 0 | [growth](txn_growth/P100.md) |
-| ❓ | [`P101`](cases/P101.md) | PROF | 0 | [growth](txn_growth/P101.md) |
-| ❓ | [`P102`](cases/P102.md) | PROF | 0 | [growth](txn_growth/P102.md) |
-| ❓ | [`P103`](cases/P103.md) | PROF | 0 | [growth](txn_growth/P103.md) |
-| ❓ | [`P104`](cases/P104.md) | PROF | 0 | [growth](txn_growth/P104.md) |
-| ❓ | [`P105`](cases/P105.md) | PROF | 0 | [growth](txn_growth/P105.md) |
-| ❓ | [`P106`](cases/P106.md) | PROF | 0 | [growth](txn_growth/P106.md) |
-| ❓ | [`P107`](cases/P107.md) | PROF | 0 | [growth](txn_growth/P107.md) |
-| ❓ | [`P108`](cases/P108.md) | PROF | 0 | [growth](txn_growth/P108.md) |
-| ❓ | [`P109`](cases/P109.md) | PROF | 0 | [growth](txn_growth/P109.md) |
-| ❓ | [`P110`](cases/P110.md) | PROF | 0 | [growth](txn_growth/P110.md) |
 | ❓ | [`P111`](cases/P111.md) | PROF | 576 | [growth](txn_growth/P111.md) |
 | ❓ | [`P112`](cases/P112.md) | PROF | 736 | [growth](txn_growth/P112.md) |
 | ❓ | [`P113`](cases/P113.md) | PROF | 1024 | [growth](txn_growth/P113.md) |
@@ -157,11 +112,11 @@
 
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
-- planned_cases = `516`
-- evidenced_cases = `367`
+- planned_cases = `519`
+- evidenced_cases = `464`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=97.17, branch=90.63, cond=75.68, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=86.72`
-- functional coverage: `71.12% (367/516)`
+- merged total code coverage: `stmt=97.16, branch=90.11, cond=74.58, expr=40.00, fsm_state=100.00, fsm_trans=100.00, toggle=86.71`
+- functional coverage: `100.0% (464/464)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

@@ -1,32 +1,33 @@
 Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
 
-# 2022.4
+# 2026.1_1
 
-# vsim -modelsimini modelsim.ini -c -quiet -coverage -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=P038" -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P038_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
-# Start time: 14:17:10 on Apr 20,2026
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb" "+DV_SEED=1" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=P038" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P038_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 18:01:09 on Apr 21,2026
 # ** Note: (vsim-8009) Loading existing optimized design _opt
-# //  Questa Intel Starter FPGA Edition-64
-# //  Version 2022.4 linux_x86_64 Oct 18 2022
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
 # //
-# //  Copyright 1991-2022 Mentor Graphics Corporation
-# //  All Rights Reserved.
+# // Unpublished work. Copyright 2026 Siemens
 # //
-# //  QuestaSim and its associated documentation contain trade
-# //  secrets and commercial or financial information that are the property of
-# //  Mentor Graphics Corporation and are privileged, confidential,
-# //  and exempt from disclosure under the Freedom of Information Act,
-# //  5 U.S.C. Section 552. Furthermore, this information
-# //  is prohibited from disclosure under the Trade Secrets Act,
-# //  18 U.S.C. Section 1905.
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
 # //
 # ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
 # This also means that later if you turn on UVM-aware debugging your debug simulations may have
 # different random seeds from your non-debug simulations.
-# ** Warning: register_cover_flop: Failed to find flop reset statement in du ring_buffer_cam_v2_core(rtl) file 147 line -1 tok -1 scope_ident 0
-# ** Warning: register_cover_flop: Failed to find a coverage flop in du ring_buffer_cam_v2_core(rtl), scope 0, path /tb_top/dut/v2_core. Not collecting coverage data for it.
 # coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P038_s1.ucdb
 #  run -all
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
 # ----------------------------------------------------------------
 # UVM-1.2
 # (C) 2007-2014 Mentor Graphics Corporation
@@ -49,6 +50,8 @@ Reading pref.tcl
 #       (Specify +UVM_NO_RELNOTES to turn off this notice)
 # 
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
 #    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
 # ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
 #    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
@@ -82,7 +85,6 @@ Reading pref.tcl
 #    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
 # ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
 #    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(453) @ 0: reporter [NO_DPI_TSTNAME] UVM_NO_DPI defined--getting UVM_TESTNAME directly, without DPI
 # UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 0 ps  Iteration: 1  Instance: /tb_top/dut/v2_core
@@ -90,74 +92,9 @@ Reading pref.tcl
 #    Time: 0 ps  Iteration: 2  Instance: /tb_top/dut/v2_core
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 0 ps  Iteration: 3  Instance: /tb_top/dut/v2_core
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 5  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
-# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
-#    Time: 0 ps  Iteration: 6  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_traversal.svh(279) @ 0: reporter [UVM/COMP/NAMECHECK] This implementation of the component name checks requires DPI to be enabled
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(10143) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=P038 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13383) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=P038 mode=isolated
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 160116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=78 flush_cam_wrdata=31 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 320116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=156 flush_cam_wrdata=63 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 480116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=234 flush_cam_wrdata=95 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
@@ -168,655 +105,23 @@ Reading pref.tcl
 #    Time: 1048740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 1048740 ns  Iteration: 3  Instance: /tb_top/dut/v2_core
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1091828 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1092340 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1097460 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1125108 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1129204 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1157876 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1161972 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1165556 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1166068 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1190644 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1193716 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1197812 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1198324 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1223412 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1226996 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1256180 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1259252 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1263348 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1263860 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1288436 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1288948 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1292532 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1297652 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1298164 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1321716 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1324788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1354484 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1358068 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1387252 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1390836 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1394932 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1419508 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1420020 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1424116 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1428212 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1452276 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1452788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1456372 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1485556 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1489140 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1492724 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1517812 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1518836 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1523444 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1527540 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1551092 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1553140 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1583860 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1587444 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1591540 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1616628 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1620212 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1649396 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1652468 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1657076 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1657588 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1681652 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1682164 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1686260 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1689844 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1714420 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1714932 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1719028 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1723124 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1723636 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1747700 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1751284 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1754868 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1755380 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1779956 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1780468 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1784564 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1788660 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1813236 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1816308 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(484) @ 1828868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=7500/30000
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1845492 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1847028 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1850612 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1854196 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1854708 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1878260 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1879284 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1882868 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1886452 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1886964 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1911540 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1914612 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1919220 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1919732 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1944308 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1947892 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1976564 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1977076 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 1981172 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2009844 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2013428 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2017012 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2017524 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2042612 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2046196 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2050292 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2050804 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2075380 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2078452 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2083060 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2108148 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2111732 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2115828 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2140916 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2144500 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2173684 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2177780 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2181364 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2205940 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2206452 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2210548 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2214644 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2239220 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2241780 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2245876 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2271476 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2273012 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2277108 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2281204 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2304756 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2307316 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2337524 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2341108 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2370292 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2374388 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2377972 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2402548 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2403572 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2407668 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2411764 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2435316 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2435828 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2439924 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2468084 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2469108 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2473716 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2476788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2477300 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2501364 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2505460 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2508532 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2509044 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2533620 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2534644 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2538740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2542324 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2566900 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2570484 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2599156 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2599668 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2603764 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2607348 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(484) @ 2608868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=15000/30000
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2632436 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2636020 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2639604 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2640116 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2664692 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2665204 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2669300 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2673908 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2697972 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2701044 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2705140 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2730740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2733812 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2738932 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2739444 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2763508 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2765556 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2770164 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2795764 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2796788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2800372 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2804980 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2829044 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2832628 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2836212 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2861300 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2862324 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2866420 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2894580 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2898164 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2926836 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2927348 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2930932 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2960116 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2963700 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2992884 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 2995444 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3000052 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3000564 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3025140 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3025652 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3029748 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3058420 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3061492 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3065588 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3090676 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3091188 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3095284 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3099380 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3123956 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3127028 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3156212 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3157748 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3162356 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3189492 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3193076 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3195636 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3196148 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3221748 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3222260 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3226356 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3255028 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3258612 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3261684 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3262196 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3287284 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3287796 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3291892 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3295988 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3296500 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3320564 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3324660 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3353332 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3356916 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3386100 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3388660 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(484) @ 3388868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=22500/30000
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3393780 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3418868 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3422452 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3425524 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3426036 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3451124 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3452660 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3457268 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3460852 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3484404 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3487476 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3491572 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3517172 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3520756 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3549428 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3549940 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3554036 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3582196 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3582708 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3586804 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3589876 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3614964 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3615476 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3619572 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3623668 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3648244 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3651828 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3655924 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3656436 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3681012 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3684084 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3713268 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3713780 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3717364 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3721972 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3746036 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3746548 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3750644 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3754228 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3754740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3779316 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3781876 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3786484 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3812084 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3815668 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3844852 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3848436 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3852020 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3852532 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3877620 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3881204 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3884788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3885300 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3909876 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3910900 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3914484 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3943156 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3946740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3950324 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3950836 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3975412 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3975924 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 3980020 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4008180 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4008692 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4012276 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4016372 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4040948 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4041972 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4046068 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4074228 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4076788 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4106484 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4107508 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4111604 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4115188 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4115700 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4139764 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4143348 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4147444 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(484) @ 4168868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=30000/30000
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(496) @ 4168972000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C completed: sent=30000/30000
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4172020 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4172532 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# ** Warning: NUMERIC_STD.TO_UNSIGNED: vector truncated
-#    Time: 4176628 ns  Iteration: 2  Instance: /tb_top/dut/v2_core/pop_cmd_fifo/scfifo_component
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(4570) @ 4198484000: uvm_test_top [PROF] P038 seeded random four-key profile C summary: num_hits=30000 pool_keys=4 min_hits_per_key=7479 max_hits_per_key=7537 seed=0x03805e6f max_live_fill=312
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(10145) @ 4198484000: uvm_test_top [CASE] CASE_END id=P038 mode=isolated
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 4198484000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 4198484000: uvm_test_top.m_env.m_cov [COV] cg_output=91.2% cg_hit_data=68.8%
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(605) @ 4198484000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=30000 popped=30000 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=4887 zero_hit_subheaders=4501 accepted=30000 cache_miss_outputs=0
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(613) @ 4198484000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=312 ring_depth=512
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(9852) @ 4198484000: uvm_test_top [TEST] *** TEST PASSED ***
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 4198484000: reporter [UVM/REPORT/SERVER] 
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 1828868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=7500/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 2608868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=15000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 3388868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=22500/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 4168868000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C progress: sent=30000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(497) @ 4168972000: uvm_test_top.m_env.m_hit_seqr@@P038 seeded random four-key profile C_profile [SEQ] P038 seeded random four-key profile C completed: sent=30000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(5708) @ 4203556000: uvm_test_top [PROF] P038 seeded random four-key profile C summary: num_hits=30000 pool_keys=4 min_hits_per_key=7479 max_hits_per_key=7537 seed=0x03805e6f max_live_fill=370
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13385) @ 4203556000: uvm_test_top [CASE] CASE_END id=P038 mode=isolated
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 4203556000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 4203556000: uvm_test_top.m_env.m_cov [COV] cg_output=91.2% cg_hit_data=68.8%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 4203556000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=30000 popped=30000 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=5636 zero_hit_subheaders=5248 accepted=30000 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 4203556000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=370 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13092) @ 4203556000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 4203556000: reporter [UVM/REPORT/SERVER] 
 # --- UVM Report Summary ---
 # 
 # ** Report counts by severity
-# UVM_INFO :   23
+# UVM_INFO :   21
 # UVM_WARNING :    0
 # UVM_ERROR :    0
 # UVM_FATAL :    0
@@ -824,17 +129,18 @@ Reading pref.tcl
 # [CASE]     2
 # [COV]     1
 # [CTRL_DRV]     6
-# [NO_DPI_TSTNAME]     1
 # [PROF]     1
 # [RNTST]     1
 # [SCB]     2
 # [SEQ]     5
 # [TEST]     1
 # [TEST_DONE]     1
-# [UVM/COMP/NAMECHECK]     1
 # [UVM/RELNOTES]     1
 # 
-# ** Note: $finish    : /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
-#    Time: 4198484 ns  Iteration: 75  Instance: /tb_top
-# End time: 14:21:31 on Apr 20,2026, Elapsed time: 0:04:21
-# Errors: 0, Warnings: 373
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 4203556 ns  Iteration: 75  Instance: /tb_top
+# 
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 18:01:27 on Apr 21,2026, Elapsed time: 0:00:18
+# Errors: 0, Warnings: 25

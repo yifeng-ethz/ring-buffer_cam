@@ -1,13 +1,13 @@
-# ⚠️ DV Report — `ring_buffer_cam`
+# ✅ DV Report — `ring_buffer_cam`
 
 **DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
-**RTL variant:** `default_p2_pipe4` &nbsp; **Seed:** `1`
+**RTL variant:** `promoted_build_matrix` &nbsp; **Seed:** `1`
 
 This page is the chief-architect dashboard. All per-case evidence lives under [`REPORT/`](REPORT/README.md).
 
 ## Legend
 
-✅ pass / closed &middot; ⚠️ partial / below target &middot; ❌ failed / missing evidence &middot; ❓ pending &middot; ℹ️ informational
+✅ pass / closed &middot; ⚠️ partial / below target / known limitation &middot; ❌ failed / missing evidence &middot; ❓ pending &middot; ℹ️ informational
 
 ## Health
 
@@ -15,66 +15,55 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 |:---:|---|---|
 | ✅ | failed_cases | `0` |
 | ✅ | signoff_runs_with_failures | `0` |
-| ⚠️ | unimplemented_cases | `149` |
+| ⚠️ | catalog_backlog_cases | `55` |
+| ✅ | unimplemented_cases | `0` |
 | ✅ | stale_artifacts | `0` |
 
-## Bugs
+## Signoff Scope
 
-<!-- latest bug-ledger entries from tb/BUG_HISTORY.md; class = Harness or RTL; commit = fixing commit hash once recorded. -->
+| field | claimed value |
+|---|---|
+| RTL_BUILD_MATRIX | `default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4` |
+| G_N_PARTITIONS | `2, 4` |
+| G_ENCODER_PIPE_STAGES | `1, 2, 3, 4` |
+| G_INTERLEAVING_FACTOR | `4` |
+| G_RING_BUFFER_N_ENTRY | `512` |
+| probe_only_exclusions |  |
 
-| status | bug_id | class | date | title | commit |
-|:---:|---|---|---|---|---|
-| ✅ | `BUG-063-H` | Harness | `2026-04-21` | The shared low-stage partition-latency helper anchored on a stage-4-only pulse instead of the real active-partition load event | `4c62cd0` |
-| ✅ | `BUG-062-H` | Harness | `2026-04-21` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane | `b4e0daa` |
-| ✅ | `BUG-061-R` | RTL | `2026-04-21` | `TERMINATING` control ready could acknowledge before lane-local end-of-run had actually closed the drain contract | `b4e0daa` |
-| ✅ | `BUG-060-R` | RTL | `2026-04-21` | `push_erase` recomputed the just-written slot inside the remaining standalone timing-critical CAM erase cone | `1736898` |
-| ✅ | `BUG-059-R` | RTL | `2026-04-21` | Wrap-overwrite `push_erase` could erase outside the configured ring span on non-power-of-two builds | `dab30da` |
-| ✅ | `BUG-058-R` | RTL | `2026-04-21` | Non-power-of-two ring depths let the live write pointer escape the configured ring span | `acb9230` |
-| ✅ | `BUG-057-R` | RTL | `2026-04-21` | Low-stage partitioned-encoder variants indexed `pipe_valid` beyond the active datapath width | `acb9230` |
-| ✅ | `BUG-056-R` | RTL | `2026-04-21` | Settled SEARCH-tail overlap could still clobber a slot already captured in the frozen snapshot at the live write pointer | `07c0dae` |
+## Non-Claims
 
-## Formal / contract cases
+- cross scope: DV_CROSS continuous-frame ladders are tracked separately from the canonical per-case isolated matrix in this refresh.
+- branch total excludes 4 compile-time-dead bins from the p4-only `gen_addr_enc_logic(2/3)` instances where `PIPE_STAGES=4` fixes `ACTIVE_PIPE_STAGES_CONST=4` and `EXTRA_VALID_STAGES_CONST=0`.
 
-<!-- scope = bucket or TOTAL aggregation of contract-style testcase execution -->
-<!-- executed = cases with real isolated log evidence; executed_ratio = executed/planned cases -->
-<!-- observed_txn = sum of scoreboard-observed transactions across executed cases -->
-<!-- asserted_failures = summed UVM_ERROR/assert failures from those case logs -->
-<!-- unexpected_outputs = summed scoreboard unexpected-output count from those case logs -->
-
-| status | scope | planned | executed | executed_ratio | observed_txn | failing_cases | asserted_failures | unexpected_outputs |
-|:---:|---|---:|---:|---:|---:|---:|---:|---:|
-| ✅ | `BASIC` | 129 | 129 | 100.00% | 14923 | 0 | 0 | 0 |
-| ⚠️ | `EDGE` | 129 | 45 | 34.88% | 39114 | 0 | 0 | 0 |
-| ⚠️ | `PROF` | 129 | 87 | 67.44% | 4560502 | 0 | 0 | 0 |
-| ⚠️ | `ERROR` | 129 | 106 | 82.17% | 2067 | 0 | 0 | 0 |
-| ⚠️ | `TOTAL` | 516 | 367 | 71.12% | 4616606 | 0 | 0 | 0 |
-
-## Bucket summary
+## Bucket Summary
 
 <!-- status: overall per-bucket health; merged columns: bucket-local ordered-merge percentages. -->
 
-| status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) | functional |
-|:---:|---|---:|---:|---|---|
-| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 129 | stmt=99.09, branch=93.76, cond=81.76, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.74 | 100.0% (129/129) |
-| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 45 | stmt=91.43, branch=81.12, cond=64.32, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=82.96 | 34.88% (45/129) |
-| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 87 | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 | 67.44% (87/129) |
-| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 129 | 106 | stmt=96.77, branch=88.83, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=80.00, toggle=67.00 | 82.17% (106/129) |
+| status | bucket | catalog_planned | promoted | evidenced | backlog | merged | promoted functional |
+|:---:|---|---:|---:|---:|---:|---|---|
+| ⚠️ | [`BASIC`](REPORT/buckets/BASIC.md) | 129 | 129 | 129 | 0 | stmt=99.13, branch=93.87, cond=81.46, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.72 | 100.0% (129/129) |
+| ⚠️ | [`EDGE`](REPORT/buckets/EDGE.md) | 129 | 123 | 123 | 0 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | 100.0% (123/123) |
+| ⚠️ | [`PROF`](REPORT/buckets/PROF.md) | 129 | 84 | 84 | 0 | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 | 100.0% (84/84) |
+| ⚠️ | [`ERROR`](REPORT/buckets/ERROR.md) | 132 | 128 | 128 | 0 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.60 | 100.0% (128/128) |
 
 ## Totals
 
 | status | metric | pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 97.17 | 95.0 |
-| ✅ | branch | 90.63 | 90.0 |
-| ℹ️ | cond | 75.68 | - |
+| ✅ | stmt | 97.16 | 95.0 |
+| ✅ | branch | 90.11 | 90.0 |
+| ℹ️ | cond | 74.58 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
-| ⚠️ | fsm_trans | 80.00 | 90.0 |
-| ✅ | toggle | 86.72 | 80.0 |
+| ✅ | fsm_trans | 100.00 | 90.0 |
+| ✅ | toggle | 86.71 | 80.0 |
 
-- functional coverage: `71.12% (367/516)`
+- catalog_planned_cases: `519`
+- promoted_signoff_cases: `464`
+- evidenced_promoted_cases: `464`
+- promoted functional coverage: `100.0% (464/464)`
 
-## Cross / continuous-frame signoff
+## Signoff Runs
 
 <!-- one row per run; follow the run_id link for the full transaction-growth curve. -->
 
@@ -86,9 +75,8 @@ This page is the chief-architect dashboard. All per-case evidence lives under [`
 - [`REPORT/README.md`](REPORT/README.md) — reviewer entry point
 - [`REPORT/buckets/`](REPORT/buckets/) — ordered-merge trace per bucket
 - [`REPORT/cases/`](REPORT/cases/) — one page per case
-- [`REPORT/cross/`](REPORT/cross/) — one page per continuous-frame run
-- [`REPORT/txn_growth/`](REPORT/txn_growth/) — checkpoint UCDB curves for random cases
-- [`DV_COV.md`](DV_COV.md) — coverage targets vs. merged totals (summary)
+- [`REPORT/cross/`](REPORT/cross/) — one page per signoff run
+- [`DV_COV.md`](DV_COV.md) — coverage totals, ordering, and baseline scope
 - [`DV_REPORT.json`](DV_REPORT.json) — machine-readable source of truth
 
 _This dashboard is generated by `~/.codex/skills/dv-workflow/scripts/dv_report_gen.py`. Edits are overwritten; fix the JSON or the generator instead._

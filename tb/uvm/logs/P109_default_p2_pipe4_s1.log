@@ -1,3 +1,535 @@
-P109 has no live log artifact.
-State: planned only
-Scenario: long soak, pool=4, seed=0x18, side_data forced to sweep full 31-bit range monotonically, 2M txn
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_MEDIUM" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb" "+DV_SEED=1" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=P109" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P109_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 12:25:01 on Apr 22,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P109_s1.ucdb
+#  run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 1  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 2  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 0 ps  Iteration: 3  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(15998) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=P109 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 160116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=78 flush_cam_wrdata=31 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 320116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=156 flush_cam_wrdata=63 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 480116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=234 flush_cam_wrdata=95 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 640116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=312 flush_cam_wrdata=127 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 800116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=390 flush_cam_wrdata=159 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 960116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=468 flush_cam_wrdata=191 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 1048740 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
+# ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
+#    Time: 1048740 ns  Iteration: 3  Instance: /tb_top/dut/v2_core
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1051764000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 12 hits in 68 cycles (17.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1052220000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 3 hits in 14 cycles (21.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1052724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 4 hits in 20 cycles (20.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1053228000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 4 hits in 20 cycles (20.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1086692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 338 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1089692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 332 cycles (23.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1092692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 332 cycles (23.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1096076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 380 cycles (20.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1119028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 284 cycles (29.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1121420000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 256 cycles (29.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1123764000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 250 cycles (30.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1126780000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 334 cycles (24.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1152196000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 334 cycles (26.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1154780000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 280 cycles (28.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1157460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 292 cycles (27.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1160092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 286 cycles (23.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1185188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 362 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1188380000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 356 cycles (20.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1191620000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 362 cycles (19.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1195436000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 93 hits in 434 cycles (21.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1217732000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 334 cycles (21.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1221612000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 442 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1225492000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 442 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1228268000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 54 hits in 304 cycles (17.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1250196000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 55 hits in 296 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1253100000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 320 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1255956000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 314 cycles (22.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1259436000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 392 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1283220000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 90 hits in 328 cycles (27.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1286188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 94 hits in 328 cycles (28.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1289156000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 94 hits in 328 cycles (28.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1291532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 254 cycles (30.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1316180000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 352 cycles (23.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1318956000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 304 cycles (25.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1321780000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 310 cycles (24.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1325852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 104 hits in 466 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1349604000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 434 cycles (19.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1352700000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 344 cycles (21.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1355844000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 350 cycles (21.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1359324000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 392 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1381620000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 340 cycles (20.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1384204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 280 cycles (24.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1386740000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 274 cycles (24.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1390092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 376 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1414564000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 95 hits in 362 cycles (26.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1417180000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 284 cycles (32.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1419796000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 284 cycles (32.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1422092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 244 cycles (29.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1446900000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 308 cycles (24.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1449852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 326 cycles (24.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1452804000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 326 cycles (24.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1455948000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 350 cycles (23.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1480164000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 370 cycles (20.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1483420000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 364 cycles (21.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1486724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 370 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1490460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 424 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1512532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 320 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1515724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 356 cycles (19.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1518868000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 350 cycles (19.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1522204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 374 cycles (18.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1545556000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 352 cycles (21.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1548476000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 322 cycles (25.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1551348000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 316 cycles (25.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1554268000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 322 cycles (25.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1578132000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 99 hits in 328 cycles (30.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1580572000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 262 cycles (29.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1583060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 268 cycles (29.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1586028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 101 hits in 328 cycles (30.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1611316000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 380 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1614844000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 398 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1618372000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 398 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1621468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 344 cycles (23.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1644004000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 65 hits in 370 cycles (17.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1647356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 376 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1650660000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 370 cycles (19.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1654204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 400 cycles (18.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1676468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 332 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1679612000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 350 cycles (21.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1682660000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 74 hits in 338 cycles (21.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1685804000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 350 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1709060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 310 cycles (28.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1711740000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 292 cycles (30.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1714372000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 286 cycles (30.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1717052000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 292 cycles (29.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1742356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 376 cycles (23.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1745324000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 328 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1748340000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 334 cycles (24.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1751836000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 94 hits in 394 cycles (23.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1775444000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 416 cycles (18.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1778636000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 356 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1781876000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 362 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1785308000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 386 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1806692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 52 hits in 226 cycles (23.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1809708000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 334 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1812628000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 74 hits in 322 cycles (23.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1816172000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 400 cycles (20.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 1828868000: uvm_test_top.m_env.m_hit_seqr@@P037 seeded random four-key profile B_profile [SEQ] P037 seeded random four-key profile B progress: sent=7500/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1839972000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 95 hits in 290 cycles (32.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1842684000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 296 cycles (28.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1845348000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 290 cycles (28.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1847980000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 286 cycles (30.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1873076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 332 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1875884000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 308 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1878692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 308 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1881980000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 368 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1906388000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 400 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1909548000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 352 cycles (20.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1912756000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 358 cycles (20.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1916444000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 418 cycles (19.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1938852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 362 cycles (19.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1941948000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 344 cycles (20.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1944996000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 338 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1948140000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 65 hits in 350 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1970772000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 256 cycles (30.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1973932000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 352 cycles (23.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1977092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 352 cycles (23.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 1980012000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 322 cycles (24.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2004116000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 91 hits in 328 cycles (27.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2006892000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 304 cycles (28.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2009668000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 304 cycles (28.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2011948000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 242 cycles (33.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2037300000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 380 cycles (21.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2040732000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 386 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2044212000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 392 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2047452000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 362 cycles (21.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2070132000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 388 cycles (17.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2073532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 382 cycles (18.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2076836000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 370 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2080092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 364 cycles (19.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2101924000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 55 hits in 266 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2104972000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 338 cycles (23.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2107924000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 326 cycles (23.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2111596000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 416 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2134996000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 304 cycles (28.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2137292000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 244 cycles (32.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2139540000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 238 cycles (32.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2142412000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 316 cycles (28.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2168244000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 364 cycles (24.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2171356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 346 cycles (25.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2174516000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 352 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2177676000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 352 cycles (23.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2201572000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 434 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2204908000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 374 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2208292000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 380 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2211292000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 332 cycles (20.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2233588000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 340 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2236604000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 334 cycles (21.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2239524000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 322 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2242396000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 316 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2265780000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 268 cycles (31.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2268828000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 96 hits in 338 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2271876000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 96 hits in 338 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2274156000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 242 cycles (32.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2298532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 266 cycles (25.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2301532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 332 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2304532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 332 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2307868000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 374 cycles (22.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2331796000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 328 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2335580000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 430 cycles (19.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2339316000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 424 cycles (20.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2342428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 346 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2364740000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 350 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2367692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 326 cycles (20.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2370644000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 326 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2374076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 386 cycles (18.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2397236000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 316 cycles (24.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2400204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 328 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2403076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 316 cycles (25.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2405996000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 322 cycles (28.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2429764000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 286 cycles (28.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2432492000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 298 cycles (29.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2435268000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 304 cycles (29.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2437948000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 292 cycles (27.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2463428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 398 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2466908000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 392 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2470340000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 386 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2473436000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 344 cycles (22.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2496356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 418 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2499468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 64 hits in 346 cycles (18.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2502580000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 346 cycles (19.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2506028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 388 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2528580000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 350 cycles (24.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2531676000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 344 cycles (22.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2534724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 338 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2537532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 308 cycles (22.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2561028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 310 cycles (26.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2563404000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 254 cycles (32.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2565780000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 254 cycles (32.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2568364000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 280 cycles (32.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2594420000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 388 cycles (21.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2597628000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 358 cycles (23.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2600884000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 364 cycles (23.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2603852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 328 cycles (25.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 2608868000: uvm_test_top.m_env.m_hit_seqr@@P037 seeded random four-key profile B_profile [SEQ] P037 seeded random four-key profile B progress: sent=15000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2627556000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 434 cycles (20.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2630940000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 380 cycles (20.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2634372000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 386 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2637276000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 320 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2659188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 65 hits in 292 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2662348000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 352 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2665460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 346 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2668044000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 280 cycles (25.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2692468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 100 hits in 356 cycles (28.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2694892000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 260 cycles (31.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2697268000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 254 cycles (32.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2699612000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 250 cycles (32.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2724852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 308 cycles (27.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2727900000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 338 cycles (23.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2730948000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 338 cycles (23.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2733852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 320 cycles (22.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2757636000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 64 hits in 310 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2761420000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 430 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2765252000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 436 cycles (20.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2768412000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 352 cycles (21.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2790436000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 62 hits in 314 cycles (19.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2793292000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 314 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2796148000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 314 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2799964000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 434 cycles (18.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2824228000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 119 hits in 442 cycles (26.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2827052000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 310 cycles (24.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2829828000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 304 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2832028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 232 cycles (30.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2856036000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 96 hits in 322 cycles (29.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2858764000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 298 cycles (26.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2861540000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 304 cycles (26.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2864028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 74 hits in 268 cycles (27.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2888500000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 60 hits in 284 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2891836000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 374 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2895220000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 380 cycles (20.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2899372000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 95 hits in 476 cycles (20.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2922004000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 376 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2925548000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 74 hits in 400 cycles (18.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2928996000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 388 cycles (18.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2932204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 358 cycles (19.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2955428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 458 cycles (19.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2958428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 332 cycles (21.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2961428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 332 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2963468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 45 hits in 212 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2986724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 274 cycles (28.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2989692000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 93 hits in 328 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2992564000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 316 cycles (29.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 2995244000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 292 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3021124000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 105 hits in 478 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3023996000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 316 cycles (26.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3026820000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 310 cycles (26.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3029884000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 340 cycles (25.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3052100000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 56 hits in 254 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3055532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 386 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3058916000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 380 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3063260000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 95 hits in 500 cycles (19.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3085460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 328 cycles (20.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3088476000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 334 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3091444000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 328 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3094172000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 298 cycles (26.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3117876000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 284 cycles (31.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3120636000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 91 hits in 302 cycles (30.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3123396000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 91 hits in 302 cycles (30.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3125580000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 230 cycles (32.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3150884000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 314 cycles (28.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3153932000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 338 cycles (23.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3157028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 344 cycles (23.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3159836000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 308 cycles (22.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3183764000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 328 cycles (20.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3187164000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 382 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3190516000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 376 cycles (21.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3194396000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 442 cycles (19.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3216708000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 350 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3220092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 380 cycles (19.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3223428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 374 cycles (19.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3226092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 63 hits in 290 cycles (21.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3249156000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 310 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3251932000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 304 cycles (25.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3254708000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 304 cycles (25.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3258012000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 370 cycles (22.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3281588000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 268 cycles (28.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3284460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 316 cycles (28.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3287332000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 316 cycles (28.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3289964000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 94 hits in 286 cycles (32.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3315444000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 404 cycles (21.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3318732000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 368 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3322020000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 368 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3325356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 374 cycles (19.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3348708000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 466 cycles (18.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3352060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 376 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3355316000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 364 cycles (18.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3358188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 316 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3379684000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 46 hits in 242 cycles (19.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3382444000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 302 cycles (22.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3385204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 302 cycles (23.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 3388868000: uvm_test_top.m_env.m_hit_seqr@@P037 seeded random four-key profile B_profile [SEQ] P037 seeded random four-key profile B progress: sent=22500/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3389260000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 464 cycles (19.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3413428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 106 hits in 364 cycles (29.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3416300000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 316 cycles (29.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3419124000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 310 cycles (29.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3421548000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 260 cycles (30.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3446244000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 89 hits in 370 cycles (24.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3449356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 346 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3452420000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 340 cycles (22.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3455820000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 382 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3479332000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 410 cycles (20.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3482716000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 380 cycles (20.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3486100000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 380 cycles (20.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3489244000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 350 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3511684000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 358 cycles (22.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3514460000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 304 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3517236000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 304 cycles (22.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3520108000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 68 hits in 316 cycles (21.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3543908000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 290 cycles (29.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3546476000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 278 cycles (30.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3549044000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 278 cycles (30.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3551628000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 280 cycles (32.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3577060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 338 cycles (24.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3580060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 332 cycles (24.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3583108000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 338 cycles (24.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3585724000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 284 cycles (24.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3610516000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 424 cycles (18.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3613868000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 376 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3617172000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 370 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3620380000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 358 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3642260000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 51 hits in 296 cycles (17.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3645548000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 368 cycles (19.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3648836000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 73 hits in 368 cycles (19.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3652028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 356 cycles (21.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3675908000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 94 hits in 406 cycles (23.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3678588000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 83 hits in 292 cycles (28.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3681220000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 286 cycles (29.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3684044000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 69 hits in 310 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3708196000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 95 hits in 346 cycles (27.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3711020000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 91 hits in 310 cycles (29.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3713844000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 90 hits in 310 cycles (29.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3715900000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 65 hits in 214 cycles (30.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3741188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 374 cycles (21.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3744428000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 362 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3747668000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 362 cycles (20.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3751388000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 422 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3774020000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 382 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3777468000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 388 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3780916000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 388 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3784028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 346 cycles (19.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3806244000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 314 cycles (22.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3809436000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 356 cycles (21.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3812628000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 356 cycles (21.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3815532000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 320 cycles (24.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3838260000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 65 hits in 220 cycles (29.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3840892000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 286 cycles (30.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3843476000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 280 cycles (31.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3846060000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 91 hits in 280 cycles (32.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3872132000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 358 cycles (23.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3875340000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 84 hits in 358 cycles (23.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3878644000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 370 cycles (23.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3881756000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 90 hits in 346 cycles (26.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3904116000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 58 hits in 260 cycles (22.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3907452000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 79 hits in 374 cycles (21.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3910788000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 78 hits in 374 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3915228000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 99 hits in 512 cycles (19.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3937380000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 72 hits in 322 cycles (22.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3940204000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 66 hits in 310 cycles (21.3%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3943028000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 67 hits in 310 cycles (21.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3946044000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 334 cycles (22.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3969956000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 90 hits in 298 cycles (30.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3972620000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 86 hits in 290 cycles (29.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3975188000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 278 cycles (30.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 3978092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 88 hits in 320 cycles (27.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4003476000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 93 hits in 392 cycles (23.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4006092000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 284 cycles (24.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4008756000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 290 cycles (24.1%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4011852000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 85 hits in 344 cycles (24.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4036404000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 80 hits in 412 cycles (19.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4039660000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 77 hits in 364 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4042868000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 76 hits in 358 cycles (21.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4046364000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 81 hits in 394 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4067716000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 48 hits in 230 cycles (20.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4070908000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 70 hits in 356 cycles (19.7%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4074100000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 356 cycles (19.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4077964000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 440 cycles (18.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4101604000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 92 hits in 370 cycles (24.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4104380000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 304 cycles (27.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4107156000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 304 cycles (27.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4110076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 82 hits in 322 cycles (25.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4134036000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 87 hits in 328 cycles (26.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4136620000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 280 cycles (26.8%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4139252000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 75 hits in 286 cycles (26.2%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4142076000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 101 hits in 310 cycles (32.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4166452000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 61 hits in 284 cycles (21.5%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(485) @ 4168868000: uvm_test_top.m_env.m_hit_seqr@@P037 seeded random four-key profile B_profile [SEQ] P037 seeded random four-key profile B progress: sent=30000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(497) @ 4168972000: uvm_test_top.m_env.m_hit_seqr@@P037 seeded random four-key profile B_profile [SEQ] P037 seeded random four-key profile B completed: sent=30000/30000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4169548000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 344 cycles (20.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4172596000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 71 hits in 338 cycles (21.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4177372000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 110 hits in 554 cycles (19.9%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4197356000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 9 hits in 51 cycles (17.6%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4198252000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 12 hits in 69 cycles (17.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4199148000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 12 hits in 69 cycles (17.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/out_monitor.sv(146) @ 4200044000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 12 hits in 69 cycles (17.4%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(5911) @ 4203508000: uvm_test_top [PROF] P037 seeded random four-key profile B summary: num_hits=30000 pool_keys=4 min_hits_per_key=7468 max_hits_per_key=7575 seed=0x03703c4d max_live_fill=364
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(16000) @ 4203508000: uvm_test_top [CASE] CASE_END id=P109 mode=isolated
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 4203508000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 4203508000: uvm_test_top.m_env.m_cov [COV] cg_output=91.2% cg_hit_data=68.8%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 4203508000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=30000 popped=30000 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=5642 zero_hit_subheaders=5254 accepted=30000 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 4203508000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=364 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(15707) @ 4203508000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 4203508000: reporter [UVM/REPORT/SERVER] 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :  409
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [CASE]     2
+# [COV]     1
+# [CTRL_DRV]     6
+# [OUT_MON]   388
+# [PROF]     1
+# [RNTST]     1
+# [SCB]     2
+# [SEQ]     5
+# [TEST]     1
+# [TEST_DONE]     1
+# [UVM/RELNOTES]     1
+# 
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 4203508 ns  Iteration: 75  Instance: /tb_top
+# 
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 12:25:19 on Apr 22,2026, Elapsed time: 0:00:18
+# Errors: 0, Warnings: 25

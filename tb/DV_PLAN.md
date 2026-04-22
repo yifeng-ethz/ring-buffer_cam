@@ -1,10 +1,18 @@
 # DV Plan: ring_buffer_cam
 
-**DUT:** `ring_buffer_cam`  
-**Primary RTL:** `rtl/ring_buffer_cam.vhd`, `rtl/ring_buffer_cam_v2_core.vhd`, `rtl/addr_enc_logic_partitioned.vhd`  
-**Workflow:** local `dv-workflow` report-tree flow  
-**Date:** 2026-04-16  
-**Status:** migrated from legacy monolithic signoff into split-plan current tree
+**DUT:** `ring_buffer_cam` &nbsp;
+**Primary RTL:** `rtl/ring_buffer_cam.vhd`, `rtl/ring_buffer_cam_v2_core.vhd`, `rtl/addr_enc_logic_partitioned.vhd` &nbsp;
+**Active variant:** `default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`) &nbsp;
+**Workflow:** local `dv-workflow` report-tree flow &nbsp;
+**Date:** `2026-04-21`
+
+**Companion docs:** [`DV_HARNESS.md`](DV_HARNESS.md) · [`DV_BASIC.md`](DV_BASIC.md) · [`DV_EDGE.md`](DV_EDGE.md) · [`DV_PROF.md`](DV_PROF.md) · [`DV_ERROR.md`](DV_ERROR.md) · [`DV_CROSS.md`](DV_CROSS.md) · [`DV_REPORT.md`](DV_REPORT.md) · [`DV_COV.md`](DV_COV.md) · [`BUG_HISTORY.md`](BUG_HISTORY.md)
+
+Master IP-level signoff dashboard: [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md). Standalone timing evidence: [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md).
+
+## Legend
+
+✅ pass / closed &middot; ⚠️ partial / below target &middot; ❌ failed / missing evidence &middot; ❓ pending &middot; ℹ️ informational
 
 ## 1. Scope
 
@@ -21,7 +29,7 @@ The historical signoff record in [../doc/SIGNOFF.md](../doc/SIGNOFF.md) is retai
 
 ## 2. Current Truth After 2026-04-16 Reruns
 
-- The UVM bench is runnable on this host with Questa FSE.
+- The UVM bench is runnable on this host with QuestaOne 2026 (`/data1/questaone_sim/questasim`).
 - The CSR cases were checking the wrong register offsets against the live RTL. The bench now uses the real CSR map from `ring_buffer_cam_v2_core.vhd`.
 - The scoreboard now hard-fails if accepted hits remain undrained at end of test. This prevents false-green functional smoke results.
 - Live reruns currently show:
@@ -35,11 +43,11 @@ The historical signoff record in [../doc/SIGNOFF.md](../doc/SIGNOFF.md) is retai
 |---|---|---|
 | [DV_PLAN.md](DV_PLAN.md) | entry point | scope, buckets, signoff rules |
 | [DV_HARNESS.md](DV_HARNESS.md) | harness contract | agents, scoreboard, monitors, coverage, current gaps |
-| [DV_BASIC.md](DV_BASIC.md) | `B001-B008` | deterministic bring-up and core feature cases |
-| [DV_EDGE.md](DV_EDGE.md) | `E001-E008` | boundary, ordering, and partition corner cases |
-| [DV_PROF.md](DV_PROF.md) | `P001-P006` | random, stress, soak, and throughput-oriented cases |
-| [DV_ERROR.md](DV_ERROR.md) | `X001-X006` | injected faults, recovery, terminate/flush, illegal control |
-| [DV_CROSS.md](DV_CROSS.md) | continuous-frame signoff | `bucket_frame`, `all_buckets_frame`, and curated mixed-pattern runs |
+| [DV_BASIC.md](DV_BASIC.md) | `B001-B129` | deterministic bring-up and core feature cases |
+| [DV_EDGE.md](DV_EDGE.md) | `E001-E129` | boundary, ordering, and partition corner cases |
+| [DV_PROF.md](DV_PROF.md) | `P001-P129` | random, stress, soak, and throughput-oriented cases |
+| [DV_ERROR.md](DV_ERROR.md) | `X001-X132` | injected faults, recovery, terminate/flush, illegal control |
+| [DV_CROSS.md](DV_CROSS.md) | `CROSS-001-CROSS-129` | continuous-frame signoff: `bucket_frame`, `all_buckets_frame`, anchored hybrids, seed-swept and checkpoint soaks |
 | `DV_REPORT.json` | machine-readable source | generated from `scripts/generate_dv_report.py` |
 | `DV_REPORT.md`, `DV_COV.md`, `REPORT/` | generated review tree | dashboard plus per-case and per-run evidence |
 

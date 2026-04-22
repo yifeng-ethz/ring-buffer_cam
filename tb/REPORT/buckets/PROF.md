@@ -1,6 +1,6 @@
 # ⚠️ PROF bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `87` &nbsp; **Status:** ⚠️
+**Planned:** `129` &nbsp; **Evidenced:** `84` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ⚠️ | stmt | 93.13 | 95.0 |
-| ⚠️ | branch | 85.14 | 90.0 |
-| ℹ️ | cond | 71.35 | - |
+| ⚠️ | stmt | 93.05 | 95.0 |
+| ⚠️ | branch | 84.87 | 90.0 |
+| ℹ️ | cond | 70.81 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ✅ | toggle | 81.64 | 80.0 |
+| ✅ | toggle | 81.57 | 80.0 |
 
 ## Ordered merge trace
 
@@ -93,9 +93,9 @@
 | ✅ | 64 | `P064` | stmt=93.05, branch=84.74, cond=69.73, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P064.md) |
 | ❓ | 65 | `P065` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P065.md) |
 | ✅ | 66 | `P066` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P066.md) |
-| ✅ | 67 | `P067` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.70 | [case](../cases/P067.md) |
-| ✅ | 68 | `P068` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P068.md) |
-| ✅ | 69 | `P069` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P069.md) |
+| ❓ | 67 | `P067` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P067.md) |
+| ❓ | 68 | `P068` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P068.md) |
+| ❓ | 69 | `P069` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P069.md) |
 | ❓ | 70 | `P070` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P070.md) |
 | ❓ | 71 | `P071` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P071.md) |
 | ❓ | 72 | `P072` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P072.md) |
@@ -137,25 +137,25 @@
 | ❓ | 108 | `P108` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P108.md) |
 | ❓ | 109 | `P109` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P109.md) |
 | ❓ | 110 | `P110` | stmt=n/a, branch=n/a, cond=n/a, expr=n/a, fsm_state=n/a, fsm_trans=n/a, toggle=n/a | [case](../cases/P110.md) |
-| ✅ | 111 | `P111` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P111.md) |
-| ✅ | 112 | `P112` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P112.md) |
-| ✅ | 113 | `P113` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P113.md) |
-| ✅ | 114 | `P114` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P114.md) |
-| ✅ | 115 | `P115` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P115.md) |
-| ✅ | 116 | `P116` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P116.md) |
-| ✅ | 117 | `P117` | stmt=93.13, branch=85.01, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P117.md) |
-| ✅ | 118 | `P118` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P118.md) |
-| ✅ | 119 | `P119` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P119.md) |
-| ✅ | 120 | `P120` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P120.md) |
-| ✅ | 121 | `P121` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P121.md) |
-| ✅ | 122 | `P122` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.74 | [case](../cases/P122.md) |
-| ✅ | 123 | `P123` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.16 | [case](../cases/P123.md) |
-| ✅ | 124 | `P124` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.16 | [case](../cases/P124.md) |
-| ✅ | 125 | `P125` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.59 | [case](../cases/P125.md) |
-| ✅ | 126 | `P126` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.60 | [case](../cases/P126.md) |
-| ✅ | 127 | `P127` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 | [case](../cases/P127.md) |
-| ✅ | 128 | `P128` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 | [case](../cases/P128.md) |
-| ✅ | 129 | `P129` | stmt=93.13, branch=85.14, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.64 | [case](../cases/P129.md) |
+| ✅ | 111 | `P111` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P111.md) |
+| ✅ | 112 | `P112` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P112.md) |
+| ✅ | 113 | `P113` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P113.md) |
+| ✅ | 114 | `P114` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P114.md) |
+| ✅ | 115 | `P115` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P115.md) |
+| ✅ | 116 | `P116` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P116.md) |
+| ✅ | 117 | `P117` | stmt=93.05, branch=84.74, cond=70.27, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P117.md) |
+| ✅ | 118 | `P118` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P118.md) |
+| ✅ | 119 | `P119` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P119.md) |
+| ✅ | 120 | `P120` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P120.md) |
+| ✅ | 121 | `P121` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P121.md) |
+| ✅ | 122 | `P122` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=80.67 | [case](../cases/P122.md) |
+| ✅ | 123 | `P123` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.08 | [case](../cases/P123.md) |
+| ✅ | 124 | `P124` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.08 | [case](../cases/P124.md) |
+| ✅ | 125 | `P125` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.51 | [case](../cases/P125.md) |
+| ✅ | 126 | `P126` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.52 | [case](../cases/P126.md) |
+| ✅ | 127 | `P127` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 | [case](../cases/P127.md) |
+| ✅ | 128 | `P128` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 | [case](../cases/P128.md) |
+| ✅ | 129 | `P129` | stmt=93.05, branch=84.87, cond=70.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.57 | [case](../cases/P129.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

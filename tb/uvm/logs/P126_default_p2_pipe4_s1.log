@@ -1,30 +1,33 @@
 Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
 
-# 2022.4
+# 2026.1_1
 
-# vsim -modelsimini modelsim.ini -c -quiet -coverage -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb" "+DV_SEED=1" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=P126" "+DV_LONG_TXN_OVERRIDE=2500" -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P126_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
-# Start time: 13:44:28 on Apr 21,2026
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb" "+DV_SEED=1" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=P126" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P126_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 21:41:58 on Apr 21,2026
 # ** Note: (vsim-8009) Loading existing optimized design _opt
-# //  Questa Intel Starter FPGA Edition-64
-# //  Version 2022.4 linux_x86_64 Oct 18 2022
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
 # //
-# //  Copyright 1991-2022 Mentor Graphics Corporation
-# //  All Rights Reserved.
+# // Unpublished work. Copyright 2026 Siemens
 # //
-# //  QuestaSim and its associated documentation contain trade
-# //  secrets and commercial or financial information that are the property of
-# //  Mentor Graphics Corporation and are privileged, confidential,
-# //  and exempt from disclosure under the Freedom of Information Act,
-# //  5 U.S.C. Section 552. Furthermore, this information
-# //  is prohibited from disclosure under the Trade Secrets Act,
-# //  18 U.S.C. Section 1905.
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
 # //
 # ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
 # This also means that later if you turn on UVM-aware debugging your debug simulations may have
 # different random seeds from your non-debug simulations.
 # coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/P126_s1.ucdb
 #  run -all
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
 # ----------------------------------------------------------------
 # UVM-1.2
 # (C) 2007-2014 Mentor Graphics Corporation
@@ -82,7 +85,6 @@ Reading pref.tcl
 #    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
 # ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
 #    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(453) @ 0: reporter [NO_DPI_TSTNAME] UVM_NO_DPI defined--getting UVM_TESTNAME directly, without DPI
 # UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 0 ps  Iteration: 1  Instance: /tb_top/dut/v2_core
@@ -90,71 +92,101 @@ Reading pref.tcl
 #    Time: 0 ps  Iteration: 2  Instance: /tb_top/dut/v2_core
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 0 ps  Iteration: 3  Instance: /tb_top/dut/v2_core
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_traversal.svh(279) @ 0: reporter [UVM/COMP/NAMECHECK] This implementation of the component name checks requires DPI to be enabled
 # ** Warning: NUMERIC_STD.">=": metavalue detected, returning FALSE
 #    Time: 4 ns  Iteration: 2  Instance: /tb_top/dut/v2_core
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13305) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=P126 mode=isolated
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(511) @ 100000: uvm_test_top [PROF] P126 overwrite checkpoint soak zipf-like applying DV_LONG_TXN_OVERRIDE=2500 -> epochs=25
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13410) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=P126 mode=isolated
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 160116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 20000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=78 flush_cam_wrdata=31 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 320116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 40000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=156 flush_cam_wrdata=63 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 480116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 60000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=234 flush_cam_wrdata=95 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 640116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 80000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=312 flush_cam_wrdata=127 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 800116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 100000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=390 flush_cam_wrdata=159 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
 # UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/ctrl_driver.sv(76) @ 960116000: uvm_test_top.m_env.m_ctrl_drv [CTRL_DRV] Waiting for ctrl ready cmd=0x2 after 120000 cycles: ready=0 run_state=1 pop_state=6 flushed=0 flush_start=1 flush_done=0 flush_grant=1 flush_ram_done=1 flush_cam_done=0 flush_ram_wraddr=0 flush_cam_wraddr=468 flush_cam_wrdata=191 cam_clean=1 endofrun_seen=0 term_done=0 deassm_empty=1 deassm_usedw=0 pop_cmd_empty=1 pop_cmd_usedw=0 push=0 pop=0 overwrite=0
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1048980000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=1 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn1_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1048988000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=2 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn2_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049004000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=4 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn4_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049036000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=8 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn8_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049100000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=16 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn16_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049228000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=32 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn32_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049484000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=64 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn64_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1049996000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=128 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn128_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1051020000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=256 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn256_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1053068000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=512 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn512_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1057172000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=1024 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn1024_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 1058964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=1250/2500
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 1068964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=2500/2500
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(579) @ 1068964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like completed: sent=2500/2500
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1130300000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=2048 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn2048_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(458) @ 1184500000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=2500 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn2500_s1.ucdb
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3822) @ 1184500000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: source backlog drained before TERMINATING after 0 cycles (offered=2500 accepted=2500)
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3839) @ 1195364000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: deassembly fifo drained before TERMINATING after 1358 cycles (usedw=0)
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3844) @ 1195396000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: issue TERMINATING entry pulse
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3846) @ 1195412000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: send end-of-run marker
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3848) @ 1195412000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: poll TERMINATING drain-done
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3865) @ 1224492000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: terminating_drain_done asserted after 3635 cycles
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3870) @ 1224524000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: waiting for scoreboard/source idle
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(602) @ 1224892000: uvm_test_top [PROF] P126 overwrite checkpoint soak zipf-like overwrite-soak summary: total_hits=2500 push=2500 pop=1713 overwrite=787 cache_miss=0 fill=0 sink_low_cycles=0 max_live_fill=513
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13307) @ 1224892000: uvm_test_top [CASE] CASE_END id=P126 mode=isolated
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 1224892000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 1224892000: uvm_test_top.m_env.m_cov [COV] cg_output=88.8% cg_hit_data=68.8%
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 1224892000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=2500 popped=1713 remaining=0 pending_drain=0 overlap_evicted=787 overlap_fallback=0 overwrites=787 unexpected=0 subheaders=286 zero_hit_subheaders=266 accepted=2500 cache_miss_outputs=0
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 1224892000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=512 ring_depth=512
-# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13014) @ 1224892000: uvm_test_top [TEST] *** TEST PASSED ***
-# UVM_INFO /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 1224892000: reporter [UVM/REPORT/SERVER] 
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1048980000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=1 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn1_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1048988000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=2 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn2_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049004000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=4 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn4_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049036000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=8 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn8_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049100000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=16 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn16_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049228000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=32 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn32_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049484000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=64 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn64_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1049996000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=128 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn128_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1051020000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=256 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn256_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1053068000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=512 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn512_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1057172000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=1024 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn1024_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1130300000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=2048 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn2048_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1327868000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=4096 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn4096_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 1719612000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=8192 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn8192_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 2474300000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=16384 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn16384_s1.ucdb
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 3048964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=250000/1000000
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 4042476000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=32768 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn32768_s1.ucdb
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 5048964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=500000/1000000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 7048964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=750000/1000000
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 7061836000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=65536 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn65536_s1.ucdb
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(567) @ 9048964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like progress: sent=1000000/1000000
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/sequences.sv(579) @ 9048964000: uvm_test_top.m_env.m_hit_seqr@@P126 overwrite checkpoint soak zipf-like_weighted [SEQ] P126 overwrite checkpoint soak zipf-like completed: sent=1000000/1000000
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 13188908000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=131072 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn131072_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 24681732000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=262144 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn262144_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 47492980000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=524288 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn524288_s1.ucdb
+# Coverage database has been saved successfully.
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(485) @ 88910156000: uvm_test_top [COV] P126 overwrite checkpoint soak zipf-like saved checkpoint UCDB txn=1000000 path=/home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/cov_after/txn_growth/P126_txn1000000_s1.ucdb
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3841) @ 88910156000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: source backlog drained before TERMINATING after 0 cycles (offered=1000000 accepted=1000000)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3858) @ 88915812000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: deassembly fifo drained before TERMINATING after 707 cycles (usedw=0)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3863) @ 88915844000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: issue TERMINATING entry pulse
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3865) @ 88915860000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: send end-of-run marker
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3867) @ 88915860000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: poll TERMINATING drain-done
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3884) @ 88947524000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: terminating_drain_done asserted after 3958 cycles
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(3889) @ 88947556000: uvm_test_top [TERM] P126 overwrite checkpoint soak zipf-like terminate drain: waiting for scoreboard/source idle
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(629) @ 88947924000: uvm_test_top [PROF] P126 overwrite checkpoint soak zipf-like overwrite-soak summary: total_hits=1000000 push=1000000 pop=951487 overwrite=48513 cache_miss=0 fill=0 sink_low_cycles=0 max_live_fill=513
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13412) @ 88947924000: uvm_test_top [CASE] CASE_END id=P126 mode=isolated
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 88947924000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 88947924000: uvm_test_top.m_env.m_cov [COV] cg_output=91.2% cg_hit_data=68.8%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 88947924000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=1000000 popped=951487 remaining=0 pending_drain=0 overlap_evicted=48513 overlap_fallback=0 overwrites=48513 unexpected=0 subheaders=157186 zero_hit_subheaders=146458 accepted=1000000 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 88947924000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=512 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/mu3e-ip-cores/ring-buffer_cam/tb/uvm/base_test.sv(13119) @ 88947924000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 88947924000: reporter [UVM/REPORT/SERVER] 
 # --- UVM Report Summary ---
 # 
 # ** Report counts by severity
-# UVM_INFO :   42
+# UVM_INFO :   49
 # UVM_WARNING :    0
 # UVM_ERROR :    0
 # UVM_FATAL :    0
 # ** Report counts by id
 # [CASE]     2
-# [COV]    14
+# [COV]    22
 # [CTRL_DRV]     6
-# [NO_DPI_TSTNAME]     1
-# [PROF]     2
+# [PROF]     1
 # [RNTST]     1
 # [SCB]     2
-# [SEQ]     3
+# [SEQ]     5
 # [TERM]     7
 # [TEST]     1
 # [TEST_DONE]     1
-# [UVM/COMP/NAMECHECK]     1
 # [UVM/RELNOTES]     1
 # 
-# ** Note: $finish    : /data1/intelFPGA_pro/23.1/questa_fse/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
-#    Time: 1224892 ns  Iteration: 75  Instance: /tb_top
-# End time: 13:45:18 on Apr 21,2026, Elapsed time: 0:00:50
-# Errors: 0, Warnings: 22
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 88947924 ns  Iteration: 75  Instance: /tb_top
+# 
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 21:49:30 on Apr 21,2026, Elapsed time: 0:07:32
+# Errors: 0, Warnings: 23

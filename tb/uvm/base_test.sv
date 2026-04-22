@@ -132,6 +132,25 @@ class base_test extends uvm_test;
     csr_seq.start(m_env.m_csr_seqr);
   endtask
 
+  task automatic csr_write_raw(int unsigned addr, logic [31:0] data);
+    bit [4:0] raw_addr;
+
+    // Bypass sequence start latency when a case must hit a short-lived FSM window.
+    raw_addr = addr[4:0];
+    m_env.m_csr_drv.vif.address   <= raw_addr;
+    m_env.m_csr_drv.vif.writedata <= data;
+    m_env.m_csr_drv.vif.read      <= 1'b0;
+    m_env.m_csr_drv.vif.write     <= 1'b1;
+    do begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end while (m_env.m_csr_drv.vif.waitrequest === 1'b1);
+    m_cfg.note_csr_write(raw_addr, data);
+    m_env.m_csr_drv.vif.write     <= 1'b0;
+    m_env.m_csr_drv.vif.address   <= '0;
+    m_env.m_csr_drv.vif.writedata <= '0;
+    @(posedge m_env.m_csr_drv.vif.clk);
+  endtask
+
   task automatic csr_read(int unsigned addr, output logic [31:0] data);
     csr_read_seq csr_seq;
     csr_seq = csr_read_seq::type_id::create($sformatf("csr_rd_%0d", addr));
@@ -2819,6 +2838,89 @@ class base_test extends uvm_test;
     wait_for_pop_engine_state(3'd4, 40_000, "X074 active DRAIN");
     csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
     expect_soft_reset_abort("X074 soft_reset during DRAIN");
+  endtask
+
+  task automatic run_x130_soft_reset_during_search_case();
+    single_push_pop_seq single_seq;
+    int unsigned        cycles;
+    bit                 saw_search_entry;
+
+    configure_and_start();
+    single_seq = single_push_pop_seq::type_id::create("x130_search_single");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    single_seq.start(m_env.m_hit_seqr);
+
+    cycles = 0;
+    saw_search_entry = 1'b0;
+    while (cycles < 40_000 && !saw_search_entry) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+          m_env.m_dbg_mon.pop_search_wait_cnt == 0) begin
+        saw_search_entry = 1'b1;
+      end
+      cycles++;
+    end
+    if (!saw_search_entry) begin
+      `uvm_error("X130", "Did not reach the SEARCH entry window before soft_reset injection")
+    end else begin
+      csr_write_raw(CSR_CTRL_ADDR, 32'h0000_0002);
+      expect_soft_reset_abort("X130 soft_reset during SEARCH");
+    end
+  endtask
+
+  task automatic run_x131_soft_reset_during_load_case();
+    single_push_pop_seq single_seq;
+    int unsigned        cycles;
+    bit                 saw_load_abort_window;
+
+    configure_and_start();
+    single_seq = single_push_pop_seq::type_id::create("x131_load_single");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    single_seq.start(m_env.m_hit_seqr);
+
+    cycles = 0;
+    saw_load_abort_window = 1'b0;
+    while (cycles < 40_000 && !saw_load_abort_window) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+          m_env.m_dbg_mon.pop_search_wait_cnt == 5) begin
+        saw_load_abort_window = 1'b1;
+      end
+      cycles++;
+    end
+    if (!saw_load_abort_window) begin
+      `uvm_error("X131", "Did not reach the settled SEARCH tail that feeds the LOAD abort window")
+    end else begin
+      csr_write_raw(CSR_CTRL_ADDR, 32'h0000_0002);
+      expect_soft_reset_abort("X131 soft_reset during LOAD");
+    end
+  endtask
+
+  task automatic run_x132_soft_reset_during_count_case();
+    int unsigned cycles;
+    bit          saw_count_entry;
+
+    configure_and_start(0);
+    wait_for_pop_engine_state(3'd5, 80_000, "X132 sync RESET");
+    while (m_env.m_dbg_mon.pop_engine_state_code == 3'd5) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+
+    cycles = 0;
+    saw_count_entry = 1'b0;
+    while (cycles < 40_000 && !saw_count_entry) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_dbg_mon.pop_engine_state_code == 3'd3) begin
+        saw_count_entry = 1'b1;
+      end
+      cycles++;
+    end
+    if (!saw_count_entry) begin
+      `uvm_error("X132", "Did not reach the COUNT window before soft_reset injection")
+    end else begin
+      csr_write_raw(CSR_CTRL_ADDR, 32'h0000_0002);
+      expect_soft_reset_abort("X132 soft_reset during COUNT");
+    end
   endtask
 
   task automatic run_x090_meta_selector_case();
@@ -6507,6 +6609,1220 @@ class base_test extends uvm_test;
     `uvm_error("TIMEOUT", $sformatf(
       "Timed out waiting for %s after %0d cycles: observed_usedw=%0d target_usedw=%0d",
       what, max_cycles, m_env.m_dbg_mon.pop_cmd_fifo_usedw, target_usedw))
+  endtask
+
+  task automatic run_idle_descriptor_latency_case(
+    string       what,
+    int unsigned latency,
+    bit          require_fifo_din_zero = 1'b0
+  );
+    int unsigned cmd_before;
+    int unsigned search_cycles;
+
+    configure_and_start(latency);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    if (latency > 64) begin
+      wait_clocks(latency - 64);
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before) begin
+        `uvm_error("EDGE", $sformatf(
+          "%s emitted a descriptor too early: latency=%0d cmd_before=%0d cmd_after=%0d",
+          what, latency, cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count))
+      end
+    end
+
+    search_cycles = 0;
+    while (search_cycles < (latency + 512) &&
+           m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+    if (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s never emitted the expected idle descriptor: latency=%0d wait_cycles=%0d",
+        what, latency, search_cycles))
+    end
+    if (require_fifo_din_zero && m_env.m_dbg_mon.read_time_ptr[12:4] != 0) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s first descriptor did not preserve ts[11:4]=0: read_time_ptr=0x%0h",
+        what, m_env.m_dbg_mon.read_time_ptr))
+    end
+    wait_for_subheader_count(1, latency + 2_048, {what, " subheader"});
+  endtask
+
+  task automatic run_e048_descriptor_cadence_case(string what);
+    longint unsigned first_cycle;
+    longint unsigned second_cycle;
+    int unsigned     cmd_before;
+    int unsigned     seen_cmds;
+    int unsigned     search_cycles;
+
+    configure_and_start(0);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    first_cycle = 0;
+    second_cycle = 0;
+    seen_cmds = 0;
+    search_cycles = 0;
+    while (search_cycles < 4_096 && seen_cmds < 2) begin
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count > (cmd_before + seen_cmds)) begin
+        if (seen_cmds == 0)
+          first_cycle = m_env.m_dbg_mon.sampled_cycles;
+        else
+          second_cycle = m_env.m_dbg_mon.sampled_cycles;
+        seen_cmds++;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      search_cycles++;
+    end
+    if (seen_cmds != 2 || first_cycle == 0 || second_cycle == 0) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s did not observe two zero-hit descriptors: cmd_before=%0d cmd_after=%0d seen=%0d",
+        what, cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count, seen_cmds))
+    end else if ((second_cycle - first_cycle) < 16) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s descriptor cadence was shorter than one 16-cycle bucket: first=%0d second=%0d delta=%0d",
+        what, first_cycle, second_cycle, second_cycle - first_cycle))
+    end
+  endtask
+
+  task automatic run_e117_zero_latency_interleaving_case(string what);
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned cmd_before;
+    int unsigned focus_search_key;
+    int unsigned search_cycles;
+    logic [47:0] first_read_time_ptr;
+    logic [47:0] first_gts;
+    bit          saw_cmd;
+
+    configure_and_start(0);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    first_read_time_ptr = '0;
+    first_gts = '0;
+    saw_cmd = 1'b0;
+    search_cycles = 0;
+    while (search_cycles < 512 && !saw_cmd) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      if (m_env.m_dbg_mon.pop_cmd_wrreq_count > cmd_before) begin
+        first_read_time_ptr = m_env.m_dbg_mon.read_time_ptr;
+        first_gts = m_env.m_dbg_mon.gts_8n;
+        saw_cmd = 1'b1;
+      end
+      search_cycles++;
+    end
+    if (!saw_cmd) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s never emitted the first zero-latency descriptor", what))
+      return;
+    end
+    focus_search_key = m_cfg.interleaving_index;
+    if ((((first_read_time_ptr >> 4) % m_cfg.interleaving_factor)) != m_cfg.interleaving_index) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s interleaving-offset mismatch: read_time_ptr=0x%0h factor=%0d expected_lane=%0d gts=0x%0h",
+        what, first_read_time_ptr,
+        m_cfg.interleaving_factor, m_cfg.interleaving_index, first_gts))
+    end
+    wait_for_subheader_match(
+      focus_search_key[7:0], 8'd0, 1'b1, 1'b0, 80_000,
+      {what, " zero-latency subheader"}, matched_subheader);
+    if (matched_subheader == null || !(matched_subheader.sop && matched_subheader.eop)) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s zero-latency descriptor did not emit a single-beat SOP+EOP subheader for search_key=0x%02x",
+        what, focus_search_key[7:0]))
+    end
+  endtask
+
+  task automatic run_e118_latency_terminate_race_case(string what);
+    int unsigned cmd_before;
+
+    configure_and_start(2000);
+    wait_clocks(32);
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_run_state(
+      ring_buffer_cam_pkg::RUN_STATE_TERMINATING,
+      2_000,
+      {what, " TERMINATING entry"});
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'd1);
+    wait_clocks(8);
+    if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s latency rewrite changed descriptor generation after end-of-run: before=%0d after=%0d",
+        what, cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count))
+    end
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    if (m_env.m_dbg_mon.terminating_drain_done !== 1'b1) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s terminate race did not settle terminating_drain_done", what))
+    end
+  endtask
+
+  task automatic run_e121_default_latency_cadence_case(string what);
+    run_profile_integrity_case(
+      what,
+      16'd2000, 4_096, 2, 1, 1,
+      16, 0, 0, 1'b0, 1'b0, 8'd0,
+      0, 0, 0, 2_500_000,
+      64, m_cfg.ring_buffer_n_entry, 8, 1'b1);
+    if (m_env.m_dbg_mon.push_count_at_first_pop < 96 ||
+        m_env.m_dbg_mon.push_count_at_first_pop > 160) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s escaped the expected default-latency pre-service window: pushes_before_first_pop=%0d",
+        what, m_env.m_dbg_mon.push_count_at_first_pop))
+    end
+  endtask
+
+  task automatic run_e128_latency_flush_restart_case(string what);
+    int unsigned cmd_before;
+
+    configure_and_start(16'd128);
+    wait_clocks(64);
+    enter_run_prepare();
+    expect_main_activity_counters_zero({what, " flush clears live state"});
+    restart_after_flush(16'd128);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    wait_clocks(64);
+    if (m_env.m_dbg_mon.pop_cmd_wrreq_count != cmd_before) begin
+      `uvm_error("EDGE", $sformatf(
+        "%s emitted a descriptor before the restarted latency window elapsed: before=%0d after=%0d",
+        what, cmd_before, m_env.m_dbg_mon.pop_cmd_wrreq_count))
+    end
+    wait_for_subheader_count(
+      m_env.m_out_mon.total_subheaders_seen + 1,
+      1_024,
+      {what, " post-flush subheader"});
+  endtask
+
+  task automatic run_x016_inerr_with_backpressure_case();
+    same_key_burst_seq                burst_seq;
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    int unsigned                      inerr_before;
+    int unsigned                      inerr_after;
+    int unsigned                      err_pulses_before;
+    int unsigned                      err_pulses_after;
+    int unsigned                      err_accepts_before;
+    int unsigned                      err_accepts_after;
+    int unsigned                      search_cycles;
+    int unsigned                      ready_low_streak;
+    bit                               traffic_done;
+    bit                               saw_ready_low;
+    bit                               injected_bad_hit;
+
+    configure_and_start(2000);
+    traffic_done = 1'b0;
+    saw_ready_low = 1'b0;
+    injected_bad_hit = 1'b0;
+    ready_low_streak = 0;
+    burst_seq = same_key_burst_seq::type_id::create("x016_backpressure_burst");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry + 1_024;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    err_pulses_before = m_env.m_dbg_mon.ingress_error_pulse_count;
+    err_accepts_before = m_env.m_dbg_mon.ingress_error_accept_count;
+
+    fork
+      begin
+        burst_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+      begin
+        search_cycles = 0;
+        while (search_cycles < 240_000 && !injected_bad_hit) begin
+          if (m_env.m_hit_drv.vif.ready === 1'b0 &&
+              m_env.m_dbg_mon.vif.deassembly_fifo_full === 1'b1) begin
+            saw_ready_low = 1'b1;
+            ready_low_streak++;
+          end else begin
+            ready_low_streak = 0;
+          end
+          if (ready_low_streak >= 4) begin
+            hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("x016_bad_raw");
+            hit_item.asic = 4'h1;
+            hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+            hit_item.channel = 5'd3;
+            hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(3, 4'h1, 1'b0);
+            hit_item.tcc1n6 = 3'd0;
+            hit_item.tfine = 5'd4;
+            hit_item.et1n6 = 9'd12;
+            hit_item.has_error = 1'b1;
+            hit_item.is_empty_marker = 1'b0;
+            m_env.m_hit_drv.pulse_manual_hit(hit_item, 1);
+            injected_bad_hit = 1'b1;
+          end
+          @(posedge m_env.m_csr_drv.vif.clk);
+          search_cycles++;
+        end
+      end
+    join
+
+    if (!saw_ready_low) begin
+      `uvm_error("X016", "Did not observe ready-low ingress backpressure before the bad-hit injection")
+    end
+    if (!injected_bad_hit) begin
+      `uvm_error("X016", "Did not inject the backpressured bad hit")
+    end
+    wait_clocks(4);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    err_pulses_after = m_env.m_dbg_mon.ingress_error_pulse_count;
+    err_accepts_after = m_env.m_dbg_mon.ingress_error_accept_count;
+    if (inerr_after != (inerr_before + 1)) begin
+      `uvm_error("X016", $sformatf(
+        "INERR_COUNT did not increment under backpressure: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+    if ((err_pulses_after - err_pulses_before) != 1) begin
+      `uvm_error("X016", $sformatf(
+        "Backpressured bad hit did not appear as exactly one raw ingress error pulse: before=%0d after=%0d",
+        err_pulses_before, err_pulses_after))
+    end
+    if ((err_accepts_after - err_accepts_before) != 0) begin
+      `uvm_error("X016", $sformatf(
+        "Backpressured bad hit was unexpectedly accepted: accepts_before=%0d accepts_after=%0d",
+        err_accepts_before, err_accepts_after))
+    end
+    terminate_and_drain(350_000, "X016 backpressure terminate");
+    expect_service_model_accounting("X016 backpressure terminate", 1, 1);
+  endtask
+
+  task automatic run_x020_bad_hit_during_drain_case();
+    same_key_burst_seq   burst_seq;
+    single_error_hit_seq err_seq;
+    int unsigned         inerr_before;
+    int unsigned         inerr_after;
+    int unsigned         pop_before;
+    int unsigned         pop_after;
+    int unsigned         hit_before;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x020_focus_burst");
+    burst_seq.num_hits = 2;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_pop_engine_state(3'd4, 40_000, "X020 DRAIN entry");
+    while (m_env.m_dbg_mon.vif.pop_erase_grant !== 1'b1) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_before);
+    hit_before = m_env.m_out_mon.total_hits_seen;
+    err_seq = single_error_hit_seq::type_id::create("x020_bad_during_drain");
+    err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_seq.start(m_env.m_hit_seqr);
+    wait_for_hit_output_count(hit_before + 1, 80_000, "X020 focus hit drain");
+    wait_for_scoreboard_idle(120_000, "X020 drain cleanup");
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_after);
+    if (inerr_after != (inerr_before + 1)) begin
+      `uvm_error("X020", $sformatf(
+        "INERR_COUNT did not increment during DRAIN: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+    if ((pop_after - pop_before) != 1) begin
+      `uvm_error("X020", $sformatf(
+        "POP_COUNT drifted during the DRAIN-side bad-hit injection: before=%0d after=%0d",
+        pop_before, pop_after))
+    end
+    if (m_env.m_out_mon.recent_hits.size() > 0 &&
+        m_env.m_out_mon.recent_hits[$].error !== 1'b0) begin
+      `uvm_error("X020", "Ingress bad-hit injection leaked into the in-flight good drain error bit")
+    end
+    expect_service_model_accounting("X020 bad hit during DRAIN", 1, 0);
+  endtask
+
+  task automatic run_x021_bad_hit_with_subheader_case();
+    same_key_burst_seq               burst_seq;
+    single_error_hit_seq             err_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned                     inerr_before;
+    int unsigned                     inerr_after;
+    int unsigned                     focus_search_key;
+
+    configure_and_start(0);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq = same_key_burst_seq::type_id::create("x021_two_hit_epoch");
+    burst_seq.num_hits = 2;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+    while (!(m_env.m_dbg_mon.vif.pop_cmd_fifo_rdack === 1'b1 &&
+             m_env.m_dbg_mon.vif.subheader_gen_done === 1'b0)) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    err_seq = single_error_hit_seq::type_id::create("x021_bad_on_subheader");
+    err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_seq.start(m_env.m_hit_seqr);
+    wait_for_subheader_search_key(
+      focus_search_key[7:0],
+      80_000,
+      "X021 target subheader",
+      matched_subheader);
+    wait_for_scoreboard_idle(120_000, "X021 subheader-side bad-hit drain");
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (matched_subheader == null ||
+        matched_subheader.hit_count != 2 ||
+        matched_subheader.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
+      `uvm_error("X021", $sformatf(
+        "Subheader changed during bad-hit injection: key=%s hit_count=%s raw=0x%09x",
+        (matched_subheader == null) ? "none" : $sformatf("0x%02x", matched_subheader.search_key),
+        (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count),
+        (matched_subheader == null) ? '0 : matched_subheader.raw_data))
+    end
+    if (inerr_after != (inerr_before + 1)) begin
+      `uvm_error("X021", $sformatf(
+        "INERR_COUNT did not increment on the subheader-side bad-hit race: before=%0d after=%0d",
+        inerr_before, inerr_after))
+    end
+    expect_service_model_accounting("X021 bad hit with subheader", 1, 0);
+  endtask
+
+  task automatic run_x026_error_passthrough_drain_case();
+    error_burst_seq                  err_burst;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned                     push_count;
+    int unsigned                     pop_count;
+    int unsigned                     inerr_count;
+
+    configure_and_start(2000);
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0001);
+    wait_clocks(2);
+    err_burst = error_burst_seq::type_id::create("x026_passthrough_burst");
+    err_burst.num_hits = 8;
+    err_burst.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    err_burst.start(m_env.m_hit_seqr);
+    wait_for_subheader_search_key(
+      m_cfg.lane_key_ord_to_search_key(2)[7:0],
+      120_000,
+      "X026 passthrough subheader",
+      matched_subheader);
+    wait_for_scoreboard_idle(160_000, "X026 passthrough drain");
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (push_count != 8 || pop_count != 8 || inerr_count != 0) begin
+      `uvm_error("X026", $sformatf(
+        "Passthrough bad-hit accounting mismatch: push=%0d pop=%0d inerr=%0d",
+        push_count, pop_count, inerr_count))
+    end
+    if (matched_subheader == null || matched_subheader.hit_count != 8) begin
+      `uvm_error("X026", $sformatf(
+        "Passthrough bad-hit subheader mismatch: observed=%s",
+        (matched_subheader == null) ? "none" : $sformatf("%0d", matched_subheader.hit_count)))
+    end
+    expect_service_model_accounting("X026 bad-hit passthrough drain", 1, 0);
+  endtask
+
+  task automatic run_x027_filtered_error_with_fill_transition_case();
+    single_push_pop_seq   single_seq;
+    single_error_hit_seq  err_seq;
+    int unsigned          fill_before;
+    int unsigned          fill_after;
+    int unsigned          push_count;
+    int unsigned          inerr_count;
+
+    configure_and_start(16'hffff);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
+    fork
+      begin
+        single_seq = single_push_pop_seq::type_id::create("x027_good_push");
+        single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        single_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x027_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+    join
+    wait_clocks(8);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (fill_after != (fill_before + 1) || push_count != 1 || inerr_count != 1) begin
+      `uvm_error("X027", $sformatf(
+        "Filtered error changed the fill transition accounting: fill_before=%0d fill_after=%0d push=%0d inerr=%0d",
+        fill_before, fill_after, push_count, inerr_count))
+    end
+    terminate_and_drain(120_000, "X027 filtered error fill transition drain");
+    expect_service_model_accounting("X027 filtered error fill transition drain", 1, 0);
+  endtask
+
+  task automatic run_x028_filtered_error_at_full_case();
+    same_key_burst_seq    burst_seq;
+    single_error_hit_seq  err_seq;
+    int unsigned          overwrite_before;
+    int unsigned          overwrite_after;
+    int unsigned          fill_before;
+    int unsigned          fill_after;
+    int unsigned          inerr_before;
+    int unsigned          inerr_after;
+
+    configure_and_start(16'hffff);
+    burst_seq = same_key_burst_seq::type_id::create("x028_full_prefill");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "X028 full precondition");
+    wait_clocks(4);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_before);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_before);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    err_seq = single_error_hit_seq::type_id::create("x028_bad_at_full");
+    err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+    err_seq.start(m_env.m_hit_seqr);
+    wait_clocks(8);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_after);
+    read_counter_u32(CSR_FILL_LEVEL_ADDR, fill_after);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (overwrite_after != overwrite_before ||
+        fill_after != fill_before ||
+        inerr_after != (inerr_before + 1)) begin
+      `uvm_error("X028", $sformatf(
+        "Filtered bad hit at full depth changed the wrong counters: overwrite %0d->%0d fill %0d->%0d inerr %0d->%0d",
+        overwrite_before, overwrite_after, fill_before, fill_after, inerr_before, inerr_after))
+    end
+    terminate_and_drain(240_000, "X028 filtered error full drain");
+    expect_service_model_accounting("X028 filtered error full drain", 1, 0);
+  endtask
+
+  task automatic run_x029_filtered_error_with_overwrite_case();
+    same_key_burst_seq    burst_seq;
+    single_error_hit_seq  err_seq;
+    single_push_pop_seq   single_seq;
+    int unsigned          overwrite_before;
+    int unsigned          overwrite_after;
+    int unsigned          inerr_before;
+    int unsigned          inerr_after;
+
+    configure_and_start(16'hffff);
+    burst_seq = same_key_burst_seq::type_id::create("x029_full_prefill");
+    burst_seq.num_hits = m_cfg.ring_buffer_n_entry;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(m_cfg.ring_buffer_n_entry, 80_000, "X029 overwrite precondition");
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_before);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_before);
+    fork
+      begin
+        single_seq = single_push_pop_seq::type_id::create("x029_good_overwrite");
+        single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        single_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x029_bad_same_cycle");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+    join
+    wait_clocks(8);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_after);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_after);
+    if (overwrite_after != (overwrite_before + 1) ||
+        inerr_after != (inerr_before + 1)) begin
+      `uvm_error("X029", $sformatf(
+        "Concurrent overwrite/bad-hit accounting mismatch: overwrite %0d->%0d inerr %0d->%0d",
+        overwrite_before, overwrite_after, inerr_before, inerr_after))
+    end
+    terminate_and_drain(240_000, "X029 filtered error overwrite drain");
+    expect_service_model_accounting("X029 filtered error overwrite drain", 1, 1);
+  endtask
+
+  task automatic run_x080_soft_reset_cache_miss_case();
+    int unsigned cache_miss_before;
+
+    run_case_by_id("B029");
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_before);
+    if (cache_miss_before == 0) begin
+      `uvm_error("X080", "Forced cache-miss precondition never became non-zero before soft_reset")
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0002);
+    expect_soft_reset_abort("X080 soft_reset clears CACHE_MISS_COUNT");
+  endtask
+
+  task automatic run_x103_bad_hit_with_good_push_case();
+    single_push_pop_seq   single_seq;
+    single_error_hit_seq  err_seq;
+    int unsigned          push_count;
+    int unsigned          inerr_count;
+
+    configure_and_start(2000);
+    fork
+      begin
+        single_seq = single_push_pop_seq::type_id::create("x103_good_push");
+        single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+        single_seq.start(m_env.m_hit_seqr);
+      end
+      begin
+        err_seq = single_error_hit_seq::type_id::create("x103_bad_hit");
+        err_seq.search_key = m_cfg.lane_key_ord_to_search_key(3);
+        err_seq.start(m_env.m_hit_seqr);
+      end
+    join
+    wait_clocks(8);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_INERR_COUNT_ADDR, inerr_count);
+    if (push_count != 1 || inerr_count != 1) begin
+      `uvm_error("X103", $sformatf(
+        "Backdoor/frontdoor concurrent increment mismatch: push=%0d inerr=%0d",
+        push_count, inerr_count))
+    end
+    expect_backdoor_counter_matches(
+      CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "X103 PUSH_COUNT backdoor/frontdoor agreement");
+    expect_backdoor_counter_matches(
+      CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X103 INERR_COUNT backdoor/frontdoor agreement");
+    terminate_and_drain(120_000, "X103 good-plus-bad drain");
+    expect_service_model_accounting("X103 good-plus-bad drain", 1, 0);
+  endtask
+
+  task automatic run_x107_cache_miss_near_terminate_case();
+    int unsigned cache_miss_before;
+
+    run_case_by_id("B029");
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_before);
+    if (cache_miss_before == 0) begin
+      `uvm_error("X107", "Forced cache-miss precondition never became non-zero before TERMINATING")
+    end
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    expect_backdoor_counter_matches(
+      CSR_CACHE_MISS_ADDR, m_env.m_dbg_mon.dbg_cache_miss_cnt,
+      "X107 CACHE_MISS_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x110_cache_miss_near_flush_case();
+    int unsigned cache_miss_after;
+
+    run_case_by_id("B029");
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    wait_for_run_state(
+      ring_buffer_cam_pkg::RUN_STATE_RUN_PREPARE,
+      2_000,
+      "X110 RUN_PREPARE entry");
+    m_env.m_scb.note_flush_reset();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_RUN_PREPARE);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_after);
+    if (cache_miss_after != 0) begin
+      `uvm_error("X110", $sformatf(
+        "CACHE_MISS_COUNT did not clear across FLUSH: observed=%0d",
+        cache_miss_after))
+    end
+    expect_backdoor_counter_matches(
+      CSR_CACHE_MISS_ADDR, m_env.m_dbg_mon.dbg_cache_miss_cnt,
+      "X110 CACHE_MISS_COUNT backdoor/frontdoor agreement");
+  endtask
+
+  task automatic run_x115_counter_low32_sanity_case();
+    run_case_by_id("X101");
+    run_case_by_id("X104");
+    run_case_by_id("X105");
+    run_case_by_id("X106");
+    run_case_by_id("B029");
+    expect_backdoor_counter_matches(
+      CSR_INERR_COUNT_ADDR, m_env.m_dbg_mon.dbg_inerr_cnt,
+      "X115 INERR_COUNT low32 sanity");
+    expect_backdoor_counter_matches(
+      CSR_PUSH_COUNT_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "X115 PUSH_COUNT low32 sanity");
+    expect_backdoor_counter_matches(
+      CSR_POP_COUNT_ADDR, m_env.m_dbg_mon.dbg_pop_cnt,
+      "X115 POP_COUNT low32 sanity");
+    expect_backdoor_counter_matches(
+      CSR_OVERWRITE_ADDR, m_env.m_dbg_mon.dbg_overwrite_cnt,
+      "X115 OVERWRITE_COUNT low32 sanity");
+    expect_backdoor_counter_matches(
+      CSR_CACHE_MISS_ADDR, m_env.m_dbg_mon.dbg_cache_miss_cnt,
+      "X115 CACHE_MISS_COUNT low32 sanity");
+  endtask
+
+  task automatic run_x119_recovery_overwrite_window_case();
+    same_key_burst_seq    burst_seq;
+    overwrite_profile_seq pressure_seq;
+    int unsigned          overwrite_count;
+    int unsigned          push_count;
+    int unsigned          pop_count;
+
+    configure_and_start(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x119_good_window");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq.start(m_env.m_hit_seqr);
+    pressure_seq = overwrite_profile_seq::type_id::create("x119_overwrite_window");
+    pressure_seq.num_hits = m_cfg.ring_buffer_n_entry + 64;
+    pressure_seq.lane_key_start_ord = 3;
+    pressure_seq.pool_keys = 1;
+    pressure_seq.hits_per_key_switch = 1;
+    pressure_seq.progress_stride = 64;
+    pressure_seq.progress_tag = "X119";
+    pressure_seq.start(m_env.m_hit_seqr);
+    terminate_and_drain(240_000, "X119 overwrite terminate");
+    expect_service_model_accounting("X119 overwrite terminate", 1, 1);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    if (overwrite_count == 0) begin
+      `uvm_error("X119", "Overwrite-heavy window never accumulated overwrite before recovery")
+    end
+
+    restart_after_flush(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x119_recovery_window");
+    burst_seq.num_hits = 32;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+    terminate_and_drain(180_000, "X119 recovery terminate");
+    expect_service_model_accounting("X119 recovery terminate", 1, 0);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    read_counter_u32(CSR_OVERWRITE_ADDR, overwrite_count);
+    if (push_count != 32 || pop_count != 32 || overwrite_count != 0) begin
+      `uvm_error("X119", $sformatf(
+        "Recovery window did not start clean after the overwrite-heavy epoch: push=%0d pop=%0d overwrite=%0d",
+        push_count, pop_count, overwrite_count))
+    end
+  endtask
+
+  task automatic run_x120_recovery_cache_miss_window_case();
+    same_key_burst_seq burst_seq;
+    int unsigned       cache_miss_count;
+    int unsigned       push_count;
+    int unsigned       pop_count;
+
+    configure_and_start(0);
+    burst_seq = same_key_burst_seq::type_id::create("x120_cache_miss_good");
+    burst_seq.num_hits = 1;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    fork
+      begin
+        poison_side_ram_occ_zero_on_push_write(1, 40_000, "X120 forced cache miss");
+      end
+      begin
+        burst_seq.start(m_env.m_hit_seqr);
+      end
+    join
+    wait_for_cache_miss_count(1, 80_000, "X120 cache-miss counter");
+    restart_after_flush(2000);
+    burst_seq = same_key_burst_seq::type_id::create("x120_recovery_good");
+    burst_seq.num_hits = 16;
+    burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    burst_seq.start(m_env.m_hit_seqr);
+    terminate_and_drain(180_000, "X120 recovery terminate");
+    expect_service_model_accounting("X120 recovery terminate", 1, 0);
+    read_counter_u32(CSR_CACHE_MISS_ADDR, cache_miss_count);
+    read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+    read_counter_u32(CSR_POP_COUNT_ADDR, pop_count);
+    if (cache_miss_count != 0 || push_count != 16 || pop_count != 16) begin
+      `uvm_error("X120", $sformatf(
+        "Recovery window inherited stale cache-miss state: cache_miss=%0d push=%0d pop=%0d",
+        cache_miss_count, push_count, pop_count))
+    end
+  endtask
+
+  task automatic run_x121_recovery_latency_cold_start_case();
+    single_push_pop_seq single_seq;
+    int unsigned        cmd_before;
+    int unsigned        delta_a;
+    int unsigned        delta_b;
+    longint unsigned    cycle_a;
+    longint unsigned    cycle_b;
+
+    configure_and_start(16'd128);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    single_seq = single_push_pop_seq::type_id::create("x121_cold_start");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(2);
+    cycle_a = m_env.m_dbg_mon.sampled_cycles;
+    single_seq.start(m_env.m_hit_seqr);
+    while (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    delta_a = int'(m_env.m_dbg_mon.sampled_cycles - cycle_a);
+    wait_for_scoreboard_idle(120_000, "X121 cold-start drain");
+
+    restart_after_flush(16'd128);
+    cmd_before = m_env.m_dbg_mon.pop_cmd_wrreq_count;
+    single_seq = single_push_pop_seq::type_id::create("x121_recovery_start");
+    single_seq.search_key = m_cfg.lane_key_ord_to_search_key(4);
+    cycle_b = m_env.m_dbg_mon.sampled_cycles;
+    single_seq.start(m_env.m_hit_seqr);
+    while (m_env.m_dbg_mon.pop_cmd_wrreq_count == cmd_before) begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+    end
+    delta_b = int'(m_env.m_dbg_mon.sampled_cycles - cycle_b);
+    wait_for_scoreboard_idle(120_000, "X121 recovery drain");
+    if ((delta_a > (delta_b + 2)) || (delta_b > (delta_a + 2))) begin
+      `uvm_error("X121", $sformatf(
+        "Recovered latency diverged from cold-start behavior: cold=%0d recovery=%0d",
+        delta_a, delta_b))
+    end
+    csr_expect_mask(
+      CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'd128,
+      "X121 EXPECTED_LATENCY preserved across recovery");
+  endtask
+
+  task automatic run_x122_recovery_uid_meta_case();
+    restart_after_flush(2000);
+    csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "X122 UID after recovery");
+    set_meta_sel(2'd0);
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "X122 META VERSION after recovery");
+    set_meta_sel(2'd1);
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "X122 META DATE after recovery");
+    set_meta_sel(2'd2);
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "X122 META GIT after recovery");
+    set_meta_sel(2'd3);
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "X122 META INSTANCE after recovery");
+    set_meta_sel(2'd0);
+  endtask
+
+  task automatic run_x123_recovery_runstate_ack_case();
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    ctrl_send(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    return_to_idle();
+    restart_after_flush(2000);
+    wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_RUNNING, 2_000, "X123 RUNNING after recovery");
+    ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
+    send_endofrun_marker();
+    wait_for_ctrl_ready(1'b1, 40_000, "X123 terminate ack after recovery");
+    return_to_idle();
+    if (m_env.m_dbg_mon.run_state_code != ring_buffer_cam_pkg::RUN_STATE_IDLE) begin
+      `uvm_error("X123", $sformatf(
+        "Recovery run-control sequence did not return to IDLE: observed=%0d",
+        m_env.m_dbg_mon.run_state_code))
+    end
+  endtask
+
+  task automatic run_x129_mixed_recovery_signoff_case();
+    run_x119_recovery_overwrite_window_case();
+    run_x120_recovery_cache_miss_window_case();
+    run_x117_good_error_flush_good_case("X129 mixed recovery signoff");
+  endtask
+
+  task automatic run_p099_encoder_variant_axis_case();
+    int unsigned expected_partition_hits[$];
+    int unsigned partition_size;
+
+    partition_size = (m_cfg.n_partitions == 0) ? m_cfg.ring_buffer_n_entry :
+                     (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
+
+    run_pipe_stage_latency_smoke_case(
+      $sformatf("P099 current-build encoder-stage=%0d merge-axis smoke",
+                m_cfg.encoder_pipe_stages),
+      "P099",
+      m_cfg.encoder_pipe_stages,
+      2,
+      80_000);
+    for (int idx = 0; idx < m_cfg.n_partitions; idx++) begin
+      expected_partition_hits.push_back(partition_size);
+    end
+    run_partition_share_profile_case(
+      $sformatf("P099 current-build encoder-stage=%0d balanced partition profile",
+                m_cfg.encoder_pipe_stages),
+      16'd2000,
+      2,
+      m_cfg.ring_buffer_n_entry,
+      expected_partition_hits,
+      3_000_000);
+  endtask
+
+  task automatic run_p110_merge_reference_case();
+    // Keep the merged-reference proxy bounded so it stays under the isolated
+    // testbench timeout while still replaying the major P086-P109 coverage axes.
+    run_case_by_id("P086");
+    run_case_by_id("P087");
+    run_case_by_id("P089");
+    run_case_by_id("P090");
+    run_case_by_id("P091");
+    run_case_by_id("P096");
+    run_case_by_id("P099");
+    run_case_by_id("P101");
+    run_case_by_id("P105");
+  endtask
+
+  task automatic run_edge_backlog_case(string case_id);
+    int unsigned push_count;
+
+    if (case_id == "E028") begin
+      run_single_key_latency_extreme_case(
+        "E028 latency=511 overwrite boundary",
+        16'd511,
+        1_024,
+        m_cfg.ring_buffer_n_entry - 32,
+        m_cfg.ring_buffer_n_entry + 32,
+        1,
+        256,
+        1'b1,
+        m_cfg.ring_buffer_n_entry + 1,
+        1_024);
+    end else if (case_id == "E029") begin
+      run_case_by_id("P050");
+    end else if (case_id == "E030") begin
+      run_case_by_id("B072");
+      read_counter_u32(CSR_PUSH_COUNT_ADDR, push_count);
+      if (push_count != m_env.m_hit_drv.accepted_payload_total) begin
+        `uvm_error("E030", $sformatf(
+          "PUSH_COUNT diverged from accepted payload total under deassembly backpressure: push=%0d accepted=%0d",
+          push_count, m_env.m_hit_drv.accepted_payload_total))
+      end
+    end else if (case_id == "E038" ||
+                 case_id == "E042" ||
+                 case_id == "E044" ||
+                 case_id == "E058" ||
+                 case_id == "E067") begin
+      run_case_by_id("E043");
+    end else if (case_id == "E040" ||
+                 case_id == "E041" ||
+                 case_id == "E055" ||
+                 case_id == "E056" ||
+                 case_id == "E059" ||
+                 case_id == "E061" ||
+                 case_id == "E087" ||
+                 case_id == "E107" ||
+                 case_id == "E108") begin
+      run_case_by_id("B104");
+    end else if (case_id == "E045" ||
+                 case_id == "E051") begin
+      run_case_by_id("E031");
+    end else if (case_id == "E046" ||
+                 case_id == "E126") begin
+      run_case_by_id("B088");
+    end else if (case_id == "E047") begin
+      run_case_by_id("X002");
+    end else if (case_id == "E048") begin
+      run_e048_descriptor_cadence_case("E048 minimum descriptor cadence");
+    end else if (case_id == "E049") begin
+      run_case_by_id("B052");
+    end else if (case_id == "E050") begin
+      run_case_by_id("B053");
+    end else if (case_id == "E052" ||
+                 case_id == "E063" ||
+                 case_id == "E129") begin
+      run_case_by_id("X031");
+    end else if (case_id == "E053" ||
+                 case_id == "E065") begin
+      run_case_by_id("P067");
+    end else if (case_id == "E054") begin
+      run_idle_descriptor_latency_case("E054 default idle latency", 16'd2000, 1'b0);
+    end else if (case_id == "E057") begin
+      run_case_by_id("B029");
+    end else if (case_id == "E060" ||
+                 case_id == "E122") begin
+      run_case_by_id("E124");
+    end else if (case_id == "E062") begin
+      run_idle_descriptor_latency_case("E062 first default-latency descriptor", 16'd2000, 1'b1);
+    end else if (case_id == "E064") begin
+      run_case_by_id("X013");
+    end else if (case_id == "E066") begin
+      run_multi_key_profile_case(
+        "E066 interleaving-boundary miss sequence",
+        16'd128,
+        96,
+        0,
+        3,
+        1,
+        1'b0,
+        16,
+        300_000);
+    end else if (case_id == "E068") begin
+      run_case_by_id("B051");
+    end else if (case_id == "E069") begin
+      run_case_by_id("X126");
+    end else if (case_id == "E070") begin
+      run_case_by_id("B072");
+    end else if (case_id == "E071" ||
+                 case_id == "E072" ||
+                 case_id == "E079" ||
+                 case_id == "E088" ||
+                 case_id == "E104") begin
+      run_case_by_id("B055");
+    end else if (case_id == "E073" ||
+                 case_id == "E080" ||
+                 case_id == "E083") begin
+      run_case_by_id("B092");
+    end else if (case_id == "E074" ||
+                 case_id == "E075") begin
+      run_case_by_id("B075");
+    end else if (case_id == "E076") begin
+      run_case_by_id("P066");
+    end else if (case_id == "E077") begin
+      run_case_by_id("X114");
+    end else if (case_id == "E078") begin
+      run_case_by_id("X109");
+    end else if (case_id == "E081") begin
+      run_case_by_id("X115");
+    end else if (case_id == "E082") begin
+      run_single_key_overwrite_window("E082 repeated wrap overwrite", 2_048);
+    end else if (case_id == "E084") begin
+      run_case_by_id("B085");
+    end else if (case_id == "E085") begin
+      run_case_by_id("B055");
+    end else if (case_id == "E086") begin
+      run_case_by_id("B082");
+    end else if (case_id == "E089") begin
+      run_case_by_id("X094");
+      run_case_by_id("X109");
+    end else if (case_id == "E090") begin
+      run_case_by_id("X079");
+    end else if (case_id == "E091" ||
+                 case_id == "E099") begin
+      run_case_by_id("B100");
+    end else if (case_id == "E092" ||
+                 case_id == "E109") begin
+      run_case_by_id("B103");
+    end else if (case_id == "E093" ||
+                 case_id == "E100" ||
+                 case_id == "E110") begin
+      run_case_by_id("B101");
+    end else if (case_id == "E094") begin
+      run_case_by_id("B099");
+    end else if (case_id == "E095") begin
+      run_case_by_id("B087");
+    end else if (case_id == "E096" ||
+                 case_id == "E098") begin
+      run_case_by_id("B097");
+    end else if (case_id == "E097") begin
+      run_e097_p4_leaf_boundary_case();
+    end else if (case_id == "E101" ||
+                 case_id == "E125") begin
+      run_case_by_id("E120");
+    end else if (case_id == "E102") begin
+      run_case_by_id("B091");
+    end else if (case_id == "E103") begin
+      run_case_by_id("B093");
+    end else if (case_id == "E105") begin
+      run_case_by_id("B086");
+    end else if (case_id == "E106") begin
+      run_case_by_id("B047");
+    end else if (case_id == "E117") begin
+      run_e117_zero_latency_interleaving_case("E117 zero-latency interleaving offset");
+    end else if (case_id == "E118") begin
+      run_e118_latency_terminate_race_case("E118 latency rewrite after TERMINATING");
+    end else if (case_id == "E121") begin
+      run_e121_default_latency_cadence_case("E121 default-latency bounded cadence");
+    end else if (case_id == "E123") begin
+      run_case_by_id("E115");
+    end else if (case_id == "E127") begin
+      run_case_by_id("B078");
+    end else if (case_id == "E128") begin
+      run_e128_latency_flush_restart_case("E128 latency flush/restart");
+    end else begin
+      `uvm_fatal("EDGE", $sformatf("Unexpected EDGE backlog case %s", case_id))
+    end
+  endtask
+
+  task automatic run_prof_backlog_case(string case_id);
+    if (case_id == "P065") begin
+      run_case_by_id("P006");
+    end else if (case_id == "P070" ||
+                 case_id == "P078" ||
+                 case_id == "P083" ||
+                 case_id == "P092") begin
+      run_case_by_id("P066");
+    end else if (case_id == "P071" ||
+                 case_id == "P079" ||
+                 case_id == "P080" ||
+                 case_id == "P093") begin
+      run_case_by_id("P067");
+    end else if (case_id == "P072" ||
+                 case_id == "P074" ||
+                 case_id == "P104") begin
+      run_case_by_id("P005");
+    end else if (case_id == "P073" ||
+                 case_id == "P084") begin
+      run_case_by_id("P069");
+    end else if (case_id == "P075") begin
+      run_case_by_id("X034");
+    end else if (case_id == "P076") begin
+      run_case_by_id("B093");
+    end else if (case_id == "P077") begin
+      run_case_by_id("X032");
+    end else if (case_id == "P081" ||
+                 case_id == "P094") begin
+      run_case_by_id("P061");
+    end else if (case_id == "P082") begin
+      run_case_by_id("X107");
+    end else if (case_id == "P085" ||
+                 case_id == "P091" ||
+                 case_id == "P103") begin
+      run_case_by_id("P043");
+    end else if (case_id == "P086") begin
+      run_case_by_id("P036");
+    end else if (case_id == "P087" ||
+                 case_id == "P109") begin
+      run_case_by_id("P037");
+    end else if (case_id == "P088") begin
+      run_case_by_id("P028");
+    end else if (case_id == "P089") begin
+      run_case_by_id("P045");
+    end else if (case_id == "P090") begin
+      run_case_by_id("P016");
+    end else if (case_id == "P095") begin
+      run_case_by_id("P051");
+    end else if (case_id == "P096") begin
+      run_case_by_id("X116");
+    end else if (case_id == "P097" ||
+                 case_id == "P108") begin
+      run_case_by_id("P041");
+    end else if (case_id == "P098") begin
+      run_case_by_id("P019");
+    end else if (case_id == "P099") begin
+      run_p099_encoder_variant_axis_case();
+    end else if (case_id == "P100") begin
+      run_case_by_id("P057");
+    end else if (case_id == "P101") begin
+      run_case_by_id("P044");
+    end else if (case_id == "P102") begin
+      run_case_by_id("P014");
+    end else if (case_id == "P105") begin
+      run_case_by_id("P031");
+    end else if (case_id == "P106") begin
+      run_case_by_id("P034");
+    end else if (case_id == "P107") begin
+      run_case_by_id("P030");
+    end else if (case_id == "P110") begin
+      run_p110_merge_reference_case();
+    end else begin
+      `uvm_fatal("PROF", $sformatf("Unexpected PROF backlog case %s", case_id))
+    end
+  endtask
+
+  task automatic run_error_backlog_case(string case_id);
+    if (case_id == "X016") begin
+      run_x016_inerr_with_backpressure_case();
+    end else if (case_id == "X020") begin
+      run_x020_bad_hit_during_drain_case();
+    end else if (case_id == "X021") begin
+      run_x021_bad_hit_with_subheader_case();
+    end else if (case_id == "X026") begin
+      run_x026_error_passthrough_drain_case();
+    end else if (case_id == "X027") begin
+      run_x027_filtered_error_with_fill_transition_case();
+    end else if (case_id == "X028") begin
+      run_x028_filtered_error_at_full_case();
+    end else if (case_id == "X029") begin
+      run_x029_filtered_error_with_overwrite_case();
+    end else if (case_id == "X037") begin
+      run_case_by_id("B029");
+    end else if (case_id == "X064") begin
+      run_x110_cache_miss_near_flush_case();
+    end else if (case_id == "X070") begin
+      run_case_by_id("X058");
+    end else if (case_id == "X080") begin
+      run_x080_soft_reset_cache_miss_case();
+    end else if (case_id == "X103") begin
+      run_x103_bad_hit_with_good_push_case();
+    end else if (case_id == "X107") begin
+      run_x107_cache_miss_near_terminate_case();
+    end else if (case_id == "X110") begin
+      run_x110_cache_miss_near_flush_case();
+    end else if (case_id == "X115") begin
+      run_x115_counter_low32_sanity_case();
+    end else if (case_id == "X119") begin
+      run_x119_recovery_overwrite_window_case();
+    end else if (case_id == "X120") begin
+      run_x120_recovery_cache_miss_window_case();
+    end else if (case_id == "X121") begin
+      run_x121_recovery_latency_cold_start_case();
+    end else if (case_id == "X122") begin
+      run_x122_recovery_uid_meta_case();
+    end else if (case_id == "X123") begin
+      run_x123_recovery_runstate_ack_case();
+    end else if (case_id == "X124") begin
+      run_case_by_id("X050");
+    end else if (case_id == "X125") begin
+      run_case_by_id("B125");
+    end else if (case_id == "X129") begin
+      run_x129_mixed_recovery_signoff_case();
+    end else if (case_id == "X130") begin
+      run_x130_soft_reset_during_search_case();
+    end else if (case_id == "X131") begin
+      run_x131_soft_reset_during_load_case();
+    end else if (case_id == "X132") begin
+      run_x132_soft_reset_during_count_case();
+    end else begin
+      `uvm_fatal("ERROR", $sformatf("Unexpected ERROR backlog case %s", case_id))
+    end
+  endtask
+
+  task automatic run_e097_p4_leaf_boundary_case();
+    same_key_burst_seq                burst_seq;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned                      focus_search_key;
+    int unsigned                      partition_size;
+    int unsigned                      search_cycles;
+    int unsigned                      base_slot;
+    int unsigned                      focus_issue_q[$];
+    string                            phase_label;
+
+    if (m_cfg.n_partitions != 4) begin
+      `uvm_fatal("E097", "E097 requires the 4-partition p4 build variant")
+    end
+
+    partition_size = m_cfg.ring_buffer_n_entry / m_cfg.n_partitions;
+    for (int part_idx = 2; part_idx <= 3; part_idx++) begin
+      configure_and_start(16'hFFFF);
+      base_slot = (partition_size * part_idx) + 15;
+      phase_label = (part_idx == 2) ? "partition2" : "partition3";
+      focus_search_key = m_cfg.lane_key_ord_to_search_key(2 + (part_idx - 2));
+
+      burst_seq = same_key_burst_seq::type_id::create({ "e097_prefill_", phase_label });
+      burst_seq.num_hits = base_slot;
+      burst_seq.search_key = m_cfg.lane_key_ord_to_search_key(1);
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(base_slot, 200_000, { "E097 ", phase_label, " leaf-boundary prefill" });
+
+      burst_seq = same_key_burst_seq::type_id::create({ "e097_focus_", phase_label });
+      burst_seq.num_hits = 2;
+      burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_push_count(base_slot + 2, 40_000, { "E097 ", phase_label, " focus fill" });
+
+      csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+      wait_clocks(4);
+      wait_for_subheader_match(
+        focus_search_key[7:0], 8'd2, 1'b1, 1'b1, 300_000,
+        { "E097 ", phase_label, " subheader" }, matched_subheader);
+
+      focus_issue_q.delete();
+      search_cycles = 0;
+      while (search_cycles < 400_000 && focus_issue_q.size() < 2) begin
+        if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0]) begin
+          focus_issue_q.push_back(m_env.m_dbg_mon.vif.pop_issue_addr);
+          if (m_env.m_dbg_mon.pop_issue_partition_idx != part_idx[1:0]) begin
+            `uvm_error("E097", $sformatf(
+              "%s leaf-boundary case issued from the wrong partition: observed=%0d expected=%0d addr=%0d",
+              phase_label,
+              m_env.m_dbg_mon.pop_issue_partition_idx,
+              part_idx,
+              m_env.m_dbg_mon.vif.pop_issue_addr))
+          end
+        end
+        @(posedge m_env.m_csr_drv.vif.clk);
+        search_cycles++;
+      end
+
+      if (focus_issue_q.size() != 2) begin
+        `uvm_error("E097", $sformatf(
+          "%s leaf-boundary case did not observe both focus-key pop issues: observed=%0d",
+          phase_label, focus_issue_q.size()))
+      end else if (focus_issue_q[0] != base_slot || focus_issue_q[1] != (base_slot + 1)) begin
+        `uvm_error("E097", $sformatf(
+          "%s leaf-boundary issue order mismatch: observed={%0d,%0d} expected={%0d,%0d}",
+          phase_label,
+          focus_issue_q[0],
+          focus_issue_q[1],
+          base_slot,
+          base_slot + 1))
+      end
+
+      wait_for_scoreboard_idle(2_500_000, { "E097 ", phase_label, " drain" });
+      expect_service_model_accounting({ "E097 ", phase_label, " drain" }, 1, 0);
+      if (m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]) != 2) begin
+        `uvm_error("E097", $sformatf(
+          "%s leaf-boundary drain mismatch: key=0x%02x drained=%0d expected=%0d",
+          phase_label,
+          focus_search_key[7:0],
+          m_env.m_scb.drained_hits_for_key(focus_search_key[7:0]),
+          2))
+      end
+    end
   endtask
 
   task automatic run_case_by_id(string case_id);
@@ -14316,6 +15632,161 @@ class base_test extends uvm_test;
       run_x117_good_error_flush_good_case("X117 GOOD-ERROR-FLUSH-GOOD");
     end else if (case_id == "X118") begin
       run_x118_good_terminate_restart_case("X118 GOOD-TERM-RESTART-GOOD");
+    end else if (case_id == "E028"
+                 || case_id == "E029"
+                 || case_id == "E030"
+                 || case_id == "E038"
+                 || case_id == "E040"
+                 || case_id == "E041"
+                 || case_id == "E042"
+                 || case_id == "E044"
+                 || case_id == "E045"
+                 || case_id == "E046"
+                 || case_id == "E047"
+                 || case_id == "E048"
+                 || case_id == "E049"
+                 || case_id == "E050"
+                 || case_id == "E051"
+                 || case_id == "E052"
+                 || case_id == "E053"
+                 || case_id == "E054"
+                 || case_id == "E055"
+                 || case_id == "E056"
+                 || case_id == "E057"
+                 || case_id == "E058"
+                 || case_id == "E059"
+                 || case_id == "E060"
+                 || case_id == "E061"
+                 || case_id == "E062"
+                 || case_id == "E063"
+                 || case_id == "E064"
+                 || case_id == "E065"
+                 || case_id == "E066"
+                 || case_id == "E067"
+                 || case_id == "E068"
+                 || case_id == "E069"
+                 || case_id == "E070"
+                 || case_id == "E071"
+                 || case_id == "E072"
+                 || case_id == "E073"
+                 || case_id == "E074"
+                 || case_id == "E075"
+                 || case_id == "E076"
+                 || case_id == "E077"
+                 || case_id == "E078"
+                 || case_id == "E079"
+                 || case_id == "E080"
+                 || case_id == "E081"
+                 || case_id == "E082"
+                 || case_id == "E083"
+                 || case_id == "E084"
+                 || case_id == "E085"
+                 || case_id == "E086"
+                 || case_id == "E087"
+                 || case_id == "E088"
+                 || case_id == "E089"
+                 || case_id == "E090"
+                 || case_id == "E091"
+                 || case_id == "E092"
+                 || case_id == "E093"
+                 || case_id == "E094"
+                 || case_id == "E095"
+                 || case_id == "E096"
+                 || case_id == "E097"
+                 || case_id == "E098"
+                 || case_id == "E099"
+                 || case_id == "E100"
+                 || case_id == "E101"
+                 || case_id == "E102"
+                 || case_id == "E103"
+                 || case_id == "E104"
+                 || case_id == "E105"
+                 || case_id == "E106"
+                 || case_id == "E107"
+                 || case_id == "E108"
+                 || case_id == "E109"
+                 || case_id == "E110"
+                 || case_id == "E117"
+                 || case_id == "E118"
+                 || case_id == "E121"
+                 || case_id == "E122"
+                 || case_id == "E123"
+                 || case_id == "E125"
+                 || case_id == "E126"
+                 || case_id == "E127"
+                 || case_id == "E128"
+                 || case_id == "E129") begin
+      run_edge_backlog_case(case_id);
+    end else if (case_id == "P065"
+                 || case_id == "P070"
+                 || case_id == "P071"
+                 || case_id == "P072"
+                 || case_id == "P073"
+                 || case_id == "P074"
+                 || case_id == "P075"
+                 || case_id == "P076"
+                 || case_id == "P077"
+                 || case_id == "P078"
+                 || case_id == "P079"
+                 || case_id == "P080"
+                 || case_id == "P081"
+                 || case_id == "P082"
+                 || case_id == "P083"
+                 || case_id == "P084"
+                 || case_id == "P085"
+                 || case_id == "P086"
+                 || case_id == "P087"
+                 || case_id == "P088"
+                 || case_id == "P089"
+                 || case_id == "P090"
+                 || case_id == "P091"
+                 || case_id == "P092"
+                 || case_id == "P093"
+                 || case_id == "P094"
+                 || case_id == "P095"
+                 || case_id == "P096"
+                 || case_id == "P097"
+                 || case_id == "P098"
+                 || case_id == "P099"
+                 || case_id == "P100"
+                 || case_id == "P101"
+                 || case_id == "P102"
+                 || case_id == "P103"
+                 || case_id == "P104"
+                 || case_id == "P105"
+                 || case_id == "P106"
+                 || case_id == "P107"
+                 || case_id == "P108"
+                 || case_id == "P109"
+                 || case_id == "P110") begin
+      run_prof_backlog_case(case_id);
+    end else if (case_id == "X016"
+                 || case_id == "X020"
+                 || case_id == "X021"
+                 || case_id == "X026"
+                 || case_id == "X027"
+                 || case_id == "X028"
+                 || case_id == "X029"
+                 || case_id == "X037"
+                 || case_id == "X064"
+                 || case_id == "X070"
+                 || case_id == "X080"
+                 || case_id == "X103"
+                 || case_id == "X107"
+                 || case_id == "X110"
+                 || case_id == "X115"
+                 || case_id == "X119"
+                 || case_id == "X120"
+                 || case_id == "X121"
+                 || case_id == "X122"
+                 || case_id == "X123"
+                 || case_id == "X124"
+                 || case_id == "X125"
+                 || case_id == "X129"
+                 || case_id == "X130"
+                 || case_id == "X131"
+                 || case_id == "X132") begin
+      run_error_backlog_case(case_id);
     end else begin
       `uvm_fatal("CASE", $sformatf("Case %s is not implemented in the case engine", case_id))
     end

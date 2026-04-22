@@ -6,7 +6,7 @@
 
 ## 1) Purpose And Long-Run Philosophy
 
-The direct catalog (`B001-B129`, `E001-E129`, `P001-P129`, `X001-X129`) proves each RTL contract on a clean DUT. Cross runs prove the contracts compose and survive time and noise. They exist to:
+The direct catalog (`B001-B129`, `E001-E129`, `P001-P129`, `X001-X132`) proves each RTL contract on a clean DUT. Cross runs prove the contracts compose and survive time and noise. They exist to:
 
 - exercise every direct case in a continuous frame without reset-per-case, so any case-boundary cleanup gap is visible
 - promote curated direct patterns (GOOD-ERROR-GOOD, overlap, overwrite pressure, counter delay) to randomized seed-swept soaks so the same invariants are re-hit millions of cycles apart with different arrival phases
@@ -84,7 +84,7 @@ These are the reset-per-case-free direct regressions. Any case-boundary cleanup 
 | CROSS-001 | `bucket_frame` | `B001-B129` in order, one DUT start | case-boundary cleanup for BASIC CSR and control cases |
 | CROSS-002 | `bucket_frame` | `E001-E129` in order | E009-E012 ring wrap composition; E030-E045 subheader framing chain |
 | CROSS-003 | `bucket_frame` | `P001-P129` in order | all promoted random cases composed without restart |
-| CROSS-004 | `bucket_frame` | `X001-X129` in order | INERR, TERM, FLUSH, RECOVERY lifecycle composed |
+| CROSS-004 | `bucket_frame` | `X001-X132` in order | INERR, TERM, FLUSH, RECOVERY lifecycle composed |
 | CROSS-005 | `all_buckets_frame` | `BASIC → EDGE → PROF → ERROR` in order | full stack; bucket transitions handled by exactly one FLUSH each |
 | CROSS-006 | `all_buckets_frame` | `BASIC → EDGE → PROF → ERROR` with B005, B006, E002, E003 repeated mid-frame | repeated same-key burst IDs stress the deassembly FIFO across bucket boundaries |
 
@@ -248,7 +248,7 @@ One run per X101-X115 direct case, promoted to a long-soak with the backdoor obs
 
 ### 6.11 GOOD-ERROR-RECOVERY regression (CROSS-106-120)
 
-Promotes X116-X129 invariants to long-soak regressions. Each pins one recovery invariant as the anchor and surrounds it with randomized GOOD traffic.
+Promotes X116-X132 invariants to long-soak regressions. Each pins one recovery invariant as the anchor and surrounds it with randomized GOOD traffic.
 
 | case_id | ladder | anchor | scenario | bug / coverage target |
 |---|---|---|---|---|

@@ -8,23 +8,25 @@
 #   make clean
 
 # ── Simulator selection ─────────────────────────────────────────
-QUESTA_DIR   ?= /data1/intelFPGA_pro/23.1/questa_fse/bin
-ASE_DIR      ?= /data1/intelFPGA/18.1/modelsim_ase/linuxaloem
-SIM_DIR      ?= $(if $(wildcard $(QUESTA_DIR)/vsim),$(QUESTA_DIR),$(ASE_DIR))
-QUESTA_HOME  ?= /data1/intelFPGA_pro/23.1/questa_fse
-QUESTA_LICENSE ?= $(QUESTA_HOME)/LR-287689_License.dat
+QUESTA_HOME  ?= /data1/questaone_sim/questasim
 ETH_MENTOR_SERVER ?= 8161@lic-mentor.ethz.ch
-export LM_LICENSE_FILE   := $(ETH_MENTOR_SERVER):$(QUESTA_LICENSE)
-export MGLS_LICENSE_FILE := $(LM_LICENSE_FILE)
+QSIM_INI := $(QUESTA_HOME)/modelsim.ini
+LM_LICENSE_FILE := $(ETH_MENTOR_SERVER)
+MGLS_LICENSE_FILE := $(ETH_MENTOR_SERVER)
+SALT_LICENSE_SERVER := $(ETH_MENTOR_SERVER)
+export LM_LICENSE_FILE MGLS_LICENSE_FILE SALT_LICENSE_SERVER QSIM_INI
 
-VLIB  = $(SIM_DIR)/vlib
-VMAP  = $(SIM_DIR)/vmap
-VCOM  = $(SIM_DIR)/vcom
-VLOG  = $(SIM_DIR)/vlog
-VSIM  = $(SIM_DIR)/vsim
-UVM_HOME ?= $(abspath $(SIM_DIR)/../verilog_src/uvm-1.2)
+VLIB  := $(firstword $(wildcard $(QUESTA_HOME)/bin/vlib $(QUESTA_HOME)/linux_x86_64/vlib))
+VMAP  := $(firstword $(wildcard $(QUESTA_HOME)/bin/vmap $(QUESTA_HOME)/linux_x86_64/vmap))
+VCOM  := $(firstword $(wildcard $(QUESTA_HOME)/bin/vcom $(QUESTA_HOME)/linux_x86_64/vcom))
+VLOG  := $(firstword $(wildcard $(QUESTA_HOME)/bin/vlog $(QUESTA_HOME)/linux_x86_64/vlog))
+VSIM  := $(firstword $(wildcard $(QUESTA_HOME)/bin/vsim $(QUESTA_HOME)/linux_x86_64/vsim))
+UVM_HOME ?= $(abspath $(firstword $(wildcard $(QUESTA_HOME)/verilog_src/uvm-1.2 $(QUESTA_HOME)/uvm-1.2)))
 UVM_SRC  ?= $(UVM_HOME)/src
-UVM_DEFINES = +define+UVM_NO_DPI
+UVM_DPI_SO ?= $(firstword $(wildcard $(QUESTA_HOME)/uvm-1.2/linux_x86_64/uvm_dpi.so $(QUESTA_HOME)/verilog_src/uvm-1.2/linux_x86_64/uvm_dpi.so))
+UVM_DPI_LIB ?= $(basename $(UVM_DPI_SO))
+DPI_CPP ?= /usr/bin/gcc
+UVM_DEFINES ?=
 
 # ── Paths ────────────────────────────────────────────────────────
 IP_DIR       = $(abspath ../..)
@@ -44,11 +46,38 @@ PLUSARGS ?=
 RING_BUFFER_N_ENTRY ?= 512
 INTERLEAVING_FACTOR ?= 4
 INTERLEAVING_INDEX ?= 0
-N_PARTITIONS ?= 2
-ENCODER_LEAF_WIDTH ?= 16
-ENCODER_PIPE_STAGES ?= 4
-DEBUG ?= 1
 RTL_VARIANT ?= default_p2_pipe4
+VARIANT_N_PARTITIONS ?= 2
+VARIANT_ENCODER_PIPE_STAGES ?= 4
+ifeq ($(RTL_VARIANT),p1)
+  VARIANT_N_PARTITIONS := 1
+  VARIANT_ENCODER_PIPE_STAGES := 2
+else ifeq ($(RTL_VARIANT),p2)
+  VARIANT_N_PARTITIONS := 2
+  VARIANT_ENCODER_PIPE_STAGES := 2
+else ifeq ($(RTL_VARIANT),p2_pipe1)
+  VARIANT_N_PARTITIONS := 2
+  VARIANT_ENCODER_PIPE_STAGES := 1
+else ifeq ($(RTL_VARIANT),p2_pipe2)
+  VARIANT_N_PARTITIONS := 2
+  VARIANT_ENCODER_PIPE_STAGES := 2
+else ifeq ($(RTL_VARIANT),p2_pipe3)
+  VARIANT_N_PARTITIONS := 2
+  VARIANT_ENCODER_PIPE_STAGES := 3
+else ifeq ($(RTL_VARIANT),p3)
+  VARIANT_N_PARTITIONS := 2
+  VARIANT_ENCODER_PIPE_STAGES := 3
+else ifeq ($(RTL_VARIANT),p4)
+  VARIANT_N_PARTITIONS := 4
+  VARIANT_ENCODER_PIPE_STAGES := 4
+else ifeq ($(RTL_VARIANT),p4_n4_pipe4)
+  VARIANT_N_PARTITIONS := 4
+  VARIANT_ENCODER_PIPE_STAGES := 4
+endif
+N_PARTITIONS ?= $(VARIANT_N_PARTITIONS)
+ENCODER_LEAF_WIDTH ?= 16
+ENCODER_PIPE_STAGES ?= $(VARIANT_ENCODER_PIPE_STAGES)
+DEBUG ?= 1
 COV_ENABLE ?= 1
 COV_DIR ?= $(UVM_DIR)/cov_$(RTL_VARIANT)
 COV_STEM ?= $(TEST)$(LOG_TAG)
@@ -129,10 +158,11 @@ compile: $(WORK_DIR)/.compiled
 $(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS) $(SIM_COMPAT_SRCS)
 	@rm -rf $(WORK_DIR)
 	@mkdir -p $(WORK_DIR)
+	@cp $(QSIM_INI) $(WORK_DIR)/modelsim.ini
+	@chmod u+w $(WORK_DIR)/modelsim.ini
 	@cd $(WORK_DIR) && $(VLIB) work
 	@cd $(WORK_DIR) && $(VLIB) altera
 	@cd $(WORK_DIR) && $(VLIB) altera_mf
-	@cd $(WORK_DIR) && $(VMAP) -c > /dev/null
 	@cd $(WORK_DIR) && $(VMAP) -modelsimini modelsim.ini work work > /dev/null
 	@cd $(WORK_DIR) && $(VMAP) -modelsimini modelsim.ini altera altera > /dev/null
 	@cd $(WORK_DIR) && $(VMAP) -modelsimini modelsim.ini altera_mf altera_mf > /dev/null
@@ -160,6 +190,7 @@ run: compile
 	@rm -f $(COV_DIR)/$(COV_STEM)_s$(SEED).ucdb
 	@cd $(WORK_DIR) && $(VSIM) -modelsimini modelsim.ini -c -quiet \
 	  $(VSIM_COVER) \
+	  $(if $(UVM_DPI_LIB),-dpicpppath $(DPI_CPP) -sv_lib $(UVM_DPI_LIB)) \
 	  -usenonstdcoveragesavesysf \
 	  -gG_RING_BUFFER_N_ENTRY=$(RING_BUFFER_N_ENTRY) \
 	  -gG_INTERLEAVING_FACTOR=$(INTERLEAVING_FACTOR) \
@@ -173,7 +204,7 @@ run: compile
 	  +UVM_VERBOSITY=$(VERBOSITY) \
 	  $(DV_CONTEXT_PLUSARGS) \
 	  $(PLUSARGS) \
-	  -suppress 19 -suppress 3009 -nodpiexports -voptargs="+acc" \
+	  -suppress 19 -suppress 3009 -voptargs="+acc" \
 	  work.tb_top \
 	  -do "$(RUN_DO)" \
 	  | tee logs/$(TEST)$(LOG_TAG)_s$(SEED).log
@@ -244,7 +275,7 @@ cfg_matrix: compile
 	    p1) np=1; ps=2 ;; \
 	    p2) np=2; ps=2 ;; \
 	    p3) np=2; ps=3 ;; \
-	    p4) np=2; ps=4 ;; \
+	    p4) np=4; ps=4 ;; \
 	    *) echo "Unknown cfg $$cfg" >&2; exit 2 ;; \
 	  esac; \
 	  for t in $(CFG_TESTS); do \

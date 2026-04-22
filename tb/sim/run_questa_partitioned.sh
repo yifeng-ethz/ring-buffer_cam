@@ -10,33 +10,18 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ip_dir="$(cd "${script_dir}/../.." && pwd)"
 work_dir="${TB_WORK_DIR:-${script_dir}/work_partitioned}"
 
-# ── simulator selection (same as smoke script) ──────────────────
-mentor_sim_bin_dir="/data1/intelFPGA_pro/23.1/questa_fse/bin"
-ase_sim_root="/data1/intelFPGA/18.1/modelsim_ase"
-ase_sim_bin_dir="${ase_sim_root}/linuxaloem"
-if [ ! -x "${ase_sim_bin_dir}/vsim" ]; then
-  ase_sim_bin_dir="${ase_sim_root}/bin"
-fi
+mentor_server="8161@lic-mentor.ethz.ch"
+: "${QUESTA_HOME:=/data1/questaone_sim/questasim}"
+export QUESTA_HOME
+export SALT_LICENSE_SERVER="${mentor_server}"
+export LM_LICENSE_FILE="${mentor_server}"
+export MGLS_LICENSE_FILE="${mentor_server}"
+export QSIM_INI="${QUESTA_HOME}/modelsim.ini"
 
-sim_flavor="${TB_SIM_FLAVOR:-auto}"
-sim_bin_dir=""
-case "${sim_flavor}" in
-  mentor) sim_bin_dir="${mentor_sim_bin_dir}" ;;
-  ase)    sim_bin_dir="${ase_sim_bin_dir}" ;;
-  auto)
-    if [ -x "${ase_sim_bin_dir}/vsim" ]; then
-      sim_bin_dir="${ase_sim_bin_dir}"
-    elif [ -x "${mentor_sim_bin_dir}/vsim" ]; then
-      sim_bin_dir="${mentor_sim_bin_dir}"
-    else
-      sim_bin_dir="$(dirname "$(command -v vsim)")"
-    fi
-    ;;
-  *)
-    echo "ERROR: unknown TB_SIM_FLAVOR='${sim_flavor}'" >&2
-    exit 2
-    ;;
-esac
+sim_bin_dir="${QUESTA_HOME}/bin"
+if [ ! -x "${sim_bin_dir}/vsim" ]; then
+  sim_bin_dir="${QUESTA_HOME}/linux_x86_64"
+fi
 
 vlib_cmd="${sim_bin_dir}/vlib"
 vmap_cmd="${sim_bin_dir}/vmap"
@@ -45,19 +30,9 @@ vlog_cmd="${sim_bin_dir}/vlog"
 vsim_cmd="${sim_bin_dir}/vsim"
 
 if [ ! -x "${vsim_cmd}" ]; then
-  echo "ERROR: vsim not found under '${sim_bin_dir}'" >&2
+  echo "ERROR: vsim not found under '${QUESTA_HOME}'" >&2
   exit 2
 fi
-
-mentor_questa_home="/data1/intelFPGA_pro/23.1/questa_fse"
-default_local_lic="${mentor_questa_home}/LR-287689_License.dat"
-default_chain="${default_local_lic}:8161@lic-mentor.ethz.ch"
-legacy_bad_lic="/data1/intelFPGA/LR-121070_License.dat"
-
-if [ -z "${LM_LICENSE_FILE:-}" ] || [[ "${LM_LICENSE_FILE}" == *"${legacy_bad_lic}"* ]]; then
-  export LM_LICENSE_FILE="${default_chain}"
-fi
-export MGLS_LICENSE_FILE="${LM_LICENSE_FILE}"
 
 legacy_sim_dir="/data1/intelFPGA/18.1/quartus/eda/sim_lib"
 compat_dir="${script_dir}/compat"
@@ -71,6 +46,8 @@ cd -- "${work_dir}"
 "${vlib_cmd}" altera_mf
 "${vmap_cmd}" -c >/dev/null
 modelsim_ini="${work_dir}/modelsim.ini"
+cp "${QSIM_INI}" "${modelsim_ini}"
+chmod u+w "${modelsim_ini}"
 "${vmap_cmd}" -modelsimini "${modelsim_ini}" work work >/dev/null
 "${vmap_cmd}" -modelsimini "${modelsim_ini}" altera altera >/dev/null
 "${vmap_cmd}" -modelsimini "${modelsim_ini}" altera_mf altera_mf >/dev/null

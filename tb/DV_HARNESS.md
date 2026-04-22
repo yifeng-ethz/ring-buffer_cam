@@ -1,6 +1,14 @@
 # DV Harness: ring_buffer_cam
 
-**Companion to:** [DV_PLAN.md](DV_PLAN.md)
+**DUT:** `ring_buffer_cam` &nbsp;
+**Active variant:** `default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`) &nbsp;
+**Date:** `2026-04-21`
+
+**Companion to:** [`DV_PLAN.md`](DV_PLAN.md). Case catalogs: [`DV_BASIC.md`](DV_BASIC.md) · [`DV_EDGE.md`](DV_EDGE.md) · [`DV_PROF.md`](DV_PROF.md) · [`DV_ERROR.md`](DV_ERROR.md) · [`DV_CROSS.md`](DV_CROSS.md). Live dashboard: [`DV_REPORT.md`](DV_REPORT.md). Bug ledger: [`BUG_HISTORY.md`](BUG_HISTORY.md).
+
+## Legend
+
+✅ pass / closed &middot; ⚠️ partial / gap noted &middot; ❌ failed / missing evidence &middot; ❓ pending &middot; ℹ️ informational
 
 ## 1. Harness Goals
 
