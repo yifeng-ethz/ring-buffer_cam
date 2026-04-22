@@ -1,9 +1,60 @@
 package require -exact qsys 16.1
 
+set SCRIPT_DIR [file dirname [info script]]
+if {[string length $SCRIPT_DIR] == 0} {
+    set SCRIPT_DIR [pwd]
+}
+set IP_DIR $SCRIPT_DIR
+if {[file tail $IP_DIR] eq "script"} {
+    set IP_DIR [file dirname $IP_DIR]
+}
+
+set DEFAULT_SEARCH_KEY_WIDTH_CONST 8
+set DEFAULT_RING_DEPTH_CONST       512
+set DEFAULT_SIDE_DATA_BITS_CONST   31
+set DEFAULT_INTERLEAVING_FACTOR_CONST 4
+set DEFAULT_INTERLEAVING_INDEX_CONST  0
+set DEFAULT_N_PARTITIONS_CONST     4
+set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
+set DEFAULT_PIPE_STAGES_CONST      4
+set DEFAULT_DEBUG_CONST            1
+set IP_UID_DEFAULT_CONST           1380074317
+set BUILD_DEFAULT_CONST            422
+set VERSION_MAJOR_DEFAULT_CONST    26
+set VERSION_MINOR_DEFAULT_CONST    2
+set VERSION_PATCH_DEFAULT_CONST    6
+set VERSION_DATE_DEFAULT_CONST     20260422
+set VERSION_GIT_DEFAULT_CONST      0
+set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
+set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
+if {![catch {set VERSION_GIT_SHORT_DEFAULT_CONST [string trim [exec git -C $IP_DIR rev-parse --short HEAD]]}]} {
+    if {[regexp {^[0-9a-fA-F]+$} $VERSION_GIT_SHORT_DEFAULT_CONST]} {
+        scan $VERSION_GIT_SHORT_DEFAULT_CONST %x VERSION_GIT_DEFAULT_CONST
+    }
+}
+catch {
+    set VERSION_GIT_DESCRIBE_DEFAULT_CONST [string trim [exec git -C $IP_DIR describe --always --dirty --tags]]
+}
+set VERSION_GIT_HEX_DEFAULT_CONST [format "0x%08X" $VERSION_GIT_DEFAULT_CONST]
+set VERSION_STRING_DEFAULT_CONST [format "%d.%d.%d.%04d" \
+    $VERSION_MAJOR_DEFAULT_CONST \
+    $VERSION_MINOR_DEFAULT_CONST \
+    $VERSION_PATCH_DEFAULT_CONST \
+    $BUILD_DEFAULT_CONST]
+set INSTANCE_ID_DEFAULT_CONST      0
+set SIGNOFF_ALMS_CONST             2191
+set SIGNOFF_REGS_CONST             2861
+set SIGNOFF_RAM_BLOCKS_CONST       19
+set SIGNOFF_MEM_BITS_CONST         153600
+set SIGNOFF_WNS_SLOW_85C_CONST     0.515
+set SIGNOFF_WNS_SLOW_0C_CONST      0.575
+set SIGNOFF_HOLD_WNS_CONST         0.171
+set SIGNOFF_FMAX_CONST             147.97
+
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
-set_module_property VERSION 26.2.6.0422
-set_module_property DESCRIPTION "Ring-buffer shaped content-addressable memory for timestamp ordering. This delivered release keeps the current Qsys interface contract, preserves the earlier non-power-of-two pointer-wrap repairs, carries the overwrite erase slot from push_write, and removes COUNT-stage full-snapshot rewrites so the live LVDS integration can close timing more cleanly."
+set_module_property VERSION $VERSION_STRING_DEFAULT_CONST
+set_module_property DESCRIPTION "Ring-buffer CAM Mu3e IP Core"
 set_module_property GROUP "Mu3e Data Plane/Modules"
 set_module_property AUTHOR "Yifeng Wang"
 set_module_property INTERNAL false
@@ -35,16 +86,6 @@ set HIT_TYPE1_WIDTH_CONST       39
 set HIT_TYPE2_WIDTH_CONST       36
 set RUN_CONTROL_WIDTH_CONST     9
 set FILLLEVEL_WIDTH_CONST       16
-set DEFAULT_RING_DEPTH_CONST    512
-set DEFAULT_PIPE_STAGES_CONST   4
-set IP_UID_DEFAULT_CONST        1380074317
-set BUILD_DEFAULT_CONST         422
-set VERSION_MAJOR_DEFAULT_CONST 26
-set VERSION_MINOR_DEFAULT_CONST 2
-set VERSION_PATCH_DEFAULT_CONST 6
-set VERSION_DATE_DEFAULT_CONST  20260422
-set VERSION_GIT_DEFAULT_CONST   0
-set INSTANCE_ID_DEFAULT_CONST   0
 
 set CSR_TABLE_HTML {<html><table border="1" width="100%">
 <tr><th>Word</th><th>Byte</th><th>Name</th><th>Access</th><th>Description</th></tr>
@@ -222,6 +263,13 @@ proc elaborate {} {
     set interleaving_factor [get_parameter_value INTERLEAVING_FACTOR]
     set interleaving_index_max [expr {$interleaving_factor - 1}]
 
+    set_parameter_property VERSION_MAJOR ENABLED false
+    set_parameter_property VERSION_MINOR ENABLED false
+    set_parameter_property VERSION_PATCH ENABLED false
+    set_parameter_property BUILD ENABLED false
+    set_parameter_property VERSION_DATE ENABLED false
+    set_parameter_property VERSION_GIT ENABLED false
+
     set_parameter_property RING_BUFFER_N_ENTRY ALLOWED_RANGES {32 64 128 256 512 1024 2048}
     set_parameter_property INTERLEAVING_FACTOR ALLOWED_RANGES {1 2 4 8 16 32}
     set_parameter_property INTERLEAVING_INDEX ALLOWED_RANGES 0:$interleaving_index_max
@@ -246,7 +294,7 @@ add_fileset_file b2o_encoder.v VERILOG PATH ../rtl/b2o_encoder.v
 add_fileset_file addr_enc_logic_small.vhd VHDL PATH ../rtl/addr_enc_logic_small.vhd
 add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH ../rtl/addr_enc_logic_partitioned.vhd
 
-add_parameter SEARCH_KEY_WIDTH NATURAL 8
+add_parameter SEARCH_KEY_WIDTH NATURAL $DEFAULT_SEARCH_KEY_WIDTH_CONST
 set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"
 set_parameter_property SEARCH_KEY_WIDTH UNITS Bits
 set_parameter_property SEARCH_KEY_WIDTH HDL_PARAMETER true
@@ -258,31 +306,31 @@ set_parameter_property RING_BUFFER_N_ENTRY UNITS None
 set_parameter_property RING_BUFFER_N_ENTRY HDL_PARAMETER true
 set_parameter_property RING_BUFFER_N_ENTRY DESCRIPTION "Total ring-buffer / CAM depth. Use powers of two. The delivered default is 512 for simulation and standalone signoff."
 
-add_parameter SIDE_DATA_BITS NATURAL 31
+add_parameter SIDE_DATA_BITS NATURAL $DEFAULT_SIDE_DATA_BITS_CONST
 set_parameter_property SIDE_DATA_BITS DISPLAY_NAME "Side Data Width"
 set_parameter_property SIDE_DATA_BITS UNITS Bits
 set_parameter_property SIDE_DATA_BITS HDL_PARAMETER true
 set_parameter_property SIDE_DATA_BITS DESCRIPTION "Side-band payload width stored alongside the search key."
 
-add_parameter INTERLEAVING_FACTOR NATURAL 4
+add_parameter INTERLEAVING_FACTOR NATURAL $DEFAULT_INTERLEAVING_FACTOR_CONST
 set_parameter_property INTERLEAVING_FACTOR DISPLAY_NAME "Interleaving Factor"
 set_parameter_property INTERLEAVING_FACTOR UNITS None
 set_parameter_property INTERLEAVING_FACTOR HDL_PARAMETER true
 set_parameter_property INTERLEAVING_FACTOR DESCRIPTION "Power-of-two time-interleaving fanout shared across the surrounding sorter complex."
 
-add_parameter INTERLEAVING_INDEX NATURAL 0
+add_parameter INTERLEAVING_INDEX NATURAL $DEFAULT_INTERLEAVING_INDEX_CONST
 set_parameter_property INTERLEAVING_INDEX DISPLAY_NAME "Interleaving Index"
 set_parameter_property INTERLEAVING_INDEX UNITS None
 set_parameter_property INTERLEAVING_INDEX HDL_PARAMETER true
 set_parameter_property INTERLEAVING_INDEX DESCRIPTION "Modulo index accepted by this IP instance within the larger interleaving complex."
 
-add_parameter N_PARTITIONS NATURAL 4
+add_parameter N_PARTITIONS NATURAL $DEFAULT_N_PARTITIONS_CONST
 set_parameter_property N_PARTITIONS DISPLAY_NAME "Physical Match Partitions"
 set_parameter_property N_PARTITIONS UNITS None
 set_parameter_property N_PARTITIONS HDL_PARAMETER true
 set_parameter_property N_PARTITIONS DESCRIPTION "Physical one-hot match partitions. The delivered default uses four partitions to match the four-stage encoder pipeline. Lower-partition presets remain available for timing/resource comparisons and regression."
 
-add_parameter ENCODER_LEAF_WIDTH NATURAL 16
+add_parameter ENCODER_LEAF_WIDTH NATURAL $DEFAULT_ENCODER_LEAF_WIDTH_CONST
 set_parameter_property ENCODER_LEAF_WIDTH DISPLAY_NAME "Encoder Leaf Width"
 set_parameter_property ENCODER_LEAF_WIDTH UNITS None
 set_parameter_property ENCODER_LEAF_WIDTH HDL_PARAMETER true
@@ -294,7 +342,7 @@ set_parameter_property ENCODER_PIPE_STAGES UNITS None
 set_parameter_property ENCODER_PIPE_STAGES HDL_PARAMETER true
 set_parameter_property ENCODER_PIPE_STAGES DESCRIPTION "Internal pipeline depth of the staged encoder. The delivered default is P4. Presets keep P2 and P3 available."
 
-add_parameter DEBUG NATURAL 1
+add_parameter DEBUG NATURAL $DEFAULT_DEBUG_CONST
 set_parameter_property DEBUG DISPLAY_NAME "Debug Level"
 set_parameter_property DEBUG UNITS None
 set_parameter_property DEBUG ALLOWED_RANGES 0:2
@@ -371,6 +419,7 @@ set TAB_REGMAP        "Register Map"
 add_display_item "" $TAB_CONFIGURATION GROUP tab
 add_display_item $TAB_CONFIGURATION "Overview" GROUP
 add_display_item $TAB_CONFIGURATION "Sizing" GROUP
+add_display_item $TAB_CONFIGURATION "Delivered Footprint" GROUP
 add_display_item $TAB_CONFIGURATION "Match Engine" GROUP
 add_display_item $TAB_CONFIGURATION "Throughput" GROUP
 add_display_item $TAB_CONFIGURATION "Advanced" GROUP
@@ -380,6 +429,18 @@ add_display_item "Sizing" SEARCH_KEY_WIDTH parameter
 add_display_item "Sizing" RING_BUFFER_N_ENTRY parameter
 add_display_item "Sizing" SIDE_DATA_BITS parameter
 add_html_text "Sizing" sizing_html "<html><b>Derived sizing</b><br/>Updated by the validation callback.</html>"
+add_html_text "Delivered Footprint" resources_html [format {<html><b>Standalone signoff footprint</b><br/>Numbers below are for the delivered default signoff shape <b>RING_BUFFER_N_ENTRY=%d</b>, <b>N_PARTITIONS=%d</b>, <b>ENCODER_PIPE_STAGES=%d</b> on Arria V <b>5AGXBA7D4F31C5</b>.<br/><br/><b>Fitter resources</b><br/>ALMs: <b>%d</b><br/>Registers: <b>%d</b><br/>RAM blocks: <b>%d</b><br/>Block memory bits: <b>%d</b><br/><br/><b>Timing at 137.5 MHz standalone signoff</b><br/>Slow 85C WNS: <b>%.3f ns</b><br/>Slow 0C WNS: <b>%.3f ns</b><br/>Worst reported hold slack: <b>%.3f ns</b><br/>Slow-corner Fmax: <b>%.2f MHz</b><br/><br/><b>Interpretation</b><br/>These values are packaging-time signoff evidence for the delivered profile. Changing visible sizing or encoder parameters alters the implementation footprint and timing.</html>} \
+    $DEFAULT_RING_DEPTH_CONST \
+    $DEFAULT_N_PARTITIONS_CONST \
+    $DEFAULT_PIPE_STAGES_CONST \
+    $SIGNOFF_ALMS_CONST \
+    $SIGNOFF_REGS_CONST \
+    $SIGNOFF_RAM_BLOCKS_CONST \
+    $SIGNOFF_MEM_BITS_CONST \
+    $SIGNOFF_WNS_SLOW_85C_CONST \
+    $SIGNOFF_WNS_SLOW_0C_CONST \
+    $SIGNOFF_HOLD_WNS_CONST \
+    $SIGNOFF_FMAX_CONST]
 add_display_item "Match Engine" INTERLEAVING_FACTOR parameter
 add_display_item "Match Engine" INTERLEAVING_INDEX parameter
 add_display_item "Match Engine" N_PARTITIONS parameter
@@ -394,8 +455,21 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html "<html><b>Catalog revision</b><br/>This release is packaged as <b>26.2.6.0422</b>. It keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=422</b> / <b>VERSION_DATE=20260422</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, the COUNT-stage frozen-snapshot chunk counter that removes per-cycle full-vector rewrites, and the settled SEARCH-tail conservative overwrite-slot guard that keeps safe cross-key overlap without reopening the standalone timing path.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>"
-add_html_text "Versioning" versioning_html {<html><b>Common identity header</b><br/>Word <b>0</b> is <b>UID</b>.<br/>Word <b>1</b> is <b>META</b>: write 0=VERSION, 1=DATE, 2=GIT, 3=INSTANCE_ID.<br/><br/><b>VERSION encoding</b><br/>VERSION[31:24] = MAJOR, VERSION[23:16] = MINOR, VERSION[15:12] = PATCH, VERSION[11:0] = BUILD.</html>}
+add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, and the settled SEARCH-tail conservative overwrite-slot guard that keeps safe cross-key overlap without reopening the standalone timing path.<br/><br/><b>Delivered signoff profile</b><br/>The packaged default shape signs off at <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. The Configuration tab shows the full standalone footprint summary used for this delivered image.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
+    $VERSION_STRING_DEFAULT_CONST \
+    $VERSION_GIT_HEX_DEFAULT_CONST \
+    $VERSION_GIT_SHORT_DEFAULT_CONST \
+    $VERSION_GIT_DESCRIBE_DEFAULT_CONST \
+    $BUILD_DEFAULT_CONST \
+    $VERSION_DATE_DEFAULT_CONST \
+    $SIGNOFF_FMAX_CONST \
+    $SIGNOFF_ALMS_CONST \
+    $SIGNOFF_REGS_CONST \
+    $SIGNOFF_RAM_BLOCKS_CONST]
+add_html_text "Versioning" versioning_html [format {<html><b>Common identity header</b><br/>Word <b>0</b> is <b>UID</b>.<br/>Word <b>1</b> is <b>META</b>: write 0=VERSION, 1=DATE, 2=GIT, 3=INSTANCE_ID.<br/><br/><b>VERSION encoding</b><br/>VERSION[31:24] = MAJOR, VERSION[23:16] = MINOR, VERSION[15:12] = PATCH, VERSION[11:0] = BUILD.<br/><br/><b>Packaged defaults</b><br/>Default <b>VERSION_GIT</b> = <b>%s</b> (%s). Git describe = <b>%s</b>.<br/><br/><b>Editability</b><br/><b>IP_UID</b> and <b>INSTANCE_ID</b> remain integration-editable. Version, build, date, and git provenance fields are locked to the packaged image.</html>} \
+    $VERSION_GIT_HEX_DEFAULT_CONST \
+    $VERSION_GIT_SHORT_DEFAULT_CONST \
+    $VERSION_GIT_DESCRIBE_DEFAULT_CONST]
 add_display_item "Versioning" IP_UID parameter
 add_display_item "Versioning" VERSION_MAJOR parameter
 add_display_item "Versioning" VERSION_MINOR parameter
