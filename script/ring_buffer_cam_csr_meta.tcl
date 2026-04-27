@@ -1,7 +1,7 @@
 package require Tcl 8.5
 
 set script_dir [file dirname [info script]]
-set helper_file [file normalize [file join $script_dir .. .. toolkit infra board_bring_up lib board_bring_up_meta.tcl]]
+set helper_file [file normalize [file join $script_dir .. .. toolkits infra board_bring_up lib board_bring_up_meta.tcl]]
 if {![llength [info commands ::board_bring_up::meta::field]]} {
         source $helper_file
 }
