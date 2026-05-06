@@ -4,7 +4,7 @@ Timestamp-ordered resequencing buffer built as a ring-buffer-shaped content-addr
 memory. It accepts MuTRiG Type-1 hits, stores them under `ts[11:4]`, and emits
 timestamp-ordered Type-2 framed output with live fill-level and overwrite accounting.
 
-**Version:** 26.2.6.0422
+**Version:** 26.2.7.0506
 **Module name:** `ring_buffer_cam`
 **Platform Designer group:** Mu3e Data Plane / Modules
 
@@ -39,6 +39,7 @@ buffer, not an unbounded queue: burst pattern matters, not just average arrival 
 ```
 +----------------------------------------------------------------------------------------+
 |  hit_type1 --> [ingress filter / deassembly_fifo] --> [push engine] ----+              |
+|       \             \-- DEBUG>=2 metadata sidecar FIFO -----------------+              |
 |                                                                          |             |
 |                                                                          v             |
 |                                                             [main_cam + side_ram]      |
@@ -52,7 +53,7 @@ buffer, not an unbounded queue: burst pattern matters, not just average arrival 
 |                                                                          v             |
 |                                                                     hit_type2          |
 |                                                                                        |
-|  filllevel ------------------------------> [fill level / debug / push-pop counters]    |
+|  filllevel / debug_observability --------> [fill level / FIFO / queue counters]        |
 +----------------------------------------------------------------------------------------+
 ```
 
@@ -81,7 +82,7 @@ buffer, not an unbounded queue: burst pattern matters, not just average arrival 
 | `N_PARTITIONS` | 4 | Physical match partitions |
 | `ENCODER_LEAF_WIDTH` | 16 | Leaf width of the partitioned encoder |
 | `ENCODER_PIPE_STAGES` | 4 | Delivered encoder pipeline depth |
-| `DEBUG` | 1 | Synthesizable debug enabled |
+| `DEBUG` | 1 | Synthesizable fill/FIFO/queue observability; DEBUG=2 adds the 64-bit hit metadata sidecar |
 
 ### Legal Overwrite Semantics
 
@@ -94,13 +95,13 @@ That loss must be visible as:
 - no unexplained resident loss beyond `OVERWRITE_COUNT`
 - no invisible same-key tail residents after terminate-and-drain
 
-Version `26.2.6.0422` keeps the verified SEARCH-window and non-power-of-two ring-depth
-repairs from the earlier `26.2.x` closure batches, preserves the overwrite erase-slot carry
-and COUNT-stage snapshot-counter cleanup from `26.2.5.0422`, and now re-opens settled
-SEARCH-tail cross-key overlap with a conservative overwrite-slot predicate that restores the
-`137.5 MHz` standalone `P4` signoff margin without regressing the `BUG-055-R` /
-`BUG-056-R` overwrite guards. The authoritative release status, DV dashboard, and signoff
-evidence are maintained in [`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
+Version `26.2.7.0506` keeps the verified SEARCH-window and non-power-of-two ring-depth
+repairs from the earlier `26.2.x` closure batches and adds the DEBUG sidecar contract:
+`DEBUG=0` keeps optional outputs tied to zero, `DEBUG>=1` exposes synthesizable fill/FIFO/queue
+observability conduits, and `DEBUG>=2` carries a 64-bit metadata word from accepted Type-1 hit
+beats to aligned Type-2 hit beats. Subheaders and invalid output cycles drive metadata zero.
+The authoritative release status, DV dashboard, and signoff evidence are maintained in
+[`doc/SIGNOFF.md`](doc/SIGNOFF.md) and
 [`tb/DV_REPORT.md`](tb/DV_REPORT.md).
 
 ---
@@ -161,12 +162,16 @@ and compatibility of the packaged partitioned V2 core.
 **Versioning** -- `IP_UID`, `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`, `BUILD`,
 `VERSION_DATE`, `VERSION_GIT`, and `INSTANCE_ID`.
 
-**Debug** -- single debug-level control for synthesizable / simulation-oriented debug.
+**Debug** -- single debug-level control for synthesizable observability and metadata sidecar
+storage.
+`DEBUG=1` enables the optional `debug_observability` conduit. `DEBUG=2` also enables
+`hit_type1_metadata` and `hit_type2_metadata` 64-bit conduits.
 
 ### Interfaces Tab
 
 Clock/reset, ingress `hit_type1`, ordered egress `hit_type2`, `run_control`, `csr`,
-and `filllevel` interface descriptions.
+`filllevel`, optional `debug_observability`, and optional metadata sidecar interface
+descriptions.
 
 ### Register Map Tab
 
@@ -191,7 +196,7 @@ Interactive HTML table of the 10-word CSR window and the common identity header.
 |    |- Versioning -- UID, META pages, VERSION_*, DATE, GIT              |
 |    `- Debug -- debug-level parameter                                   |
 |                                                                        |
-|  [Interfaces Tab] -- clock/reset, AVST, CSR, filllevel                 |
+|  [Interfaces Tab] -- clock/reset, AVST, CSR, filllevel, DEBUG conduits |
 |  [Register Map Tab] -- 10-word CSR window                              |
 |                                                                        |
 +------------------------------------------------------------------------+

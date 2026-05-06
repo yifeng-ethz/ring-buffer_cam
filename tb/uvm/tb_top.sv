@@ -29,6 +29,11 @@ module tb_top;
   logic tb_side_ram_patch_we = 1'b0;
   logic [TB_SRAM_ADDR_W-1:0] tb_side_ram_patch_addr = '0;
   logic [39:0] tb_side_ram_patch_data = '0;
+  logic [63:0] asi_hit_type1_metadata = '0;
+  logic [63:0] aso_hit_type2_metadata;
+  logic [31:0] coe_debug_fill_level;
+  logic [31:0] coe_debug_fifo_level;
+  logic [31:0] coe_debug_queue_state;
   int unsigned tb_timeout_cycles = 5_000_000;
 
   always #4 clk = ~clk;  // 8 ns period = 125 MHz
@@ -78,6 +83,7 @@ module tb_top;
     .asi_hit_type1_valid         (hit_if.valid),
     .asi_hit_type1_ready         (hit_if.ready),
     .asi_hit_type1_error         (hit_if.error),
+    .asi_hit_type1_metadata      (asi_hit_type1_metadata),
     // Egress
     .aso_hit_type2_channel       (out_if.channel),
     .aso_hit_type2_startofpacket (out_if.startofpacket),
@@ -86,9 +92,14 @@ module tb_top;
     .aso_hit_type2_valid         (out_if.valid),
     .aso_hit_type2_ready         (out_if.ready),
     .aso_hit_type2_error         (out_if.error),
+    .aso_hit_type2_metadata      (aso_hit_type2_metadata),
     // Fill level
     .aso_filllevel_valid         (out_if.filllevel_valid),
     .aso_filllevel_data          (out_if.filllevel_data),
+    // DEBUG conduits
+    .coe_debug_fill_level        (coe_debug_fill_level),
+    .coe_debug_fifo_level        (coe_debug_fifo_level),
+    .coe_debug_queue_state       (coe_debug_queue_state),
     // Clock / reset
     .i_rst                       (rst),
     .i_clk                       (clk)

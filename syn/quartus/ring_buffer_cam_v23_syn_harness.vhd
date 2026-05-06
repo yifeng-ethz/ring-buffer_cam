@@ -51,10 +51,12 @@ architecture rtl of ring_buffer_cam_v23_syn_harness is
     signal asi_hit_type1_channel     : std_logic_vector(3 downto 0);
     signal asi_hit_type1_sop         : std_logic;
     signal asi_hit_type1_eop         : std_logic;
+    signal asi_hit_type1_empty       : std_logic;
     signal asi_hit_type1_data        : std_logic_vector(38 downto 0);
     signal asi_hit_type1_valid       : std_logic;
     signal asi_hit_type1_ready       : std_logic;
     signal asi_hit_type1_error       : std_logic_vector(0 downto 0);
+    signal asi_hit_type1_metadata    : std_logic_vector(63 downto 0);
 
     signal aso_hit_type2_channel     : std_logic_vector(3 downto 0);
     signal aso_hit_type2_sop         : std_logic;
@@ -63,6 +65,7 @@ architecture rtl of ring_buffer_cam_v23_syn_harness is
     signal aso_hit_type2_valid       : std_logic;
     signal aso_hit_type2_ready       : std_logic;
     signal aso_hit_type2_error       : std_logic_vector(0 downto 0);
+    signal aso_hit_type2_metadata    : std_logic_vector(63 downto 0);
 
     signal aso_filllevel_valid       : std_logic;
     signal aso_filllevel_data        : std_logic_vector(15 downto 0);
@@ -70,6 +73,8 @@ architecture rtl of ring_buffer_cam_v23_syn_harness is
 begin
     rst                     <= not reset_n;
     aso_hit_type2_ready     <= '1';
+    asi_hit_type1_empty     <= '0';
+    asi_hit_type1_metadata  <= (others => '0');
     probe_out               <= signature;
 
     proc_stimulus : process (clk125, rst)
@@ -214,10 +219,12 @@ begin
             asi_hit_type1_channel       => asi_hit_type1_channel,
             asi_hit_type1_startofpacket => asi_hit_type1_sop,
             asi_hit_type1_endofpacket   => asi_hit_type1_eop,
+            asi_hit_type1_empty         => asi_hit_type1_empty,
             asi_hit_type1_data          => asi_hit_type1_data,
             asi_hit_type1_valid         => asi_hit_type1_valid,
             asi_hit_type1_ready         => asi_hit_type1_ready,
             asi_hit_type1_error         => asi_hit_type1_error,
+            asi_hit_type1_metadata      => asi_hit_type1_metadata,
             aso_hit_type2_channel       => aso_hit_type2_channel,
             aso_hit_type2_startofpacket => aso_hit_type2_sop,
             aso_hit_type2_endofpacket   => aso_hit_type2_eop,
@@ -225,8 +232,12 @@ begin
             aso_hit_type2_valid         => aso_hit_type2_valid,
             aso_hit_type2_ready         => aso_hit_type2_ready,
             aso_hit_type2_error         => aso_hit_type2_error,
+            aso_hit_type2_metadata      => aso_hit_type2_metadata,
             aso_filllevel_valid         => aso_filllevel_valid,
             aso_filllevel_data          => aso_filllevel_data,
+            coe_debug_fill_level        => open,
+            coe_debug_fifo_level        => open,
+            coe_debug_queue_state       => open,
             i_rst                       => rst,
             i_clk                       => clk125
         );

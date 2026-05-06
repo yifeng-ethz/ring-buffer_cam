@@ -17,6 +17,7 @@ architecture tb of ring_buffer_cam_pipeline_smoke_tb is
   constant TARGET_HIT_COUNT_CONST  : natural := 65;
   constant EXPECTED_LATENCY_CONST  : natural := 96;
   constant FLUSH_WAIT_CONST        : time    := 1200 us;
+  constant ZERO_METADATA_CONST     : std_logic_vector(63 downto 0) := (others => '0');
 
   signal clk : std_logic := '0';
   signal rst : std_logic := '1';
@@ -40,6 +41,8 @@ architecture tb of ring_buffer_cam_pipeline_smoke_tb is
   signal asi_hit_type1_valid         : std_logic := '0';
   signal asi_hit_type1_ready         : std_logic;
   signal asi_hit_type1_error         : std_logic_vector(0 downto 0) := (others => '0');
+  signal asi_hit_type1_metadata      : std_logic_vector(63 downto 0) := (others => '0');
+  signal asi_hit_type1_metadata_valid : std_logic := '0';
 
   signal aso_hit_type2_channel       : std_logic_vector(3 downto 0);
   signal aso_hit_type2_startofpacket : std_logic;
@@ -48,11 +51,22 @@ architecture tb of ring_buffer_cam_pipeline_smoke_tb is
   signal aso_hit_type2_valid         : std_logic;
   signal aso_hit_type2_ready         : std_logic := '1';
   signal aso_hit_type2_error         : std_logic_vector(0 downto 0);
+  signal aso_hit_type2_metadata      : std_logic_vector(63 downto 0);
+  signal aso_hit_type2_metadata_valid : std_logic;
 
   signal aso_filllevel_valid : std_logic;
   signal aso_filllevel_data  : std_logic_vector(15 downto 0);
 
   signal target_done : std_logic := '0';
+
+  function make_metadata(hit_index_v : natural) return std_logic_vector is
+    variable metadata_v : std_logic_vector(63 downto 0);
+  begin
+    metadata_v := (others => '0');
+    metadata_v(63 downto 16) := x"5A5A00000000";
+    metadata_v(15 downto 0)  := std_logic_vector(to_unsigned(hit_index_v, 16));
+    return metadata_v;
+  end function make_metadata;
 begin
   clk <= not clk after CLK_PERIOD_CONST / 2;
 
@@ -65,7 +79,7 @@ begin
       INTERLEAVING_INDEX           => 0,
       N_PARTITIONS                 => 1,
       ENCODER_LEAF_WIDTH           => 16,
-      DEBUG                        => 1
+      DEBUG                        => 2
     )
     port map (
       avs_csr_readdata            => avs_csr_readdata,
@@ -85,6 +99,8 @@ begin
       asi_hit_type1_valid         => asi_hit_type1_valid,
       asi_hit_type1_ready         => asi_hit_type1_ready,
       asi_hit_type1_error         => asi_hit_type1_error(0),
+      asi_hit_type1_metadata      => asi_hit_type1_metadata,
+      asi_hit_type1_metadata_valid => asi_hit_type1_metadata_valid,
       aso_hit_type2_channel       => aso_hit_type2_channel,
       aso_hit_type2_startofpacket => aso_hit_type2_startofpacket,
       aso_hit_type2_endofpacket   => aso_hit_type2_endofpacket,
@@ -92,8 +108,13 @@ begin
       aso_hit_type2_valid         => aso_hit_type2_valid,
       aso_hit_type2_ready         => aso_hit_type2_ready,
       aso_hit_type2_error         => aso_hit_type2_error(0),
+      aso_hit_type2_metadata      => aso_hit_type2_metadata,
+      aso_hit_type2_metadata_valid => aso_hit_type2_metadata_valid,
       aso_filllevel_valid         => aso_filllevel_valid,
       aso_filllevel_data          => aso_filllevel_data,
+      coe_debug_fill_level        => open,
+      coe_debug_fifo_level        => open,
+      coe_debug_queue_state       => open,
       i_rst                       => rst,
       i_clk                       => clk
     );
@@ -145,6 +166,8 @@ begin
 
       asi_hit_type1_channel <= std_logic_vector(to_unsigned(hit_index_v mod 16, asi_hit_type1_channel'length));
       asi_hit_type1_data    <= hit_data_v;
+      asi_hit_type1_metadata <= make_metadata(hit_index_v);
+      asi_hit_type1_metadata_valid <= '1';
       asi_hit_type1_valid   <= '1';
       loop
         wait until rising_edge(clk);
@@ -152,6 +175,8 @@ begin
       end loop;
       asi_hit_type1_valid   <= '0';
       asi_hit_type1_data    <= (others => '0');
+      asi_hit_type1_metadata <= (others => '0');
+      asi_hit_type1_metadata_valid <= '0';
       asi_hit_type1_channel <= (others => '0');
     end procedure send_hit;
   begin
@@ -216,11 +241,23 @@ begin
             assert aso_hit_type2_endofpacket = '0'
               report "target subheader unexpectedly ended the packet"
               severity failure;
+            assert aso_hit_type2_metadata = ZERO_METADATA_CONST
+              report "target subheader metadata was not zero"
+              severity failure;
+            assert aso_hit_type2_metadata_valid = '0'
+              report "target subheader unexpectedly asserted metadata valid"
+              severity failure;
             in_target_frame_v  := true;
             target_hit_count_v := 0;
           end if;
         elsif in_target_frame_v then
           target_hit_count_v := target_hit_count_v + 1;
+          assert aso_hit_type2_metadata = make_metadata(target_hit_count_v - 1)
+            report "metadata sidecar did not align with the drained hit"
+            severity failure;
+          assert aso_hit_type2_metadata_valid = '1'
+            report "metadata sidecar valid did not align with the drained hit"
+            severity failure;
           if target_hit_count_v < TARGET_HIT_COUNT_CONST then
             assert aso_hit_type2_endofpacket = '0'
               report "packet ended before all target hits drained"

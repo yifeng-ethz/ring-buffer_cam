@@ -2985,7 +2985,7 @@ class base_test extends uvm_test;
     csr_read(CSR_META_ADDR, version_word);
     set_meta_sel(2'b01);
     csr_read(CSR_META_ADDR, date_word);
-    if (version_word != expected_meta_version() || date_word != 32'd20260421) begin
+    if (version_word != expected_meta_version() || date_word != 32'd20260506) begin
       `uvm_error("X090", $sformatf(
         "META selector write/read mismatch: version=0x%08x date=0x%08x",
         version_word, date_word))
@@ -6461,8 +6461,8 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd2;
-    version_word[15:12] = 4'd4;
-    version_word[11:0]  = 12'd421;
+    version_word[15:12] = 4'd7;
+    version_word[11:0]  = 12'd506;
     return version_word;
   endfunction
 
@@ -7441,7 +7441,7 @@ class base_test extends uvm_test;
     set_meta_sel(2'd0);
     csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "X122 META VERSION after recovery");
     set_meta_sel(2'd1);
-    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "X122 META DATE after recovery");
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "X122 META DATE after recovery");
     set_meta_sel(2'd2);
     csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "X122 META GIT after recovery");
     set_meta_sel(2'd3);
@@ -8066,7 +8066,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -8322,7 +8322,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260421, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -10710,7 +10710,7 @@ class base_test extends uvm_test;
       csr_read(CSR_META_ADDR, data_a);
       set_meta_sel(2'b01);
       csr_read(CSR_META_ADDR, data_b);
-      if (data_a != expected_meta_version() || data_b != 32'd20260421) begin
+      if (data_a != expected_meta_version() || data_b != 32'd20260506) begin
         `uvm_error("B123", $sformatf(
           "META walk mismatch in VERSION/DATE phase: version=0x%08x date=0x%08x",
           data_a, data_b))

@@ -5,7 +5,9 @@ if {[string length $SCRIPT_DIR] == 0} {
     set SCRIPT_DIR [pwd]
 }
 set IP_DIR $SCRIPT_DIR
-if {[file tail $IP_DIR] eq "script"} {
+set IP_DIR_TAIL [file tail $IP_DIR]
+set IP_DIR_IS_SCRIPT [string equal $IP_DIR_TAIL "script"]
+if {$IP_DIR_IS_SCRIPT} {
     set IP_DIR [file dirname $IP_DIR]
 }
 
@@ -19,17 +21,18 @@ set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
 set DEFAULT_DEBUG_CONST            1
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            422
+set BUILD_DEFAULT_CONST            506
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    6
-set VERSION_DATE_DEFAULT_CONST     20260422
+set VERSION_PATCH_DEFAULT_CONST    7
+set VERSION_DATE_DEFAULT_CONST     20260506
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
 if {![catch {set VERSION_GIT_SHORT_DEFAULT_CONST [string trim [exec git -C $IP_DIR rev-parse --short HEAD]]}]} {
     if {[regexp {^[0-9a-fA-F]+$} $VERSION_GIT_SHORT_DEFAULT_CONST]} {
         scan $VERSION_GIT_SHORT_DEFAULT_CONST %x VERSION_GIT_DEFAULT_CONST
+        set VERSION_GIT_DEFAULT_CONST [expr {$VERSION_GIT_DEFAULT_CONST & 0x7fffffff}]
     }
 }
 catch {
@@ -86,6 +89,8 @@ set HIT_TYPE1_WIDTH_CONST       39
 set HIT_TYPE2_WIDTH_CONST       36
 set RUN_CONTROL_WIDTH_CONST     9
 set FILLLEVEL_WIDTH_CONST       16
+set SIDECAR_METADATA_WIDTH_CONST 64
+set DEBUG_WORD_WIDTH_CONST      32
 
 set CSR_TABLE_HTML {<html><table border="1" width="100%">
 <tr><th>Word</th><th>Byte</th><th>Name</th><th>Access</th><th>Description</th></tr>
@@ -185,6 +190,7 @@ proc validate {} {
     set version_date        [get_parameter_value VERSION_DATE]
     set version_git         [get_parameter_value VERSION_GIT]
     set instance_id         [get_parameter_value INSTANCE_ID]
+    set debug_level         [get_parameter_value DEBUG]
 
     if {![is_power_of_two $ring_depth]} {
         send_message error "RING_BUFFER_N_ENTRY must be a power of two."
@@ -255,6 +261,9 @@ proc validate {} {
     if {$instance_id < 0 || $instance_id > 2147483647} {
         send_message error "INSTANCE_ID must stay in the signed 31-bit Platform Designer integer range."
     }
+    if {$debug_level < 0 || $debug_level > 2} {
+        send_message error "DEBUG must stay in the range 0..2."
+    }
 }
 
 proc elaborate {} {
@@ -262,6 +271,15 @@ proc elaborate {} {
 
     set interleaving_factor [get_parameter_value INTERLEAVING_FACTOR]
     set interleaving_index_max [expr {$interleaving_factor - 1}]
+    set debug_level [get_parameter_value DEBUG]
+    set debug_conduit_enabled false
+    set sidecar_conduit_enabled false
+    if {$debug_level >= 1} {
+        set debug_conduit_enabled true
+    }
+    if {$debug_level >= 2} {
+        set sidecar_conduit_enabled true
+    }
 
     set_parameter_property VERSION_MAJOR ENABLED false
     set_parameter_property VERSION_MINOR ENABLED false
@@ -276,6 +294,9 @@ proc elaborate {} {
     set_parameter_property N_PARTITIONS ALLOWED_RANGES {1 2 4 8}
     set_parameter_property ENCODER_LEAF_WIDTH ALLOWED_RANGES {4 8 16 32 64}
 
+    set_interface_property debug_observability ENABLED $debug_conduit_enabled
+    set_interface_property hit_type1_metadata ENABLED $sidecar_conduit_enabled
+    set_interface_property hit_type2_metadata ENABLED $sidecar_conduit_enabled
 }
 
 add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
@@ -347,7 +368,8 @@ set_parameter_property DEBUG DISPLAY_NAME "Debug Level"
 set_parameter_property DEBUG UNITS None
 set_parameter_property DEBUG ALLOWED_RANGES 0:2
 set_parameter_property DEBUG HDL_PARAMETER true
-set_parameter_property DEBUG DESCRIPTION "Debug level exported by the RTL. 0 disables optional debug behavior, 1 keeps synthesizable debug, 2 enables simulation-only debug."
+set_parameter_property DEBUG AFFECTS_ELABORATION true
+set_parameter_property DEBUG DESCRIPTION "Debug level exported by the RTL. 0 keeps the nominal datapath with optional outputs tied low, 1 enables synthesizable FIFO/fill/queue observability conduits, 2 also enables the 64-bit per-hit metadata sidecar."
 
 add_parameter IP_UID NATURAL $IP_UID_DEFAULT_CONST
 set_parameter_property IP_UID DISPLAY_NAME "UID"
@@ -455,7 +477,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, and the settled SEARCH-tail conservative overwrite-slot guard that keeps safe cross-key overlap without reopening the standalone timing path.<br/><br/><b>Delivered signoff profile</b><br/>The packaged default shape signs off at <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. The Configuration tab shows the full standalone footprint summary used for this delivered image.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
+add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, the settled SEARCH-tail conservative overwrite-slot guard, and DEBUG-gated observability / metadata sidecar conduits. With <b>DEBUG=0</b>, optional debug outputs are deterministically zero and the nominal datapath is unchanged.<br/><br/><b>Delivered signoff profile</b><br/>The packaged default shape signs off at <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. The Configuration tab shows the full standalone footprint summary used for this delivered image.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
     $VERSION_STRING_DEFAULT_CONST \
     $VERSION_GIT_HEX_DEFAULT_CONST \
     $VERSION_GIT_SHORT_DEFAULT_CONST \
@@ -478,7 +500,7 @@ add_display_item "Versioning" BUILD parameter
 add_display_item "Versioning" VERSION_DATE parameter
 add_display_item "Versioning" VERSION_GIT parameter
 add_display_item "Versioning" INSTANCE_ID parameter
-add_html_text "Debug" debug_html "<html><b>Debug control</b><br/>The RTL exports the existing synthesizable and simulation-oriented debug behavior through the single debug-level parameter below.</html>"
+add_html_text "Debug" debug_html "<html><b>Debug control</b><br/><b>DEBUG=0</b> keeps optional observability and metadata outputs tied to zero. <b>DEBUG=1</b> enables the synthesizable <b>debug_observability</b> conduit with live fill, FIFO levels, and queue state. <b>DEBUG=2</b> also enables a 64-bit per-hit metadata sidecar from <b>hit_type1_metadata</b> to <b>hit_type2_metadata</b>.</html>"
 add_display_item "Debug" DEBUG parameter
 
 add_display_item "" $TAB_INTERFACES GROUP tab
@@ -488,9 +510,9 @@ add_display_item $TAB_INTERFACES "Control Path" GROUP
 add_display_item $TAB_INTERFACES "Monitoring" GROUP
 
 add_html_text "Clock / Reset" clock_html "<html><b>clock_interface</b> and <b>reset_interface</b><br/>Single synchronous clock/reset domain for the full CAM datapath and CSR logic.</html>"
-add_html_text "Data Path" datapath_html "<html><b>hit_type1</b><br/>39-bit Avalon-ST sink carrying the Type-1 hit payload plus a timestamp-error sideband.<br/><br/><b>hit_type2</b><br/>36-bit Avalon-ST source that emits ordered Type-2 hits after CAM lookup and pop arbitration.</html>"
+add_html_text "Data Path" datapath_html "<html><b>hit_type1</b><br/>39-bit Avalon-ST sink carrying the Type-1 hit payload plus a timestamp-error sideband. When <b>DEBUG=2</b>, the optional <b>hit_type1_metadata</b> conduit accepts one 64-bit metadata word on each accepted non-empty hit beat.<br/><br/><b>hit_type2</b><br/>36-bit Avalon-ST source that emits ordered Type-2 hits after CAM lookup and pop arbitration. When <b>DEBUG=2</b>, <b>hit_type2_metadata</b> carries the stored metadata aligned with output hit beats; subheaders and invalid cycles drive zero.</html>"
 add_html_text "Control Path" control_html "<html><b>csr</b> and <b>run_control</b><br/>Word-addressed Avalon-MM CSR window plus a 9-bit Avalon-ST run-control sink. The run-control path does not alter the external latency contract when encoder pipeline presets are changed.</html>"
-add_html_text "Monitoring" monitor_html "<html><b>filllevel</b><br/>16-bit Avalon-ST source for live fill-level reporting and integration-time occupancy monitoring.</html>"
+add_html_text "Monitoring" monitor_html "<html><b>filllevel</b><br/>16-bit Avalon-ST source for live fill-level reporting and integration-time occupancy monitoring.<br/><br/><b>debug_observability</b><br/>Optional DEBUG>=1 conduit exposing 32-bit fill level, FIFO levels/status, and compact queue-state snapshots for hardware bring-up.</html>"
 
 add_display_item "" $TAB_REGMAP GROUP tab
 add_display_item $TAB_REGMAP "CSR Window" GROUP
@@ -595,6 +617,28 @@ set_interface_property filllevel readyLatency 0
 set_interface_property filllevel ENABLED true
 add_interface_port filllevel aso_filllevel_data data Output $FILLLEVEL_WIDTH_CONST
 add_interface_port filllevel aso_filllevel_valid valid Output 1
+
+add_interface debug_observability conduit start
+set_interface_property debug_observability associatedClock clock_interface
+set_interface_property debug_observability associatedReset reset_interface
+set_interface_property debug_observability ENABLED true
+add_interface_port debug_observability coe_debug_fill_level fill_level Output $DEBUG_WORD_WIDTH_CONST
+add_interface_port debug_observability coe_debug_fifo_level fifo_level Output $DEBUG_WORD_WIDTH_CONST
+add_interface_port debug_observability coe_debug_queue_state queue_state Output $DEBUG_WORD_WIDTH_CONST
+
+add_interface hit_type1_metadata conduit end
+set_interface_property hit_type1_metadata associatedClock clock_interface
+set_interface_property hit_type1_metadata associatedReset reset_interface
+set_interface_property hit_type1_metadata ENABLED false
+add_interface_port hit_type1_metadata asi_hit_type1_metadata metadata Input $SIDECAR_METADATA_WIDTH_CONST
+add_interface_port hit_type1_metadata asi_hit_type1_metadata_valid valid    Input 1
+
+add_interface hit_type2_metadata conduit start
+set_interface_property hit_type2_metadata associatedClock clock_interface
+set_interface_property hit_type2_metadata associatedReset reset_interface
+set_interface_property hit_type2_metadata ENABLED false
+add_interface_port hit_type2_metadata aso_hit_type2_metadata metadata Output $SIDECAR_METADATA_WIDTH_CONST
+add_interface_port hit_type2_metadata aso_hit_type2_metadata_valid valid    Output 1
 
 # Presets are provided via the sibling .qprs file:
 #   ring_buffer_cam_presets.qprs

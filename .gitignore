@@ -2,6 +2,8 @@
 *.bak
 greybox_tmp/
 .qsys_edit/
+transcript
+vsim.wlf
 syn/quartus/db/
 syn/quartus/output_files/
 syn/quartus/incremental_db/

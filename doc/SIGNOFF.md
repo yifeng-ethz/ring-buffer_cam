@@ -1,8 +1,8 @@
 # ✅ Signoff — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
-**Release under check:** `26.2.6.0422` &nbsp; **Evidence basis:** `DV/SYN/GATE=1069e0b`
-**Release packaging note:** `the final release tag may carry package-only _hw.tcl provenance / GUI updates beyond the DV/SYN/GATE evidence basis; those follow-ups do not modify rtl/, tb/, or syn/ evidence-producing sources`
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-05-06` &nbsp;
+**Release under check:** `26.2.7.0506` &nbsp; **Evidence basis:** `DV/SYN/GATE=1069e0b` for the settled nominal path plus the DEBUG sidecar smoke checks listed below
+**Release packaging note:** `26.2.7.0506 adds DEBUG-gated FIFO/queue observability and 64-bit hit metadata sidecars. The inherited standalone P4 timing evidence is still the 26.2.6.0422 nominal-path basis; DEBUG>=1/2 system-level timing closure must be claimed from the full integration compile, not from this inherited standalone report.`
 
 This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
 
@@ -14,8 +14,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | field | value |
 |:---:|---|---|
-| ✅ | overall_signoff | `pass` |
-| ✅ | standalone_syn_p4_512 | `the standalone Quartus rerun on the current 26.2.6.0422 image closes the tightened 137.5 MHz / 7.273 ns signoff target with slow-85C WNS=+0.515 ns, slow-0C WNS=+0.575 ns, and worst reported hold slack=+0.171 ns` |
+| ⚠️ | overall_signoff | `partial for 26.2.7.0506 until the DEBUG sidecar integration compile is recorded; nominal inherited evidence remains pass` |
+| ✅ | standalone_syn_p4_512 | `the inherited standalone Quartus rerun on the 26.2.6.0422 nominal image closes the tightened 137.5 MHz / 7.273 ns signoff target with slow-85C WNS=+0.515 ns, slow-0C WNS=+0.575 ns, and worst reported hold slack=+0.171 ns` |
+| ⚠️ | debug_sidecar_delta | `26.2.7.0506 changes RTL/package surfaces for DEBUG observability and metadata sidecars; synthesis closure for DEBUG>=1/2 is owned by the full integration compile evidence` |
 | ✅ | dv_closure | `the promoted isolated dashboard is green: failed_cases=0, signoff_runs_with_failures=0, unimplemented_cases=0, 519/519 promoted signoff cases are evidenced, and stmt/branch/fsm_state/fsm_trans/toggle all meet target after the documented branch dead-bin exclusion` |
 | ✅ | cross_bucket_signoff | `6` continuous-frame signoff runs are published, and all record counter_checks_failed=0 and unexpected_outputs=0 |
 | ✅ | gate_level_sim | `functional gate smoke compare passes on the regenerated P4 netlist: rtl_signature=0xfd448996, gate_signature=0xac7007dc, and signature equality remains advisory for the functional gate model` |
@@ -56,7 +57,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | ✅ | Harness | `BUG-062-H` and `BUG-063-H` remain in scope: terminate cleanup ignores exactly one post-EOR empty marker, and the low-stage latency helper now anchors on the real partition-load/result handshake |
 | ✅ | RTL | `BUG-064-R` replaces the exact settled-SEARCH-tail snapshot-membership test with a cheaper conservative overwrite-slot predicate, preserving the `BUG-055-R` / `BUG-056-R` SEARCH correctness fixes without reopening the standalone `P4` timing blocker |
 | ✅ | DV | refreshed evidence keeps the promoted isolated matrix green at `519/519`, republishes `6` clean continuous-frame signoff runs, and regenerates the `tb/REPORT/` dashboard for the current signoff checkpoint |
-| ✅ | Metadata | wrapper defaults, Platform Designer packaging, and the emitted build metadata are aligned to `26.2.6.0422` / `20260422` with `BUILD=422` and `PATCH=6` |
+| ⚠️ | Metadata | wrapper defaults, Platform Designer packaging, and SVD version metadata are aligned to `26.2.7.0506` / `20260506` with `BUILD=506` and `PATCH=7`; timing evidence remains inherited from the nominal `26.2.6.0422` checkpoint until the full DEBUG integration compile is archived |
 
 ## Evidence Index
 
@@ -74,8 +75,8 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 ## Notes
 
 - This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow, the standalone synthesis report, and the regenerated gate-smoke evidence.
-- The 2026-04-22 refresh closes the last residual signoff blockers: the promoted isolated matrix is green at `519/519`, continuous-frame signoff is published with `6` clean runs, and the standalone Quartus `P4` rerun plus gate netlist smoke both pass on the live `26.2.6.0422` image.
-- The release tag for `26.2.6.0422` may be moved onto a package-only follow-up commit so Platform Designer metadata can expose the delivered signoff footprint and live git provenance in `_hw.tcl`. That follow-up is intentionally non-functional and does not invalidate the `DV/SYN/GATE=1069e0b` evidence basis.
+- The 2026-04-22 refresh closes the last residual nominal-path signoff blockers: the promoted isolated matrix is green at `519/519`, continuous-frame signoff is published with `6` clean runs, and the standalone Quartus `P4` rerun plus gate netlist smoke both pass on the live `26.2.6.0422` image.
+- The 2026-05-06 `26.2.7.0506` update is a DEBUG sidecar/interface delta. Treat the inherited standalone timing numbers as nominal-path evidence only until the full integration DEBUG build records its own timing report.
 - The branch total in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) excludes `16` compile-time-dead bins in `addr_enc_logic_partitioned`; this is a documented report adjustment for constant-generic dead code, not a hidden testcase waiver.
 - The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
 - The active DV dashboard is built and evidenced across the promoted build matrix `default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4`. The differing `P4` / `P2` / `P4-N4` shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.

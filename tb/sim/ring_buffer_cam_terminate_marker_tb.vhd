@@ -39,6 +39,7 @@ architecture tb of ring_buffer_cam_terminate_marker_tb is
   signal asi_hit_type1_valid         : std_logic := '0';
   signal asi_hit_type1_ready         : std_logic;
   signal asi_hit_type1_error         : std_logic_vector(0 downto 0) := (others => '0');
+  signal asi_hit_type1_metadata      : std_logic_vector(63 downto 0) := (others => '0');
 
   signal aso_hit_type2_channel       : std_logic_vector(3 downto 0);
   signal aso_hit_type2_startofpacket : std_logic;
@@ -47,6 +48,7 @@ architecture tb of ring_buffer_cam_terminate_marker_tb is
   signal aso_hit_type2_valid         : std_logic;
   signal aso_hit_type2_ready         : std_logic := '1';
   signal aso_hit_type2_error         : std_logic_vector(0 downto 0);
+  signal aso_hit_type2_metadata      : std_logic_vector(63 downto 0);
 
   signal aso_filllevel_valid : std_logic;
   signal aso_filllevel_data  : std_logic_vector(15 downto 0);
@@ -87,6 +89,7 @@ begin
       asi_hit_type1_valid         => asi_hit_type1_valid,
       asi_hit_type1_ready         => asi_hit_type1_ready,
       asi_hit_type1_error         => asi_hit_type1_error(0),
+      asi_hit_type1_metadata      => asi_hit_type1_metadata,
       aso_hit_type2_channel       => aso_hit_type2_channel,
       aso_hit_type2_startofpacket => aso_hit_type2_startofpacket,
       aso_hit_type2_endofpacket   => aso_hit_type2_endofpacket,
@@ -94,8 +97,12 @@ begin
       aso_hit_type2_valid         => aso_hit_type2_valid,
       aso_hit_type2_ready         => aso_hit_type2_ready,
       aso_hit_type2_error         => aso_hit_type2_error(0),
+      aso_hit_type2_metadata      => aso_hit_type2_metadata,
       aso_filllevel_valid         => aso_filllevel_valid,
       aso_filllevel_data          => aso_filllevel_data,
+      coe_debug_fill_level        => open,
+      coe_debug_fifo_level        => open,
+      coe_debug_queue_state       => open,
       i_rst                       => rst,
       i_clk                       => clk
     );
