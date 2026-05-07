@@ -31,6 +31,7 @@ module tb_top;
   logic [39:0] tb_side_ram_patch_data = '0;
   logic [63:0] asi_hit_type1_metadata = '0;
   logic [63:0] aso_hit_type2_metadata;
+  logic        aso_hit_type2_metadata_valid;
   logic [31:0] coe_debug_fill_level;
   logic [31:0] coe_debug_fifo_level;
   logic [31:0] coe_debug_queue_state;
@@ -84,6 +85,7 @@ module tb_top;
     .asi_hit_type1_ready         (hit_if.ready),
     .asi_hit_type1_error         (hit_if.error),
     .asi_hit_type1_metadata      (asi_hit_type1_metadata),
+    .asi_hit_type1_metadata_valid(1'b0),
     // Egress
     .aso_hit_type2_channel       (out_if.channel),
     .aso_hit_type2_startofpacket (out_if.startofpacket),
@@ -93,6 +95,7 @@ module tb_top;
     .aso_hit_type2_ready         (out_if.ready),
     .aso_hit_type2_error         (out_if.error),
     .aso_hit_type2_metadata      (aso_hit_type2_metadata),
+    .aso_hit_type2_metadata_valid(aso_hit_type2_metadata_valid),
     // Fill level
     .aso_filllevel_valid         (out_if.filllevel_valid),
     .aso_filllevel_data          (out_if.filllevel_data),

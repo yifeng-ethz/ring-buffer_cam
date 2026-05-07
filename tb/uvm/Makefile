@@ -47,6 +47,7 @@ RING_BUFFER_N_ENTRY ?= 512
 INTERLEAVING_FACTOR ?= 4
 INTERLEAVING_INDEX ?= 0
 RTL_VARIANT ?= default_p2_pipe4
+RTL_IMPL ?= vhdl
 VARIANT_N_PARTITIONS ?= 2
 VARIANT_ENCODER_PIPE_STAGES ?= 4
 ifeq ($(RTL_VARIANT),p1)
@@ -91,7 +92,7 @@ VSIM_COVER = $(if $(COV_ENABLED_BOOL),-coverage,)
 RUN_DO = $(if $(COV_ENABLED_BOOL),coverage save -onexit $(abspath $(COV_DIR))/$(COV_STEM)_s$(SEED).ucdb; run -all; quit -f,run -all; quit -f)
 DV_CONTEXT_PLUSARGS = +DV_TB_DIR=$(TB_DIR) +DV_SEED=$(SEED)
 
-# ── VHDL sources ─────────────────────────────────────────────────
+# ── RTL sources ──────────────────────────────────────────────────
 VHDL_SRCS = \
   $(IP_DIR)/rtl/cam_helper_pkg.vhd \
   $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
@@ -103,6 +104,22 @@ VHDL_SRCS = \
   $(IP_DIR)/rtl/addr_enc_logic_partitioned.vhd \
   $(IP_DIR)/rtl/ring_buffer_cam_v2_core.vhd \
   $(IP_DIR)/rtl/ring_buffer_cam.vhd
+
+SV_DUT_SRCS = \
+  $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv \
+  $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_fifo.sv \
+  $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_core.sv \
+  $(IP_DIR)/rtl/sv_ver/ring_buffer_cam.sv
+
+ifeq ($(RTL_IMPL),sv)
+  ACTIVE_VHDL_SRCS =
+  ACTIVE_SV_DUT_SRCS = $(SV_DUT_SRCS)
+  ACTIVE_VERILOG_DUT_SRCS =
+else
+  ACTIVE_VHDL_SRCS = $(VHDL_SRCS)
+  ACTIVE_SV_DUT_SRCS =
+  ACTIVE_VERILOG_DUT_SRCS = $(IP_DIR)/rtl/b2o_encoder.v
+endif
 
 SIM_COMPAT_SRCS = \
   $(SIM_COMPAT)/altera_mf_components.vhd \
@@ -157,7 +174,7 @@ CFG_CASES = p1 p2 p3 p4
 
 compile: $(WORK_DIR)/.compiled
 
-$(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS) $(SIM_COMPAT_SRCS)
+$(WORK_DIR)/.compiled: Makefile $(ACTIVE_VHDL_SRCS) $(ACTIVE_SV_DUT_SRCS) $(ACTIVE_VERILOG_DUT_SRCS) $(SV_SRCS) $(SIM_COMPAT_SRCS)
 	@rm -rf $(WORK_DIR)
 	@mkdir -p $(WORK_DIR)
 	@cp $(QSIM_INI) $(WORK_DIR)/modelsim.ini
@@ -176,11 +193,16 @@ $(WORK_DIR)/.compiled: Makefile $(VHDL_SRCS) $(SV_SRCS) $(SIM_COMPAT_SRCS)
 	  $(VCOM_COVER) $(SIM_COMPAT)/scfifo.vhd
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -sv -quiet \
 	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) $(UVM_SRC)/uvm_pkg.sv
-	@for f in $(VHDL_SRCS); do \
+	@for f in $(ACTIVE_VHDL_SRCS); do \
 	  cd $(WORK_DIR) && $(VCOM) -2008 -modelsimini modelsim.ini -work work -quiet $(VCOM_COVER) "$$f"; \
 	done
-	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet \
-	  $(VLOG_COVER) $(IP_DIR)/rtl/b2o_encoder.v
+	@for f in $(ACTIVE_VERILOG_DUT_SRCS); do \
+	  cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet $(VLOG_COVER) "$$f"; \
+	done
+	@for f in $(ACTIVE_SV_DUT_SRCS); do \
+	  cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet -sv \
+	    $(VLOG_COVER) +incdir+$(IP_DIR)/rtl/sv_ver "$$f"; \
+	done
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet -mfcu \
 	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
 	  $(SV_SRCS)
