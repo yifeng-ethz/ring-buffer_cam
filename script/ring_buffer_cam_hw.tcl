@@ -314,10 +314,15 @@ add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file ring_buffer_cam_sv_pkg.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
-add_fileset_file ring_buffer_cam_fifo.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_fifo.sv
-add_fileset_file ring_buffer_cam_core.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_core.sv
-add_fileset_file ring_buffer_cam.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam.sv TOP_LEVEL_FILE
+add_fileset_file ring_buffer_cam.vhd VHDL PATH ../rtl/vhd_ver/ring_buffer_cam.vhd TOP_LEVEL_FILE
+add_fileset_file ring_buffer_cam_v2_core.vhd VHDL PATH ../rtl/vhd_ver/ring_buffer_cam_v2_core.vhd
+add_fileset_file alt_simple_dpram.vhd VHDL PATH ../rtl/common/alt_simple_dpram.vhd
+add_fileset_file cam_helper_pkg.vhd VHDL PATH ../rtl/vhd_ver/cam_helper_pkg.vhd
+add_fileset_file cam_mem_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_a5.vhd
+add_fileset_file cam_mem_blk_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_blk_a5.vhd
+add_fileset_file scfifo_w40d256.vhd VHDL PATH ../rtl/common/alt_fifo/scfifo_w40d256.vhd
+add_fileset_file cmd_fifo.vhd VHDL PATH ../rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd
+add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH ../rtl/vhd_ver/addr_enc_logic_partitioned.vhd
 
 add_parameter SEARCH_KEY_WIDTH NATURAL $DEFAULT_SEARCH_KEY_WIDTH_CONST
 set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"
