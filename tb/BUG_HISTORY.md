@@ -122,15 +122,15 @@ Historical formal note:
   - `state`: fixed and verified in the SV sector-lock regression
   - `mechanism`: keep a global lock through SEARCH until the pop snapshot is valid, then derive an 8-sector lock mask from the frozen `pop_snapshot` plus the in-flight pop issue address; push writes and delayed push erases can overlap LOAD/COUNT/DRAIN only when their address is outside that sector mask
   - `before_fix_outcome`: the v26.2.8 SV baseline still used the global pop-idle-only push grant, so the overlap guard would not see safe push service during non-conflicting pop phases
-  - `after_fix_outcome`: `test_sector_lock_overlap` passes by running `B090`, `B091`, and `B133`; isolated `B130` and `B131` pass with the updated spatial-lock guards; the full SV p4 regression passes 12/12 with no untracked scoreboard loss
-  - `potential_hazard`: moderate; the functional safety is now guarded in UVM, but the sector-lock timing contract still needs the planned formal harness before signoff
+  - `after_fix_outcome`: `test_sector_lock_overlap` passes by running `B090`, `B091`, and `B133`; isolated `B092`, `B130`, and `B131` pass with the updated spatial-lock guards; the full SV p4 regression passes 12/12 with no untracked scoreboard loss
+  - `potential_hazard`: low to moderate; the functional safety is guarded in UVM and the SEARCH/sector-lock grant invariants now prove 8/8 in the SV formal wrapper, but timing signoff still needs the normal standalone synthesis pass
   - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - validated with `make -C ring-buffer_cam/tb/uvm run TEST=test_sector_lock_overlap RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
-  - validated with isolated `B130` and `B131` reruns using `make -C ring-buffer_cam/tb/uvm run_case CASE_ID=<case> RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
+  - validated with isolated `B092`, `B130`, and `B131` reruns using `make -C ring-buffer_cam/tb/uvm run_case CASE_ID=<case> RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
   - validated with `make -C ring-buffer_cam/tb/uvm regress SEEDS=1 RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
   - validated with `make -C ring-buffer_cam/tb/uvm cfg_matrix RTL_IMPL=sv COV_ENABLE=0 VERBOSITY=UVM_LOW`
-  - static screen: `python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py --top ring_buffer_cam --filelist ring-buffer_cam/tb/formal/ring_buffer_cam_sv_static.f`
+  - static/formal screen: `python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py --top ring_buffer_cam_sector_lock_formal_top --filelist ring-buffer_cam/tb/formal/ring_buffer_cam_sector_lock_formal.f --modes lint,cdc,rdc,formal`; property summary reported 8 asserts, 8 proven
 - Commit: pending this fix commit
 
 ## 2026-04-16

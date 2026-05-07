@@ -2,7 +2,7 @@
 
 **DUT:** `ring_buffer_cam` &nbsp;
 **Active variant:** `default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`) &nbsp;
-**Date:** `2026-04-21`
+**Date:** `2026-05-07`
 
 **Companion to:** [`DV_PLAN.md`](DV_PLAN.md). Case catalogs: [`DV_BASIC.md`](DV_BASIC.md) · [`DV_EDGE.md`](DV_EDGE.md) · [`DV_PROF.md`](DV_PROF.md) · [`DV_ERROR.md`](DV_ERROR.md) · [`DV_CROSS.md`](DV_CROSS.md). Live dashboard: [`DV_REPORT.md`](DV_REPORT.md). Bug ledger: [`BUG_HISTORY.md`](BUG_HISTORY.md).
 
@@ -58,6 +58,11 @@ The current evidence set establishes:
   - `B090` proves a safe push can overlap non-IDLE pop service once SEARCH has produced a stable ownership mask
   - `B091`, `B130`, and `B131` prove same-sector LOAD/COUNT/DRAIN ownership still blocks the competing push path
   - `B092` proves the delayed overwrite erase path obeys the same SEARCH and sector-lock rules
+- `tb/formal/ring_buffer_cam_sector_lock_formal_top.sv` instantiates the DUT plus `tb/formal/ring_buffer_cam_sector_lock_sva.sv` in the SV formal context:
+  - SEARCH blocks push writes and delayed push erases
+  - locked pop sectors block push writes and delayed push erases
+  - flush grant has exclusive ownership of the memory arbiter
+  - the 2026-05-07 qverify run proved all 8 sector-lock assertions
 - the SEARCH-window closure now has an explicit early-window guard as well:
   - `B133` proves a cross-key `push_write_grant` cannot slip into the unstable SEARCH window before the snapshot is frozen
   - `B056` still anchors the SEARCH wait-count contract at `0..5` after the settled-tail retiming
