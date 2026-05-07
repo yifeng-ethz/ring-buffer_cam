@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.7
-// Date    : 20260506
-// Change  : add SystemVerilog rbCAM core with the VHDL-visible debug contract
+// Version : 26.2.8
+// Date    : 20260507
+// Change  : add 64-bit CSR counters, counter freeze, and 64-deep deassembly FIFO
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,9 +16,9 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 7,
-  parameter int BUILD               = 506,
-  parameter int VERSION_DATE        = 20260506,
+  parameter int VERSION_PATCH       = 8,
+  parameter int BUILD               = 507,
+  parameter int VERSION_DATE        = 20260507,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
   parameter int DEBUG               = 1
@@ -67,7 +67,7 @@ module ring_buffer_cam_core #(
   import ring_buffer_cam_sv_pkg::*;
 
   localparam int ADDR_W_CONST          = (RING_BUFFER_N_ENTRY <= 2) ? 1 : $clog2(RING_BUFFER_N_ENTRY);
-  localparam int DEASM_DEPTH_CONST     = 256;
+  localparam int DEASM_DEPTH_CONST     = 64;
   localparam int POP_CMD_DEPTH_CONST   = 16;
   localparam int FLUSH_CYCLES_CONST    = (RING_BUFFER_N_ENTRY < 32) ? 32 : RING_BUFFER_N_ENTRY;
   localparam logic [8:0] CTRL_IDLE_CONST        = 9'b0_0000_0001;
@@ -92,10 +92,12 @@ module ring_buffer_cam_core #(
   pop_state_e pop_engine_state;
   push_state_e push_state;
   debug_msg_t debug_msg2;
+  debug_msg_t debug_msg2_snap;
 
   logic csr_go;
   logic csr_soft_reset_pulse;
   logic csr_filter_inerr;
+  logic csr_counter_freeze;
   logic [31:0] csr_expected_latency;
   logic [1:0] csr_meta_sel;
   logic [47:0] expected_latency_48b;
@@ -114,6 +116,10 @@ module ring_buffer_cam_core #(
   logic deassembly_fifo_sclr;
   logic [$clog2(DEASM_DEPTH_CONST+1)-1:0] deassembly_fifo_usedw_int;
   logic [7:0] deassembly_fifo_usedw;
+  logic ingress_active_window;
+  logic ingress_lane_match;
+  logic ingress_payload_countable;
+  logic deasm_full_drop_event;
 
   logic [8:0] pop_cmd_fifo_din;
   logic [8:0] pop_cmd_fifo_dout;
@@ -124,6 +130,8 @@ module ring_buffer_cam_core #(
   logic pop_cmd_fifo_sclr;
   logic [$clog2(POP_CMD_DEPTH_CONST+1)-1:0] pop_cmd_fifo_usedw_int;
   logic [3:0] pop_cmd_fifo_usedw;
+  logic pop_cmd_tick_due;
+  logic pop_cmd_full_drop_event;
 
   logic [RING_BUFFER_N_ENTRY-1:0] slot_valid;
   logic [38:0] slot_hit [RING_BUFFER_N_ENTRY];
@@ -189,6 +197,7 @@ module ring_buffer_cam_core #(
   logic [3:0] dbg_pop_partition_flag;
   logic [3:0] dbg_pop_partition_has_more;
   logic [3:0] dbg_pop_partition_eval_stage0_valid;
+  logic egress_not_ready_drop_event;
 
   logic endofrun_seen;
   logic terminating_drain_done;
@@ -212,11 +221,12 @@ module ring_buffer_cam_core #(
   assign dbg_side_ram_patch_addr = '0;
   assign dbg_side_ram_patch_data = '0;
   assign expected_latency_48b = {16'd0, csr_expected_latency};
-  assign deassembly_fifo_usedw = deassembly_fifo_usedw_int[7:0];
+  assign deassembly_fifo_usedw = 8'(deassembly_fifo_usedw_int);
   assign pop_cmd_fifo_usedw = pop_cmd_fifo_usedw_int[3:0];
   assign deassembly_fifo_sclr = csr_soft_reset_pulse || (run_state_cmd == RUN_PREPARING && flush_cycle_count == 16'd0);
   assign pop_cmd_fifo_sclr = deassembly_fifo_sclr;
   assign gts_counter_rst = (run_state_cmd != RUN_RUNNING && run_state_cmd != RUN_TERMINATING);
+  assign egress_not_ready_drop_event = aso_hit_type2_valid && !aso_hit_type2_ready;
 
   assign coe_debug_fill_level = avs_fill_level_word();
   assign coe_debug_fifo_level = {
@@ -243,9 +253,22 @@ module ring_buffer_cam_core #(
   assign aso_filllevel_data = avs_fill_level_word()[15:0];
 
   function automatic logic [31:0] avs_fill_level_word();
-    logic [47:0] level;
+    logic [63:0] level;
     level = debug_msg2.push_cnt - debug_msg2.pop_cnt - debug_msg2.overwrite_cnt;
     return level[31:0];
+  endfunction
+
+  function automatic logic [31:0] counter_word(
+    input logic [63:0] live_value,
+    input logic [63:0] snap_value,
+    input logic        high_word
+  );
+    logic [63:0] selected;
+    selected = csr_counter_freeze ? snap_value : live_value;
+    if (high_word) begin
+      return selected[63:32];
+    end
+    return selected[31:0];
   endfunction
 
   function automatic logic [ADDR_W_CONST-1:0] ptr_inc(
@@ -295,14 +318,25 @@ module ring_buffer_cam_core #(
           default: data = INSTANCE_ID[31:0];
         endcase
       end
-      5'd2: data = {27'd0, csr_filter_inerr, 2'd0, 1'b0, csr_go};
+      5'd2: data = {26'd0, csr_counter_freeze, csr_filter_inerr, 2'd0, 1'b0, csr_go};
       5'd3: data = csr_expected_latency;
       5'd4: data = avs_fill_level_word();
-      5'd5: data = debug_msg2.inerr_cnt[31:0];
-      5'd6: data = debug_msg2.push_cnt[31:0];
-      5'd7: data = debug_msg2.pop_cnt[31:0];
-      5'd8: data = debug_msg2.overwrite_cnt[31:0];
-      5'd9: data = debug_msg2.cache_miss_cnt[31:0];
+      5'd5: data = counter_word(debug_msg2.inerr_cnt, debug_msg2_snap.inerr_cnt, 1'b0);
+      5'd6: data = counter_word(debug_msg2.push_cnt, debug_msg2_snap.push_cnt, 1'b0);
+      5'd7: data = counter_word(debug_msg2.pop_cnt, debug_msg2_snap.pop_cnt, 1'b0);
+      5'd8: data = counter_word(debug_msg2.overwrite_cnt, debug_msg2_snap.overwrite_cnt, 1'b0);
+      5'd9: data = counter_word(debug_msg2.cache_miss_cnt, debug_msg2_snap.cache_miss_cnt, 1'b0);
+      5'd10: data = counter_word(debug_msg2.inerr_cnt, debug_msg2_snap.inerr_cnt, 1'b1);
+      5'd11: data = counter_word(debug_msg2.push_cnt, debug_msg2_snap.push_cnt, 1'b1);
+      5'd12: data = counter_word(debug_msg2.pop_cnt, debug_msg2_snap.pop_cnt, 1'b1);
+      5'd13: data = counter_word(debug_msg2.overwrite_cnt, debug_msg2_snap.overwrite_cnt, 1'b1);
+      5'd14: data = counter_word(debug_msg2.cache_miss_cnt, debug_msg2_snap.cache_miss_cnt, 1'b1);
+      5'd15: data = counter_word(debug_msg2.deasm_full_drop_cnt, debug_msg2_snap.deasm_full_drop_cnt, 1'b0);
+      5'd16: data = counter_word(debug_msg2.deasm_full_drop_cnt, debug_msg2_snap.deasm_full_drop_cnt, 1'b1);
+      5'd17: data = counter_word(debug_msg2.pop_cmd_full_drop_cnt, debug_msg2_snap.pop_cmd_full_drop_cnt, 1'b0);
+      5'd18: data = counter_word(debug_msg2.pop_cmd_full_drop_cnt, debug_msg2_snap.pop_cmd_full_drop_cnt, 1'b1);
+      5'd19: data = counter_word(debug_msg2.egress_not_ready_drop_cnt, debug_msg2_snap.egress_not_ready_drop_cnt, 1'b0);
+      5'd20: data = counter_word(debug_msg2.egress_not_ready_drop_cnt, debug_msg2_snap.egress_not_ready_drop_cnt, 1'b1);
       default: data = '0;
     endcase
     return data;
@@ -341,23 +375,28 @@ module ring_buffer_cam_core #(
   );
 
   always_comb begin
-    logic lane_match;
-
-    lane_match = lane_matches(
+    ingress_lane_match = lane_matches(
       asi_hit_type1_data,
       asi_hit_type1_channel,
       asi_hit_type1_empty,
       INTERLEAVING_INDEX
     );
+    ingress_active_window =
+      (run_state_cmd == RUN_RUNNING ||
+       (run_state_cmd == RUN_TERMINATING && !endofrun_seen)) &&
+      csr_go &&
+      asi_hit_type1_valid &&
+      !asi_hit_type1_empty &&
+      ingress_lane_match;
+    ingress_payload_countable =
+      ingress_active_window &&
+      (!csr_filter_inerr || !asi_hit_type1_error[0]);
+    deasm_full_drop_event = ingress_payload_countable && deassembly_fifo_full;
+
     deassembly_fifo_din = {1'b0, asi_hit_type1_data};
     deassembly_fifo_wrreq = 1'b0;
-    if ((run_state_cmd == RUN_RUNNING ||
-         (run_state_cmd == RUN_TERMINATING && !endofrun_seen)) &&
-        csr_go && asi_hit_type1_valid && !asi_hit_type1_empty &&
-        lane_match && !deassembly_fifo_full) begin
-      if (!csr_filter_inerr || !asi_hit_type1_error[0]) begin
-        deassembly_fifo_wrreq = 1'b1;
-      end
+    if (ingress_payload_countable && !deassembly_fifo_full) begin
+      deassembly_fifo_wrreq = 1'b1;
     end
 
     asi_hit_type1_ready =
@@ -389,11 +428,13 @@ module ring_buffer_cam_core #(
   always_comb begin
     pop_cmd_fifo_wrreq = 1'b0;
     pop_cmd_fifo_din = '0;
-    if ((run_state_cmd == RUN_RUNNING ||
-         (run_state_cmd == RUN_TERMINATING && !terminating_drain_done)) &&
-        !pop_cmd_fifo_full &&
-        read_time_ptr[3:0] == 4'h0 &&
-        read_time_ptr[5:4] == INTERLEAVING_INDEX[1:0]) begin
+    pop_cmd_tick_due =
+      (run_state_cmd == RUN_RUNNING ||
+       (run_state_cmd == RUN_TERMINATING && !terminating_drain_done)) &&
+      read_time_ptr[3:0] == 4'h0 &&
+      read_time_ptr[5:4] == INTERLEAVING_INDEX[1:0];
+    pop_cmd_full_drop_event = pop_cmd_tick_due && pop_cmd_fifo_full;
+    if (pop_cmd_tick_due && !pop_cmd_fifo_full) begin
       pop_cmd_fifo_wrreq = 1'b1;
       pop_cmd_fifo_din = read_time_ptr[12:4];
     end
@@ -465,8 +506,11 @@ module ring_buffer_cam_core #(
       csr_go <= 1'b1;
       csr_soft_reset_pulse <= 1'b0;
       csr_filter_inerr <= 1'b1;
+      csr_counter_freeze <= 1'b0;
       csr_expected_latency <= DEFAULT_EXPECTED_LATENCY_CONST;
       csr_meta_sel <= 2'd0;
+      debug_msg2_snap <= '0;
+      debug_msg2_snap.cam_clean <= 1'b1;
     end else begin
       csr_soft_reset_pulse <= 1'b0;
       if (avs_csr_read) begin
@@ -480,8 +524,14 @@ module ring_buffer_cam_core #(
           5'd2: begin
             csr_go <= avs_csr_writedata[0];
             csr_filter_inerr <= avs_csr_writedata[4];
+            csr_counter_freeze <= avs_csr_writedata[5];
+            if (avs_csr_writedata[5]) begin
+              debug_msg2_snap <= debug_msg2;
+            end
             if (avs_csr_writedata[1]) begin
               csr_soft_reset_pulse <= 1'b1;
+              debug_msg2_snap <= '0;
+              debug_msg2_snap.cam_clean <= 1'b1;
             end
           end
           5'd3: csr_expected_latency <= avs_csr_writedata;
@@ -660,7 +710,19 @@ module ring_buffer_cam_core #(
       end else begin
         if (asi_hit_type1_valid && asi_hit_type1_error[0] && asi_hit_type1_ready &&
             !asi_hit_type1_empty && csr_filter_inerr) begin
-          debug_msg2.inerr_cnt <= debug_msg2.inerr_cnt + 48'd1;
+          debug_msg2.inerr_cnt <= debug_msg2.inerr_cnt + 64'd1;
+        end
+
+        if (deasm_full_drop_event) begin
+          debug_msg2.deasm_full_drop_cnt <= debug_msg2.deasm_full_drop_cnt + 64'd1;
+        end
+
+        if (pop_cmd_full_drop_event) begin
+          debug_msg2.pop_cmd_full_drop_cnt <= debug_msg2.pop_cmd_full_drop_cnt + 64'd1;
+        end
+
+        if (egress_not_ready_drop_event) begin
+          debug_msg2.egress_not_ready_drop_cnt <= debug_msg2.egress_not_ready_drop_cnt + 64'd1;
         end
 
         if (dbg_side_ram_patch_we) begin
@@ -677,10 +739,10 @@ module ring_buffer_cam_core #(
           slot_metadata[write_pointer] <= asi_hit_type1_metadata;
           slot_metadata_valid[write_pointer] <= asi_hit_type1_metadata_valid;
           write_pointer <= ptr_inc(write_pointer);
-          debug_msg2.push_cnt <= debug_msg2.push_cnt + 48'd1;
+          debug_msg2.push_cnt <= debug_msg2.push_cnt + 64'd1;
           push_state <= slot_valid[write_pointer] ? PUSH_ERASING : PUSH_WRITING;
         end else if (push_erase_grant) begin
-          debug_msg2.overwrite_cnt <= debug_msg2.overwrite_cnt + 48'd1;
+          debug_msg2.overwrite_cnt <= debug_msg2.overwrite_cnt + 64'd1;
           push_state <= PUSH_WRITING;
         end
 
@@ -694,14 +756,14 @@ module ring_buffer_cam_core #(
           pop_occupied_pending <= slot_valid[pop_issue_addr[ADDR_W_CONST-1:0]];
           slot_valid[pop_issue_addr[ADDR_W_CONST-1:0]] <= 1'b0;
           slot_metadata_valid[pop_issue_addr[ADDR_W_CONST-1:0]] <= 1'b0;
-          debug_msg2.pop_cnt <= debug_msg2.pop_cnt + 48'd1;
+          debug_msg2.pop_cnt <= debug_msg2.pop_cnt + 64'd1;
           pop_output_pending <= 1'b1;
         end else if (pop_hit_valid) begin
           pop_output_pending <= 1'b0;
         end
 
         if (pop_cache_miss_pulse) begin
-          debug_msg2.cache_miss_cnt <= debug_msg2.cache_miss_cnt + 48'd1;
+          debug_msg2.cache_miss_cnt <= debug_msg2.cache_miss_cnt + 64'd1;
         end
       end
     end

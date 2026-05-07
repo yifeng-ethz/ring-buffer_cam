@@ -336,8 +336,8 @@ package ring_buffer_cam_pkg;
 
     bit [15:0] slot_addr;
     bit [38:0] raw_hit;
-    bit [47:0] push_count;
-    bit [47:0] overwrite_count;
+    bit [63:0] push_count;
+    bit [63:0] overwrite_count;
 
     function new(string name = "debug_push_item");
       super.new(name);
@@ -362,7 +362,7 @@ package ring_buffer_cam_pkg;
     bit [15:0] slot_addr;
     bit [38:0] raw_hit;
     bit        occupied;
-    bit [47:0] pop_count;
+    bit [63:0] pop_count;
     bit [7:0]  active_search_key;
 
     function new(string name = "debug_pop_item");

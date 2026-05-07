@@ -21,11 +21,11 @@ set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
 set DEFAULT_DEBUG_CONST            1
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            506
+set BUILD_DEFAULT_CONST            507
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    7
-set VERSION_DATE_DEFAULT_CONST     20260506
+set VERSION_PATCH_DEFAULT_CONST    8
+set VERSION_DATE_DEFAULT_CONST     20260507
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
@@ -84,7 +84,7 @@ proc is_power_of_two {value} {
 }
 
 set CSR_ADDR_W_CONST            5
-set CSR_LAST_WORD_CONST         9
+set CSR_LAST_WORD_CONST         20
 set HIT_TYPE1_WIDTH_CONST       39
 set HIT_TYPE2_WIDTH_CONST       36
 set RUN_CONTROL_WIDTH_CONST     9
@@ -96,14 +96,25 @@ set CSR_TABLE_HTML {<html><table border="1" width="100%">
 <tr><th>Word</th><th>Byte</th><th>Name</th><th>Access</th><th>Description</th></tr>
 <tr><td>0x00</td><td>0x000</td><td>UID</td><td>RO</td><td>Software-visible IP identifier. Default is ASCII <b>RBCM</b> but it is integration-time overridable.</td></tr>
 <tr><td>0x01</td><td>0x004</td><td>META</td><td>RW/RO</td><td>Read-multiplexed metadata word. Write <b>0</b>=VERSION, <b>1</b>=DATE, <b>2</b>=GIT, <b>3</b>=INSTANCE_ID. VERSION is packed as MAJOR[31:24], MINOR[23:16], PATCH[15:12], BUILD[11:0].</td></tr>
-<tr><td>0x02</td><td>0x008</td><td>CTRL</td><td>RW</td><td>Bit 0 <b>go</b>, bit 1 <b>soft_reset</b>, bit 4 <b>filter_inerr</b>.</td></tr>
+<tr><td>0x02</td><td>0x008</td><td>CTRL</td><td>RW</td><td>Bit 0 <b>go</b>, bit 1 <b>soft_reset</b>, bit 4 <b>filter_inerr</b>, bit 5 <b>counter_freeze</b>. Writing counter_freeze=1 snapshots all 64-bit diagnostic counters for coherent low/high-word readout.</td></tr>
 <tr><td>0x03</td><td>0x00C</td><td>EXPECTED_LATENCY</td><td>RW</td><td>Read-pointer delay target in cycles. Reset default is 2000.</td></tr>
 <tr><td>0x04</td><td>0x010</td><td>FILL_LEVEL</td><td>RO</td><td>Live fill-level estimate derived from push, pop, and overwrite counters.</td></tr>
-<tr><td>0x05</td><td>0x014</td><td>INERR_COUNT</td><td>RO</td><td>Count of filtered ingress timestamp-error hits.</td></tr>
-<tr><td>0x06</td><td>0x018</td><td>PUSH_COUNT</td><td>RO</td><td>Total accepted push operations.</td></tr>
-<tr><td>0x07</td><td>0x01C</td><td>POP_COUNT</td><td>RO</td><td>Total drained hits.</td></tr>
-<tr><td>0x08</td><td>0x020</td><td>OVERWRITE_COUNT</td><td>RO</td><td>Total overwrite events.</td></tr>
-<tr><td>0x09</td><td>0x024</td><td>CACHE_MISS_COUNT</td><td>RO</td><td>Total cache-miss / empty-search events.</td></tr>
+<tr><td>0x05</td><td>0x014</td><td>INERR_COUNT_LO</td><td>RO</td><td>Low word of filtered ingress timestamp-error hit count.</td></tr>
+<tr><td>0x06</td><td>0x018</td><td>PUSH_COUNT_LO</td><td>RO</td><td>Low word of accepted push operations.</td></tr>
+<tr><td>0x07</td><td>0x01C</td><td>POP_COUNT_LO</td><td>RO</td><td>Low word of drained hits.</td></tr>
+<tr><td>0x08</td><td>0x020</td><td>OVERWRITE_COUNT_LO</td><td>RO</td><td>Low word of overwrite events.</td></tr>
+<tr><td>0x09</td><td>0x024</td><td>CACHE_MISS_COUNT_LO</td><td>RO</td><td>Low word of cache-miss / empty-search events.</td></tr>
+<tr><td>0x0A</td><td>0x028</td><td>INERR_COUNT_HI</td><td>RO</td><td>High word of filtered ingress timestamp-error hit count.</td></tr>
+<tr><td>0x0B</td><td>0x02C</td><td>PUSH_COUNT_HI</td><td>RO</td><td>High word of accepted push operations.</td></tr>
+<tr><td>0x0C</td><td>0x030</td><td>POP_COUNT_HI</td><td>RO</td><td>High word of drained hits.</td></tr>
+<tr><td>0x0D</td><td>0x034</td><td>OVERWRITE_COUNT_HI</td><td>RO</td><td>High word of overwrite events.</td></tr>
+<tr><td>0x0E</td><td>0x038</td><td>CACHE_MISS_COUNT_HI</td><td>RO</td><td>High word of cache-miss / empty-search events.</td></tr>
+<tr><td>0x0F</td><td>0x03C</td><td>DEASM_FULL_DROP_LO</td><td>RO</td><td>Low word of ingress/deassembly FIFO full-induced drop observations.</td></tr>
+<tr><td>0x10</td><td>0x040</td><td>DEASM_FULL_DROP_HI</td><td>RO</td><td>High word of ingress/deassembly FIFO full-induced drop observations.</td></tr>
+<tr><td>0x11</td><td>0x044</td><td>POP_CMD_FULL_DROP_LO</td><td>RO</td><td>Low word of pop-command FIFO full observations.</td></tr>
+<tr><td>0x12</td><td>0x048</td><td>POP_CMD_FULL_DROP_HI</td><td>RO</td><td>High word of pop-command FIFO full observations.</td></tr>
+<tr><td>0x13</td><td>0x04C</td><td>EGRESS_NOT_READY_DROP_LO</td><td>RO</td><td>Low word of egress hit words generated while the downstream sink was not ready.</td></tr>
+<tr><td>0x14</td><td>0x050</td><td>EGRESS_NOT_READY_DROP_HI</td><td>RO</td><td>High word of egress hit words generated while the downstream sink was not ready.</td></tr>
 </table></html>}
 
 proc compute_derived_values {} {
@@ -303,17 +314,10 @@ add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file ring_buffer_cam.vhd VHDL PATH ../rtl/ring_buffer_cam.vhd TOP_LEVEL_FILE
-add_fileset_file ring_buffer_cam_v2_core.vhd VHDL PATH ../rtl/ring_buffer_cam_v2_core.vhd
-add_fileset_file cam_helper_pkg.vhd VHDL PATH ../rtl/cam_helper_pkg.vhd
-add_fileset_file alt_simple_dpram.vhd VHDL PATH ../rtl/alt_simple_dpram.vhd
-add_fileset_file cam_mem_a5.vhd VHDL PATH ../rtl/cam_mem_a5.vhd
-add_fileset_file cam_mem_blk_a5.vhd VHDL PATH ../rtl/cam_mem_blk_a5.vhd
-add_fileset_file alt_fifo/scfifo_w40d256.vhd VHDL PATH ../rtl/alt_fifo/scfifo_w40d256.vhd
-add_fileset_file alt_fifo/cmd_fifo/cmd_fifo.vhd VHDL PATH ../rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd
-add_fileset_file b2o_encoder.v VERILOG PATH ../rtl/b2o_encoder.v
-add_fileset_file addr_enc_logic_small.vhd VHDL PATH ../rtl/addr_enc_logic_small.vhd
-add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH ../rtl/addr_enc_logic_partitioned.vhd
+add_fileset_file ring_buffer_cam_sv_pkg.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
+add_fileset_file ring_buffer_cam_fifo.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_fifo.sv
+add_fileset_file ring_buffer_cam_core.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_core.sv
+add_fileset_file ring_buffer_cam.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam.sv TOP_LEVEL_FILE
 
 add_parameter SEARCH_KEY_WIDTH NATURAL $DEFAULT_SEARCH_KEY_WIDTH_CONST
 set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"

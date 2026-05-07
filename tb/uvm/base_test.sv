@@ -19,6 +19,31 @@ class base_test extends uvm_test;
   localparam int unsigned CSR_POP_COUNT_ADDR       = 7;
   localparam int unsigned CSR_OVERWRITE_ADDR       = 8;
   localparam int unsigned CSR_CACHE_MISS_ADDR      = 9;
+  localparam int unsigned CSR_INERR_COUNT_HI_ADDR  = 10;
+  localparam int unsigned CSR_PUSH_COUNT_HI_ADDR   = 11;
+  localparam int unsigned CSR_POP_COUNT_HI_ADDR    = 12;
+  localparam int unsigned CSR_OVERWRITE_HI_ADDR    = 13;
+  localparam int unsigned CSR_CACHE_MISS_HI_ADDR   = 14;
+  localparam int unsigned CSR_DEASM_DROP_ADDR      = 15;
+  localparam int unsigned CSR_DEASM_DROP_HI_ADDR   = 16;
+  localparam int unsigned CSR_POP_CMD_DROP_ADDR    = 17;
+  localparam int unsigned CSR_POP_CMD_DROP_HI_ADDR = 18;
+  localparam int unsigned CSR_EGRESS_DROP_ADDR     = 19;
+  localparam int unsigned CSR_EGRESS_DROP_HI_ADDR  = 20;
+
+`ifdef RBCAM_SV_IMPL
+  localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0033;
+  localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0031;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd8;
+  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd507;
+  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260507;
+`else
+  localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0013;
+  localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0011;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd7;
+  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd506;
+  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260506;
+`endif
 
   ring_buffer_cam_env                       m_env;
   ring_buffer_cam_pkg::ring_buffer_cam_cfg  m_cfg;
@@ -163,6 +188,18 @@ class base_test extends uvm_test;
     logic [31:0] data;
     csr_read(addr, data);
     value = data;
+  endtask
+
+  task automatic read_counter_u64(
+    int unsigned low_addr,
+    int unsigned high_addr,
+    output logic [63:0] value
+  );
+    logic [31:0] low_word;
+    logic [31:0] high_word;
+    csr_read(low_addr, low_word);
+    csr_read(high_addr, high_word);
+    value = {high_word, low_word};
   endtask
 
   task automatic ctrl_send(logic [8:0] cmd);
@@ -719,6 +756,9 @@ class base_test extends uvm_test;
     logic [31:0] push_count;
     logic [31:0] pop_count;
     logic [31:0] fill_level;
+    logic [63:0] push_snapshot;
+    logic [63:0] push_live;
+    logic [63:0] drop_count;
 
     configure_and_start();
 
@@ -754,6 +794,42 @@ class base_test extends uvm_test;
         "FILL_LEVEL larger than PUSH_COUNT: fill=%0d push=%0d",
         fill_level, push_count))
     end
+
+`ifdef RBCAM_SV_IMPL
+    read_counter_u64(CSR_DEASM_DROP_ADDR, CSR_DEASM_DROP_HI_ADDR, drop_count);
+    if (drop_count != 64'd0) begin
+      `uvm_error("CFG", $sformatf("DEASM_DROP_COUNT nonzero in B003 nominal traffic: %0d", drop_count))
+    end
+    read_counter_u64(CSR_POP_CMD_DROP_ADDR, CSR_POP_CMD_DROP_HI_ADDR, drop_count);
+    if (drop_count != 64'd0) begin
+      `uvm_error("CFG", $sformatf("POP_CMD_DROP_COUNT nonzero in B003 nominal traffic: %0d", drop_count))
+    end
+    read_counter_u64(CSR_EGRESS_DROP_ADDR, CSR_EGRESS_DROP_HI_ADDR, drop_count);
+    if (drop_count != 64'd0) begin
+      `uvm_error("CFG", $sformatf("EGRESS_DROP_COUNT nonzero in B003 nominal traffic: %0d", drop_count))
+    end
+
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0031);
+    wait_clocks(2);
+    read_counter_u64(CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR, push_snapshot);
+    burst_seq = same_key_burst_seq::type_id::create("freeze_extra_burst");
+    burst_seq.num_hits = 4;
+    burst_seq.search_key = 20;
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(push_snapshot[31:0] + 4, 10_000, "counter-freeze live push advance");
+    read_counter_u64(CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR, push_live);
+    if (push_live != push_snapshot) begin
+      `uvm_error("CFG", $sformatf(
+        "Frozen PUSH_COUNT changed while live counter advanced: snapshot=%0d frozen_read=%0d live_dbg=%0d",
+        push_snapshot, push_live, m_env.m_dbg_mon.dbg_push_cnt))
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0011);
+    wait_clocks(2);
+    expect_backdoor_counter64_matches(
+      CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR, m_env.m_dbg_mon.dbg_push_cnt,
+      "PUSH_COUNT 64-bit live read after counter unfreeze");
+    wait_for_scoreboard_idle(40_000, "B003 freeze extension drain");
+`endif
   endtask
 
   task automatic run_x001_filter_inerr_case();
@@ -2855,7 +2931,7 @@ class base_test extends uvm_test;
     csr_write(CSR_CTRL_ADDR, 32'hFFFF_FFFF);
     wait_clocks(2);
     csr_expect_mask(
-      CSR_CTRL_ADDR, 32'hFFFF_FFFF, 32'h0000_0011,
+      CSR_CTRL_ADDR, 32'hFFFF_FFFF, EXPECTED_CTRL_ALL_ONES_CONST,
       "X088 upper CTRL bits stay inert and soft_reset self-clears");
   endtask
 
@@ -2985,7 +3061,7 @@ class base_test extends uvm_test;
     csr_read(CSR_META_ADDR, version_word);
     set_meta_sel(2'b01);
     csr_read(CSR_META_ADDR, date_word);
-    if (version_word != expected_meta_version() || date_word != 32'd20260506) begin
+    if (version_word != expected_meta_version() || date_word != expected_meta_date()) begin
       `uvm_error("X090", $sformatf(
         "META selector write/read mismatch: version=0x%08x date=0x%08x",
         version_word, date_word))
@@ -6461,9 +6537,13 @@ class base_test extends uvm_test;
     version_word = '0;
     version_word[31:24] = 8'd26;
     version_word[23:16] = 8'd2;
-    version_word[15:12] = 4'd7;
-    version_word[11:0]  = 12'd506;
+    version_word[15:12] = EXPECTED_VERSION_PATCH_CONST;
+    version_word[11:0]  = EXPECTED_VERSION_BUILD_CONST;
     return version_word;
+  endfunction
+
+  function automatic logic [31:0] expected_meta_date();
+    return EXPECTED_VERSION_DATE_CONST;
   endfunction
 
   task automatic set_meta_sel(logic [1:0] sel);
@@ -6493,7 +6573,7 @@ class base_test extends uvm_test;
 
   task automatic expect_backdoor_counter_matches(
     int unsigned   addr,
-    logic [47:0]   dbg_value,
+    logic [63:0]   dbg_value,
     string         what
   );
     logic [31:0] data;
@@ -6502,6 +6582,21 @@ class base_test extends uvm_test;
       `uvm_error("DBG_CSR", $sformatf(
         "%s mismatch: frontdoor=0x%08x backdoor=0x%08x",
         what, data, dbg_value[31:0]))
+    end
+  endtask
+
+  task automatic expect_backdoor_counter64_matches(
+    int unsigned   low_addr,
+    int unsigned   high_addr,
+    logic [63:0]   dbg_value,
+    string         what
+  );
+    logic [63:0] data;
+    read_counter_u64(low_addr, high_addr, data);
+    if (data !== dbg_value) begin
+      `uvm_error("DBG_CSR", $sformatf(
+        "%s mismatch: frontdoor=0x%016x backdoor=0x%016x",
+        what, data, dbg_value))
     end
   endtask
 
@@ -7441,7 +7536,7 @@ class base_test extends uvm_test;
     set_meta_sel(2'd0);
     csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "X122 META VERSION after recovery");
     set_meta_sel(2'd1);
-    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "X122 META DATE after recovery");
+    csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_date(), "X122 META DATE after recovery");
     set_meta_sel(2'd2);
     csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "X122 META GIT after recovery");
     set_meta_sel(2'd3);
@@ -7999,23 +8094,23 @@ class base_test extends uvm_test;
 
     if (case_id == "B001") begin
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
-      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL reset defaults");
+      csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL reset defaults");
       csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'd2000, "EXPECTED_LATENCY reset default");
       csr_expect_mask(CSR_FILL_LEVEL_ADDR, 32'hFFFF_FFFF, 32'd0, "FILL_LEVEL reset default");
-      for (int addr = CSR_INERR_COUNT_ADDR; addr <= CSR_CACHE_MISS_ADDR; addr++) begin
+      for (int addr = CSR_INERR_COUNT_ADDR; addr <= CSR_EGRESS_DROP_HI_ADDR; addr++) begin
         csr_expect_mask(addr, 32'hFFFF_FFFF, 32'd0,
           $sformatf("Debug counter reset default addr=%0d", addr));
       end
     end else if (case_id == "B002") begin
       csr_write(CSR_CTRL_ADDR, 32'h0000_0000);
       wait_clocks(2);
-      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0000, "CTRL writable bits clear");
+      csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0000, "CTRL writable bits clear");
       csr_write(CSR_CTRL_ADDR, 32'h0000_0011);
       wait_clocks(2);
-      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL writable bits set");
+      csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL writable bits set");
       csr_write(CSR_CTRL_ADDR, 32'h0000_0013);
       wait_clocks(2);
-      csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL soft_reset self-clears");
+      csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL soft_reset self-clears");
       csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0123);
       wait_clocks(2);
       csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'h0000_0123, "EXPECTED_LATENCY writable");
@@ -8066,7 +8161,7 @@ class base_test extends uvm_test;
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_version(), "META VERSION readback");
     end else if (case_id == "B011") begin
       set_meta_sel(2'b01);
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "META DATE readback");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_date(), "META DATE readback");
     end else if (case_id == "B012") begin
       set_meta_sel(2'b10);
       csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd0, "META GIT readback");
@@ -8084,7 +8179,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B017") begin
       csr_write(CSR_CTRL_ADDR, 32'hFFFF_FFFF);
       wait_clocks(2);
-      csr_expect_mask(CSR_CTRL_ADDR, 32'hFFFF_FFFF, 32'h0000_0011, "CTRL spare bits stay inert");
+      csr_expect_mask(CSR_CTRL_ADDR, 32'hFFFF_FFFF, EXPECTED_CTRL_ALL_ONES_CONST, "CTRL spare bits stay inert");
     end else if (case_id == "B018") begin
       csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'd2000, "EXPECTED_LATENCY reset default");
     end else if (case_id == "B019") begin
@@ -8322,7 +8417,7 @@ class base_test extends uvm_test;
     end else if (case_id == "B031") begin
       set_meta_sel(2'b01);
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable across META sel write");
-      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, 32'd20260506, "META DATE after selector write");
+      csr_expect_mask(CSR_META_ADDR, 32'hFFFF_FFFF, expected_meta_date(), "META DATE after selector write");
       csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID stable after META read");
     end else if (case_id == "B032") begin
       m_env.m_csr_drv.vif.address <= CSR_UID_ADDR[4:0];
@@ -10710,7 +10805,7 @@ class base_test extends uvm_test;
       csr_read(CSR_META_ADDR, data_a);
       set_meta_sel(2'b01);
       csr_read(CSR_META_ADDR, data_b);
-      if (data_a != expected_meta_version() || data_b != 32'd20260506) begin
+      if (data_a != expected_meta_version() || data_b != expected_meta_date()) begin
         `uvm_error("B123", $sformatf(
           "META walk mismatch in VERSION/DATE phase: version=0x%08x date=0x%08x",
           data_a, data_b))
@@ -16248,10 +16343,10 @@ class test_cfg_reset_defaults extends base_test;
     phase.raise_objection(this);
     wait_for_reset_release();
     csr_expect_mask(CSR_UID_ADDR, 32'hFFFF_FFFF, 32'h5242_434d, "UID reset default");
-    csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL reset defaults");
+    csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL reset defaults");
     csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'd2000, "EXPECTED_LATENCY reset default");
     csr_expect_mask(CSR_FILL_LEVEL_ADDR, 32'hFFFF_FFFF, 32'd0, "FILL_LEVEL reset default");
-    for (int addr = CSR_INERR_COUNT_ADDR; addr <= CSR_CACHE_MISS_ADDR; addr++) begin
+    for (int addr = CSR_INERR_COUNT_ADDR; addr <= CSR_EGRESS_DROP_HI_ADDR; addr++) begin
       csr_expect_mask(addr, 32'hFFFF_FFFF, 32'd0,
         $sformatf("Debug counter reset default addr=%0d", addr));
     end
@@ -16272,21 +16367,21 @@ class test_cfg_rw_semantics extends base_test;
 
     csr_write(CSR_CTRL_ADDR, 32'h0000_0000);
     wait_clocks(2);
-    csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0000, "CTRL writable bits clear");
+    csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0000, "CTRL writable bits clear");
 
     csr_write(CSR_CTRL_ADDR, 32'h0000_0011);
     wait_clocks(2);
-    csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL writable bits set");
+    csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL writable bits set");
 
     csr_write(CSR_CTRL_ADDR, 32'h0000_0013);
     wait_clocks(2);
-    csr_expect_mask(CSR_CTRL_ADDR, 32'h0000_0013, 32'h0000_0011, "CTRL soft_reset self-clears");
+    csr_expect_mask(CSR_CTRL_ADDR, EXPECTED_CTRL_MASK_CONST, 32'h0000_0011, "CTRL soft_reset self-clears");
 
     csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0123);
     wait_clocks(2);
     csr_expect_mask(CSR_EXPECTED_LAT_ADDR, 32'h0000_FFFF, 32'h0000_0123, "EXPECTED_LATENCY writable");
 
-    for (int addr = CSR_FILL_LEVEL_ADDR; addr <= CSR_CACHE_MISS_ADDR; addr++) begin
+    for (int addr = CSR_FILL_LEVEL_ADDR; addr <= CSR_EGRESS_DROP_HI_ADDR; addr++) begin
       logic [31:0] before_data;
       csr_read(addr, before_data);
       csr_write(addr, 32'hCAFE_0000 | addr);

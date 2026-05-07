@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_sv_pkg.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.7
-// Date    : 20260506
-// Change  : add SystemVerilog package for the behavior-preserving rbCAM port
+// Version : 26.2.8
+// Date    : 20260507
+// Change  : widen debug counters and expose loss-accounting counter fields
 
 package ring_buffer_cam_sv_pkg;
   localparam int TCC8N_LO_CONST  = 17;
@@ -48,11 +48,14 @@ package ring_buffer_cam_sv_pkg;
   } pop_state_e;
 
   typedef struct packed {
-    logic [47:0] inerr_cnt;
-    logic [47:0] push_cnt;
-    logic [47:0] pop_cnt;
-    logic [47:0] overwrite_cnt;
-    logic [47:0] cache_miss_cnt;
+    logic [63:0] inerr_cnt;
+    logic [63:0] push_cnt;
+    logic [63:0] pop_cnt;
+    logic [63:0] overwrite_cnt;
+    logic [63:0] cache_miss_cnt;
+    logic [63:0] deasm_full_drop_cnt;
+    logic [63:0] pop_cmd_full_drop_cnt;
+    logic [63:0] egress_not_ready_drop_cnt;
     logic        cam_clean;
   } debug_msg_t;
 

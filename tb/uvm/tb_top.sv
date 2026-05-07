@@ -204,6 +204,15 @@ module tb_top;
     dbg_if.dbg_pop_cnt         = dut.v2_core.debug_msg2.pop_cnt;
     dbg_if.dbg_overwrite_cnt   = dut.v2_core.debug_msg2.overwrite_cnt;
     dbg_if.dbg_cache_miss_cnt  = dut.v2_core.debug_msg2.cache_miss_cnt;
+`ifdef RBCAM_SV_IMPL
+    dbg_if.dbg_deasm_full_drop_cnt = dut.v2_core.debug_msg2.deasm_full_drop_cnt;
+    dbg_if.dbg_pop_cmd_full_drop_cnt = dut.v2_core.debug_msg2.pop_cmd_full_drop_cnt;
+    dbg_if.dbg_egress_not_ready_drop_cnt = dut.v2_core.debug_msg2.egress_not_ready_drop_cnt;
+`else
+    dbg_if.dbg_deasm_full_drop_cnt = '0;
+    dbg_if.dbg_pop_cmd_full_drop_cnt = '0;
+    dbg_if.dbg_egress_not_ready_drop_cnt = '0;
+`endif
   end
 
   // ── UVM config_db wiring ──────────────────────────────────────

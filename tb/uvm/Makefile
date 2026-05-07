@@ -34,7 +34,7 @@ TB_DIR       = $(abspath ..)
 UVM_DIR      = $(abspath .)
 SIM_COMPAT   = $(TB_DIR)/sim/compat
 LEGACY_SIM   = /data1/intelFPGA/18.1/quartus/eda/sim_lib
-WORK_DIR     = $(UVM_DIR)/work_uvm
+WORK_DIR     = $(UVM_DIR)/work_uvm_$(RTL_IMPL)
 
 # ── Test parameters ──────────────────────────────────────────────
 TEST     ?= test_single_push_pop
@@ -91,6 +91,7 @@ VLOG_COVER = $(if $(COV_ENABLED_BOOL),+cover=bcesft,)
 VSIM_COVER = $(if $(COV_ENABLED_BOOL),-coverage,)
 RUN_DO = $(if $(COV_ENABLED_BOOL),coverage save -onexit $(abspath $(COV_DIR))/$(COV_STEM)_s$(SEED).ucdb; run -all; quit -f,run -all; quit -f)
 DV_CONTEXT_PLUSARGS = +DV_TB_DIR=$(TB_DIR) +DV_SEED=$(SEED)
+TB_IMPL_DEFINES = $(if $(filter sv,$(RTL_IMPL)),+define+RBCAM_SV_IMPL,)
 
 # ── RTL sources ──────────────────────────────────────────────────
 VHDL_SRCS = \
@@ -204,7 +205,7 @@ $(WORK_DIR)/.compiled: Makefile $(ACTIVE_VHDL_SRCS) $(ACTIVE_SV_DUT_SRCS) $(ACTI
 	    $(VLOG_COVER) +incdir+$(IP_DIR)/rtl/sv_ver "$$f"; \
 	done
 	@cd $(WORK_DIR) && $(VLOG) -modelsimini modelsim.ini -work work -quiet -mfcu \
-	  $(VLOG_COVER) $(UVM_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
+	  $(VLOG_COVER) $(UVM_DEFINES) $(TB_IMPL_DEFINES) +incdir+$(UVM_SRC) +incdir+$(UVM_DIR) -sv \
 	  $(SV_SRCS)
 	@touch $@
 
@@ -227,6 +228,7 @@ run: compile
 	  +UVM_TESTNAME=$(TEST) \
 	  +UVM_VERBOSITY=$(VERBOSITY) \
 	  $(DV_CONTEXT_PLUSARGS) \
+	  +RTL_IMPL=$(RTL_IMPL) \
 	  $(PLUSARGS) \
 	  -suppress 19 -suppress 3009 -voptargs="+acc" \
 	  work.tb_top \
@@ -317,4 +319,4 @@ cfg_matrix: compile
 	if [ $$fail -gt 0 ]; then exit 1; fi
 
 clean:
-	rm -rf $(WORK_DIR)
+	rm -rf $(WORK_DIR) $(UVM_DIR)/work_uvm

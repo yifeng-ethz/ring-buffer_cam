@@ -146,11 +146,14 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [15:0]  flush_ram_wraddr;
   logic [15:0]  flush_cam_wraddr;
   logic [15:0]  flush_cam_wrdata;
-  logic [47:0]  dbg_inerr_cnt;
-  logic [47:0]  dbg_push_cnt;
-  logic [47:0]  dbg_pop_cnt;
-  logic [47:0]  dbg_overwrite_cnt;
-  logic [47:0]  dbg_cache_miss_cnt;
+  logic [63:0]  dbg_inerr_cnt;
+  logic [63:0]  dbg_push_cnt;
+  logic [63:0]  dbg_pop_cnt;
+  logic [63:0]  dbg_overwrite_cnt;
+  logic [63:0]  dbg_cache_miss_cnt;
+  logic [63:0]  dbg_deasm_full_drop_cnt;
+  logic [63:0]  dbg_pop_cmd_full_drop_cnt;
+  logic [63:0]  dbg_egress_not_ready_drop_cnt;
 
   modport mon (
     input ingress_valid, ingress_ready, ingress_error, ingress_channel, ingress_data,
@@ -175,7 +178,9 @@ interface dut_debug_if (input logic clk, input logic rst);
           expected_latency_48b, read_time_ptr, gts_8n, gts_end_of_run,
           flush_ram_wraddr, flush_cam_wraddr, flush_cam_wrdata,
           dbg_inerr_cnt, dbg_push_cnt, dbg_pop_cnt, dbg_overwrite_cnt,
-          dbg_cache_miss_cnt, clk, rst
+          dbg_cache_miss_cnt, dbg_deasm_full_drop_cnt,
+          dbg_pop_cmd_full_drop_cnt, dbg_egress_not_ready_drop_cnt,
+          clk, rst
   );
 endinterface
 
