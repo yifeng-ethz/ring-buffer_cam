@@ -103,7 +103,7 @@ Historical formal note:
 | [BUG-063-H](#bug-063-h-the-shared-low-stage-partition-latency-helper-anchored-on-a-stage-4-only-pulse-instead-of-the-real-active-partition-load-event) | H | non-datapath-refactor | `directed-only (low-stage build-axis latency)` | fixed and verified in the low-stage directed and profile reruns on `dev` | `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on 2026-04-21 while closing the PIPE_STAGES build axis with standalone per-variant evidence | `4c62cd0` | The shared low-stage partition-latency helper anchored on a stage-4-only pulse instead of the real active-partition load event |
 | [BUG-064-R](#bug-064-r-restoring-exact-settled-search-tail-snapshot-membership-reopened-the-standalone-p4-timing-blocker) | R | signoff block | `directed-only (standalone signoff rerun after the exact settled-SEARCH-tail guard restore)` | fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master` | standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree | `1069e0b` | Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker |
 | [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `da80afbb` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
-| [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verification in progress | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `pending this fix commit` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
+| [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
 
 ## 2026-05-07
 
@@ -147,16 +147,17 @@ Historical formal note:
   - when a queued deassembly entry later won `push_write_grant`, the slot metadata array sampled the live `asi_hit_type1_metadata` / `metadata_valid` ports instead of the metadata belonging to the dequeued hit
   - any cycle separation between ingress acceptance and push grant could therefore attach stale, duplicate, or invalid debug metadata to a correct hit payload
 - Fix status:
-  - `state`: fixed and verification in progress
+  - `state`: fixed and verified in ASIC0 full32 post-rbCAM sweep
   - `mechanism`: make the deassembly FIFO payload a packed SV struct containing `hit_word`, `metadata`, and `metadata_valid`; the push write path now copies metadata from the dequeued FIFO word into the resident slot
   - `before_fix_outcome`: `PROF_INT_002_HIT_RATE_Q16=5`, `ACTIVE_LANE_COUNT=1`, `CHANNEL_LOW=0`, `CHANNEL_HIGH=31`, `RBCAM_IMPL=sv`, and `PRE_RBCAM_LATENCY_SCOPE=post_rbcam` produced clean raw accounting but debug residuals `PRE->POST=8/280/0`
-  - `after_fix_outcome`: pending the rerun of the same integration case and the full 10 kHz / 100 kHz / 500 kHz / 1 MHz ASIC0 channel-0..31 sweep
-  - `potential_hazard`: low; the sideband is now queued atomically with the hit word, but the integration monitor remains the required guard because raw hit matching alone cannot detect this class of content-lineage corruption
+  - `after_fix_outcome`: the rerun of the same 10 kHz/ch case reports `PRE->POST=288/0/0` for both raw FIFO and debug lineage; the 100 kHz/ch, 500 kHz/ch, and 1 MHz/ch ASIC0 channel-0..31 sweep reports `PRE->POST=3168/0/0`, `16000/0/0`, and `32032/0/0` respectively, with `debug_duplicate_ids=0`
+  - `potential_hazard`: low; the sideband is now queued atomically with the hit word, and the integration debug monitor plus full32 sweep guard against raw-hit matches that carry wrong content lineage
   - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - reproduction case: `make -C firmware_builds/systems/system_20260504_emulator_type0/tb_int run_prof_int_002_pre_rbcam_latency WORK=work_prof_int_002_post_rate_sv PROF_INT_002_RBCAM_IMPL=sv PROF_INT_002_SOURCE=emu_direct PROF_INT_002_PRE_RBCAM_LATENCY_SCOPE=post_rbcam PROF_INT_002_PRE_RBCAM_TRAFFIC_MODE=periodic PROF_INT_002_PRE_RBCAM_INJECT_DRIVER=tb_force PROF_INT_002_PRE_RBCAM_RUN_CYCLES=125000 PROF_INT_002_PRE_RBCAM_DRAIN_CYCLES=65536 PROF_INT_002_HIT_RATE_Q16=5 PROF_INT_002_PRE_RBCAM_ACTIVE_LANE_COUNT=1 PROF_INT_002_PRE_RBCAM_ACTIVE_LANE_MASK=1 PROF_INT_002_PRE_RBCAM_CHANNEL_LOW=0 PROF_INT_002_PRE_RBCAM_CHANNEL_HIGH=31 PROF_INT_002_EXPORT_RBCAM_FILL_TRACE=1 PROF_INT_002_RBCAM_FILL_TRACE_STRIDE=1`
   - the failure was detected by the upgraded integration debug-record monitor; the raw rbCAM scoreboard and CSR counters were not sufficient to expose it
-- Commit: pending this fix commit
+  - post-fix evidence: dual-trace validation passes for ASIC0 channel-0..31 at 10 kHz/ch, 100 kHz/ch, 500 kHz/ch, and 1 MHz/ch, with zero `A->PRE` and `PRE->POST` missing/ghost residuals and zero debug lineage missing/ghost residuals
+- Commit: 3086685e
 
 ## 2026-04-16
 
