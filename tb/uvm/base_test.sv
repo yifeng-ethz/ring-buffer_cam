@@ -34,7 +34,7 @@ class base_test extends uvm_test;
 `ifdef RBCAM_SV_IMPL
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0033;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0031;
-  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd9;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd10;
   localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd507;
   localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260507;
 `else

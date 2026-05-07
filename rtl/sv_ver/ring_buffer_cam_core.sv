@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.9
+// Version : 26.2.10
 // Date    : 20260507
-// Change  : add sector-granular pop locks so push can overlap safe pop phases
+// Change  : preserve debug metadata through the deassembly FIFO
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,7 +16,7 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 9,
+  parameter int VERSION_PATCH       = 10,
   parameter int BUILD               = 507,
   parameter int VERSION_DATE        = 20260507,
   parameter int VERSION_GIT         = 0,
@@ -87,6 +87,7 @@ module ring_buffer_cam_core #(
     logic [63:0] metadata;
     logic        metadata_valid;
   } deasm_word_t;
+  localparam int DEASM_WORD_BITS_CONST = $bits(deasm_word_t);
 
   typedef enum logic [1:0] {
     PUSH_WRITING = 2'd0,
@@ -112,8 +113,8 @@ module ring_buffer_cam_core #(
   logic [47:0] gts_end_of_run;
   logic gts_counter_rst;
 
-  logic [39:0] deassembly_fifo_din;
-  logic [39:0] deassembly_fifo_dout;
+  deasm_word_t deassembly_fifo_din;
+  deasm_word_t deassembly_fifo_dout;
   logic deassembly_fifo_wrreq;
   logic deassembly_fifo_rdack;
   logic deassembly_fifo_empty;
@@ -374,7 +375,7 @@ module ring_buffer_cam_core #(
   endfunction
 
   ring_buffer_cam_fifo #(
-    .WIDTH(40),
+    .WIDTH(DEASM_WORD_BITS_CONST),
     .DEPTH(DEASM_DEPTH_CONST)
   ) deassembly_fifo (
     .clk(i_clk),
@@ -424,7 +425,10 @@ module ring_buffer_cam_core #(
       (!csr_filter_inerr || !asi_hit_type1_error[0]);
     deasm_full_drop_event = ingress_payload_countable && deassembly_fifo_full;
 
-    deassembly_fifo_din = {1'b0, asi_hit_type1_data};
+    deassembly_fifo_din = '0;
+    deassembly_fifo_din.hit_word = {1'b0, asi_hit_type1_data};
+    deassembly_fifo_din.metadata = asi_hit_type1_metadata;
+    deassembly_fifo_din.metadata_valid = asi_hit_type1_metadata_valid;
     deassembly_fifo_wrreq = 1'b0;
     if (ingress_payload_countable && !deassembly_fifo_full) begin
       deassembly_fifo_wrreq = 1'b1;
@@ -438,9 +442,9 @@ module ring_buffer_cam_core #(
       !deassembly_fifo_full;
 
     in_payload_valid = !deassembly_fifo_empty;
-    in_hit_side = deassembly_fifo_dout[38:0];
-    in_hit_ts8n = hit_tcc8n(deassembly_fifo_dout[38:0]);
-    in_hit_sk = hit_search_key(deassembly_fifo_dout[38:0]);
+    in_hit_side = deassembly_fifo_dout.hit_word[38:0];
+    in_hit_ts8n = hit_tcc8n(deassembly_fifo_dout.hit_word[38:0]);
+    in_hit_sk = hit_search_key(deassembly_fifo_dout.hit_word[38:0]);
     push_write_req = in_payload_valid &&
       (run_state_cmd == RUN_RUNNING || run_state_cmd == RUN_TERMINATING) &&
       !csr_soft_reset_pulse;
@@ -809,8 +813,8 @@ module ring_buffer_cam_core #(
           push_erase_addr_reg <= write_pointer;
           slot_valid[write_pointer] <= 1'b1;
           slot_hit[write_pointer] <= in_hit_side;
-          slot_metadata[write_pointer] <= asi_hit_type1_metadata;
-          slot_metadata_valid[write_pointer] <= asi_hit_type1_metadata_valid;
+          slot_metadata[write_pointer] <= deassembly_fifo_dout.metadata;
+          slot_metadata_valid[write_pointer] <= deassembly_fifo_dout.metadata_valid;
           write_pointer <= ptr_inc(write_pointer);
           debug_msg2.push_cnt <= debug_msg2.push_cnt + 64'd1;
           push_state <= slot_valid[write_pointer] ? PUSH_ERASING : PUSH_WRITING;

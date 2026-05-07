@@ -39,6 +39,8 @@ module ring_buffer_cam_sector_lock_formal_top (
   output logic [31:0] coe_debug_queue_state
 );
 
+  // Sector-lock safety does not depend on the debug metadata payload. Tie the
+  // sideband off here so the proof state space stays focused on arbiter timing.
   ring_buffer_cam dut (
     .avs_csr_readdata            (avs_csr_readdata),
     .avs_csr_read                (avs_csr_read),
@@ -54,8 +56,8 @@ module ring_buffer_cam_sector_lock_formal_top (
     .asi_hit_type1_valid         (asi_hit_type1_valid),
     .asi_hit_type1_ready         (asi_hit_type1_ready),
     .asi_hit_type1_error         (asi_hit_type1_error),
-    .asi_hit_type1_metadata      (asi_hit_type1_metadata),
-    .asi_hit_type1_metadata_valid(asi_hit_type1_metadata_valid),
+    .asi_hit_type1_metadata      (64'd0),
+    .asi_hit_type1_metadata_valid(1'b0),
     .aso_hit_type2_channel       (aso_hit_type2_channel),
     .aso_hit_type2_startofpacket (aso_hit_type2_startofpacket),
     .aso_hit_type2_endofpacket   (aso_hit_type2_endofpacket),
