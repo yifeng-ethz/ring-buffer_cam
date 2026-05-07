@@ -104,6 +104,32 @@ Historical formal note:
 | [BUG-064-R](#bug-064-r-restoring-exact-settled-search-tail-snapshot-membership-reopened-the-standalone-p4-timing-blocker) | R | signoff block | `directed-only (standalone signoff rerun after the exact settled-SEARCH-tail guard restore)` | fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master` | standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree | `1069e0b` | Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker |
 | [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `da80afbb` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
 | [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
+| [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `4ebd7539` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
+
+## 2026-05-08
+
+### BUG-067-R: Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (package and FEB integration audit before hardware load)`
+- First seen in: FEB Qsys regeneration on 2026-05-08 while checking that the full firmware build copied the pushed rbCAM 26.2.10 sources into generated synthesis submodules
+- Symptom:
+  - the generated hit-stack submodule copied `ring_buffer_cam.vhd` with the old VHDL decision range `0..4`
+  - that image could not exercise the sector-lock `decision=5`, 64-bit accounting, drop-counter, freeze, or formal-observer contracts added in the review-response stack
+  - a FEB compile from that package would therefore test a timing-reference implementation rather than the feature-complete rbCAM requested for hardware checks
+- Root cause:
+  - the Platform Designer `QUARTUS_SYNTH` fileset was repointed to the VHDL P4 timing-reference tree after the SV standalone timing miss
+  - the VHDL tree still carries the older partitioned timing architecture, while the current 26.2.10 functional stack lives in `rtl/sv_ver`
+- Fix status:
+  - `state`: package fixed; synthesis timing remains open for the feature-complete SV payload
+  - `mechanism`: package `rtl/sv_ver/ring_buffer_cam_sv_pkg.sv`, `ring_buffer_cam_fifo.sv`, `ring_buffer_cam_core.sv`, and `ring_buffer_cam.sv` for `QUARTUS_SYNTH`; retain `rtl/vhd_ver` as an explicitly documented timing reference
+  - `before_fix_outcome`: Qsys generation used the old VHDL source and silently dropped the sector-lock/accounting RTL from firmware builds
+  - `after_fix_outcome`: `ip-make-ipx` loads the SV package, and the signoff docs now state that the package payload is feature-complete but timing-blocked
+  - `potential_hazard`: high until a timing-equivalent sector-lock architecture is implemented, because the only functionally complete package payload still fails standalone 137.5 MHz timing
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - validated with `git diff --check`, the shared Markdown style checker, and `ip-make-ipx --source-directory=. --output=/tmp/rbcam_ipx_sv_pkg_check_20260508/ring_buffer_cam.ipx --thorough-descent`
+  - FEB synthesis must use this SV package for functional correctness; any hardware load from a timing-failed compile remains a risk and must be reported as such
+- Commit: 4ebd7539
 
 ## 2026-05-07
 

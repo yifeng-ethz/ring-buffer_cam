@@ -242,8 +242,10 @@ evidence under `tb/` and detailed synthesis evidence in [`syn/SYN_REPORT.md`](sy
 - [`rtl/vhd_ver/`](rtl/vhd_ver) — VHDL implementation sources
 - [`rtl/sv_ver/`](rtl/sv_ver) — SystemVerilog implementation sources
 - [`rtl/common/`](rtl/common) — Altera/common primitives and mixed-language compatibility helpers
-- [`rtl/vhd_ver/ring_buffer_cam.vhd`](rtl/vhd_ver/ring_buffer_cam.vhd) — packaged top-level wrapper
-- [`rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`](rtl/vhd_ver/ring_buffer_cam_v2_core.vhd) — active RTL core
+- [`rtl/sv_ver/ring_buffer_cam.sv`](rtl/sv_ver/ring_buffer_cam.sv) — packaged top-level wrapper for the feature-complete 26.2.10 stack
+- [`rtl/sv_ver/ring_buffer_cam_core.sv`](rtl/sv_ver/ring_buffer_cam_core.sv) — active Platform Designer RTL core
+- [`rtl/vhd_ver/ring_buffer_cam.vhd`](rtl/vhd_ver/ring_buffer_cam.vhd) — VHDL timing-reference wrapper
+- [`rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`](rtl/vhd_ver/ring_buffer_cam_v2_core.vhd) — VHDL timing-reference core
 - [`rtl/vhd_ver/addr_enc_logic_partitioned.vhd`](rtl/vhd_ver/addr_enc_logic_partitioned.vhd) — partitioned staged encoder
 - [`script/ring_buffer_cam_hw.tcl`](script/ring_buffer_cam_hw.tcl) — Platform Designer packaging
 - [`script/ring_buffer_cam_presets.qprs`](script/ring_buffer_cam_presets.qprs) — packaged presets

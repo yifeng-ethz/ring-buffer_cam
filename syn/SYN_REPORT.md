@@ -4,7 +4,7 @@
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
 **Evidence basis:** `ed41c983` + dirty worktree evidence refresh
 
-This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The delivered VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target. The separate SystemVerilog implementation (`rtl/sv_ver/`) now has its own standalone Quartus revision, but that revision does **not** close timing. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target as a timing reference, but it is not the feature-complete 26.2.10 sector-lock/accounting implementation. The Platform Designer package uses the SystemVerilog implementation (`rtl/sv_ver/`), which has its own standalone Quartus revision and does **not** close timing. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
@@ -118,9 +118,9 @@ SV timing/resource result:
 | ✅ | fitted ALMs | `4045` |
 | ✅ | ALM ceiling | `6000` max (`4000` estimate + 50% bloat) |
 
-Result: **SV standalone synthesis compiles, fits under the ALM bloat ceiling, and exports a gate netlist, but it fails the required `137.5 MHz` signoff clock.**
+Result: **the feature-complete SV package payload compiles, fits under the ALM bloat ceiling, and exports a gate netlist, but it fails the required `137.5 MHz` signoff clock.**
 
-The reason is structural, not just syntax: the SV core is much shorter than the VHDL implementation because it models resident storage with flat `slot_valid/slot_hit/slot_metadata` arrays and searches with full-depth procedural loops (`count_snapshot`, `find_next_snapshot`, and `snapshot_sector_mask`) instead of the VHDL `cam_mem_a5` + partitioned encoder + side-RAM architecture. That behavioral shape is useful for UVM/formal migration, but it is not the delivered timing architecture.
+The reason is structural, not just syntax: the SV core is much shorter than the VHDL implementation because it models resident storage with flat `slot_valid/slot_hit/slot_metadata` arrays and searches with full-depth procedural loops (`count_snapshot`, `find_next_snapshot`, and `snapshot_sector_mask`) instead of the VHDL `cam_mem_a5` + partitioned encoder + side-RAM architecture. That behavioral shape carries the current sector-lock/accounting behavior, but it is not timing-equivalent to the older VHDL P4 architecture.
 
 ## Flow Runtime
 
@@ -156,8 +156,8 @@ TimeQuest still reports the design as not fully constrained for setup/hold becau
 
 - This synthesis result does not close DV signoff; [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) remains red until the required 30 s simulator-time soaks `CROSS-125..CROSS-129` have qualifying real logs.
 - This synthesis result does not close formal signoff; [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) still lists `F-ML02/F-ML03` as open metadata-lineage formal blockers (`45/47` proven in the latest full attempt).
-- This standalone Quartus project signs off the delivered VHDL `P4` implementation only. The SystemVerilog implementation has UVM/static evidence but fails standalone timing closure.
+- This standalone Quartus project signs off only the older VHDL `P4` timing-reference architecture. The Platform Designer package uses the feature-complete SystemVerilog implementation, which has UVM/static evidence but fails standalone timing closure.
 
 ## Result
 
-**⚠️ Standalone synthesis/resource/gate-smoke PASS for delivered VHDL `ring_buffer_cam_syn_p4` at `137.5 MHz` with `2191 ALMs`; SV standalone synthesis remains timing-blocked at `-14.213 ns` setup WNS.**
+**⚠️ VHDL timing-reference synthesis/resource/gate-smoke PASS at `137.5 MHz` with `2191 ALMs`; feature-complete SV package synthesis remains timing-blocked at `-14.213 ns` setup WNS.**

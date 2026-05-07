@@ -13,9 +13,9 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | field | value |
 |:---:|---|---|
-| ⚠️ | overall_signoff | `not closed: delivered VHDL P4 synthesis/resource/gate-smoke pass; SV timing, DV 30 s soaks, and formal metadata-lineage closure remain open` |
-| ✅ | standalone_vhdl_syn_p4_512 | `passes at 137.5 MHz / 7.273 ns with WNS=+0.515 ns worst setup and +0.171 ns worst hold` |
-| ❌ | standalone_sv_syn_p4_512 | `compiles and fits but fails timing at 137.5 MHz: slow-85C setup WNS=-14.213 ns, Fmax=46.54 MHz` |
+| ⚠️ | overall_signoff | `not closed: feature-complete SV package is functional/static-clean but fails timing; VHDL P4 timing reference does not implement the sector-lock/decision=5 stack; DV 30 s soaks and formal metadata-lineage closure remain open` |
+| ⚠️ | standalone_vhdl_syn_p4_512 | `timing reference only: passes at 137.5 MHz / 7.273 ns with WNS=+0.515 ns worst setup and +0.171 ns worst hold, but lacks the full 26.2.10 sector-lock/accounting RTL` |
+| ❌ | standalone_sv_syn_p4_512 | `Platform Designer package implementation: compiles and fits but fails timing at 137.5 MHz: slow-85C setup WNS=-14.213 ns, Fmax=46.54 MHz` |
 | ✅ | resource_gate | `2191 ALMs versus 4000 ALM estimate; below 6000 ALM max with 50% bloat` |
 | ✅ | gate_level_smoke | `RTL and regenerated gate netlist benches pass` |
 | ❌ | dv_signoff | `blocked: CROSS-125..CROSS-129 still need real 30 s simulator-time passing logs` |
@@ -39,7 +39,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | item | value |
 |:---:|---|---|
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
-| ✅ | implementation | delivered VHDL P4 standalone project (`rtl/vhd_ver/` + `rtl/common/`) |
+| ⚠️ | implementation | VHDL P4 timing-reference standalone project (`rtl/vhd_ver/` + `rtl/common/`); not the feature-complete package payload |
 | ✅ | device | `5AGXBA7D4F31C5` |
 | ✅ | nominal target | `125 MHz` |
 | ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` (`1.1 x 125 MHz`) |
@@ -57,7 +57,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 | status | item | value |
 |:---:|---|---|
 | ❌ | revision | `ring_buffer_cam_syn_sv_p4` |
-| ℹ️ | implementation | SV migration implementation (`rtl/sv_ver/`) |
+| ℹ️ | implementation | feature-complete Platform Designer package payload (`rtl/sv_ver/`) |
 | ✅ | compile/fitter | full Quartus compile successful, `0` errors |
 | ❌ | signoff timing | slow-85C setup WNS `-14.213 ns`, slow-0C setup WNS `-12.813 ns` |
 | ❌ | Fmax | `46.54 MHz` slow-85C, below `137.5 MHz` signoff |
@@ -82,7 +82,7 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 ## Non-Claims
 
-- No full IP signoff tag should be cut from this checkpoint: SV timing, DV, and formal are still open.
-- The standalone Quartus signoff above is for the VHDL P4 implementation. The SystemVerilog implementation has UVM/static evidence and a separate Quartus revision, but that revision fails timing.
+- No full IP signoff tag should be cut from this checkpoint: packaged SV timing, DV, and formal are still open.
+- The VHDL P4 result is a timing reference for the older partitioned architecture, not a signoff result for the full 26.2.10 sector-lock/accounting feature stack. The Platform Designer package uses the SystemVerilog implementation, which has UVM/static evidence but fails standalone timing.
 - The branch dead-bin exclusion and 30 s soak requirements are owned by `tb/DV_REPORT.md`; this dashboard does not override them.
 - FEB firmware loading, on-chip histogram measurement, SignalTap/STP debug, and `tb_int` hardware comparison were explicitly deferred and are not part of this checkpoint.

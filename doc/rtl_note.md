@@ -6,7 +6,7 @@ Author: Codex
 ## 0. Summary
 
 - Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh records the 2026-05-08 standalone Quartus rerun after the RTL tree split into `rtl/vhd_ver/`, `rtl/sv_ver/`, and `rtl/common/`.
-- Sign-off status: standalone synthesis/resource/gate-smoke signoff for the delivered VHDL `P4` build is closed at the requested `125 MHz` target with `1.1x` clock margin. Full project signoff is still not closed because the separate SV implementation fails standalone timing, DV 30 s simulator-time soaks are missing, and formal metadata-lineage properties remain open in the DV/formal reports.
+- Sign-off status: standalone synthesis/resource/gate-smoke signoff for the VHDL `P4` timing-reference build is closed at the requested `125 MHz` target with `1.1x` clock margin. Full project signoff is still not closed because the feature-complete SV package implementation fails standalone timing, DV 30 s simulator-time soaks are missing, and formal metadata-lineage properties remain open in the DV/formal reports.
 - Key deltas:
   - added `rtl/vhd_ver/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
@@ -24,8 +24,8 @@ Author: Codex
   - current formal dashboard: the binding stack is implemented; qverify Lint/CDC/RDC is clean, but full formal remains `45/47` proven with `F-ML02/F-ML03` firing
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
-  - the current standalone VHDL build closes timing at the tightened `137.5 MHz` target and fits under the `4000 ALM` estimate
-  - the SV port is functionally useful for UVM/formal migration, but it is not yet a timing-equivalent implementation of the VHDL P4 datapath
+  - the current standalone VHDL build closes timing at the tightened `137.5 MHz` target and fits under the `4000 ALM` estimate, but it is a timing reference for the older partitioned datapath
+  - the SV port is the feature-complete package payload for the sector-lock/accounting stack, but it is not yet a timing-equivalent implementation of the VHDL P4 datapath
   - the detailed historical sweep below is still useful background, but the authoritative current status lives in [`doc/SIGNOFF.md`](SIGNOFF.md) and [`syn/SYN_REPORT.md`](../syn/SYN_REPORT.md)
 
 ## 1. Targets

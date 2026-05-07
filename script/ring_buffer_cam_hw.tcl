@@ -45,14 +45,14 @@ set VERSION_STRING_DEFAULT_CONST [format "%d.%d.%d.%04d" \
     $VERSION_PATCH_DEFAULT_CONST \
     $BUILD_DEFAULT_CONST]
 set INSTANCE_ID_DEFAULT_CONST      0
-set SIGNOFF_ALMS_CONST             2191
-set SIGNOFF_REGS_CONST             2861
-set SIGNOFF_RAM_BLOCKS_CONST       19
-set SIGNOFF_MEM_BITS_CONST         153600
-set SIGNOFF_WNS_SLOW_85C_CONST     0.515
-set SIGNOFF_WNS_SLOW_0C_CONST      0.575
-set SIGNOFF_HOLD_WNS_CONST         0.171
-set SIGNOFF_FMAX_CONST             147.97
+set SIGNOFF_ALMS_CONST             4045
+set SIGNOFF_REGS_CONST             4821
+set SIGNOFF_RAM_BLOCKS_CONST       2
+set SIGNOFF_MEM_BITS_CONST         512
+set SIGNOFF_WNS_SLOW_85C_CONST     -14.213
+set SIGNOFF_WNS_SLOW_0C_CONST      -12.813
+set SIGNOFF_HOLD_WNS_CONST         0.180
+set SIGNOFF_FMAX_CONST             46.54
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
@@ -203,9 +203,6 @@ proc validate {} {
     set instance_id         [get_parameter_value INSTANCE_ID]
     set debug_level         [get_parameter_value DEBUG]
 
-    if {![is_power_of_two $ring_depth]} {
-        send_message error "RING_BUFFER_N_ENTRY must be a power of two."
-    }
     if {$ring_depth < 32} {
         send_message error "RING_BUFFER_N_ENTRY must be at least 32."
     }
@@ -299,7 +296,7 @@ proc elaborate {} {
     set_parameter_property VERSION_DATE ENABLED false
     set_parameter_property VERSION_GIT ENABLED false
 
-    set_parameter_property RING_BUFFER_N_ENTRY ALLOWED_RANGES {32 64 128 256 512 1024 2048}
+    set_parameter_property RING_BUFFER_N_ENTRY ALLOWED_RANGES {32 64 128 256 384 512 1024 2048 4096}
     set_parameter_property INTERLEAVING_FACTOR ALLOWED_RANGES {1 2 4 8 16 32}
     set_parameter_property INTERLEAVING_INDEX ALLOWED_RANGES 0:$interleaving_index_max
     set_parameter_property N_PARTITIONS ALLOWED_RANGES {1 2 4 8}
@@ -314,15 +311,10 @@ add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
-add_fileset_file ring_buffer_cam.vhd VHDL PATH ../rtl/vhd_ver/ring_buffer_cam.vhd TOP_LEVEL_FILE
-add_fileset_file ring_buffer_cam_v2_core.vhd VHDL PATH ../rtl/vhd_ver/ring_buffer_cam_v2_core.vhd
-add_fileset_file alt_simple_dpram.vhd VHDL PATH ../rtl/common/alt_simple_dpram.vhd
-add_fileset_file cam_helper_pkg.vhd VHDL PATH ../rtl/vhd_ver/cam_helper_pkg.vhd
-add_fileset_file cam_mem_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_a5.vhd
-add_fileset_file cam_mem_blk_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_blk_a5.vhd
-add_fileset_file scfifo_w40d256.vhd VHDL PATH ../rtl/common/alt_fifo/scfifo_w40d256.vhd
-add_fileset_file cmd_fifo.vhd VHDL PATH ../rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd
-add_fileset_file addr_enc_logic_partitioned.vhd VHDL PATH ../rtl/vhd_ver/addr_enc_logic_partitioned.vhd
+add_fileset_file ring_buffer_cam_sv_pkg.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
+add_fileset_file ring_buffer_cam_fifo.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_fifo.sv
+add_fileset_file ring_buffer_cam_core.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_core.sv
+add_fileset_file ring_buffer_cam.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam.sv TOP_LEVEL_FILE
 
 add_parameter SEARCH_KEY_WIDTH NATURAL $DEFAULT_SEARCH_KEY_WIDTH_CONST
 set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"
@@ -460,7 +452,7 @@ add_display_item "Sizing" SEARCH_KEY_WIDTH parameter
 add_display_item "Sizing" RING_BUFFER_N_ENTRY parameter
 add_display_item "Sizing" SIDE_DATA_BITS parameter
 add_html_text "Sizing" sizing_html "<html><b>Derived sizing</b><br/>Updated by the validation callback.</html>"
-add_html_text "Delivered Footprint" resources_html [format {<html><b>Standalone signoff footprint</b><br/>Numbers below are for the delivered default signoff shape <b>RING_BUFFER_N_ENTRY=%d</b>, <b>N_PARTITIONS=%d</b>, <b>ENCODER_PIPE_STAGES=%d</b> on Arria V <b>5AGXBA7D4F31C5</b>.<br/><br/><b>Fitter resources</b><br/>ALMs: <b>%d</b><br/>Registers: <b>%d</b><br/>RAM blocks: <b>%d</b><br/>Block memory bits: <b>%d</b><br/><br/><b>Timing at 137.5 MHz standalone signoff</b><br/>Slow 85C WNS: <b>%.3f ns</b><br/>Slow 0C WNS: <b>%.3f ns</b><br/>Worst reported hold slack: <b>%.3f ns</b><br/>Slow-corner Fmax: <b>%.2f MHz</b><br/><br/><b>Interpretation</b><br/>These values are packaging-time signoff evidence for the delivered profile. Changing visible sizing or encoder parameters alters the implementation footprint and timing.</html>} \
+add_html_text "Delivered Footprint" resources_html [format {<html><b>Standalone package footprint</b><br/>Numbers below are for the feature-complete SystemVerilog package payload with <b>RING_BUFFER_N_ENTRY=%d</b>, <b>N_PARTITIONS=%d</b>, <b>ENCODER_PIPE_STAGES=%d</b> on Arria V <b>5AGXBA7D4F31C5</b>.<br/><br/><b>Fitter resources</b><br/>ALMs: <b>%d</b><br/>Registers: <b>%d</b><br/>RAM blocks: <b>%d</b><br/>Block memory bits: <b>%d</b><br/><br/><b>Timing at 137.5 MHz standalone check</b><br/>Slow 85C WNS: <b>%.3f ns</b><br/>Slow 0C WNS: <b>%.3f ns</b><br/>Worst reported hold slack: <b>%.3f ns</b><br/>Slow-corner Fmax: <b>%.2f MHz</b><br/><br/><b>Interpretation</b><br/>These values are the current package evidence and are not a timing signoff. The VHDL P4 timing-reference build closes 137.5 MHz, but it does not implement the full sector-lock/accounting stack.</html>} \
     $DEFAULT_RING_DEPTH_CONST \
     $DEFAULT_N_PARTITIONS_CONST \
     $DEFAULT_PIPE_STAGES_CONST \
@@ -486,7 +478,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, the earlier low-stage partitioned-encoder and non-power-of-two ring-depth repairs, the carried overwrite erase-slot timing closure, the settled SEARCH-tail conservative overwrite-slot guard, and DEBUG-gated observability / metadata sidecar conduits. With <b>DEBUG=0</b>, optional debug outputs are deterministically zero and the nominal datapath is unchanged.<br/><br/><b>Delivered signoff profile</b><br/>The packaged default shape signs off at <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. The Configuration tab shows the full standalone footprint summary used for this delivered image.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
+add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, sector-lock/decision=5 arbitration, 64-bit accounting, drop counters, freeze readback, and DEBUG-gated observability / metadata sidecar conduits. With <b>DEBUG=0</b>, optional debug outputs are deterministically zero and the nominal datapath is unchanged.<br/><br/><b>Timing status</b><br/>The packaged SystemVerilog payload currently reports <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. This is below the required 137.5 MHz standalone signoff target; the VHDL P4 timing reference is faster but lacks this feature stack.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
     $VERSION_STRING_DEFAULT_CONST \
     $VERSION_GIT_HEX_DEFAULT_CONST \
     $VERSION_GIT_SHORT_DEFAULT_CONST \
