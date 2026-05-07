@@ -1,7 +1,7 @@
 # DV_BASIC.md — ring_buffer_cam
 
 **Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md)
-**Canonical ID Range:** `B001-B129`
+**Canonical ID Range:** `B001-B134`
 **Intent:** deterministic functional contracts and state-machine invariants before stress and cross composition.
 
 | case_id | method | implementation | legacy alias | scenario | primary checks |
@@ -100,9 +100,9 @@
 | B087 | D | live UVM | none | pop DRAIN advance handshake: after erase_grant, `pop_partition_advance(idx)` pulses exactly one cycle while has_more=1 | measure advance pulse width on a known partition; catches stuck-high advance |
 | B088 | D | live UVM | none | pop DRAIN last-hit: `pop_last_hit_pending=1` on the cycle that `pop_hits_count=1`, drives EOP on the following emitted hit beat | observe `pop_last_hit_pending` before the final hit and EOP on that final hit; catches a missed EOP pulse |
 | B089 | D | live UVM | none | pop RESET state: clears pop_partition_snapshot, pending, total_hits, count_done, issue_valid in one cycle | pop_engine_state observed {RESET,IDLE} with the pop context zeroed in RESET; catches any field leaking into next IDLE |
-| B090 | D | live UVM | none | push-pop non-exclusivity: push_write allowed while pop engine is in SEARCH/LOAD/COUNT (rev 2.4 relaxation) | push_write_grant observed during SEARCH with pop_engine_state not IDLE; catches the old exclusive lock |
-| B091 | D | live UVM | none | push-pop exclusivity: push_write blocked exactly when pop_erase holds grant in DRAIN | decision=2 wins over decision=0 in DRAIN; catches priority regression in proc_memory_arbiter_comb |
-| B092 | D | live UVM | none | overwrite-to-DRAIN handoff: after multi-key overwrite pressure saturates the ring, active DRAIN takes exclusive `pop_erase` ownership and no stale `push_erase` leaks into the frozen snapshot window | drive overwrite pressure before DRAIN, observe `pop_erase_grant` ownership in active DRAIN, and fail if any later `push_erase_grant` re-enters that window; catches stale push-side ownership surviving the pop snapshot handoff |
+| B090 | D | live UVM | `test_sector_lock_overlap` | sector-lock non-exclusivity: post-SEARCH push_write may overlap pop service only when the write sector is outside the frozen pop ownership mask | safe push_write_grant observed in LOAD/COUNT/DRAIN with non-zero pop lock mask and `push_write_sector_locked=0`; SEARCH overlap and locked-sector grants fail |
+| B091 | D | live UVM | `test_sector_lock_overlap` | sector-lock priority: same-sector push_write remains blocked while pop owns that sector | under ingress pressure, `push_write_sector_locked=1` prevents push_write_grant during LOAD/COUNT/DRAIN; catches a spatial-lock regression |
+| B092 | D | live UVM | none | sector-lock overwrite-to-DRAIN handoff: after multi-key overwrite pressure saturates the ring, active DRAIN may overlap only with unlocked push erases | drive overwrite pressure before DRAIN, observe active pop ownership, and fail if `push_erase_grant` enters SEARCH or a locked pop sector |
 | B093 | D | live UVM | none | arbiter priority: flush asserted during active DRAIN abandons pop_erase immediately | decision=3 wins, pop_engine_state transitions via FLUSHING; catches stuck in DRAIN under flush |
 | B094 | D | live UVM (`p2_pipe1` variant) | none | partitioned encoder PIPE_STAGES=1 baseline: one active partition drains a single-hit snapshot with the expected DUT-visible load-to-flagged-result latency | measure active `pop_partition_load` -> flagged `result_valid` latency = 2 cycles and verify no inactive partition is flagged; catches min-stage clamp regressions |
 | B095 | D | live UVM (`p2_pipe2` variant) | none | partitioned encoder PIPE_STAGES=2 baseline: one active partition drains a single-hit snapshot with the expected DUT-visible load-to-flagged-result latency | measure active `pop_partition_load` -> flagged `result_valid` latency = 2 cycles and verify the result stays local to the active partition; catches stage-2 result-path regressions |
@@ -140,3 +140,8 @@
 | B127 | D | live UVM | none | end-to-end flow: counter bounded-delay contract - PUSH_COUNT visible at CSR within 2 CSR-read cycles of the granted push_write | measure delay from decision_reg=0 to CSR increment visibility; catches a multi-cycle pipeline bug in debug_msg2 |
 | B128 | D | live UVM | none | end-to-end flow: pop_cmd_fifo depth=16 soak under RUNNING - descriptor rate matches consumption so fifo never exceeds 11 (per RTL comment for 960kHz case) | pop_cmd_fifo_usedw peak observed <= 11 over 100k cycles at 960kHz-equivalent stimulus; catches cadence regression |
 | B129 | D | live UVM | none | end-to-end flow: decision_reg=4 (idle) occurs only when no engine is requesting, never between two back-to-back push_write grants | decision_reg trace between consecutive accepts never shows 4; catches bubble insertion in arbiter |
+| B130 | D | live UVM | none | sector-lock DRAIN guard: a locked DRAIN sector blocks push_write under ingress pressure | observes DRAIN same-sector ownership and fails if push_write_grant targets the locked sector |
+| B131 | D | live UVM | none | sector-lock LOAD/COUNT guard: SEARCH stays globally locked and post-SEARCH locked sectors remain protected | fails on push_write_grant during SEARCH or into a locked LOAD/COUNT sector |
+| B132 | D | live UVM | none | terminate ingress guard: after lane-local end-of-run, ingress ready clamps and PUSH_COUNT stops advancing | source keeps offering traffic after the end marker, but ready stays low and push counter remains flat |
+| B133 | D | live UVM | `test_sector_lock_overlap` | early SEARCH cross-key guard: competing cross-key pushes cannot enter before the pop snapshot is stable | no cross-key push_write_grant while pop_search_wait_cnt is still inside the unstable SEARCH window |
+| B134 | D | live UVM (`non-power-of-two depth` variant) | none | non-power-of-two wrap overwrite: second-lap wrap write is followed by an erase of the same physical slot | observes wrap-slot push_write then matching push_erase address; catches pointer-wrap erase mismatch |

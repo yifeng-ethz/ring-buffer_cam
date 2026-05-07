@@ -35,7 +35,7 @@ The live harness under `tb/uvm/` currently contains:
 
 ## 3. Current Live Findings
 
-The current 2026-04-21 evidence set establishes:
+The current evidence set establishes:
 
 - the real CSR map is:
   - `0 = UID`
@@ -54,9 +54,10 @@ The current 2026-04-21 evidence set establishes:
   - `RUN_PREPARE` is re-issued so the second command waits on flush completion
   - `TERMINATING` is re-issued after the end-of-run marker so the driver waits on the real drain-complete path
 - several directed and error smoke cases now drain correctly, including `X007`, `X008`, and `X013`
-- the new overlap guards now explicitly prove the frozen pop snapshot cannot be mutated by `push_write` once the engine has entered `LOAD`, `COUNT`, or `DRAIN`:
-  - `B130` guards `DRAIN`
-  - `B131` guards `LOAD/COUNT`
+- the SV overlap guards now prove sector-granular pop ownership:
+  - `B090` proves a safe push can overlap non-IDLE pop service once SEARCH has produced a stable ownership mask
+  - `B091`, `B130`, and `B131` prove same-sector LOAD/COUNT/DRAIN ownership still blocks the competing push path
+  - `B092` proves the delayed overwrite erase path obeys the same SEARCH and sector-lock rules
 - the SEARCH-window closure now has an explicit early-window guard as well:
   - `B133` proves a cross-key `push_write_grant` cannot slip into the unstable SEARCH window before the snapshot is frozen
   - `B056` still anchors the SEARCH wait-count contract at `0..5` after the settled-tail retiming

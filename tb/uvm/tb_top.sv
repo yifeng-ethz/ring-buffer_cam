@@ -145,6 +145,21 @@ module tb_top;
     dbg_if.pop_engine_state_code = dut.v2_core.dbg_pop_engine_state_code;
     dbg_if.push_state_code     = dut.v2_core.dbg_push_state_code;
     dbg_if.push_write_grant    = dut.v2_core.push_write_grant;
+`ifdef RBCAM_SV_IMPL
+    dbg_if.push_write_sector_locked = dut.v2_core.push_write_sector_locked;
+    dbg_if.push_write_allowed = dut.v2_core.push_write_allowed;
+    dbg_if.push_erase_sector_locked = dut.v2_core.push_erase_sector_locked;
+    dbg_if.push_erase_addr = dut.v2_core.push_erase_addr_reg;
+    dbg_if.pop_sector_lock_mask = dut.v2_core.pop_sector_lock_mask;
+    dbg_if.write_pointer = dut.v2_core.write_pointer;
+`else
+    dbg_if.push_write_sector_locked = 1'b0;
+    dbg_if.push_write_allowed = dut.v2_core.push_write_grant;
+    dbg_if.push_erase_sector_locked = 1'b0;
+    dbg_if.push_erase_addr = '0;
+    dbg_if.pop_sector_lock_mask = '0;
+    dbg_if.write_pointer = '0;
+`endif
     dbg_if.push_erase_grant    = dut.v2_core.push_erase_grant;
     dbg_if.pop_erase_grant     = dut.v2_core.pop_erase_grant;
     dbg_if.pop_flush_grant     = dut.v2_core.pop_flush_grant;

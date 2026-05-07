@@ -34,7 +34,7 @@ class base_test extends uvm_test;
 `ifdef RBCAM_SV_IMPL
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0033;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0031;
-  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd8;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd9;
   localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd507;
   localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260507;
 `else
@@ -8002,6 +8002,7 @@ class base_test extends uvm_test;
   task automatic run_case_by_id(string case_id);
     single_push_pop_seq   single_seq;
     same_key_burst_seq    burst_seq;
+    same_key_burst_seq    burst_seq_b;
     sequential_keys_seq   seq_keys;
     overwrite_stress_seq  ow_seq;
     overwrite_profile_seq pressure_seq;
@@ -9657,29 +9658,59 @@ class base_test extends uvm_test;
     end else if (case_id == "B090") begin
       configure_and_start(0);
       focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
-      burst_seq = same_key_burst_seq::type_id::create("b090_overlap");
+      burst_seq = same_key_burst_seq::type_id::create("b090_focus");
       burst_seq.num_hits = 64;
       burst_seq.search_key = focus_search_key;
+      burst_seq.start(m_env.m_hit_seqr);
+      wait_for_pop_engine_state(3'd4, 80_000, "B090 focus DRAIN entry");
+
+      burst_seq_b = same_key_burst_seq::type_id::create("b090_safe_overlap");
+      burst_seq_b.num_hits = 128;
+      burst_seq_b.search_key = m_cfg.lane_key_ord_to_search_key(3);
       saw_overlap = 1'b0;
+      traffic_done = 1'b0;
       fork
         begin
-          burst_seq.start(m_env.m_hit_seqr);
+          burst_seq_b.start(m_env.m_hit_seqr);
+          traffic_done = 1'b1;
         end
         begin
           search_cycles = 0;
-          while (search_cycles < 1_024 && !saw_overlap) begin
-            if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
-                (m_env.m_dbg_mon.pop_engine_state_code inside {3'd1, 3'd2, 3'd3})) begin
-              saw_overlap = 1'b1;
+          while (search_cycles < 80_000 && !saw_overlap &&
+                 (!traffic_done ||
+                  m_env.m_hit_drv.pending_source_items() != 0 ||
+                  m_env.m_dbg_mon.deassembly_fifo_usedw != 0)) begin
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+                m_env.m_dbg_mon.pop_search_wait_cnt < 3'd5 &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              `uvm_error("B090", $sformatf(
+                "push_write_grant slipped into SEARCH before the pop snapshot was stable: wait_cnt=%0d decision=%0d",
+                m_env.m_dbg_mon.pop_search_wait_cnt,
+                m_env.m_dbg_mon.vif.decision_reg))
+            end
+            if ((m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3, 3'd4}) &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              if (m_env.m_dbg_mon.vif.push_write_sector_locked === 1'b1) begin
+                `uvm_error("B090", $sformatf(
+                  "push_write_grant targeted a locked pop sector: state=%0d lock_mask=0x%0h wrptr=%0d decision=%0d",
+                  m_env.m_dbg_mon.pop_engine_state_code,
+                  m_env.m_dbg_mon.vif.pop_sector_lock_mask,
+                  m_env.m_dbg_mon.vif.write_pointer,
+                  m_env.m_dbg_mon.vif.decision_reg))
+              end else if (m_env.m_dbg_mon.vif.pop_sector_lock_mask != 8'h00) begin
+                saw_overlap = 1'b1;
+              end
             end
             @(posedge m_env.m_csr_drv.vif.clk);
             search_cycles++;
           end
         end
       join
+`ifdef RBCAM_SV_IMPL
       if (!saw_overlap) begin
-        `uvm_error("B090", "Did not observe push_write_grant during SEARCH/LOAD/COUNT")
+        `uvm_error("B090", "Did not observe a sector-safe push_write_grant during post-SEARCH pop service")
       end
+`endif
       wait_for_scoreboard_idle(120_000, "B090 push/pop overlap drain");
       expect_service_model_accounting("B090 push/pop overlap drain", 1, 0);
     end else if (case_id == "B091") begin
@@ -9697,12 +9728,25 @@ class base_test extends uvm_test;
         end
         begin
           search_cycles = 0;
-          while (search_cycles < 1_024) begin
-            if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
-                !traffic_done) begin
+          while (search_cycles < 8_192) begin
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+                m_env.m_dbg_mon.pop_search_wait_cnt < 3'd5 &&
+                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+              `uvm_error("B091", "push_write_grant was asserted while SEARCH still owns the global pop lock")
+            end
+            if ((m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3, 3'd4}) &&
+                m_env.m_dbg_mon.vif.push_write_sector_locked === 1'b1 &&
+                (!traffic_done ||
+                 m_env.m_hit_drv.pending_source_items() != 0 ||
+                 m_env.m_dbg_mon.deassembly_fifo_usedw != 0)) begin
               saw_overlap = 1'b1;
               if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
-                `uvm_error("B091", "push_write_grant remained high while pop_erase_grant owned DRAIN")
+                `uvm_error("B091", $sformatf(
+                  "push_write_grant ignored a locked pop sector: state=%0d lock_mask=0x%0h wrptr=%0d decision=%0d",
+                  m_env.m_dbg_mon.pop_engine_state_code,
+                  m_env.m_dbg_mon.vif.pop_sector_lock_mask,
+                  m_env.m_dbg_mon.vif.write_pointer,
+                  m_env.m_dbg_mon.vif.decision_reg))
               end
             end
             @(posedge m_env.m_csr_drv.vif.clk);
@@ -9710,9 +9754,11 @@ class base_test extends uvm_test;
           end
         end
       join
+`ifdef RBCAM_SV_IMPL
       if (!saw_overlap) begin
-        `uvm_error("B091", "Did not observe pop_erase_grant under ingress backpressure")
+        `uvm_error("B091", "Did not observe a same-sector push block under ingress pressure")
       end
+`endif
       wait_for_scoreboard_idle(120_000, "B091 drain-priority overlap");
       expect_service_model_accounting("B091 drain-priority overlap", 1, 0);
     end else if (case_id == "B092") begin
@@ -9747,6 +9793,14 @@ class base_test extends uvm_test;
       wait_for_pop_engine_state(3'd4, 80_000, "B092 DRAIN entry");
       search_cycles = 0;
       while (search_cycles < 20_000) begin
+        if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+            m_env.m_dbg_mon.pop_search_wait_cnt < 3'd5 &&
+            m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
+          `uvm_error("B092", $sformatf(
+            "push_erase_grant slipped into the unstable SEARCH window: wait_cnt=%0d erase_addr=%0d",
+            m_env.m_dbg_mon.pop_search_wait_cnt,
+            m_env.m_dbg_mon.vif.push_erase_addr))
+        end
         if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
             m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
           saw_drain_activity = 1'b1;
@@ -9755,13 +9809,17 @@ class base_test extends uvm_test;
             m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
             m_env.m_dbg_mon.vif.push_erase_grant === 1'b1) begin
           saw_overlap = 1'b1;
-          `uvm_error("B092", $sformatf(
-            "push_erase_grant leaked into active DRAIN after pop_erase ownership started: push_erase_count=%0d pop_erase_count=%0d pop_hits=%0d overwrites=%0d",
-            m_env.m_dbg_mon.push_erase_grant_count,
-            m_env.m_dbg_mon.pop_erase_grant_count,
-            m_env.m_dbg_mon.vif.pop_hits_count,
-            m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
-          break;
+          if (m_env.m_dbg_mon.vif.push_erase_sector_locked === 1'b1) begin
+            `uvm_error("B092", $sformatf(
+              "push_erase_grant targeted an active pop sector: push_erase_count=%0d pop_erase_count=%0d pop_hits=%0d overwrites=%0d erase_addr=%0d lock_mask=0x%0h",
+              m_env.m_dbg_mon.push_erase_grant_count,
+              m_env.m_dbg_mon.pop_erase_grant_count,
+              m_env.m_dbg_mon.vif.pop_hits_count,
+              m_env.m_dbg_mon.dbg_overwrite_cnt[31:0],
+              m_env.m_dbg_mon.vif.push_erase_addr,
+              m_env.m_dbg_mon.vif.pop_sector_lock_mask))
+            break;
+          end
         end
         @(posedge m_env.m_csr_drv.vif.clk);
         search_cycles++;
@@ -9777,6 +9835,11 @@ class base_test extends uvm_test;
           m_env.m_dbg_mon.vif.pop_hits_count,
           m_env.m_dbg_mon.dbg_overwrite_cnt[31:0]))
       end
+`ifdef RBCAM_SV_IMPL
+      if (!saw_overlap) begin
+        `uvm_error("B092", "Did not observe a sector-safe push_erase_grant during active DRAIN")
+      end
+`endif
       terminate_and_drain(240_000, "B092 push-erase priority drain");
       expect_service_model_accounting("B092 push-erase priority drain", 1, 1);
     end else if (case_id == "B093") begin
@@ -11047,22 +11110,33 @@ class base_test extends uvm_test;
           while (search_cycles < 8_192 &&
                  (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
             if (m_env.m_dbg_mon.pop_engine_state_code == 3'd4 &&
-                m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+                m_env.m_dbg_mon.vif.push_write_sector_locked === 1'b1 &&
+                (!traffic_done ||
+                 m_env.m_hit_drv.pending_source_items() != 0 ||
+                 m_env.m_dbg_mon.deassembly_fifo_usedw != 0)) begin
               saw_overlap = 1'b1;
-              `uvm_error("B130", $sformatf(
-                "push_write_grant entered DRAIN bubble at decision_reg=%0d pop_issue_addr=%0d",
-                m_env.m_dbg_mon.vif.decision_reg,
-                m_env.m_dbg_mon.vif.pop_issue_addr))
-              break;
+              if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+                `uvm_error("B130", $sformatf(
+                  "push_write_grant entered a locked DRAIN sector: decision_reg=%0d pop_issue_addr=%0d wrptr=%0d lock_mask=0x%0h",
+                  m_env.m_dbg_mon.vif.decision_reg,
+                  m_env.m_dbg_mon.vif.pop_issue_addr,
+                  m_env.m_dbg_mon.vif.write_pointer,
+                  m_env.m_dbg_mon.vif.pop_sector_lock_mask))
+                break;
+              end
             end
             @(posedge m_env.m_csr_drv.vif.clk);
             search_cycles++;
           end
         end
       join
+`ifdef RBCAM_SV_IMPL
       if (saw_overlap) begin
-        `uvm_error("B130", "Observed push_write_grant while pop_engine_state stayed in DRAIN")
+        `uvm_info("B130", "Observed DRAIN same-sector ownership blocking push_write", UVM_LOW)
+      end else begin
+        `uvm_error("B130", "Did not observe DRAIN same-sector ownership under ingress pressure")
       end
+`endif
       terminate_and_drain(250_000, "B130 no push-write in DRAIN");
       expect_service_model_accounting("B130 no push-write in DRAIN", 1, 0);
     end else if (case_id == "B131") begin
@@ -11082,23 +11156,44 @@ class base_test extends uvm_test;
           search_cycles = 0;
           while (search_cycles < 8_192 &&
                  (!traffic_done || m_env.m_hit_drv.pending_source_items() != 0)) begin
-            if ((m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3}) &&
+            if (m_env.m_dbg_mon.pop_engine_state_code == 3'd1 &&
+                m_env.m_dbg_mon.pop_search_wait_cnt < 3'd5 &&
                 m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
               saw_overlap = 1'b1;
               `uvm_error("B131", $sformatf(
-                "push_write_grant overlapped a frozen pop snapshot: pop_state=%0d decision_reg=%0d",
-                m_env.m_dbg_mon.pop_engine_state_code,
+                "push_write_grant overlapped the unstable SEARCH window: wait_cnt=%0d decision_reg=%0d",
+                m_env.m_dbg_mon.pop_search_wait_cnt,
                 m_env.m_dbg_mon.vif.decision_reg))
               break;
+            end
+            if ((m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3}) &&
+                m_env.m_dbg_mon.vif.push_write_sector_locked === 1'b1 &&
+                (!traffic_done ||
+                 m_env.m_hit_drv.pending_source_items() != 0 ||
+                 m_env.m_dbg_mon.deassembly_fifo_usedw != 0)) begin
+              saw_overlap = 1'b1;
+              if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+                `uvm_error("B131", $sformatf(
+                  "push_write_grant overlapped a locked LOAD/COUNT sector: pop_state=%0d decision_reg=%0d wrptr=%0d lock_mask=0x%0h",
+                  m_env.m_dbg_mon.pop_engine_state_code,
+                  m_env.m_dbg_mon.vif.decision_reg,
+                  m_env.m_dbg_mon.vif.write_pointer,
+                  m_env.m_dbg_mon.vif.pop_sector_lock_mask))
+                break;
+              end
             end
             @(posedge m_env.m_csr_drv.vif.clk);
             search_cycles++;
           end
         end
       join
+`ifdef RBCAM_SV_IMPL
       if (saw_overlap) begin
-        `uvm_error("B131", "Observed push_write_grant while pop_engine_state stayed in LOAD/COUNT")
+        `uvm_info("B131", "Observed SEARCH or LOAD/COUNT ownership guard under ingress pressure", UVM_LOW)
+      end else begin
+        `uvm_error("B131", "Did not observe SEARCH or LOAD/COUNT ownership pressure")
       end
+`endif
       terminate_and_drain(250_000, "B131 no push-write in LOAD/COUNT");
       expect_service_model_accounting("B131 no push-write in LOAD/COUNT", 1, 0);
     end else if (case_id == "B132") begin
@@ -16233,6 +16328,23 @@ class test_sequential_keys extends base_test;
     seq.start_key    = 4;
     seq.start(m_env.m_hit_seqr);
     wait_for_scoreboard_idle(80_000, "test_sequential_keys");
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class test_sector_lock_overlap extends base_test;
+  `uvm_component_utils(test_sector_lock_overlap)
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  task run_phase(uvm_phase phase);
+    phase.raise_objection(this);
+    wait_for_reset_release();
+    run_case_by_id("B090");
+    run_case_by_id("B091");
+    run_case_by_id("B133");
     phase.drop_objection(this);
   endtask
 endclass

@@ -92,9 +92,15 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic [2:0]   pop_engine_state_code;
   logic         push_state_code;
   logic         push_write_grant;
+  logic         push_write_sector_locked;
+  logic         push_write_allowed;
   logic         push_erase_grant;
+  logic         push_erase_sector_locked;
+  logic [15:0]  push_erase_addr;
   logic         pop_erase_grant;
   logic         pop_flush_grant;
+  logic [7:0]   pop_sector_lock_mask;
+  logic [15:0]  write_pointer;
   logic         run_mgmt_flush_memory_start;
   logic         run_mgmt_flush_memory_done;
   logic         pop_flush_ram_done;
@@ -158,7 +164,10 @@ interface dut_debug_if (input logic clk, input logic rst);
   modport mon (
     input ingress_valid, ingress_ready, ingress_error, ingress_channel, ingress_data,
           decision_reg, run_state_code, pop_engine_state_code, push_state_code,
-          push_write_grant, push_erase_grant, pop_erase_grant, pop_flush_grant,
+          push_write_grant, push_write_sector_locked, push_write_allowed,
+          push_erase_grant, push_erase_sector_locked, push_erase_addr,
+          pop_erase_grant, pop_flush_grant,
+          pop_sector_lock_mask, write_pointer,
           run_mgmt_flush_memory_start, run_mgmt_flush_memory_done,
           pop_flush_ram_done, pop_flush_cam_done,
           cam_wr_addr, side_ram_waddr, side_ram_we, side_ram_din,

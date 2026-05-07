@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.8
+// Version : 26.2.9
 // Date    : 20260507
-// Change  : propagate the 64-bit CSR/drop counter rbCAM core defaults
+// Change  : propagate the sector-lock rbCAM core defaults
 
 module ring_buffer_cam #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,7 +16,7 @@ module ring_buffer_cam #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 8,
+  parameter int VERSION_PATCH       = 9,
   parameter int BUILD               = 507,
   parameter int VERSION_DATE        = 20260507,
   parameter int VERSION_GIT         = 0,

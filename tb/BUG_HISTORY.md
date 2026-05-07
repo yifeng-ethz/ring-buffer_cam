@@ -102,6 +102,36 @@ Historical formal note:
 | [BUG-062-H](#bug-062-h-the-generic-idle-helper-treated-a-lone-pending-end-of-run-marker-as-live-traffic-even-after-the-dut-had-already-closed-the-lane) | H | non-datapath-refactor | `directed-only (terminate cleanup audit)` | fixed and verified in the terminate cleanup reruns on `dev` | `B071` on 2026-04-21 immediately after `BUG-061-R` was fixed and the terminate-condition audit was rerun against the updated RTL | `b4e0daa` | The generic idle helper treated a lone pending end-of-run marker as live traffic even after the DUT had already closed the lane |
 | [BUG-063-H](#bug-063-h-the-shared-low-stage-partition-latency-helper-anchored-on-a-stage-4-only-pulse-instead-of-the-real-active-partition-load-event) | H | non-datapath-refactor | `directed-only (low-stage build-axis latency)` | fixed and verified in the low-stage directed and profile reruns on `dev` | `B094`, `B095`, `B096`, `P054`, `P055`, and `P056` on 2026-04-21 while closing the PIPE_STAGES build axis with standalone per-variant evidence | `4c62cd0` | The shared low-stage partition-latency helper anchored on a stage-4-only pulse instead of the real active-partition load event |
 | [BUG-064-R](#bug-064-r-restoring-exact-settled-search-tail-snapshot-membership-reopened-the-standalone-p4-timing-blocker) | R | signoff block | `directed-only (standalone signoff rerun after the exact settled-SEARCH-tail guard restore)` | fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master` | standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree | `1069e0b` | Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker |
+| [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `pending this fix commit` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
+
+## 2026-05-07
+
+### BUG-065-R: Global pop ownership lock backpressured safe push traffic in the SV rbCAM
+- Severity: `soft error`
+- Encounter sim-time: `2042556 ns in the dual-UVM trace-analysis window that exposed long deassembly FIFO residency`
+- First seen in: 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then reproduced as a directed overlap-guard requirement through `B090`, `B091`, `B130`, `B131`, and `B133`
+- Symptom:
+  - post-rbCAM delay showed a broad plateau even though the rbCAM fill-level histogram did not reach full capacity
+  - missing-hit investigation pointed to hits waiting in the deassembly FIFO while the pop engine owned the entire rbCAM, rather than to rbCAM storage overflow
+  - the old behavior serialized push behind pop even when the pushed write address was outside the frozen pop snapshot's spatial footprint
+- Root cause:
+  - the SV baseline inherited the global time-slice lock shape: `push_write` could grant only while `pop_engine_state == POP_IDLING`
+  - this protected SEARCH/DRAIN correctness, but it also blocked legal push traffic during LOAD/COUNT/DRAIN phases where the pop snapshot had already identified the sectors it owned
+  - under high-rate multi-channel traffic, that coarse lock moved queueing into the deassembly FIFO and could create long ingress residency unrelated to the 2000-cycle timestamp resequencing target
+- Fix status:
+  - `state`: fixed and verified in the SV sector-lock regression
+  - `mechanism`: keep a global lock through SEARCH until the pop snapshot is valid, then derive an 8-sector lock mask from the frozen `pop_snapshot` plus the in-flight pop issue address; push writes and delayed push erases can overlap LOAD/COUNT/DRAIN only when their address is outside that sector mask
+  - `before_fix_outcome`: the v26.2.8 SV baseline still used the global pop-idle-only push grant, so the overlap guard would not see safe push service during non-conflicting pop phases
+  - `after_fix_outcome`: `test_sector_lock_overlap` passes by running `B090`, `B091`, and `B133`; isolated `B130` and `B131` pass with the updated spatial-lock guards; the full SV p4 regression passes 12/12 with no untracked scoreboard loss
+  - `potential_hazard`: moderate; the functional safety is now guarded in UVM, but the sector-lock timing contract still needs the planned formal harness before signoff
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - validated with `make -C ring-buffer_cam/tb/uvm run TEST=test_sector_lock_overlap RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
+  - validated with isolated `B130` and `B131` reruns using `make -C ring-buffer_cam/tb/uvm run_case CASE_ID=<case> RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
+  - validated with `make -C ring-buffer_cam/tb/uvm regress SEEDS=1 RTL_IMPL=sv RTL_VARIANT=p4 COV_ENABLE=0 VERBOSITY=UVM_LOW`
+  - validated with `make -C ring-buffer_cam/tb/uvm cfg_matrix RTL_IMPL=sv COV_ENABLE=0 VERBOSITY=UVM_LOW`
+  - static screen: `python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py --top ring_buffer_cam --filelist ring-buffer_cam/tb/formal/ring_buffer_cam_sv_static.f`
+- Commit: pending this fix commit
 
 ## 2026-04-16
 

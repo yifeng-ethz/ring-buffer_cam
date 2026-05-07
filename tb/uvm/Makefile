@@ -151,7 +151,14 @@ DIRECTED_TESTS = \
   test_single_push_pop \
   test_same_key_burst_128 \
   test_same_key_burst_256 \
-  test_sequential_keys \
+  test_sequential_keys
+
+ifeq ($(RTL_IMPL),sv)
+DIRECTED_TESTS += \
+  test_sector_lock_overlap
+endif
+
+DIRECTED_TESTS += \
   test_overwrite_stress
 
 # ── Random test list ─────────────────────────────────────────────

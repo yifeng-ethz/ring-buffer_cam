@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.8
+// Version : 26.2.9
 // Date    : 20260507
-// Change  : add 64-bit CSR counters, counter freeze, and 64-deep deassembly FIFO
+// Change  : add sector-granular pop locks so push can overlap safe pop phases
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,7 +16,7 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 8,
+  parameter int VERSION_PATCH       = 9,
   parameter int BUILD               = 507,
   parameter int VERSION_DATE        = 20260507,
   parameter int VERSION_GIT         = 0,
@@ -69,6 +69,11 @@ module ring_buffer_cam_core #(
   localparam int ADDR_W_CONST          = (RING_BUFFER_N_ENTRY <= 2) ? 1 : $clog2(RING_BUFFER_N_ENTRY);
   localparam int DEASM_DEPTH_CONST     = 64;
   localparam int POP_CMD_DEPTH_CONST   = 16;
+  localparam int LOCK_SECTOR_COUNT_CONST = 8;
+  localparam int LOCK_SECTOR_BITS_CONST = 3;
+  localparam int ADDR_SECTOR_LSB_CONST =
+    (ADDR_W_CONST > LOCK_SECTOR_BITS_CONST) ?
+    (ADDR_W_CONST - LOCK_SECTOR_BITS_CONST) : 0;
   localparam int FLUSH_CYCLES_CONST    = (RING_BUFFER_N_ENTRY < 32) ? 32 : RING_BUFFER_N_ENTRY;
   localparam logic [8:0] CTRL_IDLE_CONST        = 9'b0_0000_0001;
   localparam logic [8:0] CTRL_RUN_PREPARE_CONST = 9'b0_0000_0010;
@@ -145,6 +150,10 @@ module ring_buffer_cam_core #(
   logic [7:0] in_hit_sk;
 
   logic push_write_req;
+  logic push_write_allowed;
+  logic push_write_sector_locked;
+  logic push_erase_sector_locked;
+  logic [LOCK_SECTOR_COUNT_CONST-1:0] pop_sector_lock_mask;
   logic push_write_grant;
   logic push_erase_req;
   logic push_erase_grant;
@@ -300,6 +309,28 @@ module ring_buffer_cam_core #(
     return -1;
   endfunction
 
+  function automatic logic [LOCK_SECTOR_BITS_CONST-1:0] addr_sector(
+    input logic [ADDR_W_CONST-1:0] addr
+  );
+    return LOCK_SECTOR_BITS_CONST'(addr >> ADDR_SECTOR_LSB_CONST);
+  endfunction
+
+  function automatic logic [LOCK_SECTOR_COUNT_CONST-1:0] snapshot_sector_mask(
+    input logic [RING_BUFFER_N_ENTRY-1:0] snap
+  );
+    logic [LOCK_SECTOR_COUNT_CONST-1:0] mask;
+    logic [ADDR_W_CONST-1:0] addr;
+
+    mask = '0;
+    for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
+      if (snap[i]) begin
+        addr = ADDR_W_CONST'(i);
+        mask[addr_sector(addr)] = 1'b1;
+      end
+    end
+    return mask;
+  endfunction
+
   function automatic logic [31:0] csr_read_data(input logic [4:0] addr);
     logic [31:0] data;
     data = '0;
@@ -441,21 +472,63 @@ module ring_buffer_cam_core #(
   end
 
   always_comb begin
-    decision = 3'd4;
-    if (pop_flush_req) begin
-      decision = 3'd3;
-    end else if (push_erase_req) begin
-      decision = 3'd1;
-    end else if (pop_erase_req) begin
-      decision = 3'd2;
-    end else if (push_write_req && pop_engine_state == POP_IDLING) begin
-      decision = 3'd0;
-    end
-
     push_write_grant = 1'b0;
     push_erase_grant = 1'b0;
     pop_erase_grant = 1'b0;
     pop_flush_grant = 1'b0;
+    push_write_allowed = 1'b0;
+    push_write_sector_locked = 1'b0;
+    push_erase_sector_locked = 1'b0;
+    pop_sector_lock_mask = snapshot_sector_mask(pop_snapshot);
+
+    if (pop_issue_inflight || pop_output_pending || pop_emit_pending) begin
+      pop_sector_lock_mask[
+        addr_sector(pop_issue_addr_pending[ADDR_W_CONST-1:0])
+      ] = 1'b1;
+    end
+    if (pop_erase_req) begin
+      pop_sector_lock_mask[
+        addr_sector(pop_issue_addr[ADDR_W_CONST-1:0])
+      ] = 1'b1;
+    end
+    if (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) begin
+      push_write_sector_locked =
+        pop_sector_lock_mask[addr_sector(write_pointer)];
+      push_erase_sector_locked =
+        pop_sector_lock_mask[addr_sector(push_erase_addr_reg)];
+    end
+
+    push_write_allowed =
+      push_write_req &&
+      !push_erase_req &&
+      !pop_flush_req &&
+      (pop_engine_state != POP_SEARCHING) &&
+      !push_write_sector_locked;
+
+    if (pop_flush_req) begin
+      pop_flush_grant = 1'b1;
+    end else begin
+      push_erase_grant =
+        push_erase_req &&
+        (pop_engine_state != POP_SEARCHING) &&
+        !push_erase_sector_locked;
+      pop_erase_grant = pop_erase_req;
+      push_write_grant = push_write_allowed;
+    end
+
+    decision = 3'd4;
+    if (pop_flush_grant) begin
+      decision = 3'd3;
+    end else if (pop_erase_grant && push_write_grant) begin
+      decision = 3'd5;
+    end else if (pop_erase_grant) begin
+      decision = 3'd2;
+    end else if (push_erase_grant) begin
+      decision = 3'd1;
+    end else if (push_write_grant) begin
+      decision = 3'd0;
+    end
+
     cam_wr_en = 1'b0;
     cam_erase_en = 1'b0;
     cam_wr_addr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
@@ -465,39 +538,39 @@ module ring_buffer_cam_core #(
     side_ram_din = {1'b1, in_hit_side};
     side_ram_raddr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
 
-    unique case (decision)
-      3'd0: begin
-        push_write_grant = 1'b1;
-        cam_wr_en = 1'b1;
-        side_ram_we = 1'b1;
-      end
-      3'd1: begin
-        push_erase_grant = 1'b1;
-        cam_erase_en = 1'b1;
-        cam_wr_addr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
-        cam_wr_data = push_write_sk_reg;
-        side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
-      end
-      3'd2: begin
-        pop_erase_grant = 1'b1;
-        cam_erase_en = 1'b1;
-        cam_wr_addr = pop_issue_addr;
-        cam_wr_data = pop_current_sk[7:0];
+    if (push_write_grant) begin
+      cam_wr_en = 1'b1;
+      side_ram_we = 1'b1;
+      side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
+      side_ram_din = {1'b1, in_hit_side};
+    end
+
+    if (push_erase_grant && !pop_erase_grant && !push_write_grant) begin
+      cam_erase_en = 1'b1;
+      cam_wr_addr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
+      cam_wr_data = push_write_sk_reg;
+      side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
+    end
+
+    if (pop_erase_grant) begin
+      cam_erase_en = 1'b1;
+      cam_wr_addr = pop_issue_addr;
+      cam_wr_data = pop_current_sk[7:0];
+      side_ram_raddr = pop_issue_addr;
+      if (!push_write_grant) begin
         side_ram_we = 1'b1;
         side_ram_waddr = pop_issue_addr;
         side_ram_din = '0;
-        side_ram_raddr = pop_issue_addr;
       end
-      3'd3: begin
-        pop_flush_grant = 1'b1;
-        cam_erase_en = 1'b1;
-        side_ram_we = 1'b1;
-        side_ram_waddr = flush_ram_wraddr;
-        side_ram_din = '0;
-      end
-      default: begin
-      end
-    endcase
+    end
+
+    if (pop_flush_grant) begin
+      cam_erase_en = 1'b1;
+      cam_wr_addr = flush_cam_wraddr;
+      side_ram_we = 1'b1;
+      side_ram_waddr = flush_ram_wraddr;
+      side_ram_din = '0;
+    end
   end
 
   always_ff @(posedge i_clk or posedge i_rst) begin
