@@ -29,13 +29,10 @@ module tb_top;
   logic tb_side_ram_patch_we = 1'b0;
   logic [TB_SRAM_ADDR_W-1:0] tb_side_ram_patch_addr = '0;
   logic [39:0] tb_side_ram_patch_data = '0;
-  logic [63:0] asi_hit_type1_metadata = '0;
-  logic [63:0] aso_hit_type2_metadata;
-  logic        aso_hit_type2_metadata_valid;
   logic [31:0] coe_debug_fill_level;
   logic [31:0] coe_debug_fifo_level;
   logic [31:0] coe_debug_queue_state;
-  int unsigned tb_timeout_cycles = 5_000_000;
+  longint unsigned tb_timeout_cycles = 5_000_000;
 
   always #4 clk = ~clk;  // 8 ns period = 125 MHz
 
@@ -84,8 +81,8 @@ module tb_top;
     .asi_hit_type1_valid         (hit_if.valid),
     .asi_hit_type1_ready         (hit_if.ready),
     .asi_hit_type1_error         (hit_if.error),
-    .asi_hit_type1_metadata      (asi_hit_type1_metadata),
-    .asi_hit_type1_metadata_valid(1'b0),
+    .asi_hit_type1_metadata      (hit_if.metadata),
+    .asi_hit_type1_metadata_valid(hit_if.metadata_valid),
     // Egress
     .aso_hit_type2_channel       (out_if.channel),
     .aso_hit_type2_startofpacket (out_if.startofpacket),
@@ -94,8 +91,8 @@ module tb_top;
     .aso_hit_type2_valid         (out_if.valid),
     .aso_hit_type2_ready         (out_if.ready),
     .aso_hit_type2_error         (out_if.error),
-    .aso_hit_type2_metadata      (aso_hit_type2_metadata),
-    .aso_hit_type2_metadata_valid(aso_hit_type2_metadata_valid),
+    .aso_hit_type2_metadata      (out_if.metadata),
+    .aso_hit_type2_metadata_valid(out_if.metadata_valid),
     // Fill level
     .aso_filllevel_valid         (out_if.filllevel_valid),
     .aso_filllevel_data          (out_if.filllevel_data),
@@ -267,6 +264,7 @@ module tb_top;
     string dv_case_id;
     string dv_exec_mode;
     string dv_run_id;
+    longint unsigned watchdog_cycle;
 
     if ($value$plusargs("DV_CASE_ID=%s", dv_case_id)) begin
       if (dv_case_id == "P127") begin
@@ -289,7 +287,9 @@ module tb_top;
       end
     end
     void'($value$plusargs("TB_TIMEOUT_CYCLES=%d", tb_timeout_cycles));
-    repeat (tb_timeout_cycles) @(posedge clk);
+    for (watchdog_cycle = 0; watchdog_cycle < tb_timeout_cycles; watchdog_cycle++) begin
+      @(posedge clk);
+    end
     `uvm_fatal("TB_TOP", "Global simulation timeout reached")
   end
 

@@ -4,6 +4,8 @@ greybox_tmp/
 .qsys_edit/
 transcript
 vsim.wlf
+modelsim.ini
+work/
 syn/quartus/db/
 syn/quartus/output_files/
 syn/quartus/incremental_db/

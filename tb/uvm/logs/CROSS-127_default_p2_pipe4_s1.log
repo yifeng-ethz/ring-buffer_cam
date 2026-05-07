@@ -1,3 +1,3 @@
 CROSS-127 has no live log artifact.
-State: planned only
-Scenario: randomized-time composition variant #18
+State: implemented but not yet rerun
+Scenario: 30 s simulator-time overwrite/recovery soak: B075/B079, E089, P125/P126, X119/X120 with random inter-case gaps

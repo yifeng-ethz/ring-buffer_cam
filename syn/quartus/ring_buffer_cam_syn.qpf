@@ -18,15 +18,16 @@
 #
 # Quartus Prime
 # Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
-# Date created = 15:50:03  April 22, 2026
+# Date created = 00:45:11  May 08, 2026
 #
 # -------------------------------------------------------------------------- #
 
 QUARTUS_VERSION = "18.1"
-DATE = "15:50:03  April 22, 2026"
+DATE = "00:45:11  May 08, 2026"
 
 # Revisions
 
+PROJECT_REVISION = "ring_buffer_cam_syn_sv_p4"
 PROJECT_REVISION = "ring_buffer_cam_syn_p4"
 PROJECT_REVISION = "ring_buffer_cam_syn_v23"
 PROJECT_REVISION = "ring_buffer_cam_syn_p3"

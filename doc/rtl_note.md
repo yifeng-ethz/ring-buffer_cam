@@ -1,26 +1,31 @@
 # RTL Note — ring_buffer_cam
 
-Date: 2026-04-22
+Date: 2026-05-08
 Author: Codex
 
 ## 0. Summary
 
-- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh carries forward the overwrite-erase-slot timing closure from `26.2.3.0421`, packages the terminate-control fixes as `26.2.4.0421`, refreshes the DV evidence through the supported QuestaOne 2026 isolated dashboard rerun plus the focused `E115` and `E119` reruns, and keeps the earlier standalone `ring_buffer_cam_syn_p4` compile as the latest Quartus timing evidence.
-- Sign-off status: the isolated DV dashboard is improved but still not closed, the last standalone `ring_buffer_cam_syn_p4` compile continues to show positive timing margin on the tightened `137.5 MHz` target, and gate-level simulation plus full DV-plan closure remain open.
+- Scope: this note started as the partitioned-encoder / partitioned pop-flow upgrade log from `upgrade_plan.md`; the current refresh records the 2026-05-08 standalone Quartus rerun after the RTL tree split into `rtl/vhd_ver/`, `rtl/sv_ver/`, and `rtl/common/`.
+- Sign-off status: standalone synthesis/resource/gate-smoke signoff for the delivered VHDL `P4` build is closed at the requested `125 MHz` target with `1.1x` clock margin. Full project signoff is still not closed because the separate SV implementation fails standalone timing, DV 30 s simulator-time soaks are missing, and formal metadata-lineage properties remain open in the DV/formal reports.
 - Key deltas:
-  - added `rtl/addr_enc_logic_partitioned.vhd`
+  - added `rtl/vhd_ver/addr_enc_logic_partitioned.vhd`
   - refactored the pop engine to `SEARCH -> LOAD -> DRAIN`
   - modernized `script/ring_buffer_cam_hw.tcl`, added `script/ring_buffer_cam_presets.qprs`, and made `P4` the packaged default
   - added standalone Quartus revisions for legacy baseline (`v23`), partitioned full-IP modes (`p2`, `p3`, `p4`), and standalone encoder modes (`addr_enc_logic_syn_p2`, `addr_enc_logic_syn_p3`, `addr_enc_logic_syn_p4`)
   - later release fixes added the soft-reset abort-to-`IDLE` cleanup, the guarded descriptor / stale-request handling used by the current DV closure, and the carried overwrite erase slot that removes the last negative-slack standalone path family
+  - 2026-05-08 synthesis rerun fixed a Quartus 18.1 VHDL syntax-compatibility issue in the metadata sidecar FIFO write by replacing a conditional expression with a sequential `if`
+  - 2026-05-08 SV standalone synthesis revision was added; Quartus compiles it, but the flat SV CAM/search structure fails timing
 - Current evidence:
-  - standalone `ring_buffer_cam_syn_p4`: `2,518` ALMs, `2,938` registers, slow-85C setup slack `+0.080 ns`, slow-0C setup slack `+0.347 ns`, and worst reported hold slack `+0.149 ns`
-  - current DV dashboard: refreshed after the supported-QuestaOne 2026 isolated evidence sweep and the focused `E115` / `E119` reruns; current state is `367/516` implemented case-engine rows, `365/516` evidenced isolated runs, `17` failing isolated cases, `149` unimplemented cases, and `67.44% (348/516)` passing functional coverage
-  - latest closure slice: the active tree now adds the low-stage partition-latency helper fix (`BUG-063-H`) on top of the terminate-control RTL repair (`BUG-061-R`) and the end-of-run marker cleanup (`BUG-062-H`), while the focused reruns promote `E115` and `E119` into the passing set
-  - delivered package metadata: `26.2.4.0421` with locked `BUILD=421` / `VERSION_DATE=20260421`
+  - standalone `ring_buffer_cam_syn_p4`: `2,191` ALMs, `2,861` registers, `19` RAM blocks, slow-85C setup slack `+0.515 ns`, slow-0C setup slack `+0.575 ns`, and worst reported hold slack `+0.171 ns`
+  - standalone `ring_buffer_cam_syn_sv_p4`: `4,045` ALMs, `4,821` registers, `2` RAM blocks, slow-85C setup slack `-14.213 ns`, slow-0C setup slack `-12.813 ns`, and slow-85C Fmax `46.54 MHz`; this is not timing closed
+  - resource gate: `2,191 / 4,000 ALMs = 54.8%`, below the requested `6,000 ALM` max with 50% bloat
+  - gate smoke: `make -C tb/gate compare SAMPLE_CYCLES=500000` passes on both RTL and regenerated gate netlist
+  - current DV dashboard: `563/563` promoted isolated cases are evidenced with `0` failing isolated cases, but `CROSS-125..CROSS-129` are still missing qualifying 30 s simulator-time logs, so DV closure is not claimed
+  - current formal dashboard: the binding stack is implemented; qverify Lint/CDC/RDC is clean, but full formal remains `45/47` proven with `F-ML02/F-ML03` firing
 - Main conclusion:
   - the partitioned `P4` architecture remains the delivered standalone signoff point
-  - the current release now has refreshed DV evidence on top of the earlier architectural refactor and restores standalone timing closure by carrying the overwrite erase slot out of the live CAM erase cone
+  - the current standalone VHDL build closes timing at the tightened `137.5 MHz` target and fits under the `4000 ALM` estimate
+  - the SV port is functionally useful for UVM/formal migration, but it is not yet a timing-equivalent implementation of the VHDL P4 datapath
   - the detailed historical sweep below is still useful background, but the authoritative current status lives in [`doc/SIGNOFF.md`](SIGNOFF.md) and [`syn/SYN_REPORT.md`](../syn/SYN_REPORT.md)
 
 ## 1. Targets
@@ -31,8 +36,13 @@ Author: Codex
 - Target frequency: `125 MHz` (`Tclk = 8.0 ns`)
 - Current standalone sign-off rule: compile at `137.5 MHz` (`7.273 ns`, `1.1 x 125 MHz`) and require `WNS >= 0`, `hold >= 0`
 - Resource comparison rule for this work:
-  - original request: 50% ALM reduction versus the standalone v2.3 baseline build
-  - current user guidance: treat `30%` to `50%` reduction as the practical target range while preserving enough margin for the integrated firmware image
+  - current user request: `4000 ALM` estimate, with at most `50%` bloat
+  - pass ceiling: `6000 ALMs`
+  - current result: `2191 ALMs`, pass
+- SV comparison note:
+  - `rtl/sv_ver/ring_buffer_cam_core.sv` is `1094` lines after the reset/timing-compatibility edits; the full SV implementation files are `1399` lines including wrapper, package, and FIFO
+  - `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd` is `2191` lines plus separate CAM, side-RAM, and partitioned encoder files
+  - the SV core is shorter because it uses flat resident arrays and full-depth procedural search/count loops instead of the VHDL `cam_mem_a5`, `alt_simple_dpram`, and partitioned encoder architecture; this is also why the SV standalone compile fails timing
 - Baseline reference: commit `a762511` (v2.3), compiled as revision `ring_buffer_cam_syn_v23`
 
 ## 2. DV Sign-Off (RTL Simulation)
@@ -149,8 +159,16 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 
 ## 5. Gate-Level Simulation Sign-Off
 
-- Not run in this turn.
-- No post-fit netlist/SDF simulation runner has been added yet.
+- Functional gate smoke was run in this turn using the regenerated Quartus gate netlist.
+- Command:
+  - `make -C tb/gate compare SAMPLE_CYCLES=500000`
+- Evidence:
+  - RTL harness log: `tb/gate/logs/rtl_signature.log`
+  - Gate harness log: `tb/gate/logs/gate_signature.log`
+  - RTL signature: `0xfd448996`
+  - Gate signature: `0xac7007dc`
+  - both benches print `*** TEST PASSED ***`
+- The existing harness treats exact signature equality as advisory for the functional gate model; the pass criterion is that both RTL and gate benches complete without errors and publish the pass marker.
 
 ## 6. Optional Hardware Validation
 
@@ -158,7 +176,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 
 ## 7. RTL Changes (iteration history)
 
-- Added `rtl/addr_enc_logic_partitioned.vhd` as the new encoder block with partition-aware one-hot feedback.
+- Added `rtl/vhd_ver/addr_enc_logic_partitioned.vhd` as the new encoder block with partition-aware one-hot feedback.
 - Replaced the old pop-search flow with `SEARCH -> LOAD -> DRAIN`, including staggered partition loading and round-robin drain/reload.
 - Moved one-hot consume ownership into the partitioned encoder via `i_advance`, so the top entity no longer rewrites full partition vectors while draining.
 - Added a registered issue stage between pop decision/address reconstruction and CAM/side-RAM operations.
@@ -172,7 +190,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
 ## 8. Plan Mapping (`doc/upgrade_plan.md`)
 
 - Phase 1: encoder module
-  - Implemented: `rtl/addr_enc_logic_partitioned.vhd`
+  - Implemented: `rtl/vhd_ver/addr_enc_logic_partitioned.vhd`
   - Open: no separate encoder-only randomized TB was added; verification is currently end-to-end through the ring-buffer TBs
 - Phase 2: memory partitioning
   - Implemented for the current standalone `P=2/P=3/P=4` pipe-depth builds with `N_PARTITIONS=2`
@@ -182,12 +200,13 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
   - Implemented enough for the current standalone builds and RTL sims
   - Open: parallel push/pop behavior was not separately signed off as an isolated requirement in this turn
 - Phase 5: integration and verification
-  - RTL sims: pass for the exercised tests, including the partitioned throughput test after the final count-path change
-  - Quartus standalone comparison: completed for full-IP `v23/p2/p3/p4` and encoder-only `p2/p3/p4`
+  - RTL sims: the promoted isolated UVM catalog is evidenced at `563/563` with `0` failing isolated cases, but DV closure remains blocked by missing 30 s simulator-time signoff soaks `CROSS-125..CROSS-129`
+  - Quartus standalone comparison: historical full-IP `v23/p2/p3/p4` and encoder-only `p2/p3/p4` sweeps remain archived; the current `ring_buffer_cam_syn_p4` rerun is the authoritative synthesis result
   - UVM configuration-space validation: pass across `p1/p2/p3/p4` for reset defaults, RW semantics, and activity counters
   - Timing closure on the current delivered standalone signoff build: pass on `ring_buffer_cam_syn_p4` at `137.5 MHz` (`7.273 ns`) with positive setup and hold slack
-  - Resource reduction target: open
-  - Gate-level simulation: open
+  - SV standalone timing closure: fail on `ring_buffer_cam_syn_sv_p4` at `137.5 MHz`, worst setup slack `-14.213 ns`
+  - Resource target: pass at `2191 ALMs`, below the `4000 ALM` estimate and `6000 ALM` bloat ceiling
+  - Gate-level simulation: functional gate smoke pass on the regenerated P4 netlist
 
 ## 9. Packaging and Local Platform Designer Environment
 
@@ -195,7 +214,7 @@ The table below is retained as the earlier March 2026 upgrade sweep that led to 
   - current delivered version `26.2.4.0421`
   - elaboration and validation callbacks present
   - parameter documentation grouped into configuration/interface/register-map tabs
-  - lint check passed against `rtl/ring_buffer_cam.vhd`
+  - lint check passed against `rtl/vhd_ver/ring_buffer_cam.vhd`
 - Packaged defaults:
   - default delivered configuration: `ENCODER_PIPE_STAGES = 4`
   - reserved higher-compatibility bins remain available through presets: `P3`, `P2`, and `P1`

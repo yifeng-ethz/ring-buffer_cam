@@ -1,6 +1,6 @@
 # ring_buffer_cam — REPORT index
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-04-22` &nbsp;
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-05-08` &nbsp;
 **RTL variant:** `promoted_build_matrix` &nbsp; **Seed:** `1`
 
 ## Legend
@@ -13,10 +13,10 @@
 
 | status | bucket | planned | evidenced | merged (stmt/branch/cond/expr/fsm_state/fsm_trans/toggle) |
 |:---:|---|---:|---:|---|
-| ⚠️ | [`BASIC`](buckets/BASIC.md) | 129 | 129 | stmt=99.13, branch=93.87, cond=81.46, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=70.72 |
-| ⚠️ | [`EDGE`](buckets/EDGE.md) | 129 | 129 | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 |
-| ⚠️ | [`PROF`](buckets/PROF.md) | 129 | 129 | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 |
-| ⚠️ | [`ERROR`](buckets/ERROR.md) | 132 | 132 | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 |
+| ⚠️ | [`BASIC`](buckets/BASIC.md) | 148 | 148 | stmt=98.23, branch=92.35, cond=81.82, expr=40.00, fsm_state=100.00, fsm_trans=73.33, toggle=52.32 |
+| ⚠️ | [`EDGE`](buckets/EDGE.md) | 140 | 140 | stmt=94.37, branch=83.80, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.50 |
+| ⚠️ | [`PROF`](buckets/PROF.md) | 137 | 137 | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.27 |
+| ⚠️ | [`ERROR`](buckets/ERROR.md) | 138 | 138 | stmt=96.48, branch=88.48, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.54 |
 
 ## Cross / continuous-frame runs
 
@@ -28,6 +28,11 @@
 | ✅ | [`CROSS-015`](cross/CROSS-015.md) | anchored_hybrid | default_p2_pipe4 | - | nightly curated all-bucket mix: B005/B006, E002, P001-style random push-pop, X117-style error+flush recovery, plus overwrite-pressure windows, all separated by random idle gaps | 2048 | 88.8 |
 | ✅ | [`CROSS-076`](cross/CROSS-076.md) | seed_sweep | default_p2_pipe4 | - | nightly hotspot overwrite soak derived from P111, 131072 txn same-ts pressure | 131072 | 88.8 |
 | ✅ | [`CROSS-091`](cross/CROSS-091.md) | seed_sweep | default_p2_pipe4 | - | X101-X102 promoted to a sustained bad-hit burst bracketed by 64-hit GOOD warmup/cooldown windows | 128 | 86.2 |
+| ❌ | [`CROSS-125`](cross/CROSS-125.md) | checkpoint_soak | default_p2_pipe4 | - | 30 s simulator-time sector-lock/arbiter soak: repeated B090/B091/B092/B130/B131/B133 plus E073/E102/E103, P031, X063 with random inter-case gaps | 0 | 0.0 |
+| ❌ | [`CROSS-126`](cross/CROSS-126.md) | checkpoint_soak | default_p2_pipe4 | - | 30 s simulator-time all-bucket soak: B005/B006, E082, P086, P096, X117, X118, and P110 replayed with random inter-case gaps | 0 | 0.0 |
+| ❌ | [`CROSS-127`](cross/CROSS-127.md) | checkpoint_soak | default_p2_pipe4 | - | 30 s simulator-time overwrite/recovery soak: B075/B079, E089, P125/P126, X119/X120 with random inter-case gaps | 0 | 0.0 |
+| ❌ | [`CROSS-128`](cross/CROSS-128.md) | checkpoint_soak | default_p2_pipe4 | - | 30 s simulator-time PROF-heavy soak: P110, P125, P126, P127, P128, P129 replayed with random inter-case gaps | 0 | 0.0 |
+| ❌ | [`CROSS-129`](cross/CROSS-129.md) | checkpoint_soak | default_p2_pipe4 | - | 30 s simulator-time ERROR-heavy soak: X117/X118/X119/X120/X129/X130/X131/X132 plus CROSS-091 bad-hit counter burst | 0 | 0.0 |
 
 ## Random long-run cases
 
@@ -158,16 +163,24 @@
 | ✅ | [`P126`](cases/P126.md) | PROF | 1000000 | [growth](txn_growth/P126.md) |
 | ✅ | [`P127`](cases/P127.md) | PROF | 1000512 | [growth](txn_growth/P127.md) |
 | ❓ | [`P128`](cases/P128.md) | PROF | 2048 | [growth](txn_growth/P128.md) |
+| ❓ | [`P130`](cases/P130.md) | PROF | 576 | [growth](txn_growth/P130.md) |
+| ❓ | [`P131`](cases/P131.md) | PROF | 576 | [growth](txn_growth/P131.md) |
+| ❓ | [`P132`](cases/P132.md) | PROF | 576 | [growth](txn_growth/P132.md) |
+| ❓ | [`P133`](cases/P133.md) | PROF | 44 | [growth](txn_growth/P133.md) |
+| ❓ | [`P134`](cases/P134.md) | PROF | 1973 | [growth](txn_growth/P134.md) |
+| ❓ | [`P135`](cases/P135.md) | PROF | 256 | [growth](txn_growth/P135.md) |
+| ❓ | [`P136`](cases/P136.md) | PROF | 768 | [growth](txn_growth/P136.md) |
+| ❓ | [`P137`](cases/P137.md) | PROF | 576 | [growth](txn_growth/P137.md) |
 
 ## Totals
 
 <!-- merged_total_code_coverage is the merge across all evidenced cases in all buckets. -->
 
-- planned_cases = `519`
-- evidenced_cases = `519`
+- planned_cases = `563`
+- evidenced_cases = `563`
 - excluded_cases = `0`
-- merged total code coverage: `stmt=96.79, branch=90.95, cond=74.58, expr=40.00, fsm_state=100.00, fsm_trans=100.00, toggle=86.72`
-- functional coverage: `100.0% (519/519)`
+- merged total code coverage: `stmt=96.09, branch=89.87, cond=75.00, expr=40.00, fsm_state=100.00, fsm_trans=100.00, toggle=73.79`
+- functional coverage: `100.0% (563/563)`
 
 ---
 _[Dashboard](../DV_REPORT.md) &middot; [Coverage](../DV_COV.md)_

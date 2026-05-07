@@ -1,12 +1,12 @@
 # DV Plan: ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` &nbsp;
-**Primary RTL:** `rtl/ring_buffer_cam.vhd`, `rtl/ring_buffer_cam_v2_core.vhd`, `rtl/addr_enc_logic_partitioned.vhd` &nbsp;
+**Primary RTL:** `rtl/sv_ver/ring_buffer_cam.sv`, `rtl/sv_ver/ring_buffer_cam_core.sv` for the active SV feature stack; `rtl/vhd_ver/ring_buffer_cam.vhd`, `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`, `rtl/vhd_ver/addr_enc_logic_partitioned.vhd` for the VHDL baseline &nbsp;
 **Active variant:** `default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`) &nbsp;
 **Workflow:** local `dv-workflow` report-tree flow &nbsp;
 **Date:** `2026-04-21`
 
-**Companion docs:** [`DV_HARNESS.md`](DV_HARNESS.md) · [`DV_BASIC.md`](DV_BASIC.md) · [`DV_EDGE.md`](DV_EDGE.md) · [`DV_PROF.md`](DV_PROF.md) · [`DV_ERROR.md`](DV_ERROR.md) · [`DV_CROSS.md`](DV_CROSS.md) · [`DV_REPORT.md`](DV_REPORT.md) · [`DV_COV.md`](DV_COV.md) · [`BUG_HISTORY.md`](BUG_HISTORY.md)
+**Companion docs:** [`DV_HARNESS.md`](DV_HARNESS.md) · [`DV_BASIC.md`](DV_BASIC.md) · [`DV_EDGE.md`](DV_EDGE.md) · [`DV_PROF.md`](DV_PROF.md) · [`DV_ERROR.md`](DV_ERROR.md) · [`DV_CROSS.md`](DV_CROSS.md) · [`FORMAL_PLAN.md`](FORMAL_PLAN.md) · [`DV_REPORT.md`](DV_REPORT.md) · [`DV_COV.md`](DV_COV.md) · [`BUG_HISTORY.md`](BUG_HISTORY.md)
 
 Master IP-level signoff dashboard: [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md). Standalone timing evidence: [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md).
 
@@ -43,11 +43,12 @@ The historical signoff record in [../doc/SIGNOFF.md](../doc/SIGNOFF.md) is retai
 |---|---|---|
 | [DV_PLAN.md](DV_PLAN.md) | entry point | scope, buckets, signoff rules |
 | [DV_HARNESS.md](DV_HARNESS.md) | harness contract | agents, scoreboard, monitors, coverage, current gaps |
-| [DV_BASIC.md](DV_BASIC.md) | `B001-B129` | deterministic bring-up and core feature cases |
-| [DV_EDGE.md](DV_EDGE.md) | `E001-E129` | boundary, ordering, and partition corner cases |
-| [DV_PROF.md](DV_PROF.md) | `P001-P129` | random, stress, soak, and throughput-oriented cases |
-| [DV_ERROR.md](DV_ERROR.md) | `X001-X132` | injected faults, recovery, terminate/flush, illegal control |
+| [DV_BASIC.md](DV_BASIC.md) | `B001-B148` | deterministic bring-up, core feature cases, and sector-lock / 64-bit accounting / freeze / drop-counter / metadata-lineage contracts for the v26.2.10 SV stack |
+| [DV_EDGE.md](DV_EDGE.md) | `E001-E140` | boundary, ordering, partition corners, plus sector-lock geometry and decision-5 boundaries |
+| [DV_PROF.md](DV_PROF.md) | `P001-P137` | random, stress, soak, throughput, plus sector-lock concurrency rate and metadata-lineage long soaks |
+| [DV_ERROR.md](DV_ERROR.md) | `X001-X138` | injected faults, recovery, terminate/flush, illegal control, plus soft-reset and decode-error cases inside the sector-lock and freeze fault windows |
 | [DV_CROSS.md](DV_CROSS.md) | `CROSS-001-CROSS-129` | continuous-frame signoff: `bucket_frame`, `all_buckets_frame`, anchored hybrids, seed-swept and checkpoint soaks |
+| [FORMAL_PLAN.md](FORMAL_PLAN.md) | formal contract | qverify Lint+CDC+RDC+Formal property catalog, current proven set, and queued upgrades for the sector-lock and accounting stack |
 | `DV_REPORT.json` | machine-readable source | generated from `scripts/generate_dv_report.py` |
 | `DV_REPORT.md`, `DV_COV.md`, `REPORT/` | generated review tree | dashboard plus per-case and per-run evidence |
 
@@ -63,6 +64,9 @@ The historical signoff record in [../doc/SIGNOFF.md](../doc/SIGNOFF.md) is retai
 | T06 | Partitioned encoder and drain engine do not stall under supported contention | throughput monitor, per-partition cases |
 | T07 | Terminate / flush / restart behavior is explicit and reproducible | run-control sequences, scoreboard, counter checks |
 | T08 | Long-run mixed patterns expose overlap, arbitration, and counter-latency bugs | continuous-frame runs from [DV_CROSS.md](DV_CROSS.md) |
+| T09 | Sector-granular pop ownership lets unrelated push traffic overlap LOAD/COUNT/DRAIN without disturbing the frozen pop snapshot, and never overlaps SEARCH or a locked sector | sector-lock UVM cases (B090-B093, B130-B133, B135-B142, B148), formal proofs in [FORMAL_PLAN.md](FORMAL_PLAN.md), debug-monitor decision_reg trace |
+| T10 | 64-bit accounting CSRs report split high/low halves consistently, the freeze snapshot is atomic, and the three drop counters (deassembly-full, pop-cmd-full, egress-not-ready) only increment on their own back-pressure regime | accounting cases B143-B147, drop-regime PROF P133-P134, freeze fault X136 |
+| T11 | Debug metadata sideband is preserved across arbitrary deassembly-FIFO residency under the sector-lock service model (BUG-066-R closure) | metadata-lineage long soak P135 plus the integration-trace evidence linked from BUG-066-R |
 
 ## 5. Execution Modes
 

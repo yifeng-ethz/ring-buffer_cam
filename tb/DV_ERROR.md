@@ -1,7 +1,7 @@
 # DV_ERROR.md — ring_buffer_cam
 
-**Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md)
-**Canonical ID Range:** `X001-X132`
+**Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md), [FORMAL_PLAN.md](FORMAL_PLAN.md)
+**Canonical ID Range:** `X001-X138`
 **Intent:** fault, legality, terminate/flush/restart, and recovery scenarios.
 
 | case_id | method | implementation | legacy alias | scenario | primary checks |
@@ -143,3 +143,16 @@
 | X130 | D | live UVM | none | soft-reset on the first settled `SEARCH` window of an active drain descriptor | `pop_engine_state` aborts `SEARCH→IDLE`, counters/fill clear to zero, and both datapath FIFOs return idle |
 | X131 | D | live UVM | none | soft-reset on the entry cycle of `LOAD`, before the state can advance into `COUNT` | `pop_engine_state` aborts `LOAD→IDLE`, partition-load walk is discarded cleanly, and the datapath/accounting state returns to idle |
 | X132 | D | live UVM | none | soft-reset during the zero-hit `COUNT` phase after `RESET` with `EXPECTED_LATENCY=0` | `pop_engine_state` aborts `COUNT→IDLE`, the empty-descriptor count pass is discarded, and counters/fill/FIFOs return to reset-clean idle |
+
+# Sector-Lock And Accounting Fault Windows (X133-X138)
+
+These cases extend the soft-reset / decode-error / illegal-write coverage to the new sector-lock arbiter, the freeze snapshot path, and the drop-counter CSR words. They live alongside the older soft-reset and TERM/FLUSH cases and supplement the BASIC and EDGE sector-lock cases (`B135-B142`, `B148`, `E130-E140`).
+
+| case_id | method | implementation | legacy alias | scenario | primary checks |
+|---|---|---|---|---|---|
+| X133 | D | live UVM (sv) | none | soft-reset during a `decision_reg=5` cycle: arrange a concurrent `push_write_grant + pop_erase_grant` and pulse `csr_soft_reset` on the same posedge | both side-effects abort: `write_pointer` does NOT advance from its pre-reset value, the pop-issue slot is NOT cleared, `slot_valid` array zeroes via the soft-reset path, and `decision_reg` collapses to `4` immediately; `pop_sector_lock_mask=8'h00` afterwards because `pop_snapshot=0`; catches a stuck-grant after reset |
+| X134 | D | live UVM (sv) | none | flush during the `pop_issue_addr_pending` lock window: drive a `RUN_PREPARING` decode in the gap between `pop_erase_grant` and the matching `aso_hit_type2_valid` emit | `pop_engine_state` transitions out of `POP_DRAINING` into `POP_FLUSHING`; the in-flight emit cycle completes (no stuck `aso_hit_type2_valid`) and no stale push_write_grant slips through during the transition; `pop_sector_lock_mask` tracks the new (zero) snapshot once flush starts |
+| X135 | D | live UVM (sv) | none | CSR write to drop-counter offsets (words 15..20) | writes to those words are inert; counters keep counting if their drop event fires; readback returns the live counter values; `avs_csr_waitrequest` handshake completes; catches an accidental write side-effect on the new accounting register block |
+| X136 | D | live UVM (sv) | none | freeze + soft-reset interaction: drive non-zero counters, set `csr_counter_freeze=1`, then assert `csr_soft_reset` | `debug_msg2` clears AND `debug_msg2_snap` clears (the soft-reset branch resets both); CSR reads of words 5..20 return zero immediately after the reset, and `csr_counter_freeze` itself returns to 0 (default); catches a regression that would let the snapshot survive a soft-reset and confuse subsequent reads |
+| X137 | D | live UVM (sv) | none | run-control decode error during a `decision_reg=5` cycle: drive an undefined `asi_ctrl_data` (e.g. `9'h0FF`) on the same cycle a concurrent push_write+pop_erase grant fires | the in-flight grant cycle completes (write_pointer advances and pop-issue slot clears as planned, because the grant is registered before the run-control decode); `run_state_cmd` transitions to `RUN_ERRORING` on the next cycle and `asi_ctrl_ready=0`; subsequent push attempts are gated by the `RUN_RUNNING` requirement |
+| X138 | D | live UVM (sv) | none | `csr_soft_reset` collapses `pop_sector_lock_mask` immediately: pre-load a non-zero pop_snapshot (mid-DRAIN), then pulse soft-reset | the cycle after reset, `pop_sector_lock_mask=8'h00` and `push_write_sector_locked=0` for any `write_pointer`; `push_write_grant` is unblocked once `RUN_RUNNING` is re-entered; catches a stale lock-mask path that would survive the always_ff reset of `pop_snapshot` |

@@ -498,8 +498,8 @@ Historical formal note:
   - fixed by adding a quiescent `IDLE -> TERMINATING` ready path while keeping the normal end-of-run `terminating_drain_done` gate unchanged
   - verified by a clean focused rerun of `B010`, `B033-B041`, `B071`, `X031`, and `X099`
   - related RTL logic:
-    - `terminating_drain_done` gate at `rtl/ring_buffer_cam_v2_core.vhd:1633-1639`
-    - `TERMINATING` ready gate at `rtl/ring_buffer_cam_v2_core.vhd:1765-1770`
+    - `terminating_drain_done` gate at `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd:1633-1639`
+    - `TERMINATING` ready gate at `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd:1765-1770`
 - Commit: b203a04
 
 ### BUG-024-H: X039 assumed one `RUN_PREPARE` send both entered PREP and waited for flush completion
@@ -532,8 +532,8 @@ Historical formal note:
   - the RTL now latches `terminating_entry_quiescent` when a `TERMINATING` episode starts from an already-empty state and uses that latched fact in the `TERMINATING` ready gate
   - verified by a clean focused rerun of `B010`, `X031`, `X038`, `X039`, `X042`, `X043`, `X044`, `X046`, `X048`, `X051`, `X065`, and `X099` on build `26.1.5.0427`
   - related RTL logic:
-    - `terminating_drain_done` / quiescent detection in `rtl/ring_buffer_cam_v2_core.vhd`
-    - `TERMINATING` ready gate in `rtl/ring_buffer_cam_v2_core.vhd`
+    - `terminating_drain_done` / quiescent detection in `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`
+    - `TERMINATING` ready gate in `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`
 - Commit: f575af8
 
 ## 2026-04-19
@@ -569,7 +569,7 @@ Historical formal note:
   - `debug_msg2.inerr_cnt` accounting now runs after the MM read/write/idle decode so CSR bus traffic no longer masks the raw error observer
   - verified by clean isolated reruns of `X076`, `X113`, and `X114`, then by clean isolated reruns of `X022`, `X023`, `X024`, `X025`, and `X030`
   - related RTL logic:
-    - `rtl/ring_buffer_cam_v2_core.vhd` `proc_avmm_csr`
+    - `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd` `proc_avmm_csr`
 - Commit: e182765
 
 ### BUG-028-H: The original `X019` raw boundary injector did not actually drive an ingress beat

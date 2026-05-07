@@ -1,10 +1,9 @@
-# ✅ Signoff — ring_buffer_cam
+# ⚠️ Signoff — ring_buffer_cam
 
-**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-05-06` &nbsp;
-**Release under check:** `26.2.7.0506` &nbsp; **Evidence basis:** `DV/SYN/GATE=1069e0b` for the settled nominal path plus the DEBUG sidecar smoke checks listed below
-**Release packaging note:** `26.2.7.0506 adds DEBUG-gated FIFO/queue observability and 64-bit hit metadata sidecars. The inherited standalone P4 timing evidence is still the 26.2.6.0422 nominal-path basis; DEBUG>=1/2 system-level timing closure must be claimed from the full integration compile, not from this inherited standalone report.`
+**DUT:** `ring_buffer_cam` &nbsp; **Date:** `2026-05-08` &nbsp;
+**Release under check:** `26.2.10` stack on commit `ed41c983` + dirty worktree evidence refresh
 
-This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md).
+This page is the master signoff dashboard. Detailed synthesis evidence lives in [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md); detailed DV evidence lives in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md); formal status lives in [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md).
 
 ## Legend
 
@@ -14,69 +13,76 @@ This page is the master signoff dashboard. Detailed synthesis evidence lives in 
 
 | status | field | value |
 |:---:|---|---|
-| ⚠️ | overall_signoff | `partial for 26.2.7.0506 until the DEBUG sidecar integration compile is recorded; nominal inherited evidence remains pass` |
-| ✅ | standalone_syn_p4_512 | `the inherited standalone Quartus rerun on the 26.2.6.0422 nominal image closes the tightened 137.5 MHz / 7.273 ns signoff target with slow-85C WNS=+0.515 ns, slow-0C WNS=+0.575 ns, and worst reported hold slack=+0.171 ns` |
-| ⚠️ | debug_sidecar_delta | `26.2.7.0506 changes RTL/package surfaces for DEBUG observability and metadata sidecars; synthesis closure for DEBUG>=1/2 is owned by the full integration compile evidence` |
-| ✅ | dv_closure | `the promoted isolated dashboard is green: failed_cases=0, signoff_runs_with_failures=0, unimplemented_cases=0, 519/519 promoted signoff cases are evidenced, and stmt/branch/fsm_state/fsm_trans/toggle all meet target after the documented branch dead-bin exclusion` |
-| ✅ | cross_bucket_signoff | `6` continuous-frame signoff runs are published, and all record counter_checks_failed=0 and unexpected_outputs=0 |
-| ✅ | gate_level_sim | `functional gate smoke compare passes on the regenerated P4 netlist: rtl_signature=0xfd448996, gate_signature=0xac7007dc, and signature equality remains advisory for the functional gate model` |
-| ℹ️ | harness_output_constraints | `32` unconstrained `probe_out[31:0]` observation outputs remain outside the DUT reg-to-reg timing domain and are treated as harness-only non-claims |
+| ⚠️ | overall_signoff | `not closed: delivered VHDL P4 synthesis/resource/gate-smoke pass; SV timing, DV 30 s soaks, and formal metadata-lineage closure remain open` |
+| ✅ | standalone_vhdl_syn_p4_512 | `passes at 137.5 MHz / 7.273 ns with WNS=+0.515 ns worst setup and +0.171 ns worst hold` |
+| ❌ | standalone_sv_syn_p4_512 | `compiles and fits but fails timing at 137.5 MHz: slow-85C setup WNS=-14.213 ns, Fmax=46.54 MHz` |
+| ✅ | resource_gate | `2191 ALMs versus 4000 ALM estimate; below 6000 ALM max with 50% bloat` |
+| ✅ | gate_level_smoke | `RTL and regenerated gate netlist benches pass` |
+| ❌ | dv_signoff | `blocked: CROSS-125..CROSS-129 still need real 30 s simulator-time passing logs` |
+| ⚠️ | formal_signoff | `blocked by F-ML02/F-ML03 metadata-lineage assertions still firing in full qverify; latest attempt reached 45/47 proven` |
+| ℹ️ | harness_output_constraints | `32 probe_out observation outputs remain harness-only unconstrained paths; internal clk125 reg-to-reg timing is constrained and closed` |
 
 ## Verification
 
 | status | area | result | source |
 |:---:|---|---|---|
-| ✅ | isolated DV closure | `100.0% (519/519)` promoted functional coverage with `stmt=96.79`, `branch=90.95`, `fsm_state=100.00`, `fsm_trans=100.00`, `toggle=86.72`, and `0` failed promoted cases | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ✅ | continuous-frame signoff | all `6` published signoff runs pass with `0` counter mismatches, `0` unexpected outputs, and functional-cross range `80.9-88.8` | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
-| ✅ | implemented isolated matrix | the current supported QuestaOne 2026 isolated refresh evidences all `519` promoted signoff cases with `0` stale artifacts and `0` implemented-case failures in the published dashboard | [`../tb/REPORT/README.md`](../tb/REPORT/README.md) |
-| ✅ | gate smoke compare | the regenerated standalone gate netlist passes the functional smoke harness on both RTL and gate benches | [`../tb/gate/Makefile`](../tb/gate/Makefile) |
-| ✅ | bug ledger | harness and RTL issues tracked in the live DV ledger | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
+| ✅ | isolated DV catalog evidence | `563/563` promoted cases evidenced, `0` failing isolated cases | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ❌ | required 30 s signoff soaks | `CROSS-125..CROSS-129` are implemented and listed but have `0` qualifying 30 s simulator-time logs | [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) |
+| ⚠️ | formal | sector-lock/accounting/metadata bind stack implemented; latest full attempt `45/47` proven with `F-ML02/F-ML03` still firing | [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) |
+| ✅ | SV static screen | qverify Lint/CDC/RDC completed with Error/Violation counts at zero | `/tmp/rbcam_sv_static_codex_20260508_010728/questa_static_screen.log` |
+| ✅ | SV metadata UVM smoke | `P135` passes on `RTL_IMPL=sv`, scoreboard `pushed=256 popped=256 unexpected=0` | [`../tb/uvm/work_uvm_sv/logs/test_case_engine_P135_s1.log`](../tb/uvm/work_uvm_sv/logs/test_case_engine_P135_s1.log) |
+| ✅ | gate smoke compare | RTL and regenerated P4 gate netlist both print `*** TEST PASSED ***` | [`../tb/gate/Makefile`](../tb/gate/Makefile) |
+| ✅ | bug ledger format | current ledger format check is clean | [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) |
 
 ## Synthesis
 
 | status | item | value |
 |:---:|---|---|
 | ✅ | revision | `ring_buffer_cam_syn_p4` |
+| ✅ | implementation | delivered VHDL P4 standalone project (`rtl/vhd_ver/` + `rtl/common/`) |
 | ✅ | device | `5AGXBA7D4F31C5` |
-| ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` |
+| ✅ | nominal target | `125 MHz` |
+| ✅ | signoff constraint | `137.5 MHz` / `7.273 ns` (`1.1 x 125 MHz`) |
 | ✅ | slow 85C WNS / TNS | `+0.515 ns` / `0.000 ns` |
 | ✅ | slow 0C WNS / TNS | `+0.575 ns` / `0.000 ns` |
 | ✅ | worst hold slack | `+0.171 ns` |
 | ✅ | slow 85C Fmax | `147.97 MHz` |
-| ✅ | nominal 125 MHz headroom | `18.4%` |
 | ✅ | fitted resources | `2,191 ALMs`, `2,861 regs`, `19 RAM blocks`, `153,600` bits |
-| ℹ️ | TimeQuest caveat | internal `clk125` timing closes across the reported corners; the remaining unconstrained paths are the standalone harness `probe_out[31:0]` observation outputs only |
-| ✅ | detail report | [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) |
+| ✅ | ALM estimate gate | `2,191 / 4,000 = 54.8%`, max allowed `6,000` |
+| ✅ | netlist export | regenerated `syn/quartus/gate_sim/ring_buffer_cam_syn_p4.vo` |
+| ℹ️ | TimeQuest caveat | internal `clk125` timing closes; unconstrained paths are standalone harness `probe_out[31:0]` only |
 
-## Fixes In Scope
+## SystemVerilog Synthesis
 
-| status | class | summary |
+| status | item | value |
 |:---:|---|---|
-| ✅ | RTL | `BUG-039-R` through `BUG-060-R` remain in scope for this release, including the SEARCH-window, overwrite, wrap, and standalone timing repairs already carried by the live `26.2.6.0422` tree |
-| ✅ | RTL | `BUG-061-R` keeps `asi_ctrl_ready` downstream of the full lane-local terminate drain-done contract instead of the earlier entry-quiescent shortcut |
-| ✅ | Harness | `BUG-062-H` and `BUG-063-H` remain in scope: terminate cleanup ignores exactly one post-EOR empty marker, and the low-stage latency helper now anchors on the real partition-load/result handshake |
-| ✅ | RTL | `BUG-064-R` replaces the exact settled-SEARCH-tail snapshot-membership test with a cheaper conservative overwrite-slot predicate, preserving the `BUG-055-R` / `BUG-056-R` SEARCH correctness fixes without reopening the standalone `P4` timing blocker |
-| ✅ | DV | refreshed evidence keeps the promoted isolated matrix green at `519/519`, republishes `6` clean continuous-frame signoff runs, and regenerates the `tb/REPORT/` dashboard for the current signoff checkpoint |
-| ⚠️ | Metadata | wrapper defaults, Platform Designer packaging, and SVD version metadata are aligned to `26.2.7.0506` / `20260506` with `BUILD=506` and `PATCH=7`; timing evidence remains inherited from the nominal `26.2.6.0422` checkpoint until the full DEBUG integration compile is archived |
+| ❌ | revision | `ring_buffer_cam_syn_sv_p4` |
+| ℹ️ | implementation | SV migration implementation (`rtl/sv_ver/`) |
+| ✅ | compile/fitter | full Quartus compile successful, `0` errors |
+| ❌ | signoff timing | slow-85C setup WNS `-14.213 ns`, slow-0C setup WNS `-12.813 ns` |
+| ❌ | Fmax | `46.54 MHz` slow-85C, below `137.5 MHz` signoff |
+| ✅ | resource ceiling | `4,045 ALMs`, below `6,000` max with 50% bloat |
+| ℹ️ | root cause | SV core is a flat behavioral array/loop CAM model, not the VHDL partitioned CAM/encoder timing architecture |
 
 ## Evidence Index
 
-- [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) — active DV dashboard
-- [`../tb/DV_COV.md`](../tb/DV_COV.md) — active DV coverage summary
-- [`../tb/BUG_HISTORY.md`](../tb/BUG_HISTORY.md) — bug ledger
-- [`../tb/gate/logs/rtl_signature.log`](../tb/gate/logs/rtl_signature.log) — RTL gate-smoke signature log
-- [`../tb/gate/logs/gate_signature.log`](../tb/gate/logs/gate_signature.log) — regenerated netlist gate-smoke signature log
-- [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) — detailed standalone synthesis / timing report
+- [`../syn/SYN_REPORT.md`](../syn/SYN_REPORT.md) — detailed standalone synthesis/resource/gate-smoke report
 - [`../syn/quartus/ring_buffer_cam_syn_p4.qsf`](../syn/quartus/ring_buffer_cam_syn_p4.qsf) — active standalone P4 revision
 - [`../syn/quartus/ring_buffer_cam_syn.sdc`](../syn/quartus/ring_buffer_cam_syn.sdc) — tightened `137.5 MHz` signoff constraint
-- [`../syn/quartus/ring_buffer_cam_syn_harness.vhd`](../syn/quartus/ring_buffer_cam_syn_harness.vhd) — standalone synthesis harness
+- [`../syn/quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.summary`](../syn/quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.summary) — fitter resource summary
+- [`../syn/quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.summary`](../syn/quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.summary) — TimeQuest summary
 - [`../syn/quartus/gate_sim/ring_buffer_cam_syn_p4.vo`](../syn/quartus/gate_sim/ring_buffer_cam_syn_p4.vo) — regenerated standalone gate netlist
+- [`../syn/quartus/ring_buffer_cam_syn_sv_p4.qsf`](../syn/quartus/ring_buffer_cam_syn_sv_p4.qsf) — separate SV standalone revision
+- [`../syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.fit.summary`](../syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.fit.summary) — SV fitter resource summary
+- [`../syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.sta.summary`](../syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.sta.summary) — SV TimeQuest failure summary
+- [`../tb/gate/logs/rtl_signature.log`](../tb/gate/logs/rtl_signature.log) — RTL gate-smoke log
+- [`../tb/gate/logs/gate_signature.log`](../tb/gate/logs/gate_signature.log) — regenerated gate-netlist smoke log
+- [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) — active DV dashboard
+- [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) — active formal plan and closure state
 
-## Notes
+## Non-Claims
 
-- This dashboard supersedes the earlier monolithic signoff note. Current closure is derived from the split DV workflow, the standalone synthesis report, and the regenerated gate-smoke evidence.
-- The 2026-04-22 refresh closes the last residual nominal-path signoff blockers: the promoted isolated matrix is green at `519/519`, continuous-frame signoff is published with `6` clean runs, and the standalone Quartus `P4` rerun plus gate netlist smoke both pass on the live `26.2.6.0422` image.
-- The 2026-05-06 `26.2.7.0506` update is a DEBUG sidecar/interface delta. Treat the inherited standalone timing numbers as nominal-path evidence only until the full integration DEBUG build records its own timing report.
-- The branch total in [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) excludes `16` compile-time-dead bins in `addr_enc_logic_partitioned`; this is a documented report adjustment for constant-generic dead code, not a hidden testcase waiver.
-- The synthesis result is for the delivered `Default P4` shape: `512` entries, `4` partitions, `4` encoder stages.
-- The active DV dashboard is built and evidenced across the promoted build matrix `default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4`. The differing `P4` / `P2` / `P4-N4` shapes are intentional and are called out explicitly so synthesis and DV numbers are not conflated.
+- No full IP signoff tag should be cut from this checkpoint: SV timing, DV, and formal are still open.
+- The standalone Quartus signoff above is for the VHDL P4 implementation. The SystemVerilog implementation has UVM/static evidence and a separate Quartus revision, but that revision fails timing.
+- The branch dead-bin exclusion and 30 s soak requirements are owned by `tb/DV_REPORT.md`; this dashboard does not override them.
+- FEB firmware loading, on-chip histogram measurement, SignalTap/STP debug, and `tb_int` hardware comparison were explicitly deferred and are not part of this checkpoint.

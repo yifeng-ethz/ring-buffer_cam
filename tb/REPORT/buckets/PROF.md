@@ -1,6 +1,6 @@
 # ⚠️ PROF bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `129` &nbsp; **Status:** ⚠️
+**Planned:** `137` &nbsp; **Evidenced:** `137` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ⚠️ | stmt | 92.85 | 95.0 |
-| ⚠️ | branch | 84.76 | 90.0 |
-| ℹ️ | cond | 71.35 | - |
+| ⚠️ | stmt | 92.60 | 95.0 |
+| ⚠️ | branch | 84.31 | 90.0 |
+| ℹ️ | cond | 71.81 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ✅ | toggle | 81.88 | 80.0 |
+| ⚠️ | toggle | 69.27 | 80.0 |
 
 ## Ordered merge trace
 
@@ -156,6 +156,14 @@
 | ✅ | 127 | `P127` | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 | [case](../cases/P127.md) |
 | ✅ | 128 | `P128` | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 | [case](../cases/P128.md) |
 | ✅ | 129 | `P129` | stmt=92.85, branch=84.76, cond=71.35, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=81.88 | [case](../cases/P129.md) |
+| ✅ | 130 | `P130` | stmt=92.20, branch=82.94, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.49 | [case](../cases/P130.md) |
+| ✅ | 131 | `P131` | stmt=92.20, branch=82.94, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.49 | [case](../cases/P131.md) |
+| ✅ | 132 | `P132` | stmt=92.20, branch=82.94, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.49 | [case](../cases/P132.md) |
+| ✅ | 133 | `P133` | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=67.57 | [case](../cases/P133.md) |
+| ✅ | 134 | `P134` | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.20 | [case](../cases/P134.md) |
+| ✅ | 135 | `P135` | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.23 | [case](../cases/P135.md) |
+| ✅ | 136 | `P136` | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.27 | [case](../cases/P136.md) |
+| ✅ | 137 | `P137` | stmt=92.60, branch=84.31, cond=71.81, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.27 | [case](../cases/P137.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

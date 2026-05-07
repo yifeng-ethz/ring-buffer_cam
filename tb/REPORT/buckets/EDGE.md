@@ -1,6 +1,6 @@
 # ⚠️ EDGE bucket
 
-**Planned:** `129` &nbsp; **Evidenced:** `129` &nbsp; **Status:** ⚠️
+**Planned:** `140` &nbsp; **Evidenced:** `140` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ⚠️ | stmt | 94.66 | 95.0 |
-| ⚠️ | branch | 84.23 | 90.0 |
-| ℹ️ | cond | 68.36 | - |
+| ⚠️ | stmt | 94.37 | 95.0 |
+| ⚠️ | branch | 83.80 | 90.0 |
+| ℹ️ | cond | 68.89 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ✅ | toggle | 84.41 | 80.0 |
+| ⚠️ | toggle | 70.50 | 80.0 |
 
 ## Ordered merge trace
 
@@ -156,6 +156,17 @@
 | ✅ | 127 | `E127` | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | [case](../cases/E127.md) |
 | ✅ | 128 | `E128` | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | [case](../cases/E128.md) |
 | ✅ | 129 | `E129` | stmt=94.66, branch=84.23, cond=68.36, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=84.41 | [case](../cases/E129.md) |
+| ✅ | 130 | `E130` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.85 | [case](../cases/E130.md) |
+| ✅ | 131 | `E131` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.85 | [case](../cases/E131.md) |
+| ✅ | 132 | `E132` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.85 | [case](../cases/E132.md) |
+| ✅ | 133 | `E133` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=68.85 | [case](../cases/E133.md) |
+| ✅ | 134 | `E134` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.55 | [case](../cases/E134.md) |
+| ✅ | 135 | `E135` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=69.55 | [case](../cases/E135.md) |
+| ✅ | 136 | `E136` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.01 | [case](../cases/E136.md) |
+| ✅ | 137 | `E137` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.42 | [case](../cases/E137.md) |
+| ✅ | 138 | `E138` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.42 | [case](../cases/E138.md) |
+| ✅ | 139 | `E139` | stmt=93.96, branch=82.40, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.42 | [case](../cases/E139.md) |
+| ✅ | 140 | `E140` | stmt=94.37, branch=83.80, cond=68.89, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.50 | [case](../cases/E140.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

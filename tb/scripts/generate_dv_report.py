@@ -16,7 +16,11 @@ from datetime import date
 from pathlib import Path
 
 TB = Path(__file__).resolve().parents[1]
-WORK_LOGS = TB / "uvm" / "work_uvm" / "logs"
+WORK_LOG_DIRS = [
+    TB / "uvm" / "work_uvm_sv" / "logs",
+    TB / "uvm" / "work_uvm_vhdl" / "logs",
+    TB / "uvm" / "work_uvm" / "logs",
+]
 PUB_LOGS = TB / "uvm" / "logs"
 PUB_COV = TB / "uvm" / "cov_after"
 REPORT_ROOT = TB / "REPORT"
@@ -72,6 +76,16 @@ TOTAL_BRANCH_EXCLUSION_NOTE = (
     "`PIPE_STAGES=1..4` build matrix, including the p4-only "
     "`gen_addr_enc_logic(2/3)` instances."
 )
+REQUIRED_SOAK_TARGET_PS = 30_000_000_000_000
+REQUIRED_30S_SIGNOFF_SOAKS = OrderedDict(
+    [
+        ("CROSS-125", "sector-lock/arbiter 30 s simulator-time soak"),
+        ("CROSS-126", "all-bucket composition 30 s simulator-time soak"),
+        ("CROSS-127", "overwrite/recovery 30 s simulator-time soak"),
+        ("CROSS-128", "PROF-heavy overwrite 30 s simulator-time soak"),
+        ("CROSS-129", "ERROR-heavy recovery/counter 30 s simulator-time soak"),
+    ]
+)
 
 
 def normalize_alias(cell: str) -> str | None:
@@ -88,6 +102,18 @@ def normalize_alias(cell: str) -> str | None:
 
 def derive_build_tag(implementation: str, case_id: str) -> str:
     text = implementation.lower()
+    if "ring_buffer_n_entry=64" in text or "ring_buffer_n_entry = 64" in text:
+        return "depth64_p2_pipe4"
+    if "ring_buffer_n_entry=384" in text or "ring_buffer_n_entry = 384" in text:
+        return "depth384_p2_pipe4"
+    if "ring_buffer_n_entry=4096" in text or "ring_buffer_n_entry = 4096" in text:
+        return "depth4096_p2_pipe4"
+    if case_id in {"B134", "P136"}:
+        return "depth384_p2_pipe4"
+    if case_id == "E136":
+        return "depth64_p2_pipe4"
+    if case_id == "E137":
+        return "depth4096_p2_pipe4"
     if "p4_n4_pipe4" in text or "p4 variant" in text:
         return "p4_n4_pipe4"
     if "p2_pipe1" in text or "pipe_stages=1" in text:
@@ -108,11 +134,11 @@ def is_live_uvm_decl(implementation: str) -> bool:
 def signoff_scope() -> OrderedDict[str, str]:
     return OrderedDict(
         [
-            ("RTL_BUILD_MATRIX", "default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4"),
+            ("RTL_BUILD_MATRIX", "default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4, depth64_p2_pipe4, depth384_p2_pipe4, depth4096_p2_pipe4"),
             ("G_N_PARTITIONS", "2, 4"),
             ("G_ENCODER_PIPE_STAGES", "1, 2, 3, 4"),
             ("G_INTERLEAVING_FACTOR", "4"),
-            ("G_RING_BUFFER_N_ENTRY", "512"),
+            ("G_RING_BUFFER_N_ENTRY", "64, 384, 512, 4096"),
             ("probe_only_exclusions", ""),
         ]
     )
@@ -435,6 +461,11 @@ def parse_log(log_path: Path) -> dict | None:
     throughput = re.findall(r"Throughput: (\d+) hits in (\d+) cycles \(([0-9.]+)%\)", text)
     case_markers = re.findall(r"\[CASE\] (CASE_(?:BEGIN|END) .*?)$", text, flags=re.MULTILINE)
     error_lines = re.findall(r"UVM_ERROR .*?\[[^\]]+\] (.*)", text)
+    soak_match = re.search(
+        r"SIGNOFF_SOAK_SUMMARY\s+run_id=(\S+)\s+target_ps=(\d+)\s+elapsed_ps=(\d+)\s+iterations=(\d+)\s+cases=(\d+)",
+        text,
+    )
+    sim_times = [int(value) for value in re.findall(r"@\s+(\d+):", text)]
 
     summary_fields: dict[str, int] = {}
     if summary_match:
@@ -468,6 +499,14 @@ def parse_log(log_path: Path) -> dict | None:
     if throughput:
         summary["throughput_samples"] = len(throughput)
         summary["max_throughput_pct"] = max(float(item[2]) for item in throughput)
+    if sim_times:
+        summary["sim_end_ps"] = max(sim_times)
+    if soak_match:
+        summary["soak_run_id"] = soak_match.group(1)
+        summary["soak_target_ps"] = int(soak_match.group(2))
+        summary["soak_elapsed_ps"] = int(soak_match.group(3))
+        summary["soak_iterations"] = int(soak_match.group(4))
+        summary["soak_case_executions"] = int(soak_match.group(5))
     if error_lines:
         summary["failure_reason"] = error_lines[0]
 
@@ -514,16 +553,13 @@ def case_log_candidates(case_data: dict) -> list[Path]:
     alias = case_data.get("alias")
     build_tag = case_data.get("build_tag", RTL_VARIANT)
     candidates = [
-        WORK_LOGS / f"test_case_engine_{case_id}_s{SEED}.log",
-        PUB_LOGS / f"{case_id}_{build_tag}_s{SEED}.log",
+        log_dir / f"test_case_engine_{case_id}_s{SEED}.log"
+        for log_dir in WORK_LOG_DIRS
     ]
+    candidates.append(PUB_LOGS / f"{case_id}_{build_tag}_s{SEED}.log")
     if alias:
-        candidates.extend(
-            [
-                WORK_LOGS / f"{alias}_s{SEED}.log",
-                PUB_LOGS / f"{alias}_{build_tag}_s{SEED}.log",
-            ]
-        )
+        candidates.extend(log_dir / f"{alias}_s{SEED}.log" for log_dir in WORK_LOG_DIRS)
+        candidates.append(PUB_LOGS / f"{alias}_{build_tag}_s{SEED}.log")
     return unique_paths(candidates)
 
 
@@ -566,7 +602,11 @@ def cross_log_candidates(run_data: dict) -> list[Path]:
     else:
         work_names.append(f"test_case_engine_{run_id}_s{SEED}.log")
 
-    candidates = [WORK_LOGS / name for name in work_names]
+    candidates = [
+        log_dir / name
+        for log_dir in WORK_LOG_DIRS
+        for name in work_names
+    ]
     candidates.append(PUB_LOGS / f"{run_id}_{build_tag}_s{SEED}.log")
     return unique_paths(candidates)
 
@@ -792,6 +832,8 @@ def build_bucket(bucket_name: str, bucket_cases: list[dict]) -> tuple[dict, dict
 
 def build_signoff_run(run_data: dict) -> dict | None:
     entry = dict(run_data)
+    run_id = entry["run_id"]
+    required_soak = run_id in REQUIRED_30S_SIGNOFF_SOAKS
     chosen_log: Path | None = None
     log_info = None
     for candidate in cross_log_candidates(entry):
@@ -801,6 +843,30 @@ def build_signoff_run(run_data: dict) -> dict | None:
             break
 
     if not log_info:
+        if required_soak:
+            entry["case_count"] = 0
+            entry["effort"] = "missing_required_30s_sim_soak"
+            entry["iter_cap"] = f"target_ps={REQUIRED_SOAK_TARGET_PS}"
+            entry["payload_cap"] = REQUIRED_30S_SIGNOFF_SOAKS[run_id]
+            entry["code_coverage"] = {}
+            entry["evidence_state"] = "missing_required_30s_sim_soak_log"
+            entry["cross_summary"] = {
+                "pct": 0.0,
+                "txns": 0,
+                "queued_overlap": 0,
+                "counter_checks_failed": 1,
+                "unexpected_outputs": 0,
+                "curve": "",
+            }
+            publish_log_artifact(
+                entry["run_id"],
+                None,
+                entry["sequence_name"],
+                True,
+                entry.get("build_tag", RTL_VARIANT),
+            )
+            publish_cov_artifact(entry["run_id"], None)
+            return entry
         return None
 
     chosen_ucdb: Path | None = None
@@ -822,19 +888,43 @@ def build_signoff_run(run_data: dict) -> dict | None:
     publish_cov_artifact(entry["run_id"], chosen_ucdb)
 
     summary = log_info["summary"]
+    soak_short = False
+    if required_soak:
+        soak_target_ps = int(summary.get("soak_target_ps", 0) or 0)
+        soak_elapsed_ps = int(summary.get("soak_elapsed_ps", 0) or 0)
+        if soak_target_ps < REQUIRED_SOAK_TARGET_PS or soak_elapsed_ps < REQUIRED_SOAK_TARGET_PS:
+            soak_short = True
     entry["case_count"] = max(1, summary.get("case_markers", 0) // 2)
-    entry["effort"] = "smoke"
-    entry["iter_cap"] = "n/a"
-    entry["payload_cap"] = "n/a"
+    entry["effort"] = "30s_sim_soak" if required_soak else "smoke"
+    entry["iter_cap"] = (
+        f"target_ps={summary.get('soak_target_ps', REQUIRED_SOAK_TARGET_PS)}"
+        if required_soak
+        else "n/a"
+    )
+    entry["payload_cap"] = (
+        f"elapsed_ps={summary.get('soak_elapsed_ps', 0)}"
+        if required_soak
+        else "n/a"
+    )
     entry["code_coverage"] = code_coverage
     entry["cross_summary"] = {
         "pct": summary.get("cg_output_pct", 0.0),
         "txns": log_info["observed_txn"],
         "queued_overlap": 0,
-        "counter_checks_failed": 0 if log_info["passed"] else summary.get("uvm_error_count", 0),
+        "counter_checks_failed": (
+            0
+            if log_info["passed"] and not soak_short
+            else max(1, summary.get("uvm_error_count", 0))
+        ),
         "unexpected_outputs": summary.get("unexpected_outputs", 0),
         "curve": "",
     }
+    if required_soak:
+        entry["cross_summary"]["soak_target_ps"] = summary.get("soak_target_ps", 0)
+        entry["cross_summary"]["soak_elapsed_ps"] = summary.get("soak_elapsed_ps", 0)
+        entry["cross_summary"]["soak_iterations"] = summary.get("soak_iterations", 0)
+        entry["cross_summary"]["soak_case_executions"] = summary.get("soak_case_executions", 0)
+        entry["evidence_state"] = "passed_required_30s_sim_soak" if not soak_short else "short_required_30s_sim_soak"
     return entry
 
 
@@ -864,6 +954,12 @@ def build_report() -> dict:
         built = build_signoff_run(run)
         if built is not None:
             signoff_runs.append(built)
+    required_soak_issues = [
+        run.get("run_id", "?")
+        for run in signoff_runs
+        if run.get("run_id") in REQUIRED_30S_SIGNOFF_SOAKS
+        and run.get("evidence_state") != "passed_required_30s_sim_soak"
+    ]
 
     promoted_count = sum(1 for item in all_cases if item.get("promoted_catalog"))
     implemented_count = sum(1 for item in all_cases if item.get("implemented"))
@@ -938,6 +1034,17 @@ def build_report() -> dict:
                 merge_cov(VCOVER_BIN, all_ucdbs, Path(temp_dir))
             ))
 
+    non_claims = []
+    catalog_backlog_count = len(all_cases) - promoted_count
+    if required_soak_issues:
+        non_claims.append(
+            "DV closure is not claimed until required 30 s simulator-time signoff soaks CROSS-125..CROSS-129 have real passing logs with elapsed_ps >= 30000000000000."
+        )
+    if catalog_backlog_count:
+        non_claims.append(
+            f"DV closure is not claimed while {catalog_backlog_count} queued bucket-extension cases remain planned-only without live UVM case-engine evidence."
+        )
+
     return {
         "report_title": "ring_buffer_cam",
         "dut_name": "ring_buffer_cam",
@@ -946,7 +1053,8 @@ def build_report() -> dict:
         "seed": SEED,
         "bugs": parse_bug_history(BUG_HISTORY_FILE),
         "signoff_scope": signoff_scope(),
-        "non_claims": [
+        "non_claims": non_claims
+        + [
             "cross scope: DV_CROSS continuous-frame ladders are tracked separately from the canonical per-case isolated matrix in this refresh.",
             TOTAL_BRANCH_EXCLUSION_NOTE,
         ],
@@ -954,10 +1062,10 @@ def build_report() -> dict:
         "bucket_summary": bucket_summary,
         "formal_summary": formal_rows,
         "implementation_summary": {
-            "implemented_count": promoted_count,
+            "implemented_count": implemented_count,
             "unimplemented_count": max(promoted_count - implemented_count, 0),
-            "catalog_backlog_count": len(all_cases) - promoted_count,
-            "stale_artifact_without_engine_marker_count": 0,
+            "catalog_backlog_count": catalog_backlog_count,
+            "stale_artifact_without_engine_marker_count": len(required_soak_issues),
         },
         "failed_cases": failed_cases,
         "random_cases": [

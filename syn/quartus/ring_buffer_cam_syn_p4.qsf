@@ -12,15 +12,15 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 16
 set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Standard Edition"
 
-set_global_assignment -name VHDL_FILE ../../rtl/ring_buffer_cam.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/ring_buffer_cam_v2_core.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/alt_simple_dpram.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/cam_helper_pkg.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/cam_mem_a5.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/cam_mem_blk_a5.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/alt_fifo/scfifo_w40d256.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd
-set_global_assignment -name VHDL_FILE ../../rtl/addr_enc_logic_partitioned.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/ring_buffer_cam.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/ring_buffer_cam_v2_core.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/common/alt_simple_dpram.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/cam_helper_pkg.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/cam_mem_a5.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/cam_mem_blk_a5.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/common/alt_fifo/scfifo_w40d256.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/vhd_ver/addr_enc_logic_partitioned.vhd
 set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_harness.vhd
 set_global_assignment -name VHDL_FILE ring_buffer_cam_syn_p4_top.vhd
 

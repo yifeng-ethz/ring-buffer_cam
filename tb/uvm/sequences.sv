@@ -399,6 +399,9 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
   byte unsigned bernoulli_arrival_threshold = 8'd128;
   logic [31:0] lfsr_seed = 32'h1ace_b00c;
   int unsigned fingerprint_start_index = 0;
+  bit          metadata_enable = 0;
+  bit          metadata_valid_alternates = 0;
+  logic [63:0] metadata_base = 64'h0000_0000_6600_0000;
   int unsigned burst_len = 0;
   int unsigned burst_idle_cycles = 0;
   int unsigned progress_stride = 0;
@@ -479,6 +482,10 @@ class profile_traffic_seq extends uvm_sequence #(ring_buffer_cam_pkg::hit_seq_it
       hit.tcc8n     = 13'(actual_key * 16);
       hit.has_error = 1'b0;
       hit.is_empty_marker = 1'b0;
+      if (metadata_enable) begin
+        hit.metadata = metadata_base ^ 64'(fingerprint_start_index + i);
+        hit.metadata_valid = metadata_valid_alternates ? ~i[0] : 1'b1;
+      end
       finish_item(hit);
 
       if (progress_stride > 0 && (((i + 1) % progress_stride) == 0)) begin

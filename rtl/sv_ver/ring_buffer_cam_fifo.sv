@@ -46,10 +46,20 @@ module ring_buffer_cam_fifo #(
       wr_ptr <= '0;
       rd_ptr <= '0;
       usedw  <= '0;
+`ifdef FORMAL
+      for (int i = 0; i < DEPTH; i++) begin
+        mem[i] <= '0;
+      end
+`endif
     end else if (sclr) begin
       wr_ptr <= '0;
       rd_ptr <= '0;
       usedw  <= '0;
+`ifdef FORMAL
+      for (int i = 0; i < DEPTH; i++) begin
+        mem[i] <= '0;
+      end
+`endif
     end else begin
       if (do_write) begin
         mem[wr_ptr] <= din;

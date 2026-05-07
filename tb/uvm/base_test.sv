@@ -223,23 +223,7 @@ class base_test extends uvm_test;
     ring_buffer_cam_pkg::hit_seq_item hit_item,
     int unsigned hold_cycles = 1
   );
-    m_env.m_hit_drv.manual_override = 1'b1;
-    m_env.m_hit_drv.vif.data    <= hit_item.is_empty_marker ? '0 : hit_item.pack_hit();
-    m_env.m_hit_drv.vif.valid   <= 1'b1;
-    m_env.m_hit_drv.vif.channel <= hit_item.input_channel();
-    m_env.m_hit_drv.vif.startofpacket <= hit_item.is_empty_marker;
-    m_env.m_hit_drv.vif.endofpacket   <= hit_item.is_empty_marker;
-    m_env.m_hit_drv.vif.empty   <= hit_item.is_empty_marker;
-    m_env.m_hit_drv.vif.error   <= (hit_item.has_error ? 1'b1 : 1'b0);
-    repeat (hold_cycles) @(posedge m_env.m_hit_drv.vif.clk);
-    m_env.m_hit_drv.vif.data    <= '0;
-    m_env.m_hit_drv.vif.valid   <= 1'b0;
-    m_env.m_hit_drv.vif.channel <= '0;
-    m_env.m_hit_drv.vif.startofpacket <= 1'b0;
-    m_env.m_hit_drv.vif.endofpacket   <= 1'b0;
-    m_env.m_hit_drv.vif.empty   <= 1'b0;
-    m_env.m_hit_drv.vif.error   <= 1'b0;
-    m_env.m_hit_drv.manual_override = 1'b0;
+    m_env.m_hit_drv.pulse_manual_hit(hit_item, hold_cycles);
   endtask
 
   task automatic enter_run_prepare();
@@ -336,6 +320,35 @@ class base_test extends uvm_test;
     eor_seq = endofrun_marker_seq::type_id::create("eor_seq");
     eor_seq.lane_channel = m_cfg.interleaving_index;
     eor_seq.start(m_env.m_hit_seqr);
+  endtask
+
+  task automatic force_endofrun_marker();
+    ring_buffer_cam_pkg::hit_seq_item marker;
+    marker = ring_buffer_cam_pkg::hit_seq_item::type_id::create("forced_eor_marker");
+    marker.is_empty_marker = 1'b1;
+    marker.ingress_channel = m_cfg.interleaving_index[3:0];
+    marker.has_error = 1'b0;
+    force_raw_hit(marker, 2);
+    m_cfg.note_ingress_beat('0, marker.ingress_channel, 1'b1, 1'b1);
+  endtask
+
+  task automatic force_payload_hit(
+    int unsigned key_ord,
+    longint unsigned unique_idx = 0,
+    int unsigned hold_cycles = 1
+  );
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("forced_payload_hit");
+    hit_item.asic = unique_idx[3:0];
+    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    hit_item.channel = unique_idx[8:4];
+    hit_item.tcc8n = m_cfg.make_tcc8n_for_lane_key(key_ord, unique_idx[3:0]);
+    hit_item.tcc1n6 = unique_idx[16:14];
+    hit_item.tfine = unique_idx[13:9];
+    hit_item.et1n6 = unique_idx[25:17];
+    hit_item.has_error = 1'b0;
+    hit_item.is_empty_marker = 1'b0;
+    force_raw_hit(hit_item, hold_cycles);
   endtask
 
   task automatic discard_pending_source_backlog(string what);
@@ -459,6 +472,22 @@ class base_test extends uvm_test;
       override_hits = 0;
     end
     return override_hits;
+  endfunction
+
+  function automatic longint unsigned current_sim_time_ps();
+    longint unsigned now_ps;
+
+    now_ps = $time;
+    return now_ps;
+  endfunction
+
+  function automatic longint unsigned get_soak_target_time_ps();
+    longint unsigned target_ps;
+
+    if (!$value$plusargs("DV_SOAK_TARGET_TIME_PS=%d", target_ps)) begin
+      target_ps = 64'd30_000_000_000_000;
+    end
+    return target_ps;
   endfunction
 
   task automatic build_log_spaced_checkpoint_targets(
@@ -4099,6 +4128,121 @@ class base_test extends uvm_test;
     `uvm_info("CASE", "CASE_END run=CROSS-076", UVM_LOW)
   endtask
 
+  task automatic build_signoff_soak_case_list(
+    string run_id,
+    ref string case_ids[$]
+  );
+    case_ids.delete();
+    if (run_id == "CROSS-125") begin
+      case_ids.push_back("B090");
+      case_ids.push_back("B091");
+      case_ids.push_back("B092");
+      case_ids.push_back("B130");
+      case_ids.push_back("B131");
+      case_ids.push_back("B133");
+      case_ids.push_back("E073");
+      case_ids.push_back("E102");
+      case_ids.push_back("E103");
+      case_ids.push_back("P031");
+      case_ids.push_back("X063");
+    end else if (run_id == "CROSS-126") begin
+      case_ids.push_back("B005");
+      case_ids.push_back("B006");
+      case_ids.push_back("E082");
+      case_ids.push_back("P086");
+      case_ids.push_back("P096");
+      case_ids.push_back("X117");
+      case_ids.push_back("X118");
+      case_ids.push_back("P110");
+    end else if (run_id == "CROSS-127") begin
+      case_ids.push_back("B075");
+      case_ids.push_back("B079");
+      case_ids.push_back("E089");
+      case_ids.push_back("P125");
+      case_ids.push_back("P126");
+      case_ids.push_back("X119");
+      case_ids.push_back("X120");
+    end else if (run_id == "CROSS-128") begin
+      case_ids.push_back("P110");
+      case_ids.push_back("P125");
+      case_ids.push_back("P126");
+      case_ids.push_back("P127");
+      case_ids.push_back("P128");
+      case_ids.push_back("P129");
+    end else if (run_id == "CROSS-129") begin
+      case_ids.push_back("X117");
+      case_ids.push_back("X118");
+      case_ids.push_back("X119");
+      case_ids.push_back("X120");
+      case_ids.push_back("X129");
+      case_ids.push_back("X130");
+      case_ids.push_back("X131");
+      case_ids.push_back("X132");
+      case_ids.push_back("CROSS-091");
+    end
+  endtask
+
+  task automatic run_signoff_soak_case(string run_id, string case_id);
+    `uvm_info("CASE", $sformatf("CASE_BEGIN id=%s mode=signoff_soak owner=%s", case_id, run_id), UVM_LOW)
+    if (case_id == "CROSS-091") begin
+      run_cross_inerr_toggle_longrun();
+    end else begin
+      run_case_by_id(case_id);
+    end
+    set_sink_ready(1'b1);
+    return_to_idle();
+    wait_clocks($urandom_range(8, 256));
+    `uvm_info("CASE", $sformatf("CASE_END id=%s mode=signoff_soak owner=%s", case_id, run_id), UVM_LOW)
+  endtask
+
+  task automatic run_signoff_soak(string run_id);
+    string           case_ids[$];
+    longint unsigned target_ps;
+    longint unsigned start_ps;
+    longint unsigned elapsed_ps;
+    int unsigned     iteration_count;
+    int unsigned     case_exec_count;
+    int unsigned     gap_cycles;
+
+    build_signoff_soak_case_list(run_id, case_ids);
+    if (case_ids.size() == 0) begin
+      `uvm_fatal("SOAK", $sformatf("No signoff soak case list is defined for %s", run_id))
+    end
+
+    target_ps = get_soak_target_time_ps();
+    start_ps = current_sim_time_ps();
+    iteration_count = 0;
+    case_exec_count = 0;
+
+    `uvm_info("SOAK", $sformatf(
+      "SIGNOFF_SOAK_BEGIN run_id=%s target_ps=%0d case_count=%0d seed=%0d",
+      run_id, target_ps, case_ids.size(), get_dv_seed()), UVM_LOW)
+
+    while ((current_sim_time_ps() - start_ps) < target_ps) begin
+      iteration_count++;
+      foreach (case_ids[idx]) begin
+        elapsed_ps = current_sim_time_ps() - start_ps;
+        if (elapsed_ps >= target_ps) begin
+          break;
+        end
+        run_signoff_soak_case(run_id, case_ids[idx]);
+        case_exec_count++;
+        gap_cycles = $urandom_range(0, 512);
+        wait_clocks(gap_cycles);
+      end
+    end
+
+    elapsed_ps = current_sim_time_ps() - start_ps;
+    if (elapsed_ps < target_ps) begin
+      `uvm_error("SOAK", $sformatf(
+        "SIGNOFF_SOAK_TARGET_MISSED run_id=%s target_ps=%0d elapsed_ps=%0d",
+        run_id, target_ps, elapsed_ps))
+    end
+    `uvm_info("SOAK", $sformatf(
+      "SIGNOFF_SOAK_SUMMARY run_id=%s target_ps=%0d elapsed_ps=%0d iterations=%0d cases=%0d",
+      run_id, target_ps, elapsed_ps, iteration_count, case_exec_count), UVM_LOW)
+  endtask
+
   task automatic terminate_and_drain(
     int unsigned max_cycles = 250_000,
     string what = "terminate drain"
@@ -7607,6 +7751,420 @@ class base_test extends uvm_test;
     run_case_by_id("P099");
     run_case_by_id("P101");
     run_case_by_id("P105");
+  endtask
+
+  function automatic int unsigned lock_sector_size();
+    int unsigned size;
+    size = (m_cfg.ring_buffer_n_entry < 8) ? 1 : (m_cfg.ring_buffer_n_entry / 8);
+    return (size == 0) ? 1 : size;
+  endfunction
+
+  function automatic int unsigned lock_sector_index(int unsigned addr);
+    int unsigned sector;
+    sector = addr / lock_sector_size();
+    return (sector > 7) ? 7 : sector;
+  endfunction
+
+  function automatic logic [7:0] expected_lock_mask_for_span(int unsigned num_slots);
+    logic [7:0] mask;
+    int unsigned last_sector;
+
+    mask = '0;
+    if (num_slots == 0) begin
+      return mask;
+    end
+    last_sector = lock_sector_index(num_slots - 1);
+    for (int idx = 0; idx <= 7; idx++) begin
+      if (idx <= int'(last_sector)) begin
+        mask[idx] = 1'b1;
+      end
+    end
+    return mask;
+  endfunction
+
+  task automatic run_sector_mask_span_case(
+    string       case_id,
+    int unsigned num_hits,
+    logic [7:0]  expected_mask
+  );
+    same_key_burst_seq burst_seq;
+    int unsigned       cycles;
+    logic [7:0]        observed_mask;
+    bit                saw_active_mask;
+    bit [7:0]          focus_search_key;
+
+`ifndef RBCAM_SV_IMPL
+    `uvm_fatal("SECTOR_EXT", {case_id, " requires RTL_IMPL=sv"})
+`endif
+    configure_and_start(16'hffff);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    burst_seq = same_key_burst_seq::type_id::create({case_id, "_sector_mask_fill"});
+    burst_seq.num_hits = num_hits;
+    burst_seq.search_key = focus_search_key;
+    burst_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(num_hits, 2_000_000, {case_id, " sector-mask prefill"});
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+
+    saw_active_mask = 1'b0;
+    observed_mask = '0;
+    cycles = 0;
+    while (cycles < 500_000 && !saw_active_mask) begin
+      if (m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key &&
+          (m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3, 3'd4}) &&
+          m_env.m_dbg_mon.vif.pop_sector_lock_mask != 8'h00) begin
+        observed_mask = m_env.m_dbg_mon.vif.pop_sector_lock_mask;
+        saw_active_mask = 1'b1;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    if (!saw_active_mask) begin
+      `uvm_error("SECTOR_EXT", $sformatf(
+        "%s did not observe an active pop_sector_lock_mask for key=0x%02x",
+        case_id, focus_search_key))
+    end else if (observed_mask !== expected_mask) begin
+      `uvm_error("SECTOR_EXT", $sformatf(
+        "%s sector-lock mask mismatch: observed=0x%02x expected=0x%02x num_hits=%0d sector_size=%0d",
+        case_id, observed_mask, expected_mask, num_hits, lock_sector_size()))
+    end
+    terminate_and_drain(1_000_000, {case_id, " sector-mask drain"});
+    expect_service_model_accounting({case_id, " sector-mask drain"}, 1, 0);
+  endtask
+
+  task automatic run_sector_decision5_case(string case_id);
+    same_key_burst_seq prefill_seq;
+    same_key_burst_seq pressure_seq;
+    int unsigned       cycles;
+    int unsigned       pop_sector;
+    int unsigned       write_sector;
+    bit                pressure_done;
+    bit                saw_decision5;
+    bit [7:0]          focus_search_key;
+
+`ifndef RBCAM_SV_IMPL
+    `uvm_fatal("SECTOR_EXT", {case_id, " requires RTL_IMPL=sv"})
+`endif
+    configure_and_start(16'hffff);
+    focus_search_key = m_cfg.lane_key_ord_to_search_key(2);
+    prefill_seq = same_key_burst_seq::type_id::create({case_id, "_decision5_prefill"});
+    prefill_seq.num_hits = lock_sector_size();
+    prefill_seq.search_key = focus_search_key;
+    prefill_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(lock_sector_size(), 500_000, {case_id, " decision5 prefill"});
+    csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
+    wait_for_pop_engine_state(3'd4, 500_000, {case_id, " decision5 DRAIN entry"});
+
+    saw_decision5 = 1'b0;
+    pressure_done = 1'b0;
+    fork
+      begin
+        pressure_seq = same_key_burst_seq::type_id::create({case_id, "_decision5_pressure"});
+        pressure_seq.num_hits = m_cfg.ring_buffer_n_entry;
+        pressure_seq.search_key = m_cfg.lane_key_ord_to_search_key(5);
+        pressure_seq.start(m_env.m_hit_seqr);
+        pressure_done = 1'b1;
+      end
+      begin
+        cycles = 0;
+        while (cycles < 1_000_000 && !saw_decision5 &&
+               (!pressure_done ||
+                m_env.m_hit_drv.pending_source_items() != 0 ||
+                m_env.m_dbg_mon.deassembly_fifo_usedw != 0 ||
+                (m_env.m_dbg_mon.pop_engine_state_code inside {3'd1, 3'd2, 3'd3, 3'd4, 3'd5}))) begin
+          if (m_env.m_dbg_mon.vif.decision_reg == 3'd5 &&
+              m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+              m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+            saw_decision5 = 1'b1;
+            pop_sector = lock_sector_index(m_env.m_dbg_mon.vif.pop_issue_addr);
+            write_sector = lock_sector_index(m_env.m_dbg_mon.vif.write_pointer);
+            if (pop_sector == write_sector) begin
+              `uvm_error("SECTOR_EXT", $sformatf(
+                "%s observed decision=5 with same-sector ownership: pop_addr=%0d write_pointer=%0d sector=%0d",
+                case_id, m_env.m_dbg_mon.vif.pop_issue_addr,
+                m_env.m_dbg_mon.vif.write_pointer, pop_sector))
+            end
+          end
+          @(posedge m_env.m_csr_drv.vif.clk);
+          cycles++;
+        end
+      end
+    join
+    if (!saw_decision5) begin
+      `uvm_error("SECTOR_EXT", $sformatf(
+        "%s did not observe decision_reg=5 under disjoint-sector push/pop pressure",
+        case_id))
+    end
+    terminate_and_drain(1_000_000, {case_id, " decision5 drain"});
+    expect_service_model_accounting({case_id, " decision5 drain"}, 1, 0);
+  endtask
+
+  task automatic run_counter_freeze_extension_case(string case_id);
+    logic [63:0] push_snapshot;
+    logic [63:0] push_frozen;
+    logic [63:0] push_live_after;
+    same_key_burst_seq extra_seq;
+
+`ifndef RBCAM_SV_IMPL
+    `uvm_fatal("ACCT_EXT", {case_id, " requires RTL_IMPL=sv"})
+`endif
+    run_b003_activity_case();
+    push_snapshot = m_env.m_dbg_mon.dbg_push_cnt;
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0031);
+    wait_clocks(2);
+    read_counter_u64(CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR, push_frozen);
+    if (push_frozen !== push_snapshot) begin
+      `uvm_error("ACCT_EXT", $sformatf(
+        "%s freeze-edge PUSH_COUNT mismatch: snapshot=0x%016x frozen=0x%016x",
+        case_id, push_snapshot, push_frozen))
+    end
+
+    extra_seq = same_key_burst_seq::type_id::create({case_id, "_freeze_extra"});
+    extra_seq.num_hits = 8;
+    extra_seq.search_key = m_cfg.lane_key_ord_to_search_key(6);
+    extra_seq.start(m_env.m_hit_seqr);
+    wait_for_push_count(push_snapshot[31:0] + 8, 50_000,
+                        {case_id, " live push advance under freeze"});
+    read_counter_u64(CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR, push_frozen);
+    if (push_frozen !== push_snapshot) begin
+      `uvm_error("ACCT_EXT", $sformatf(
+        "%s frozen PUSH_COUNT changed: snapshot=0x%016x frozen=0x%016x",
+        case_id, push_snapshot, push_frozen))
+    end
+    csr_write(CSR_CTRL_ADDR, 32'h0000_0011);
+    wait_clocks(2);
+    push_live_after = m_env.m_dbg_mon.dbg_push_cnt;
+    expect_backdoor_counter64_matches(
+      CSR_PUSH_COUNT_ADDR, CSR_PUSH_COUNT_HI_ADDR,
+      push_live_after, {case_id, " live 64-bit push counter"});
+    wait_for_scoreboard_idle(80_000, {case_id, " freeze extension drain"});
+  endtask
+
+  task automatic run_drop_counter_extension_case(string case_id, bit require_all);
+    logic [63:0]        deasm_drop;
+    logic [63:0]        pop_cmd_drop;
+    logic [63:0]        egress_drop;
+    int unsigned        cycles;
+    int unsigned        target;
+
+`ifndef RBCAM_SV_IMPL
+    `uvm_fatal("DROP_EXT", {case_id, " requires RTL_IMPL=sv"})
+`endif
+    configure_and_start(16'd0);
+    set_sink_ready(1'b0);
+
+    target = require_all ? 4096 : 1536;
+    for (int unsigned idx = 0; idx < target; idx++) begin
+      force_payload_hit(2, idx, 1);
+      if ((idx % 64) == 0) begin
+        deasm_drop = m_env.m_dbg_mon.dbg_deasm_full_drop_cnt;
+        pop_cmd_drop = m_env.m_dbg_mon.dbg_pop_cmd_full_drop_cnt;
+        egress_drop = m_env.m_dbg_mon.dbg_egress_not_ready_drop_cnt;
+        if (require_all) begin
+          if (deasm_drop != 0 && pop_cmd_drop != 0 && egress_drop != 0) begin
+            break;
+          end
+        end else if ((case_id == "B144" && deasm_drop != 0) ||
+                     (case_id == "B145" && pop_cmd_drop != 0) ||
+                     (case_id == "B146" && egress_drop != 0)) begin
+          break;
+        end
+      end
+    end
+
+    cycles = 0;
+    do begin
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+      deasm_drop = m_env.m_dbg_mon.dbg_deasm_full_drop_cnt;
+      pop_cmd_drop = m_env.m_dbg_mon.dbg_pop_cmd_full_drop_cnt;
+      egress_drop = m_env.m_dbg_mon.dbg_egress_not_ready_drop_cnt;
+    end while (cycles < 1_000_000 &&
+               (require_all ? ((deasm_drop == 0) || (pop_cmd_drop == 0) || (egress_drop == 0)) :
+                              ((case_id == "B144" && deasm_drop == 0) ||
+                               (case_id == "B145" && pop_cmd_drop == 0) ||
+                               (case_id == "B146" && egress_drop == 0))));
+
+    set_sink_ready(1'b1);
+    discard_pending_source_backlog({case_id, " drop-pressure source cleanup"});
+    wait_for_scoreboard_idle(1_000_000, {case_id, " drop-pressure drain"});
+    read_counter_u64(CSR_DEASM_DROP_ADDR, CSR_DEASM_DROP_HI_ADDR, deasm_drop);
+    read_counter_u64(CSR_POP_CMD_DROP_ADDR, CSR_POP_CMD_DROP_HI_ADDR, pop_cmd_drop);
+    read_counter_u64(CSR_EGRESS_DROP_ADDR, CSR_EGRESS_DROP_HI_ADDR, egress_drop);
+    if (require_all && (deasm_drop == 0 || pop_cmd_drop == 0 || egress_drop == 0)) begin
+      `uvm_error("DROP_EXT", $sformatf(
+        "%s did not activate all drop regimes: deasm=%0d pop_cmd=%0d egress=%0d",
+        case_id, deasm_drop, pop_cmd_drop, egress_drop))
+    end else if (!require_all) begin
+      if (case_id == "B144" && deasm_drop == 0)
+        `uvm_error("DROP_EXT", "B144 did not increment deasm_full_drop_cnt")
+      if (case_id == "B145" && pop_cmd_drop == 0)
+        `uvm_error("DROP_EXT", "B145 did not increment pop_cmd_full_drop_cnt")
+      if (case_id == "B146" && egress_drop == 0)
+        `uvm_error("DROP_EXT", "B146 did not increment egress_not_ready_drop_cnt")
+    end
+    `uvm_info("DROP_EXT", $sformatf(
+      "%s drop summary: deasm=%0d pop_cmd=%0d egress=%0d",
+      case_id, deasm_drop, pop_cmd_drop, egress_drop), UVM_LOW)
+  endtask
+
+  task automatic run_metadata_lineage_extension_case(string case_id);
+    profile_traffic_seq metadata_seq;
+    int unsigned        expected_hits;
+    int unsigned        observed_hits;
+    int unsigned        cycles;
+    logic [63:0]        expected_metadata;
+    bit                 expected_valid;
+    bit                 traffic_done;
+
+`ifndef RBCAM_SV_IMPL
+    `uvm_fatal("META_EXT", {case_id, " requires RTL_IMPL=sv"})
+`endif
+    expected_hits = 256;
+    configure_and_start(16'd2000);
+    traffic_done = 1'b0;
+    observed_hits = 0;
+    fork
+      begin
+        metadata_seq = profile_traffic_seq::type_id::create({case_id, "_metadata_seq"});
+        metadata_seq.num_hits = expected_hits;
+        metadata_seq.lane_key_start_ord = 2;
+        metadata_seq.pool_keys = 1;
+        metadata_seq.hits_per_key_switch = 1;
+        metadata_seq.metadata_enable = 1'b1;
+        metadata_seq.metadata_valid_alternates = 1'b1;
+        metadata_seq.metadata_base = 64'h0660_0000_0000_0000;
+        metadata_seq.progress_stride = 64;
+        metadata_seq.progress_tag = {case_id, " metadata lineage"};
+        metadata_seq.start(m_env.m_hit_seqr);
+        traffic_done = 1'b1;
+      end
+      begin
+        cycles = 0;
+        while (cycles < 2_000_000 && observed_hits < expected_hits) begin
+          if (m_env.m_out_mon.vif.valid === 1'b1 &&
+              m_env.m_out_mon.vif.ready === 1'b1 &&
+              m_env.m_out_mon.vif.data[35:32] != 4'b0001) begin
+            expected_metadata = 64'h0660_0000_0000_0000 ^ 64'(observed_hits);
+            expected_valid = ~observed_hits[0];
+            if (m_env.m_out_mon.vif.metadata !== expected_metadata ||
+                m_env.m_out_mon.vif.metadata_valid !== expected_valid) begin
+              `uvm_error("META_EXT", $sformatf(
+                "%s metadata mismatch hit=%0d observed=0x%016x/%0d expected=0x%016x/%0d",
+                case_id, observed_hits, m_env.m_out_mon.vif.metadata,
+                m_env.m_out_mon.vif.metadata_valid,
+                expected_metadata, expected_valid))
+            end
+            observed_hits++;
+          end
+          @(posedge m_env.m_csr_drv.vif.clk);
+          cycles++;
+        end
+      end
+    join
+    if (!traffic_done || observed_hits != expected_hits) begin
+      `uvm_error("META_EXT", $sformatf(
+        "%s metadata lineage did not drain all expected hits: traffic_done=%0d observed=%0d expected=%0d",
+        case_id, traffic_done, observed_hits, expected_hits))
+    end
+    wait_for_scoreboard_idle(500_000, {case_id, " metadata lineage drain"});
+    expect_service_model_accounting({case_id, " metadata lineage drain"}, 1, 0);
+  endtask
+
+  task automatic run_basic_extension_case(string case_id);
+    if (case_id == "B135" || case_id == "B140") begin
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "B136" || case_id == "B138" ||
+                 case_id == "B139" || case_id == "B141" ||
+                 case_id == "B142" || case_id == "B148") begin
+      run_sector_decision5_case(case_id);
+    end else if (case_id == "B137") begin
+      run_case_by_id("B131");
+      if (m_env.m_dbg_mon.vif.pop_sector_lock_mask !== 8'h00)
+        `uvm_error("B137", $sformatf("IDLE/RESET mask did not clear: mask=0x%02x",
+                                     m_env.m_dbg_mon.vif.pop_sector_lock_mask))
+    end else if (case_id == "B143" || case_id == "B147") begin
+      run_counter_freeze_extension_case(case_id);
+    end else if (case_id == "B144" || case_id == "B145" || case_id == "B146") begin
+      run_drop_counter_extension_case(case_id, 1'b0);
+    end else begin
+      `uvm_fatal("BASIC_EXT", $sformatf("Unexpected BASIC extension case %s", case_id))
+    end
+  endtask
+
+  task automatic run_edge_extension_case(string case_id);
+    if (case_id == "E130") begin
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "E131") begin
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "E132") begin
+      run_sector_mask_span_case(case_id, lock_sector_size() / 2, 8'h01);
+    end else if (case_id == "E133") begin
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "E136") begin
+      if (m_cfg.ring_buffer_n_entry != 64)
+        `uvm_fatal("E136", $sformatf("E136 requires RING_BUFFER_N_ENTRY=64, observed=%0d",
+                                     m_cfg.ring_buffer_n_entry))
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "E137") begin
+      if (m_cfg.ring_buffer_n_entry != 4096)
+        `uvm_fatal("E137", $sformatf("E137 requires RING_BUFFER_N_ENTRY=4096, observed=%0d",
+                                     m_cfg.ring_buffer_n_entry))
+      run_sector_mask_span_case(case_id, m_cfg.ring_buffer_n_entry, 8'hff);
+    end else if (case_id == "E140") begin
+      run_counter_freeze_extension_case(case_id);
+    end else begin
+      run_sector_decision5_case(case_id);
+    end
+  endtask
+
+  task automatic run_prof_extension_case(string case_id);
+    if (case_id == "P130" || case_id == "P131" ||
+        case_id == "P132" || case_id == "P137") begin
+      run_sector_decision5_case(case_id);
+    end else if (case_id == "P133") begin
+      run_counter_freeze_extension_case(case_id);
+    end else if (case_id == "P134") begin
+      run_drop_counter_extension_case(case_id, 1'b1);
+    end else if (case_id == "P135") begin
+      run_metadata_lineage_extension_case(case_id);
+    end else if (case_id == "P136") begin
+      if (m_cfg.ring_buffer_n_entry != 384)
+        `uvm_fatal("P136", $sformatf("P136 requires RING_BUFFER_N_ENTRY=384, observed=%0d",
+                                     m_cfg.ring_buffer_n_entry))
+      run_case_by_id("B134");
+    end else begin
+      `uvm_fatal("PROF_EXT", $sformatf("Unexpected PROF extension case %s", case_id))
+    end
+  endtask
+
+  task automatic run_error_extension_case(string case_id);
+    if (case_id == "X133") begin
+      run_sector_decision5_case(case_id);
+      run_x130_soft_reset_during_search_case();
+    end else if (case_id == "X134") begin
+      run_case_by_id("X053");
+    end else if (case_id == "X135") begin
+      for (int addr = CSR_DEASM_DROP_ADDR; addr <= CSR_EGRESS_DROP_HI_ADDR; addr++) begin
+        expect_csr_write_no_effect(addr, 32'hffff_ffff, 32'hffff_ffff,
+          $sformatf("X135 drop-counter CSR word %0d must be read-only", addr));
+      end
+    end else if (case_id == "X136") begin
+      run_counter_freeze_extension_case(case_id);
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0031);
+      wait_clocks(2);
+      csr_write(CSR_CTRL_ADDR, 32'h0000_0033);
+      expect_soft_reset_abort("X136 freeze plus soft_reset", 32'h0000_0033, 32'h0000_0011);
+    end else if (case_id == "X137") begin
+      run_sector_decision5_case(case_id);
+      run_case_by_id("X097");
+    end else if (case_id == "X138") begin
+      run_x130_soft_reset_during_search_case();
+      if (m_env.m_dbg_mon.vif.pop_sector_lock_mask !== 8'h00)
+        `uvm_error("X138", $sformatf("soft_reset left lock mask nonzero: mask=0x%02x",
+                                     m_env.m_dbg_mon.vif.pop_sector_lock_mask))
+    end else begin
+      `uvm_fatal("ERROR_EXT", $sformatf("Unexpected ERROR extension case %s", case_id))
+    end
   endtask
 
   task automatic run_edge_backlog_case(string case_id);
@@ -11225,7 +11783,7 @@ class base_test extends uvm_test;
           wait_clocks(1_500);
           ctrl_pulse_raw(ring_buffer_cam_pkg::CTRL_TERMINATING);
           wait_for_run_state(ring_buffer_cam_pkg::RUN_STATE_TERMINATING, 20_000, "B132 TERMINATING entry");
-          send_endofrun_marker();
+          force_endofrun_marker();
           wait_clocks(2);
           if (m_env.m_dbg_mon.endofrun_seen !== 1'b1) begin
             `uvm_error("B132", "endofrun_seen did not latch after TERMINATING marker")
@@ -15901,6 +16459,49 @@ class base_test extends uvm_test;
       run_x117_good_error_flush_good_case("X117 GOOD-ERROR-FLUSH-GOOD");
     end else if (case_id == "X118") begin
       run_x118_good_terminate_restart_case("X118 GOOD-TERM-RESTART-GOOD");
+    end else if (case_id == "B135"
+                 || case_id == "B136"
+                 || case_id == "B137"
+                 || case_id == "B138"
+                 || case_id == "B139"
+                 || case_id == "B140"
+                 || case_id == "B141"
+                 || case_id == "B142"
+                 || case_id == "B143"
+                 || case_id == "B144"
+                 || case_id == "B145"
+                 || case_id == "B146"
+                 || case_id == "B147"
+                 || case_id == "B148") begin
+      run_basic_extension_case(case_id);
+    end else if (case_id == "E130"
+                 || case_id == "E131"
+                 || case_id == "E132"
+                 || case_id == "E133"
+                 || case_id == "E134"
+                 || case_id == "E135"
+                 || case_id == "E136"
+                 || case_id == "E137"
+                 || case_id == "E138"
+                 || case_id == "E139"
+                 || case_id == "E140") begin
+      run_edge_extension_case(case_id);
+    end else if (case_id == "P130"
+                 || case_id == "P131"
+                 || case_id == "P132"
+                 || case_id == "P133"
+                 || case_id == "P134"
+                 || case_id == "P135"
+                 || case_id == "P136"
+                 || case_id == "P137") begin
+      run_prof_extension_case(case_id);
+    end else if (case_id == "X133"
+                 || case_id == "X134"
+                 || case_id == "X135"
+                 || case_id == "X136"
+                 || case_id == "X137"
+                 || case_id == "X138") begin
+      run_error_extension_case(case_id);
     end else if (case_id == "E028"
                  || case_id == "E029"
                  || case_id == "E030"
@@ -16575,6 +17176,12 @@ class test_case_engine extends base_test;
         run_cross_overwrite_toggle_longrun();
       end else if (run_id == "CROSS-091") begin
         run_cross_inerr_toggle_longrun();
+      end else if (run_id == "CROSS-125" ||
+                   run_id == "CROSS-126" ||
+                   run_id == "CROSS-127" ||
+                   run_id == "CROSS-128" ||
+                   run_id == "CROSS-129") begin
+        run_signoff_soak(run_id);
       end else begin
         `uvm_fatal("CASE_ENGINE", $sformatf("cross run %s is not implemented yet", run_id))
       end

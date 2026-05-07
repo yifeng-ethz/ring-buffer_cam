@@ -220,6 +220,8 @@ package ring_buffer_cam_pkg;
     rand bit [8:0]  et1n6;
     rand bit        has_error;
     rand bit        is_empty_marker;
+    rand bit [63:0] metadata;
+    rand bit        metadata_valid;
 
     // Search key is ts[11:4], which is the CAM compare value and the
     // low 8 bits of the emitted subheader search-key epoch.
@@ -258,6 +260,8 @@ package ring_buffer_cam_pkg;
       super.new(name);
       ingress_channel = '0;
       is_empty_marker = 1'b0;
+      metadata = '0;
+      metadata_valid = 1'b0;
     endfunction
   endclass
 
@@ -292,6 +296,8 @@ package ring_buffer_cam_pkg;
     bit        eop;
     bit        error;
     bit        cache_miss;
+    bit [63:0] metadata;
+    bit        metadata_valid;
 
     // Extracted hit fields (valid when !is_subheader)
     bit [3:0]  ts_3_0;         // data[31:28]

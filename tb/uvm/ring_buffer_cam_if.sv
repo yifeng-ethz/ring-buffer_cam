@@ -13,13 +13,17 @@ interface avst_hit_if (input logic clk, input logic rst);
   logic        valid;
   logic        ready;
   logic [0:0]  error;
+  logic [63:0] metadata;
+  logic        metadata_valid;
 
   modport drv (
     output data, valid, channel, startofpacket, endofpacket, empty, error,
+           metadata, metadata_valid,
     input  ready, clk, rst
   );
   modport mon (
-    input data, valid, ready, channel, startofpacket, endofpacket, empty, error, clk, rst
+    input data, valid, ready, channel, startofpacket, endofpacket, empty, error,
+          metadata, metadata_valid, clk, rst
   );
 endinterface
 
@@ -32,6 +36,8 @@ interface avst_out_if (input logic clk, input logic rst);
   logic        valid;
   logic        ready;
   logic [0:0]  error;
+  logic [63:0] metadata;
+  logic        metadata_valid;
 
   logic        filllevel_valid;
   logic [15:0] filllevel_data;
@@ -39,11 +45,11 @@ interface avst_out_if (input logic clk, input logic rst);
   modport drv (
     output ready,
     input  data, valid, channel, startofpacket, endofpacket, error,
-           filllevel_valid, filllevel_data, clk, rst
+           metadata, metadata_valid, filllevel_valid, filllevel_data, clk, rst
   );
   modport mon (
     input data, valid, ready, channel, startofpacket, endofpacket, error,
-          filllevel_valid, filllevel_data, clk, rst
+          metadata, metadata_valid, filllevel_valid, filllevel_data, clk, rst
   );
 endinterface
 

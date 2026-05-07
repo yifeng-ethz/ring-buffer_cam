@@ -58,11 +58,14 @@ The current evidence set establishes:
   - `B090` proves a safe push can overlap non-IDLE pop service once SEARCH has produced a stable ownership mask
   - `B091`, `B130`, and `B131` prove same-sector LOAD/COUNT/DRAIN ownership still blocks the competing push path
   - `B092` proves the delayed overwrite erase path obeys the same SEARCH and sector-lock rules
+  - the queued sector-lock upgrades `B135-B142` and `B148` extend that contract to sector-mask geometry, decision=5 concurrent grants across disjoint sectors, IDLING/RESETTING mask=0 invariants, the in-flight `pop_issue_addr_pending` and `pop_erase_req` extra-lock cycles, sector-boundary `write_pointer` corners, and the flush-vs-decision-5 priority
+  - the queued accounting upgrades `B143-B147` cover the new 64-bit counter map, freeze (CSR2 bit5), and the three drop counters (deassembly-full, pop-cmd-full, egress-not-ready)
 - `tb/formal/ring_buffer_cam_sector_lock_formal_top.sv` instantiates the DUT plus `tb/formal/ring_buffer_cam_sector_lock_sva.sv` in the SV formal context:
   - SEARCH blocks push writes and delayed push erases
   - locked pop sectors block push writes and delayed push erases
   - flush grant has exclusive ownership of the memory arbiter
   - the 2026-05-07 qverify run proved all 8 sector-lock assertions
+  - the queued formal upgrades catalogued in [FORMAL_PLAN.md](FORMAL_PLAN.md) extend that proof to lock-mask correctness, decision-5 disjoint-sector certification, IDLING/RESETTING mask=0, the pending/erase-cycle extra locks, and lock-mask collapse on `csr_soft_reset_pulse` and `RUN_PREPARING`
 - the SEARCH-window closure now has an explicit early-window guard as well:
   - `B133` proves a cross-key `push_write_grant` cannot slip into the unstable SEARCH window before the snapshot is frozen
   - `B056` still anchors the SEARCH wait-count contract at `0..5` after the settled-tail retiming
@@ -129,6 +132,16 @@ The current monitors are not enough for full signoff. The next promoted upgrades
   - first push / first overwrite / first pop cycles
   - pushes observed before first pop service
   - hotspot occupancy per search key
+- a sector-lock observer that records each cycle:
+  - `pop_sector_lock_mask[7:0]` value, the sectors of `write_pointer` and `push_erase_addr_reg`, and the booleans `push_write_sector_locked` / `push_erase_sector_locked`
+  - the sector index of `pop_issue_addr_pending` whenever `pop_issue_inflight || pop_output_pending || pop_emit_pending`, and the sector index of `pop_issue_addr` whenever `pop_erase_req` is asserted
+  - the live `decision[2:0]` and `decision_reg[2:0]` values, including the new code `5` (concurrent push_write + pop_erase across disjoint sectors)
+  - cycles where push_write_grant fires concurrently with pop_erase_grant; the observer must verify the two sectors differ, that pop_engine_state is in `{POP_LOADING, POP_COUNTING, POP_DRAINING}`, and that no pop_flush_req is outstanding
+- a 64-bit accounting / drop observer that records:
+  - the live and snapshot values of `inerr_cnt`, `push_cnt`, `pop_cnt`, `overwrite_cnt`, `cache_miss_cnt`, `deasm_full_drop_cnt`, `pop_cmd_full_drop_cnt`, `egress_not_ready_drop_cnt`
+  - the freeze edge (`csr_counter_freeze` 0→1 / 1→0) and the captured `debug_msg2_snap` that follows that edge
+  - per-cycle drop-event flags `deasm_full_drop_event`, `pop_cmd_full_drop_event`, `egress_not_ready_drop_event` and their attribution against `ingress_payload_countable` / `pop_cmd_tick_due` / `aso_hit_type2_valid && !aso_hit_type2_ready`
+- a metadata-lineage observer that captures, for every accepted ingress beat, the `(asi_hit_type1_metadata, asi_hit_type1_metadata_valid)` pair, queues it through the deassembly-FIFO model, and asserts that the corresponding `aso_hit_type2_metadata` / `aso_hit_type2_metadata_valid` on egress matches the queued pair regardless of arbitrary push-grant residency (BUG-066-R closure)
 
 The overlap monitor is required for the `cross_overlap_priority` run in [DV_CROSS.md](DV_CROSS.md). The issue is not literal packet overlap on the same sink beat; it is near-coincident stimulus that becomes back-to-back internally and exercises the arbiter corner.
 

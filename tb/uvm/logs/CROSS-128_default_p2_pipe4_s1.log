@@ -1,3 +1,3 @@
 CROSS-128 has no live log artifact.
-State: planned only
-Scenario: randomized-time composition variant #19
+State: implemented but not yet rerun
+Scenario: 30 s simulator-time PROF-heavy soak: P110, P125, P126, P127, P128, P129 replayed with random inter-case gaps

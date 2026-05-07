@@ -193,6 +193,7 @@ module ring_buffer_cam_core #(
   logic pop_flush_grant;
   logic pop_pipeline_start;
   logic pop_hit_valid;
+  logic [8:0] pop_hit_pending_epoch;
   logic pop_cache_miss_pulse;
   logic pop_last_hit_pending;
   logic subheader_gen_done;
@@ -208,6 +209,7 @@ module ring_buffer_cam_core #(
   logic [3:0] dbg_pop_partition_has_more;
   logic [3:0] dbg_pop_partition_eval_stage0_valid;
   logic egress_not_ready_drop_event;
+  logic [31:0] fill_level_word;
 
   logic endofrun_seen;
   logic terminating_drain_done;
@@ -238,7 +240,8 @@ module ring_buffer_cam_core #(
   assign gts_counter_rst = (run_state_cmd != RUN_RUNNING && run_state_cmd != RUN_TERMINATING);
   assign egress_not_ready_drop_event = aso_hit_type2_valid && !aso_hit_type2_ready;
 
-  assign coe_debug_fill_level = avs_fill_level_word();
+  assign fill_level_word = avs_fill_level_word();
+  assign coe_debug_fill_level = fill_level_word;
   assign coe_debug_fifo_level = {
     4'd0,
     pop_cmd_fifo_usedw,
@@ -260,7 +263,8 @@ module ring_buffer_cam_core #(
     6'd0
   };
   assign aso_filllevel_valid = 1'b1;
-  assign aso_filllevel_data = avs_fill_level_word()[15:0];
+  assign aso_filllevel_data = fill_level_word[15:0];
+  assign pop_hit_pending_epoch = hit_search_epoch(pop_hit_pending);
 
   function automatic logic [31:0] avs_fill_level_word();
     logic [63:0] level;
@@ -495,7 +499,9 @@ module ring_buffer_cam_core #(
         addr_sector(pop_issue_addr[ADDR_W_CONST-1:0])
       ] = 1'b1;
     end
-    if (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) begin
+    if ((pop_engine_state == POP_LOADING) ||
+        (pop_engine_state == POP_COUNTING) ||
+        (pop_engine_state == POP_DRAINING)) begin
       push_write_sector_locked =
         pop_sector_lock_mask[addr_sector(write_pointer)];
       push_erase_sector_locked =
@@ -509,7 +515,12 @@ module ring_buffer_cam_core #(
       (pop_engine_state != POP_SEARCHING) &&
       !push_write_sector_locked;
 
-    if (pop_flush_req) begin
+    if (csr_soft_reset_pulse) begin
+      push_write_grant = 1'b0;
+      push_erase_grant = 1'b0;
+      pop_erase_grant = 1'b0;
+      pop_flush_grant = 1'b0;
+    end else if (pop_flush_req) begin
       pop_flush_grant = 1'b1;
     end else begin
       push_erase_grant =
@@ -595,18 +606,23 @@ module ring_buffer_cam_core #(
       end else begin
         avs_csr_readdata <= csr_read_data(avs_csr_address);
       end
-      if (avs_csr_write) begin
+      if (csr_soft_reset_pulse) begin
+        csr_counter_freeze <= 1'b0;
+        debug_msg2_snap <= '0;
+        debug_msg2_snap.cam_clean <= 1'b1;
+      end else if (avs_csr_write) begin
         unique case (avs_csr_address)
           5'd1: csr_meta_sel <= avs_csr_writedata[1:0];
           5'd2: begin
             csr_go <= avs_csr_writedata[0];
             csr_filter_inerr <= avs_csr_writedata[4];
-            csr_counter_freeze <= avs_csr_writedata[5];
-            if (avs_csr_writedata[5]) begin
+            csr_counter_freeze <= avs_csr_writedata[5] && !avs_csr_writedata[1];
+            if (avs_csr_writedata[5] && !avs_csr_writedata[1]) begin
               debug_msg2_snap <= debug_msg2;
             end
             if (avs_csr_writedata[1]) begin
               csr_soft_reset_pulse <= 1'b1;
+              csr_counter_freeze <= 1'b0;
               debug_msg2_snap <= '0;
               debug_msg2_snap.cam_clean <= 1'b1;
             end
@@ -760,6 +776,11 @@ module ring_buffer_cam_core #(
       push_erase_addr_reg <= '0;
       overwritten_side_word <= '0;
       side_ram_dout <= '0;
+      pop_issue_addr_pending <= '0;
+      pop_hit_pending <= '0;
+      pop_metadata_pending <= '0;
+      pop_metadata_valid_pending <= 1'b0;
+      pop_occupied_pending <= 1'b0;
       pop_output_pending <= 1'b0;
       debug_msg2 <= '0;
       debug_msg2.cam_clean <= 1'b1;
@@ -781,6 +802,11 @@ module ring_buffer_cam_core #(
         push_erase_addr_reg <= '0;
         overwritten_side_word <= '0;
         side_ram_dout <= '0;
+        pop_issue_addr_pending <= '0;
+        pop_hit_pending <= '0;
+        pop_metadata_pending <= '0;
+        pop_metadata_valid_pending <= 1'b0;
+        pop_occupied_pending <= 1'b0;
         pop_output_pending <= 1'b0;
         debug_msg2 <= '0;
         debug_msg2.cam_clean <= 1'b1;
@@ -989,11 +1015,9 @@ module ring_buffer_cam_core #(
               aso_hit_type2_valid <= 1'b1;
               aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
               aso_hit_type2_data <= make_hit_type2(pop_hit_pending);
-              aso_hit_type2_error[0] <= (hit_search_epoch(pop_hit_pending)[8] != pop_current_sk[8]);
-              if (DEBUG >= 2) begin
-                aso_hit_type2_metadata <= pop_metadata_pending;
-                aso_hit_type2_metadata_valid <= pop_metadata_valid_pending;
-              end
+              aso_hit_type2_error[0] <= (pop_hit_pending_epoch[8] != pop_current_sk[8]);
+              aso_hit_type2_metadata <= pop_metadata_pending;
+              aso_hit_type2_metadata_valid <= pop_metadata_valid_pending;
               if (!pop_occupied_pending) begin
                 pop_cache_miss_pulse <= 1'b1;
               end
@@ -1049,15 +1073,7 @@ module ring_buffer_cam_core #(
     end
   end
 
-  always_ff @(posedge i_clk or posedge i_rst) begin
-    if (i_rst) begin
-      decision_reg <= 3'd4;
-    end else if (csr_soft_reset_pulse) begin
-      decision_reg <= 3'd4;
-    end else begin
-      decision_reg <= decision;
-    end
-  end
+  assign decision_reg = (i_rst || csr_soft_reset_pulse) ? 3'd4 : decision;
 
   always_comb begin
     terminating_drain_done =

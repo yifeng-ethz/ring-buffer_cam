@@ -1,128 +1,163 @@
-# ✅ SYN Report — ring_buffer_cam
+# ⚠️ SYN Report — ring_buffer_cam
 
-**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-04-22` &nbsp;
+**Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-05-08` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
-**Evidence basis:** `1069e0b`
-**Release packaging note:** `the final release tag may carry package-only _hw.tcl provenance / GUI updates beyond this Quartus evidence basis; those follow-ups do not modify rtl/ or syn/quartus/ compile inputs`
+**Evidence basis:** `ed41c983` + dirty worktree evidence refresh
 
-This file is the detailed standalone synthesis and timing report for the last standalone Quartus rerun of `ring_buffer_cam`. The master signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The delivered VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target. The separate SystemVerilog implementation (`rtl/sv_ver/`) now has its own standalone Quartus revision, but that revision does **not** close timing. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
-- compile the delivered `Default P4` configuration on the live `26.2.6.0422` tree
-- use a standalone signoff clock of `137.5 MHz` (`7.273 ns`), which is `1.1 x 125 MHz`
-- use Quartus Standard Fit effort with no seed scan
-- keep the compile on the live `rtl/` tree, not the pre-refactor root-level file list
-- regenerate the gate-level simulation netlist from the same rerun so synthesis, gate smoke, and authored signoff evidence are aligned to one image
-- allow a later package-only `_hw.tcl` metadata refresh for release publication without changing the compile inputs captured by this report
+- compile the delivered `512`-entry `P4` standalone synthesis shape
+- enforce the requested datapath target: `125 MHz` nominal with `1.1x` margin
+- constrain Quartus at `137.5 MHz` (`7.273 ns`) and require setup/hold slack `>= 0`
+- use `FITTER_EFFORT = STANDARD FIT`; no seed scan was used
+- check the requested resource estimate: `4000 ALMs`, with at most `50%` bloat (`6000 ALMs` max)
+- regenerate the gate-level functional netlist from the same compile image
 
 ## Pre-Fit Model
 
-- expected datapath owners:
-  - `ring_buffer_cam_v2_core` owns run control, ingress filtering, pop scheduling, overwrite accounting, and counter cleanup
-  - `cam_mem_a5` plus `alt_simple_dpram` own the resident store
-  - `addr_enc_logic_partitioned` owns the match selection cone
-- expected critical timing region:
-  - control around pop issue, CAM lookup, and side-RAM / overwrite bookkeeping
-  - not the framed output datapath
-- expected storage mapping:
-  - main CAM and side RAM infer into M10K-backed memory structures
-  - the two FIFOs remain RAM-based
+- `ring_buffer_cam_v2_core` owns run control, ingress filtering, pop scheduling, overwrite accounting, and CSR/debug counters.
+- `cam_mem_a5` and `alt_simple_dpram` own the resident CAM and side data storage; expected mapping is M10K-backed RAM.
+- `addr_enc_logic_partitioned` owns the match-selection cone; expected timing pressure is around pop issue/search and CAM/side-RAM write-enable control.
+- The output framing path is expected to be secondary versus CAM/control bookkeeping.
 
-This model still matches the final fitter result: the build remains RAM-dominated in storage, and the refreshed routed image closes the tightened slow-corner setup target after the final settled-SEARCH-tail guard was simplified back onto the cheaper overwrite-slot predicate.
+The fitter result matches this model: storage is RAM-centric (`19` RAM blocks, `153600` bits), and the constrained `clk125` reg-to-reg domain closes at the tightened clock.
 
-## Refresh Fixes Required Before Compile
+## Compile Notes
 
-The standalone project already compiled the live wrapper cleanly; this refresh reran it on the latest delivered RTL and metadata:
+The first 2026-05-08 rerun stopped in Quartus Analysis & Synthesis because Quartus 18.1 rejected a VHDL-2008 conditional expression inside the sidecar FIFO metadata write in `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`. The source was rewritten as an ordinary sequential `if` with identical behavior, then the same `ring_buffer_cam_syn_p4` revision was rerun.
 
-1. `ring_buffer_cam_syn.sdc` remained tightened at the signoff clock `7.273 ns`.
-2. the earlier RTL closure for the SEARCH-window and non-power-of-two live-pointer hazards remains in place, including `BUG-057-R` and `BUG-058-R`.
-3. the earlier overwrite-address repair `BUG-059-R` remains in place: wrap-overwrite `push_erase` still decrements modulo `RING_BUFFER_N_ENTRY` instead of erasing outside the live CAM span after `write_pointer` wraps.
-4. `BUG-060-R` remains in place: `push_erase` still consumes a slot captured during `push_write` instead of recomputing `write_pointer-1` in the live arbiter / CAM control cone.
-5. the new `2026-04-22` closure adds `BUG-064-R`: the exact settled-SEARCH-tail snapshot-membership test is replaced by a conservative overwrite-slot predicate that preserves the `BUG-055-R` / `BUG-056-R` SEARCH correctness contract without reopening the standalone write-enable timing cone.
-6. the DV refresh paired with this compile includes `B133`, `P031`, `P125`, and `P126`, and the regenerated netlist passes the gate smoke harness from `tb/gate/Makefile`.
-7. wrapper defaults, Platform Designer packaging, and emitted metadata are aligned to `26.2.6.0422` / `20260422` with `BUILD=422` and `PATCH=6`.
+Command:
+
+```bash
+SIGNOFF_REVISIONS=ring_buffer_cam_syn_p4 bash syn/quartus/run_signoff.sh
+```
 
 ## Timing Summary
 
 Signoff target:
 
-- target clock: `clk125`
-- target frequency: `137.5 MHz`
-- target period: `7.273 ns`
+- nominal target: `125 MHz` (`8.000 ns`)
+- standalone signoff target: `137.5 MHz` (`7.273 ns`)
+- rule: `WNS >= 0` and hold slack `>= 0` at the tightened clock
 
-| status | model | setup WNS (ns) | hold WNS (ns) | Fmax |
-|:---:|---|---:|---:|---:|
-| ✅ | Slow 1100mV 85C | `+0.515` | `+0.314` | `147.97 MHz` |
-| ✅ | Slow 1100mV 0C | `+0.575` | `+0.288` | `149.30 MHz` |
-| ✅ | Fast 1100mV 85C | `+3.295` | `+0.187` | n/a |
-| ✅ | Fast 1100mV 0C | `+3.648` | `+0.171` | n/a |
+| status | model | setup WNS (ns) | setup TNS (ns) | hold WNS (ns) | hold TNS (ns) | Fmax |
+|:---:|---|---:|---:|---:|---:|---:|
+| ✅ | Slow 1100mV 85C | `+0.515` | `0.000` | `+0.314` | `0.000` | `147.97 MHz` |
+| ✅ | Slow 1100mV 0C | `+0.575` | `0.000` | `+0.288` | `0.000` | `149.30 MHz` |
+| ✅ | Fast 1100mV 85C | `+3.295` | `0.000` | `+0.187` | `0.000` | n/a |
+| ✅ | Fast 1100mV 0C | `+3.648` | `0.000` | `+0.171` | `0.000` | n/a |
 
-Key conclusions:
-
-- the active `P4` build closes setup at the tightened `137.5 MHz` signoff clock on both slow corners with additional margin versus the previous report
-- worst-case setup is the slow `85C` corner at `+0.515 ns`; the slow `0C` corner has additional margin at `+0.575 ns`
-- hold closes in every reported corner, with worst-case hold at the fast `0C` corner (`+0.171 ns`)
-- the equivalent slow-corner internal Fmax is now `147.97 MHz`, which is about `18.4%` above the nominal `125 MHz` operating target and `10.47 MHz` above the tightened signoff target
-- the critical path family still starts at `write_pointer` and ends at the `main_cam` write-enable register, but the conservative settled-SEARCH-tail guard keeps that cone short enough to preserve the earlier timing win without sacrificing the directed SEARCH correctness reruns
+Result: **timing pass** at the required `1.1 x 125 MHz` signoff clock. Worst setup slack is `+0.515 ns`; worst hold slack is `+0.171 ns`.
 
 ## Resource Summary
 
 | item | value |
-|---|---|
+|---|---:|
 | Logic utilization | `2,191 / 91,680 ALMs (2%)` |
 | Registers | `2,861` |
-| Pins | `34 / 426 (8%) virtual observation pins` |
+| Total virtual pins | `34` |
 | Block memory bits | `153,600 / 13,987,840 (1%)` |
 | RAM blocks | `19 / 1,366 (1%)` |
 | DSP blocks | `0 / 800` |
 | PLLs | `0 / 21` |
 
-Synthesis-only visibility:
+Resource gate:
 
-- fitter preserved the RAM-centric implementation at `19` RAM blocks / `153,600` bits while logic settled at `2,191` ALMs and `2,861` registers
-- no seed scan or timing-only netlist tricks were used; the positive slow-corner slack is therefore the honest current standalone signoff state for this tree
+| status | metric | value |
+|:---:|---|---:|
+| ✅ | estimate | `4000 ALMs` |
+| ✅ | max allowed with 50% bloat | `6000 ALMs` |
+| ✅ | actual | `2191 ALMs` |
+| ✅ | actual / estimate | `54.8%` |
+| ✅ | margin to max | `3809 ALMs` |
+
+Result: **resource pass**. The fitted design is below the estimate and well below the `6000 ALM` bloat ceiling.
+
+## Gate Smoke
+
+Command:
+
+```bash
+make -C tb/gate compare SAMPLE_CYCLES=500000
+```
+
+| status | check | evidence |
+|:---:|---|---|
+| ✅ | RTL harness smoke | `RBCAM_SIGNATURE=0xfd448996`, `*** TEST PASSED ***` |
+| ✅ | regenerated gate netlist smoke | `RBCAM_SIGNATURE=0xac7007dc`, `*** TEST PASSED ***` |
+| ✅ | compare target | `PASS: ring_buffer_cam gate smoke benches passed` |
+
+The gate model is the Quartus-generated functional gate netlist for this device family; exact RTL/gate signature equality is advisory in the existing harness and is not treated as the pass criterion.
+
+## SystemVerilog Standalone Check
+
+A separate SV-only standalone revision was added and rerun:
+
+```bash
+SIGNOFF_REVISIONS=ring_buffer_cam_syn_sv_p4 bash syn/quartus/run_signoff.sh
+```
+
+Compatibility fixes required for Quartus 18.1:
+
+- removed unsupported `SYSTEMVERILOG_INPUT_VERSION` from the SV QSF
+- rewrote function-result indexing and `inside` use in `rtl/sv_ver/ring_buffer_cam_core.sv` into Quartus-18.1-compatible forms
+- added deterministic reset for pop pending metadata registers; `FORMAL`-only FIFO memory clear is limited to formal filelists
+
+SV timing/resource result:
+
+| status | item | value |
+|:---:|---|---:|
+| ❌ | slow 85C setup WNS / TNS | `-14.213 ns` / `-27107.488 ns` |
+| ❌ | slow 0C setup WNS / TNS | `-12.813 ns` / `-24005.229 ns` |
+| ❌ | fast 85C setup WNS / TNS | `-5.729 ns` / `-4735.457 ns` |
+| ❌ | fast 0C setup WNS / TNS | `-4.403 ns` / `-2947.427 ns` |
+| ✅ | worst hold slack | `+0.180 ns` |
+| ❌ | slow 85C Fmax | `46.54 MHz` |
+| ✅ | fitted ALMs | `4045` |
+| ✅ | ALM ceiling | `6000` max (`4000` estimate + 50% bloat) |
+
+Result: **SV standalone synthesis compiles, fits under the ALM bloat ceiling, and exports a gate netlist, but it fails the required `137.5 MHz` signoff clock.**
+
+The reason is structural, not just syntax: the SV core is much shorter than the VHDL implementation because it models resident storage with flat `slot_valid/slot_hit/slot_metadata` arrays and searches with full-depth procedural loops (`count_snapshot`, `find_next_snapshot`, and `snapshot_sector_mask`) instead of the VHDL `cam_mem_a5` + partitioned encoder + side-RAM architecture. That behavioral shape is useful for UVM/formal migration, but it is not the delivered timing architecture.
 
 ## Flow Runtime
 
 | module | elapsed | CPU time |
 |---|---:|---:|
 | Analysis & Synthesis | `00:00:22` | `00:00:37` |
-| Fitter | `00:01:21` | `00:07:37` |
+| Fitter | `00:01:18` | `00:06:55` |
 | Assembler | `00:00:11` | `00:00:11` |
-| Timing Analyzer | `00:00:08` | `00:00:14` |
-| EDA Netlist Writer | `00:00:03` | `00:00:02` |
-| Total | `00:02:05` | `00:08:41` |
+| Timing Analyzer | `00:00:09` | `00:00:14` |
+| EDA Netlist Writer | `00:00:02` | `00:00:02` |
+| Total shell flow | `00:02:08` | `00:08:00` |
 
 ## Constraint Caveats
 
-TimeQuest reports the design as not fully constrained. This is understood and isolated:
-
-- unconstrained setup output ports: `32`
-- unconstrained hold output ports: `32`
-- affected ports: the top-level `probe_out[31:0]` bits of the standalone synthesis harness
-- fitter-only harness warnings also remain expected:
-  - no exact pin locations for the standalone harness I/O
-  - incomplete I/O assignments on the harness pins
-  - non-dedicated clock routing on harness input `clk125`
-  - shared-VREF use on harness pin `probe_out[8]`
-
-The internal `clk125` register-to-register domain is constrained. The unconstrained paths are harness-observation outputs only, not DUT internal timing paths, and the constrained `clk125` domain now closes timing across all reported corners.
+TimeQuest still reports the design as not fully constrained for setup/hold because the standalone harness has `probe_out[31:0]` observation outputs. These are virtual harness outputs outside the DUT internal reg-to-reg timing domain. The constrained `clk125` domain is reported as constrained and closes across all reported corners.
 
 ## Artifacts
 
 - [`quartus/ring_buffer_cam_syn_p4.qsf`](quartus/ring_buffer_cam_syn_p4.qsf)
 - [`quartus/ring_buffer_cam_syn.sdc`](quartus/ring_buffer_cam_syn.sdc)
-- [`quartus/ring_buffer_cam_syn_harness.vhd`](quartus/ring_buffer_cam_syn_harness.vhd)
-- [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.flow.rpt`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.flow.rpt)
-- [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.rpt`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.rpt)
-- [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.rpt`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.rpt)
 - [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.summary`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.summary)
 - [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.summary`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.summary)
+- [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.rpt`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.fit.rpt)
+- [`quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.rpt`](quartus/output_files/ring_buffer_cam_syn_p4/ring_buffer_cam_syn_p4.sta.rpt)
 - [`quartus/gate_sim/ring_buffer_cam_syn_p4.vo`](quartus/gate_sim/ring_buffer_cam_syn_p4.vo)
+- [`quartus/ring_buffer_cam_syn_sv_p4.qsf`](quartus/ring_buffer_cam_syn_sv_p4.qsf)
+- [`quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.fit.summary`](quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.fit.summary)
+- [`quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.sta.summary`](quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.sta.summary)
+- [`../tb/gate/logs/rtl_signature.log`](../tb/gate/logs/rtl_signature.log)
+- [`../tb/gate/logs/gate_signature.log`](../tb/gate/logs/gate_signature.log)
+
+## Non-Claims
+
+- This synthesis result does not close DV signoff; [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) remains red until the required 30 s simulator-time soaks `CROSS-125..CROSS-129` have qualifying real logs.
+- This synthesis result does not close formal signoff; [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) still lists `F-ML02/F-ML03` as open metadata-lineage formal blockers (`45/47` proven in the latest full attempt).
+- This standalone Quartus project signs off the delivered VHDL `P4` implementation only. The SystemVerilog implementation has UVM/static evidence but fails standalone timing closure.
 
 ## Result
 
-**✅ Full compilation PASS, tightened standalone timing signoff PASS, and gate-netlist export PASS for the active P4 bug-fix release**
-
-The delivered `512`-entry `P4` build compiles cleanly, keeps positive setup and hold slack on the tightened `137.5 MHz` standalone signoff clock, and regenerates a gate-level netlist that passes the functional smoke harness. The remaining caveat is still the standalone harness `probe_out[31:0]` observation outputs, which are outside the DUT reg-to-reg timing domain and do not block DUT signoff.
+**⚠️ Standalone synthesis/resource/gate-smoke PASS for delivered VHDL `ring_buffer_cam_syn_p4` at `137.5 MHz` with `2191 ALMs`; SV standalone synthesis remains timing-blocked at `-14.213 ns` setup WNS.**

@@ -153,6 +153,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     dst.et1n6 = src.et1n6;
     dst.has_error = src.has_error;
     dst.is_empty_marker = src.is_empty_marker;
+    dst.metadata = src.metadata;
+    dst.metadata_valid = src.metadata_valid;
   endfunction
 
   function void note_accepted(ring_buffer_cam_pkg::hit_seq_item item);
@@ -192,6 +194,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
       vif.endofpacket   <= pending_q[0].is_empty_marker;
       vif.empty   <= pending_q[0].is_empty_marker;
       vif.error   <= {pending_q[0].is_empty_marker ? 1'b0 : pending_q[0].has_error};
+      vif.metadata <= pending_q[0].metadata;
+      vif.metadata_valid <= pending_q[0].metadata_valid;
     end else begin
       vif.data    <= '0;
       vif.valid   <= 1'b0;
@@ -200,6 +204,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
       vif.endofpacket   <= 1'b0;
       vif.empty   <= 1'b0;
       vif.error   <= 1'b0;
+      vif.metadata <= '0;
+      vif.metadata_valid <= 1'b0;
     end
   endtask
 
@@ -233,6 +239,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     vif.endofpacket   = item.is_empty_marker;
     vif.empty   = item.is_empty_marker;
     vif.error   = item.has_error;
+    vif.metadata = item.metadata;
+    vif.metadata_valid = item.metadata_valid;
     repeat (hold_cycles) @(posedge vif.clk);
     @(negedge vif.clk);
     manual_override = 1'b0;
@@ -243,6 +251,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     vif.endofpacket   = 1'b0;
     vif.empty   = 1'b0;
     vif.error   = 1'b0;
+    vif.metadata = '0;
+    vif.metadata_valid = 1'b0;
   endtask
 
   task automatic sample_first_pop_snapshot();
@@ -271,6 +281,8 @@ class hit_driver extends uvm_driver #(ring_buffer_cam_pkg::hit_seq_item);
     vif.endofpacket   <= 1'b0;
     vif.empty   <= 1'b0;
     vif.error   <= 1'b0;
+    vif.metadata <= '0;
+    vif.metadata_valid <= 1'b0;
 
     forever begin
       @(posedge vif.clk);

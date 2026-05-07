@@ -84,6 +84,8 @@ COV_DIR ?= $(UVM_DIR)/cov_$(RTL_VARIANT)
 COV_STEM ?= $(TEST)$(LOG_TAG)
 BUCKET_FRAME_TIMEOUT_CYCLES ?= 100000000
 CROSS_TIMEOUT_CYCLES ?= 250000000
+SIGNOFF_SOAK_TARGET_PS ?= 30000000000000
+SIGNOFF_SOAK_TIMEOUT_CYCLES ?= 3800000000
 
 COV_ENABLED_BOOL := $(filter 1 yes YES true TRUE,$(COV_ENABLE))
 VCOM_COVER = $(if $(COV_ENABLED_BOOL),-cover bcesft,)
@@ -95,16 +97,16 @@ TB_IMPL_DEFINES = $(if $(filter sv,$(RTL_IMPL)),+define+RBCAM_SV_IMPL,)
 
 # ── RTL sources ──────────────────────────────────────────────────
 VHDL_SRCS = \
-  $(IP_DIR)/rtl/cam_helper_pkg.vhd \
+  $(IP_DIR)/rtl/vhd_ver/cam_helper_pkg.vhd \
   $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
-  $(IP_DIR)/rtl/cam_mem_a5.vhd \
-  $(IP_DIR)/rtl/alt_simple_dpram.vhd \
-  $(IP_DIR)/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd \
-  $(IP_DIR)/rtl/alt_fifo/scfifo_w40d256.vhd \
-  $(IP_DIR)/rtl/addr_enc_logic_small.vhd \
-  $(IP_DIR)/rtl/addr_enc_logic_partitioned.vhd \
-  $(IP_DIR)/rtl/ring_buffer_cam_v2_core.vhd \
-  $(IP_DIR)/rtl/ring_buffer_cam.vhd
+  $(IP_DIR)/rtl/vhd_ver/cam_mem_a5.vhd \
+  $(IP_DIR)/rtl/common/alt_simple_dpram.vhd \
+  $(IP_DIR)/rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd \
+  $(IP_DIR)/rtl/common/alt_fifo/scfifo_w40d256.vhd \
+  $(IP_DIR)/rtl/vhd_ver/addr_enc_logic_small.vhd \
+  $(IP_DIR)/rtl/vhd_ver/addr_enc_logic_partitioned.vhd \
+  $(IP_DIR)/rtl/vhd_ver/ring_buffer_cam_v2_core.vhd \
+  $(IP_DIR)/rtl/vhd_ver/ring_buffer_cam.vhd
 
 SV_DUT_SRCS = \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv \
@@ -119,7 +121,7 @@ ifeq ($(RTL_IMPL),sv)
 else
   ACTIVE_VHDL_SRCS = $(VHDL_SRCS)
   ACTIVE_SV_DUT_SRCS =
-  ACTIVE_VERILOG_DUT_SRCS = $(IP_DIR)/rtl/b2o_encoder.v
+  ACTIVE_VERILOG_DUT_SRCS = $(IP_DIR)/rtl/common/b2o_encoder.v
 endif
 
 SIM_COMPAT_SRCS = \
@@ -178,7 +180,7 @@ CFG_CASES = p1 p2 p3 p4
 # Targets
 # ═══════════════════════════════════════════════════════════════
 
-.PHONY: compile run run_case run_bucket_frame run_cross regress cfg_matrix clean
+.PHONY: compile run run_case run_bucket_frame run_cross run_signoff_soak regress cfg_matrix clean
 
 compile: $(WORK_DIR)/.compiled
 
@@ -263,6 +265,11 @@ run_cross: compile
 	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
 	  COV_STEM=$(RUN_ID) \
 	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID) +TB_TIMEOUT_CYCLES=$(CROSS_TIMEOUT_CYCLES) $(EXTRA_PLUSARGS)" SEED=$(SEED)
+
+run_signoff_soak: compile
+	@$(MAKE) -s run TEST=test_case_engine LOG_TAG=_$(RUN_ID) \
+	  COV_STEM=$(RUN_ID) \
+	  PLUSARGS="+DV_EXEC_MODE=cross +DV_RUN_ID=$(RUN_ID) +DV_SOAK_TARGET_TIME_PS=$(SIGNOFF_SOAK_TARGET_PS) +TB_TIMEOUT_CYCLES=$(SIGNOFF_SOAK_TIMEOUT_CYCLES) $(EXTRA_PLUSARGS)" SEED=$(SEED)
 
 run_sim: compile
 	@if [ -n "$(CASE_ID)" ]; then \

@@ -239,9 +239,12 @@ evidence under `tb/` and detailed synthesis evidence in [`syn/SYN_REPORT.md`](sy
 
 ## Repository Layout
 
-- [`rtl/ring_buffer_cam.vhd`](rtl/ring_buffer_cam.vhd) — packaged top-level wrapper
-- [`rtl/ring_buffer_cam_v2_core.vhd`](rtl/ring_buffer_cam_v2_core.vhd) — active RTL core
-- [`rtl/addr_enc_logic_partitioned.vhd`](rtl/addr_enc_logic_partitioned.vhd) — partitioned staged encoder
+- [`rtl/vhd_ver/`](rtl/vhd_ver) — VHDL implementation sources
+- [`rtl/sv_ver/`](rtl/sv_ver) — SystemVerilog implementation sources
+- [`rtl/common/`](rtl/common) — Altera/common primitives and mixed-language compatibility helpers
+- [`rtl/vhd_ver/ring_buffer_cam.vhd`](rtl/vhd_ver/ring_buffer_cam.vhd) — packaged top-level wrapper
+- [`rtl/vhd_ver/ring_buffer_cam_v2_core.vhd`](rtl/vhd_ver/ring_buffer_cam_v2_core.vhd) — active RTL core
+- [`rtl/vhd_ver/addr_enc_logic_partitioned.vhd`](rtl/vhd_ver/addr_enc_logic_partitioned.vhd) — partitioned staged encoder
 - [`script/ring_buffer_cam_hw.tcl`](script/ring_buffer_cam_hw.tcl) — Platform Designer packaging
 - [`script/ring_buffer_cam_presets.qprs`](script/ring_buffer_cam_presets.qprs) — packaged presets
 - [`tb/`](tb/README.md) — active DV workflow, UVM harness, reports, and bug history

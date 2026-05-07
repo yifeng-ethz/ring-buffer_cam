@@ -1,0 +1,95 @@
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_MEDIUM" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb" "+DV_SEED=1" "+RTL_IMPL=sv" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=X133" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/X133_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512
+# Start time: 00:22:16 on May 08,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/X133_s1.ucdb
+#  run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES]
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+#
+#   ***********       IMPORTANT RELEASE NOTES         ************
+#
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+#
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+#
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+#
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(17149) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X133 mode=isolated
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/out_monitor.sv(150) @ 7484000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 64 hits in 256 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/out_monitor.sv(150) @ 16180000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 264 hits in 1056 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4263) @ 18612000: uvm_test_top [TERM] X133 decision5 drain: source backlog drained before TERMINATING after 1136 cycles (offered=576 accepted=576)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4280) @ 19172000: uvm_test_top [TERM] X133 decision5 drain: deassembly fifo drained before TERMINATING after 70 cycles (usedw=0)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4285) @ 19204000: uvm_test_top [TERM] X133 decision5 drain: issue TERMINATING entry pulse
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4287) @ 19220000: uvm_test_top [TERM] X133 decision5 drain: send end-of-run marker
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4289) @ 19220000: uvm_test_top [TERM] X133 decision5 drain: poll TERMINATING drain-done
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/out_monitor.sv(150) @ 47676000: uvm_test_top.m_env.m_out_mon [OUT_MON] Throughput: 248 hits in 992 cycles (25.0%)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4306) @ 49132000: uvm_test_top [TERM] X133 decision5 drain: terminating_drain_done asserted after 3739 cycles
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4311) @ 49164000: uvm_test_top [TERM] X133 decision5 drain: waiting for scoreboard/source idle
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(17151) @ 54804000: uvm_test_top [CASE] CASE_END id=X133 mode=isolated
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 54804000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 54804000: uvm_test_top.m_env.m_cov [COV] cg_output=91.2% cg_hit_data=39.6%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 54804000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=0 popped=0 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=0 zero_hit_subheaders=0 accepted=0 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(654) @ 54804000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=0 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(16841) @ 54804000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 54804000: reporter [UVM/REPORT/SERVER]
+# --- UVM Report Summary ---
+#
+# ** Report counts by severity
+# UVM_INFO :   19
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [CASE]     2
+# [COV]     1
+# [OUT_MON]     3
+# [RNTST]     1
+# [SCB]     2
+# [TERM]     7
+# [TEST]     1
+# [TEST_DONE]     1
+# [UVM/RELNOTES]     1
+#
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 54804 ns  Iteration: 75  Instance: /tb_top
+#
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 00:22:17 on May 08,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 1

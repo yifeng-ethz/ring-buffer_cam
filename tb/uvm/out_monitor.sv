@@ -61,6 +61,8 @@ class out_monitor extends uvm_monitor;
     clone.eop                = item.eop;
     clone.error              = item.error;
     clone.cache_miss         = item.cache_miss;
+    clone.metadata           = item.metadata;
+    clone.metadata_valid     = item.metadata_valid;
     clone.ts_3_0            = item.ts_3_0;
     clone.asic              = item.asic;
     clone.channel           = item.channel;
@@ -109,6 +111,8 @@ class out_monitor extends uvm_monitor;
         item.eop      = vif.endofpacket;
         item.error    = vif.error[0];
         item.cache_miss = 1'b0;
+        item.metadata = vif.metadata;
+        item.metadata_valid = vif.metadata_valid;
 
         if (vif.data[35:32] == 4'b0001) begin
           // Subheader

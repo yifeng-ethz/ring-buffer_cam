@@ -20,16 +20,16 @@ TB_TOP       := ring_buffer_cam_gate_smoke_tb
 SAMPLE_CYCLES ?= 500000
 
 RTL_VHDL_SRCS = \
-  $(IP_ROOT)/rtl/cam_helper_pkg.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/cam_helper_pkg.vhd \
   $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
-  $(IP_ROOT)/rtl/cam_mem_a5.vhd \
-  $(IP_ROOT)/rtl/alt_simple_dpram.vhd \
-  $(IP_ROOT)/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd \
-  $(IP_ROOT)/rtl/alt_fifo/scfifo_w40d256.vhd \
-  $(IP_ROOT)/rtl/addr_enc_logic_small.vhd \
-  $(IP_ROOT)/rtl/addr_enc_logic_partitioned.vhd \
-  $(IP_ROOT)/rtl/ring_buffer_cam_v2_core.vhd \
-  $(IP_ROOT)/rtl/ring_buffer_cam.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/cam_mem_a5.vhd \
+  $(IP_ROOT)/rtl/common/alt_simple_dpram.vhd \
+  $(IP_ROOT)/rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd \
+  $(IP_ROOT)/rtl/common/alt_fifo/scfifo_w40d256.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/addr_enc_logic_small.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/addr_enc_logic_partitioned.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/ring_buffer_cam_v2_core.vhd \
+  $(IP_ROOT)/rtl/vhd_ver/ring_buffer_cam.vhd \
   $(SYN_DIR)/ring_buffer_cam_syn_harness.vhd \
   $(SYN_DIR)/ring_buffer_cam_syn_p4_top.vhd
 

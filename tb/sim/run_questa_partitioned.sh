@@ -62,13 +62,13 @@ chmod u+w "${modelsim_ini}"
 # ── compile RTL + TB ────────────────────────────────────────────
 vhdl_files=(
   "${compat_dir}/cam_mem_blk_a5.vhd"
-  "${ip_dir}/rtl/cam_mem_a5.vhd"
-  "${ip_dir}/rtl/alt_simple_dpram.vhd"
-  "${ip_dir}/rtl/alt_fifo/cmd_fifo/cmd_fifo.vhd"
-  "${ip_dir}/rtl/alt_fifo/scfifo_w40d256.vhd"
+  "${ip_dir}/rtl/vhd_ver/cam_mem_a5.vhd"
+  "${ip_dir}/rtl/common/alt_simple_dpram.vhd"
+  "${ip_dir}/rtl/common/alt_fifo/cmd_fifo/cmd_fifo.vhd"
+  "${ip_dir}/rtl/common/alt_fifo/scfifo_w40d256.vhd"
   "${ip_dir}/tb/common/ring_buffer_cam_tb_pkg.vhd"
-  "${ip_dir}/rtl/addr_enc_logic_partitioned.vhd"
-  "${ip_dir}/rtl/ring_buffer_cam.vhd"
+  "${ip_dir}/rtl/vhd_ver/addr_enc_logic_partitioned.vhd"
+  "${ip_dir}/rtl/vhd_ver/ring_buffer_cam.vhd"
   "${ip_dir}/tb/sim/ring_buffer_cam_partitioned_tb.vhd"
 )
 
@@ -76,7 +76,7 @@ for vhdl_file in "${vhdl_files[@]}"; do
   "${vcom_cmd}" -2008 -modelsimini "${modelsim_ini}" -work work -quiet "${vhdl_file}"
 done
 
-"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/rtl/b2o_encoder.v"
+"${vlog_cmd}" -modelsimini "${modelsim_ini}" -work work -quiet "${ip_dir}/rtl/common/b2o_encoder.v"
 
 # ── optional generic overrides via environment ──────────────────
 vsim_generics=""

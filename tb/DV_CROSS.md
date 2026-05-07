@@ -278,7 +278,7 @@ These are the growth-curve runs. Each saves checkpoint UCDBs at log-spaced txn c
 | CROSS-122 | `checkpoint_soak` | pool=8 Zipf s=1.2, seed=`0x3`, 10M txn, same checkpoints | heavy-key bins saturate early; tail-key bins saturate late |
 | CROSS-123 | `checkpoint_soak` | pool=4 λ=0.9, EXPECTED_LATENCY swept every 500k, seed=`0x6`, 10M txn | latency × fill-level cross saturated |
 | CROSS-124 | `checkpoint_soak` | pool=4 Poisson λ=0.9 + random TERM/FLUSH every 500k, seed=`0x7`, 10M txn | run-control × counter coverage saturated |
-| CROSS-125 | `checkpoint_soak` | pool=4 120% push rate, seed=`0x20`, 10M txn, overwrite-focused | BUG-004 / BUG-008 long-horizon guard; `overwrite_cnt` crosses 2^31 |
+| CROSS-125 | `checkpoint_soak` | 30 s simulator-time sector-lock/arbiter soak: repeated B090/B091/B092/B130/B131/B133 plus E073/E102/E103, P031, X063 with random inter-case gaps | BUG-065-R sector-lock ownership, SEARCH exclusion, same-sector blocking, delayed erase lock, and flush-priority guard |
 
 ### 6.13 Closure signoff (CROSS-126-129)
 
@@ -286,10 +286,10 @@ Final merged-regression runs. Every axis is randomized; these are the "one-shot"
 
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
-| CROSS-126 | `checkpoint_soak` | `all_buckets_frame` + randomized inter-case gaps + random TERM/FLUSH between buckets, 5M txn, seed=`0x1000` | full catalog composed under randomized timing |
-| CROSS-127 | `checkpoint_soak` | same stimulus as CROSS-126 with seed=`0x2000` (orthogonal) | seed-independence of closure |
-| CROSS-128 | `checkpoint_soak` | merge-reference of CROSS-017..030 + CROSS-061..090 + CROSS-121..125, 10M txn replay | merged UCDB must clear every target in §4 |
-| CROSS-129 | `checkpoint_soak` | BUG-seeded composer using the full anchor list of §5, 10M txn, random trap selection per 50k cyc | one run that must trap every historical bug if any regresses |
+| CROSS-126 | `checkpoint_soak` | 30 s simulator-time all-bucket soak: B005/B006, E082, P086, P096, X117, X118, and P110 replayed with random inter-case gaps | BASIC/EDGE/PROF/ERROR composition under randomized timing |
+| CROSS-127 | `checkpoint_soak` | 30 s simulator-time overwrite/recovery soak: B075/B079, E089, P125/P126, X119/X120 with random inter-case gaps | wrap, partition-boundary drain, overwrite fairness/skew, cache-miss and recovery interaction |
+| CROSS-128 | `checkpoint_soak` | 30 s simulator-time PROF-heavy soak: P110, P125, P126, P127, P128, P129 replayed with random inter-case gaps | random merge reference, balanced/skewed/backpressured overwrite, and deterministic replay pressure |
+| CROSS-129 | `checkpoint_soak` | 30 s simulator-time ERROR-heavy soak: X117/X118/X119/X120/X129/X130/X131/X132 plus CROSS-091 bad-hit counter burst | recovery, soft-reset windowing, cache-miss, mixed error, and counter-observer closure |
 
 ## 7) Coverage Closure Rules
 

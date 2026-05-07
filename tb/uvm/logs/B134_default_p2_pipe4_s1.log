@@ -1,0 +1,75 @@
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -coverage -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_MEDIUM" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb" "+DV_SEED=1" "+RTL_IMPL=sv" "+DV_EXEC_MODE=isolated" "+DV_CASE_ID=B134" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/B134_s1.ucdb; run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=2 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512
+# Start time: 23:21:15 on May 07,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# coverage save -onexit /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/cov_default_p2_pipe4/B134_s1.ucdb
+#  run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES]
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+#
+#   ***********       IMPORTANT RELEASE NOTES         ************
+#
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+#
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+#
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+#
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(17120) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=B134 mode=isolated
+# UVM_FATAL /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(11899) @ 100000: uvm_test_top [B134] B134 targets the non-power-of-two wrap-overwrite path, but ring_buffer_n_entry=512 is a power of two
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 100000: reporter [UVM/REPORT/SERVER]
+# --- UVM Report Summary ---
+#
+# ** Report counts by severity
+# UVM_INFO :    3
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    1
+# ** Report counts by id
+# [B134]     1
+# [CASE]     1
+# [RNTST]     1
+# [UVM/RELNOTES]     1
+#
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(135)
+#    Time: 100 ns  Iteration: 1  Region: /uvm_pkg::uvm_task_phase::execute
+#
+# Coverage saving has been started
+# Coverage database has been saved successfully.
+# End time: 23:21:16 on May 07,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 1

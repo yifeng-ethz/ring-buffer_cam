@@ -1,6 +1,6 @@
 # ⚠️ ERROR bucket
 
-**Planned:** `132` &nbsp; **Evidenced:** `132` &nbsp; **Status:** ⚠️
+**Planned:** `138` &nbsp; **Evidenced:** `138` &nbsp; **Status:** ⚠️
 
 ## Merged code coverage (this bucket)
 
@@ -13,13 +13,13 @@
 
 | status | metric | merged_pct | target |
 |:---:|---|---|---|
-| ✅ | stmt | 96.87 | 95.0 |
-| ⚠️ | branch | 89.33 | 90.0 |
-| ℹ️ | cond | 74.84 | - |
+| ✅ | stmt | 96.48 | 95.0 |
+| ⚠️ | branch | 88.48 | 90.0 |
+| ℹ️ | cond | 75.31 | - |
 | ℹ️ | expr | 40.00 | - |
 | ✅ | fsm_state | 100.00 | 95.0 |
 | ⚠️ | fsm_trans | 66.67 | 90.0 |
-| ⚠️ | toggle | 70.63 | 80.0 |
+| ⚠️ | toggle | 51.54 | 80.0 |
 
 ## Ordered merge trace
 
@@ -159,6 +159,12 @@
 | ✅ | 130 | `X130` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X130.md) |
 | ✅ | 131 | `X131` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X131.md) |
 | ✅ | 132 | `X132` | stmt=96.87, branch=89.33, cond=74.84, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=70.63 | [case](../cases/X132.md) |
+| ✅ | 133 | `X133` | stmt=96.11, branch=87.10, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.31 | [case](../cases/X133.md) |
+| ✅ | 134 | `X134` | stmt=96.11, branch=87.10, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.31 | [case](../cases/X134.md) |
+| ✅ | 135 | `X135` | stmt=96.43, branch=88.17, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.35 | [case](../cases/X135.md) |
+| ✅ | 136 | `X136` | stmt=96.48, branch=88.48, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.52 | [case](../cases/X136.md) |
+| ✅ | 137 | `X137` | stmt=96.48, branch=88.48, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.54 | [case](../cases/X137.md) |
+| ✅ | 138 | `X138` | stmt=96.48, branch=88.48, cond=75.31, expr=40.00, fsm_state=100.00, fsm_trans=66.67, toggle=51.54 | [case](../cases/X138.md) |
 
 ---
 _Back to [dashboard](../../DV_REPORT.md)_

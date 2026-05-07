@@ -1,7 +1,7 @@
 # DV_PROF.md — ring_buffer_cam
 
-**Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md)
-**Canonical ID Range:** `P001-P129`
+**Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md), [FORMAL_PLAN.md](FORMAL_PLAN.md)
+**Canonical ID Range:** `P001-P137`
 **Intent:** random, profile, soak, and throughput-oriented scenarios for sustained-signoff confidence.
 
 | case_id | method | implementation | legacy alias | scenario | primary checks |
@@ -140,3 +140,18 @@
 | P127 | R | live UVM | none | overwrite-pressure checkpoint soak: four-key near-full prefill followed by ~30%-ready sink backpressure and log-spaced UCDB capture | backpressure-driven overwrite axis stays distinct from push-excess (`P125/P126`) and only closes once overwrite is observed without prefill corruption |
 | P128 | R | live UVM | none | overwrite-pressure long-soak: pool=1 single-key saturation, push rate 200%, seed=0x23, 1M txn | worst-case overwrite regime on one hotspot; `OVERWRITE_COUNT` dominates `POP_COUNT` and stresses the upper range of the counter |
 | P129 | D | live UVM | none | overwrite-pressure directed replay: deterministic single-key throughput shape intended to recreate the historical `P003` failure window under the current checkpoint helper | directed replay locks in the historical hotspot shape and keeps overwrite accounting auditable for future regression reruns |
+
+# Sector-Lock Concurrency, Drop-Counter Regimes, And Metadata-Lineage Soaks (P130-P137)
+
+These cases stress the v26.2.9 sector-lock mechanism, the v26.2.8 64-bit accounting CSRs, and the v26.2.10 metadata-preserving deassembly FIFO under randomized long runs. They directly back BUG-065-R and BUG-066-R closure and feed [FORMAL_PLAN.md](FORMAL_PLAN.md) bounded-liveness data.
+
+| case_id | method | implementation | legacy alias | scenario | primary checks |
+|---|---|---|---|---|---|
+| P130 | R | live UVM (sv) | none | sector-lock concurrency rate: 32-channel ASIC0-like multi-key random ingress (`pool=64`, lane-local sweep, gap=11 cyc, `EXPECTED_LATENCY=2000`), 200k hits | the sector-lock observer reports `decision_reg=5` for ≥10% of cycles where `pop_engine_state ∈ {LOAD, COUNT, DRAIN}`; max deassembly-FIFO occupancy stays below `DEASM_DEPTH_CONST` and never plateaus the way the BUG-065-R baseline did; catches any regression that re-serializes push behind pop |
+| P131 | R | live UVM (sv) | none | sector-lock vs deassembly residency: same shape as `P031` adversarial two-key alternation but with the new sector-lock observer enabled, 200k hits | per-hit deassembly residency histogram has a bounded p99 below the legacy global-lock measurement (the BUG-065-R 2042556 ns plateau); push/pop close at `200k/200k`; `OVERWRITE_COUNT==0` and `CACHE_MISS_COUNT==0` |
+| P132 | R | live UVM (sv) | none | per-sector fairness audit: random `pool=16` traffic with deliberate skewed key→sector hashing, 100k hits | observed per-sector lock-bit hit count across the run is within ±20% of the analytical sector activity histogram; no sector becomes permanently hot or permanently cold; catches a `snapshot_sector_mask` path that under- or over-counts a single sector |
+| P133 | R | live UVM (sv) | none | counter freeze under sustained long-run traffic: random `pool=4` mixed traffic with `csr_counter_freeze` toggled on/off every 1k CSR-read window for 4M hits | every freeze edge captures `debug_msg2_snap` consistently for all eight 64-bit counters (incl. drop counters); high+low halves stay self-consistent across CSR reads; clearing freeze rejoins the live counters within one CSR-read cycle; catches a partial-counter freeze regression |
+| P134 | R | live UVM (sv) | none | drop-counter regime separation: three sub-runs each driving exactly one drop regime — (a) sink fast / source bursty so deassembly-full only; (b) sink fast / `EXPECTED_LATENCY=min` / hot key so pop-cmd-full only; (c) sink very slow so egress-not-ready only | each sub-run's matching drop counter increments while the other two stay at zero; `INERR_COUNT`, `PUSH_COUNT`, `POP_COUNT`, `OVERWRITE_COUNT`, `CACHE_MISS_COUNT` retain their independent contracts; catches any drop counter that double-counts or leaks across regimes |
+| P135 | R | live UVM (sv) | none | metadata-lineage long soak: random multi-key traffic with random 64-bit metadata words and random `metadata_valid` per beat, sink-ready=Bernoulli p=0.7 to force long deassembly residency, 1M hits | every drained `aso_hit_type2_metadata` / `aso_hit_type2_metadata_valid` matches the queued ingress pair for the same hit, regardless of how many cycles the hit waited in the deassembly FIFO; zero metadata mismatches across the run; catches BUG-066-R if it regresses |
+| P136 | R | live UVM (sv, `RING_BUFFER_N_ENTRY=384` variant) | none | non-power-of-two depth sector geometry under random load: `pool=4` random multi-key, 200k hits, depth=384 (so `ADDR_W=9` and the sector partition is uneven across the address space) | `addr_sector(write_pointer)` never produces an out-of-range index; lock-mask popcount tracks distinct snapshot sectors exactly; final push/pop accounting closes; catches a width assumption that only worked at depth 512 |
+| P137 | R | live UVM (sv) | none | decision=5 vs decision=2 throughput delta: same 200k-hit traffic shape replayed twice, once with the live sector-lock and once with a forced "always-locked" override (all push_write_sector_locked=1 unless `pop_engine_state` is IDLE) | published throughput delta and decision_reg histogram between the two runs; sector-lock run has measurable higher `aso_hit_type2_valid` cycles per ingress hit and a non-zero share of `decision_reg=5` events; serves as the throughput proof of the BUG-065-R fix |
