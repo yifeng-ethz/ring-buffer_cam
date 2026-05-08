@@ -1,6 +1,6 @@
 # ❌ CROSS-129
 
-**Kind:** `checkpoint_soak` &nbsp; **Build:** `default_p2_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time ERROR-heavy soak: X117/X118/X119/X120/X129/X130/X131/X132 plus CROSS-091 bad-hit counter burst`
+**Kind:** `checkpoint_soak` &nbsp; **Build:** `p4_n4_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time SV p4/n4 ERROR-heavy soak: X117/X118/X119/X120/X129-X138 plus CROSS-091 bad-hit counter burst`
 
 ## Summary
 

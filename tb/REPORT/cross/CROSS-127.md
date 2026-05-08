@@ -1,6 +1,6 @@
 # ❌ CROSS-127
 
-**Kind:** `checkpoint_soak` &nbsp; **Build:** `default_p2_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time overwrite/recovery soak: B075/B079, E089, P125/P126, X119/X120 with random inter-case gaps`
+**Kind:** `checkpoint_soak` &nbsp; **Build:** `p4_n4_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time SV p4/n4 overwrite/recovery/metadata soak: B075/B079/B142, E089/E131, P125/P126/P135/P137, X119/X120/X134 with random inter-case gaps`
 
 ## Summary
 

@@ -1,6 +1,6 @@
 # ❌ CROSS-126
 
-**Kind:** `checkpoint_soak` &nbsp; **Build:** `default_p2_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time all-bucket soak: B005/B006, E082, P086, P096, X117, X118, and P110 replayed with random inter-case gaps`
+**Kind:** `checkpoint_soak` &nbsp; **Build:** `p4_n4_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time SV p4/n4 accounting/drop all-bucket soak: B005/B006/B143-B147, E082/E140, P086/P096/P110/P133/P134, X117/X118/X135/X136 with random inter-case gaps`
 
 ## Summary
 

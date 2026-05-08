@@ -21,11 +21,11 @@ set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
 set DEFAULT_DEBUG_CONST            1
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            507
+set BUILD_DEFAULT_CONST            508
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    10
-set VERSION_DATE_DEFAULT_CONST     20260507
+set VERSION_PATCH_DEFAULT_CONST    12
+set VERSION_DATE_DEFAULT_CONST     20260508
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
@@ -311,6 +311,9 @@ add_fileset QUARTUS_SYNTH QUARTUS_SYNTH "" ""
 set_fileset_property QUARTUS_SYNTH TOP_LEVEL ring_buffer_cam
 set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
+add_fileset_file cam_helper_pkg.vhd VHDL PATH ../rtl/vhd_ver/cam_helper_pkg.vhd
+add_fileset_file cam_mem_blk_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_blk_a5.vhd
+add_fileset_file cam_mem_a5.vhd VHDL PATH ../rtl/vhd_ver/cam_mem_a5.vhd
 add_fileset_file ring_buffer_cam_sv_pkg.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
 add_fileset_file ring_buffer_cam_fifo.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_fifo.sv
 add_fileset_file ring_buffer_cam_core.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_core.sv

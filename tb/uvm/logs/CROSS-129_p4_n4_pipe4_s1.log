@@ -1,0 +1,228 @@
+make: Entering directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+make[1]: Entering directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+=== Running test_case_engine seed=1 ===
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb" "+DV_SEED=1" "+RTL_IMPL=sv" "+DV_EXEC_MODE=cross" "+DV_RUN_ID=CROSS-129" "+DV_SOAK_TARGET_TIME_PS=1" "+TB_TIMEOUT_CYCLES=3800000000" "+DV_SOAK_CASE_LIMIT=1" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=4 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 13:03:01 on May 08,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4266) @ 100000: uvm_test_top [SOAK] SIGNOFF_SOAK_BEGIN run_id=CROSS-129 target_ps=1 case_count=1 seed=1 start_index=0 original_case_count=15
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4216) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=X117 mode=signoff_soak owner=CROSS-129
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4313) @ 9756000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: source backlog drained before TERMINATING after 1 cycles (offered=72 accepted=72)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4330) @ 9772000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: deassembly fifo drained before TERMINATING after 2 cycles (usedw=0)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4335) @ 9804000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: issue TERMINATING entry pulse
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4337) @ 9820000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: send end-of-run marker
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4339) @ 9820000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: poll TERMINATING drain-done
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26708000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 0: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=1
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26716000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=0 channel=3 ts50p=0x0 et1n6=0x0 pending=1 overlap=0 remaining=31 remaining_key=0 accepted_key=0 written_key=0 drained_key=1 pop_obs=1 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26748000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 1: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=2
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26756000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=1 channel=3 ts50p=0x21 et1n6=0x1 pending=2 overlap=0 remaining=30 remaining_key=0 accepted_key=0 written_key=0 drained_key=2 pop_obs=2 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26788000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 2: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=3
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26796000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=2 channel=3 ts50p=0x42 et1n6=0x2 pending=3 overlap=0 remaining=29 remaining_key=0 accepted_key=0 written_key=0 drained_key=3 pop_obs=3 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26828000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 3: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=4
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26836000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=3 channel=3 ts50p=0x63 et1n6=0x3 pending=4 overlap=0 remaining=28 remaining_key=0 accepted_key=0 written_key=0 drained_key=4 pop_obs=4 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26868000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 4: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=5
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26876000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=4 channel=3 ts50p=0x84 et1n6=0x4 pending=5 overlap=0 remaining=27 remaining_key=0 accepted_key=0 written_key=0 drained_key=5 pop_obs=5 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26908000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 5: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=6
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26916000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=5 channel=3 ts50p=0xa5 et1n6=0x5 pending=6 overlap=0 remaining=26 remaining_key=0 accepted_key=0 written_key=0 drained_key=6 pop_obs=6 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26948000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 6: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=7
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26956000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=6 channel=3 ts50p=0xc6 et1n6=0x6 pending=7 overlap=0 remaining=25 remaining_key=0 accepted_key=0 written_key=0 drained_key=7 pop_obs=7 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 26988000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 7: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=8
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 26996000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=7 channel=3 ts50p=0xe7 et1n6=0x7 pending=8 overlap=0 remaining=24 remaining_key=0 accepted_key=0 written_key=0 drained_key=8 pop_obs=8 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27028000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 9: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=9
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27036000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=9 channel=3 ts50p=0x29 et1n6=0x9 pending=9 overlap=0 remaining=23 remaining_key=0 accepted_key=0 written_key=0 drained_key=9 pop_obs=9 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27068000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 10: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=10
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27076000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=10 channel=3 ts50p=0x4a et1n6=0xa pending=10 overlap=0 remaining=22 remaining_key=0 accepted_key=0 written_key=0 drained_key=10 pop_obs=10 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27108000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 11: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=11
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27116000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=11 channel=3 ts50p=0x6b et1n6=0xb pending=11 overlap=0 remaining=21 remaining_key=0 accepted_key=0 written_key=0 drained_key=11 pop_obs=11 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27148000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 12: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=12
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27156000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=12 channel=3 ts50p=0x8c et1n6=0xc pending=12 overlap=0 remaining=20 remaining_key=0 accepted_key=0 written_key=0 drained_key=12 pop_obs=12 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27188000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 13: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=13
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27196000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=13 channel=3 ts50p=0xad et1n6=0xd pending=13 overlap=0 remaining=19 remaining_key=0 accepted_key=0 written_key=0 drained_key=13 pop_obs=13 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27228000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 14: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=14
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27236000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=14 channel=3 ts50p=0xce et1n6=0xe pending=14 overlap=0 remaining=18 remaining_key=0 accepted_key=0 written_key=0 drained_key=14 pop_obs=14 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27268000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 15: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=15
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27276000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=15 channel=3 ts50p=0xef et1n6=0xf pending=15 overlap=0 remaining=17 remaining_key=0 accepted_key=0 written_key=0 drained_key=15 pop_obs=15 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27308000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 16: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=16
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27316000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=0 channel=3 ts50p=0x10 et1n6=0x10 pending=16 overlap=0 remaining=16 remaining_key=0 accepted_key=0 written_key=0 drained_key=16 pop_obs=16 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27348000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 17: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=17
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27356000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=1 channel=3 ts50p=0x31 et1n6=0x11 pending=17 overlap=0 remaining=15 remaining_key=0 accepted_key=0 written_key=0 drained_key=17 pop_obs=17 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27388000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 18: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=18
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27396000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=2 channel=3 ts50p=0x52 et1n6=0x12 pending=18 overlap=0 remaining=14 remaining_key=0 accepted_key=0 written_key=0 drained_key=18 pop_obs=18 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27428000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 19: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=19
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27436000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=3 channel=3 ts50p=0x73 et1n6=0x13 pending=19 overlap=0 remaining=13 remaining_key=0 accepted_key=0 written_key=0 drained_key=19 pop_obs=19 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27468000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 20: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=20
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27476000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=4 channel=3 ts50p=0x94 et1n6=0x14 pending=20 overlap=0 remaining=12 remaining_key=0 accepted_key=0 written_key=0 drained_key=20 pop_obs=20 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27508000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 21: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=21
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27516000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=5 channel=3 ts50p=0xb5 et1n6=0x15 pending=21 overlap=0 remaining=11 remaining_key=0 accepted_key=0 written_key=0 drained_key=21 pop_obs=21 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27548000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 22: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=22
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27556000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=6 channel=3 ts50p=0xd6 et1n6=0x16 pending=22 overlap=0 remaining=10 remaining_key=0 accepted_key=0 written_key=0 drained_key=22 pop_obs=22 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27588000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 23: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=23
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27596000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=7 channel=3 ts50p=0xf7 et1n6=0x17 pending=23 overlap=0 remaining=9 remaining_key=0 accepted_key=0 written_key=0 drained_key=23 pop_obs=23 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27628000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 24: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=24
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27636000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=8 channel=3 ts50p=0x18 et1n6=0x18 pending=24 overlap=0 remaining=8 remaining_key=0 accepted_key=0 written_key=0 drained_key=24 pop_obs=24 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27668000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 25: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=25
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27676000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=9 channel=3 ts50p=0x39 et1n6=0x19 pending=25 overlap=0 remaining=7 remaining_key=0 accepted_key=0 written_key=0 drained_key=25 pop_obs=25 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27708000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 26: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=26
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27716000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=10 channel=3 ts50p=0x5a et1n6=0x1a pending=26 overlap=0 remaining=6 remaining_key=0 accepted_key=0 written_key=0 drained_key=26 pop_obs=26 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27748000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 27: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=27
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27756000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=11 channel=3 ts50p=0x7b et1n6=0x1b pending=27 overlap=0 remaining=5 remaining_key=0 accepted_key=0 written_key=0 drained_key=27 pop_obs=27 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27788000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 28: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=28
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27796000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=12 channel=3 ts50p=0x9c et1n6=0x1c pending=28 overlap=0 remaining=4 remaining_key=0 accepted_key=0 written_key=0 drained_key=28 pop_obs=28 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27828000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 29: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=29
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27836000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=13 channel=3 ts50p=0xbd et1n6=0x1d pending=29 overlap=0 remaining=3 remaining_key=0 accepted_key=0 written_key=0 drained_key=29 pop_obs=29 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27868000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 30: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=30
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27876000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=14 channel=3 ts50p=0xde et1n6=0x1e pending=30 overlap=0 remaining=2 remaining_key=0 accepted_key=0 written_key=0 drained_key=30 pop_obs=30 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(412) @ 27908000: uvm_test_top.m_env.m_scb [SCB] Pop-side key mismatch at slot 31: pop_current_sk=8 raw_hit_key=16 occupied=1 pop_count=31
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(570) @ 27916000: uvm_test_top.m_env.m_scb [SCB] Unexpected drained hit: key=8 asic=15 channel=3 ts50p=0xff et1n6=0x1f pending=31 overlap=0 remaining=1 remaining_key=0 accepted_key=0 written_key=0 drained_key=31 pop_obs=31 head_pending={key=16 asic=0 channel=3 ts50p=0x0 et1n6=0x0} head_overlap=<none>
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4356) @ 30796000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: terminating_drain_done asserted after 2622 cycles
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4361) @ 30828000: uvm_test_top [TERM] X117 GOOD-ERROR-FLUSH-GOOD restart drain: waiting for scoreboard/source idle
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(745) @ 1470828000: uvm_test_top [TIMEOUT] X117 GOOD-ERROR-FLUSH-GOOD restart drain debug: remaining=0 pending_drain=31 max_remaining=32 source_backlog=0 source_head_empty_marker=0 source_markers_offered=1 source_markers_accepted=1 source_backlog_max=1 source_offered=72 source_accepted=72 live_fill=0 max_live_fill=32 push=32 pop=32 overwrite=0 term_done=1 endofrun_seen=1 pop_cmd_empty=1 pop_cmd_usedw=0 deassm_empty=1 deassm_full=0 deassm_usedw=0 first_push_cycle=564 first_pop_cycle=3337 first_overwrite_cycle=0
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(773) @ 1470828000: uvm_test_top [TIMEOUT] Timed out waiting for X117 GOOD-ERROR-FLUSH-GOOD restart drain after 180000 cycles: remaining=0 pending_drain=31 epoch_idle=1 accepted=32 written=32 source_backlog=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4225) @ 1471244000: uvm_test_top [CASE] CASE_END id=X117 mode=signoff_soak owner=CROSS-129
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4291) @ 1474764000: uvm_test_top [SOAK] SIGNOFF_SOAK_SUMMARY run_id=CROSS-129 target_ps=1 elapsed_ps=1474664000 iterations=1 cases=1
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 1474764000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_ERROR /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(646) @ 1474764000: uvm_test_top.m_env.m_scb [SCB] Pending drain queue not empty at end of test: pending=31 accepted=32 written=32 drained=32 unexpected_outputs=31
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 1474764000: uvm_test_top.m_env.m_cov [COV] cg_output=72.3% cg_hit_data=39.6%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(655) @ 1474764000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=32 popped=32 remaining=0 pending_drain=31 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=31 subheaders=12 zero_hit_subheaders=10 accepted=32 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(663) @ 1474764000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=32 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(16925) @ 1474764000: uvm_test_top [TEST] *** TEST FAILED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 1474764000: reporter [UVM/REPORT/SERVER] 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :   19
+# UVM_WARNING :    0
+# UVM_ERROR :   64
+# UVM_FATAL :    0
+# ** Report counts by id
+# [CASE]     2
+# [COV]     1
+# [RNTST]     1
+# [SCB]    65
+# [SOAK]     2
+# [TERM]     7
+# [TEST]     1
+# [TEST_DONE]     1
+# [TIMEOUT]     2
+# [UVM/RELNOTES]     1
+# 
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 1474764 ns  Iteration: 69  Instance: /tb_top
+# End time: 13:03:03 on May 08,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 33
+FAIL: test_case_engine seed=1
+make[1]: *** [Makefile:231: run] Error 1
+make[1]: Leaving directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+make: *** [Makefile:275: run_signoff_soak] Error 2
+make: Leaving directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'

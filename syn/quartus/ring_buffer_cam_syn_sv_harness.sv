@@ -175,12 +175,13 @@ module ring_buffer_cam_syn_sv_harness #(
       signature <= '0;
     end else begin
       if (aso_hit_type2_valid) begin
-        signature <= signature ^
-          {aso_hit_type2_error,
-           aso_hit_type2_startofpacket,
+        signature <= signature ^ aso_hit_type2_data[31:0] ^
+          {28'd0, aso_hit_type2_data[35:32]} ^
+          {27'd0, aso_hit_type2_channel} ^
+          {29'd0,
+           aso_hit_type2_error,
            aso_hit_type2_endofpacket,
-           aso_hit_type2_channel,
-           aso_hit_type2_data[24:0]};
+           aso_hit_type2_startofpacket};
       end
       if (aso_filllevel_valid) begin
         signature[15:0] <= signature[15:0] ^ aso_filllevel_data;

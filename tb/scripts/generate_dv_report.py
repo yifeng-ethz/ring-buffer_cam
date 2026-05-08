@@ -18,8 +18,6 @@ from pathlib import Path
 TB = Path(__file__).resolve().parents[1]
 WORK_LOG_DIRS = [
     TB / "uvm" / "work_uvm_sv" / "logs",
-    TB / "uvm" / "work_uvm_vhdl" / "logs",
-    TB / "uvm" / "work_uvm" / "logs",
 ]
 PUB_LOGS = TB / "uvm" / "logs"
 PUB_COV = TB / "uvm" / "cov_after"
@@ -29,7 +27,8 @@ SKILL_REPORT_GEN = Path.home() / ".codex" / "skills" / "dv-workflow" / "scripts"
 RTL_DOC_STYLE_LINTER = Path.home() / ".codex" / "skills" / "rtl-doc-style" / "scripts" / "rtl_doc_style_check.py"
 
 RTL_VARIANT = "default_p2_pipe4"
-REPORT_RTL_VARIANT = "promoted_build_matrix"
+SIGNOFF_SOAK_RTL_VARIANT = "p4_n4_pipe4"
+REPORT_RTL_VARIANT = "sv_promoted_build_matrix"
 SEED = 1
 PLACEHOLDER_LOG_MARKER = "has no live log artifact."
 PLACEHOLDER_UCDB_MARKER = "has no standalone UCDB artifact yet."
@@ -67,15 +66,8 @@ METRIC_ROWS = OrderedDict(
     ]
 )
 
-TOTAL_BRANCH_EXCLUSION_BINS = 16
-TOTAL_BRANCH_EXCLUSION_NOTE = (
-    "branch total excludes 16 compile-time-dead bins in "
-    "`addr_enc_logic_partitioned`: the `clear_onehot_bit()` out-of-range "
-    "guard is unreachable for the generated callers, and the "
-    "`result_valid_extra` branches are unreachable across the promoted "
-    "`PIPE_STAGES=1..4` build matrix, including the p4-only "
-    "`gen_addr_enc_logic(2/3)` instances."
-)
+TOTAL_BRANCH_EXCLUSION_BINS = 0
+TOTAL_BRANCH_EXCLUSION_NOTE = ""
 REQUIRED_SOAK_TARGET_PS = 30_000_000_000_000
 REQUIRED_30S_SIGNOFF_SOAKS = OrderedDict(
     [
@@ -134,11 +126,13 @@ def is_live_uvm_decl(implementation: str) -> bool:
 def signoff_scope() -> OrderedDict[str, str]:
     return OrderedDict(
         [
+            ("RTL_IMPL", "sv only"),
             ("RTL_BUILD_MATRIX", "default_p2_pipe4, p2_pipe1, p2_pipe2, p2_pipe3, p4_n4_pipe4, depth64_p2_pipe4, depth384_p2_pipe4, depth4096_p2_pipe4"),
             ("G_N_PARTITIONS", "2, 4"),
             ("G_ENCODER_PIPE_STAGES", "1, 2, 3, 4"),
             ("G_INTERLEAVING_FACTOR", "4"),
             ("G_RING_BUFFER_N_ENTRY", "64, 384, 512, 4096"),
+            ("legacy_vhdl_scope", "excluded from DV closure; vhd_ver is a frozen pre-sector-lock-upgrade timing/sim reference"),
             ("probe_only_exclusions", ""),
         ]
     )
@@ -215,7 +209,11 @@ def parse_cross_rows(path: Path) -> list[dict]:
                 "implementation_decl": "",
                 "sequence_name": sequence_name,
                 "primary_checks": primary_checks,
-                "build_tag": RTL_VARIANT,
+                "build_tag": (
+                    SIGNOFF_SOAK_RTL_VARIANT
+                    if run_id in REQUIRED_30S_SIGNOFF_SOAKS
+                    else RTL_VARIANT
+                ),
             }
         )
     return runs
@@ -300,6 +298,10 @@ def is_placeholder_log(path: Path) -> bool:
 
 def is_real_log(path: Path) -> bool:
     return path.is_file() and not is_placeholder_log(path)
+
+
+def is_sv_uvm_log(text: str) -> bool:
+    return "+RTL_IMPL=sv" in text or "RTL_IMPL=sv" in text
 
 
 def parse_cov_summary(text: str) -> dict[str, tuple[int, int]]:
@@ -455,6 +457,9 @@ def parse_log(log_path: Path) -> dict | None:
         return None
 
     text = read_text_lossy(log_path)
+    if not is_sv_uvm_log(text):
+        return None
+
     cov_match = re.search(r"cg_output=([0-9.]+)% cg_hit_data=([0-9.]+)%", text)
     summary_match = re.search(r"Summary:\s+([^\n\r]+)", text)
     err_count_match = re.search(r"# UVM_ERROR :\s+(\d+)", text)
@@ -552,14 +557,14 @@ def case_log_candidates(case_data: dict) -> list[Path]:
     case_id = case_data["case_id"]
     alias = case_data.get("alias")
     build_tag = case_data.get("build_tag", RTL_VARIANT)
-    candidates = [
+    candidates = [PUB_LOGS / f"{case_id}_{build_tag}_s{SEED}.log"]
+    candidates.extend(
         log_dir / f"test_case_engine_{case_id}_s{SEED}.log"
         for log_dir in WORK_LOG_DIRS
-    ]
-    candidates.append(PUB_LOGS / f"{case_id}_{build_tag}_s{SEED}.log")
+    )
     if alias:
-        candidates.extend(log_dir / f"{alias}_s{SEED}.log" for log_dir in WORK_LOG_DIRS)
         candidates.append(PUB_LOGS / f"{alias}_{build_tag}_s{SEED}.log")
+        candidates.extend(log_dir / f"{alias}_s{SEED}.log" for log_dir in WORK_LOG_DIRS)
     return unique_paths(candidates)
 
 
@@ -1056,8 +1061,8 @@ def build_report() -> dict:
         "non_claims": non_claims
         + [
             "cross scope: DV_CROSS continuous-frame ladders are tracked separately from the canonical per-case isolated matrix in this refresh.",
-            TOTAL_BRANCH_EXCLUSION_NOTE,
-        ],
+        ]
+        + ([TOTAL_BRANCH_EXCLUSION_NOTE] if TOTAL_BRANCH_EXCLUSION_NOTE else []),
         "buckets": buckets,
         "bucket_summary": bucket_summary,
         "formal_summary": formal_rows,

@@ -108,6 +108,11 @@ VHDL_SRCS = \
   $(IP_DIR)/rtl/vhd_ver/ring_buffer_cam_v2_core.vhd \
   $(IP_DIR)/rtl/vhd_ver/ring_buffer_cam.vhd
 
+SV_CAM_VHDL_SRCS = \
+  $(IP_DIR)/rtl/vhd_ver/cam_helper_pkg.vhd \
+  $(SIM_COMPAT)/cam_mem_blk_a5.vhd \
+  $(IP_DIR)/rtl/vhd_ver/cam_mem_a5.vhd
+
 SV_DUT_SRCS = \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_fifo.sv \
@@ -115,7 +120,7 @@ SV_DUT_SRCS = \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam.sv
 
 ifeq ($(RTL_IMPL),sv)
-  ACTIVE_VHDL_SRCS =
+  ACTIVE_VHDL_SRCS = $(SV_CAM_VHDL_SRCS)
   ACTIVE_SV_DUT_SRCS = $(SV_DUT_SRCS)
   ACTIVE_VERILOG_DUT_SRCS =
 else

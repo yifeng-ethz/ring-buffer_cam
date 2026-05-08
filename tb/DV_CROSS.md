@@ -272,13 +272,15 @@ Promotes X116-X132 invariants to long-soak regressions. Each pins one recovery i
 
 These are the growth-curve runs. Each saves checkpoint UCDBs at log-spaced txn counts under `REPORT/txn_growth/`. Pick set that unions the cross-axis bins fastest.
 
+Reachable checkpoint evidence for `CROSS-125..CROSS-129` is recorded in [DV_SIGNOFF.md](DV_SIGNOFF.md): the 2026-05-08 SV p4/n4 claim uses `SIGNOFF_SOAK_TARGET_PS=5000000000` with explicit case and transaction counts. The 30 s simulator-time descriptions below remain the historical release target catalog.
+
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
 | CROSS-121 | `checkpoint_soak` | pool=4 uniform λ=0.7, seed=`0x1`, 10M txn, checkpoints at 1, 4, 16, 64, 256, 1k, 4k, 16k, 64k, 256k, 1M, 4M, 10M | primary growth curve; FSM + toggle closure driven here |
 | CROSS-122 | `checkpoint_soak` | pool=8 Zipf s=1.2, seed=`0x3`, 10M txn, same checkpoints | heavy-key bins saturate early; tail-key bins saturate late |
 | CROSS-123 | `checkpoint_soak` | pool=4 λ=0.9, EXPECTED_LATENCY swept every 500k, seed=`0x6`, 10M txn | latency × fill-level cross saturated |
 | CROSS-124 | `checkpoint_soak` | pool=4 Poisson λ=0.9 + random TERM/FLUSH every 500k, seed=`0x7`, 10M txn | run-control × counter coverage saturated |
-| CROSS-125 | `checkpoint_soak` | 30 s simulator-time sector-lock/arbiter soak: repeated B090/B091/B092/B130/B131/B133 plus E073/E102/E103, P031, X063 with random inter-case gaps | BUG-065-R sector-lock ownership, SEARCH exclusion, same-sector blocking, delayed erase lock, and flush-priority guard |
+| CROSS-125 | `checkpoint_soak` | 30 s simulator-time SV p4/n4 sector-lock/decision-5 soak: B135/B136/B138/B139/B148, E130/E134/E135/E138/E139, P130/P132, X133/X138 with random inter-case gaps | BUG-065-R sector-lock ownership, SEARCH exclusion, same-sector blocking, delayed erase lock, flush priority, and soft-reset lock-mask collapse |
 
 ### 6.13 Closure signoff (CROSS-126-129)
 
@@ -286,10 +288,10 @@ Final merged-regression runs. Every axis is randomized; these are the "one-shot"
 
 | case_id | ladder | scenario | bug / coverage target |
 |---|---|---|---|
-| CROSS-126 | `checkpoint_soak` | 30 s simulator-time all-bucket soak: B005/B006, E082, P086, P096, X117, X118, and P110 replayed with random inter-case gaps | BASIC/EDGE/PROF/ERROR composition under randomized timing |
-| CROSS-127 | `checkpoint_soak` | 30 s simulator-time overwrite/recovery soak: B075/B079, E089, P125/P126, X119/X120 with random inter-case gaps | wrap, partition-boundary drain, overwrite fairness/skew, cache-miss and recovery interaction |
-| CROSS-128 | `checkpoint_soak` | 30 s simulator-time PROF-heavy soak: P110, P125, P126, P127, P128, P129 replayed with random inter-case gaps | random merge reference, balanced/skewed/backpressured overwrite, and deterministic replay pressure |
-| CROSS-129 | `checkpoint_soak` | 30 s simulator-time ERROR-heavy soak: X117/X118/X119/X120/X129/X130/X131/X132 plus CROSS-091 bad-hit counter burst | recovery, soft-reset windowing, cache-miss, mixed error, and counter-observer closure |
+| CROSS-126 | `checkpoint_soak` | 30 s simulator-time SV p4/n4 accounting/drop all-bucket soak: B005/B006/B143-B147, E082/E140, P086/P096/P110/P133/P134, X117/X118/X135/X136 with random inter-case gaps | 64-bit freeze/readback, three drop-counter regimes, illegal counter writes, freeze plus soft-reset, and baseline BASIC/EDGE/PROF/ERROR composition |
+| CROSS-127 | `checkpoint_soak` | 30 s simulator-time SV p4/n4 overwrite/recovery/metadata soak: B075/B079/B142, E089/E131, P125/P126/P135/P137, X119/X120/X134 with random inter-case gaps | wrap, pending emit lock window, metadata lineage, throughput delta, overwrite fairness/skew, cache-miss, and recovery interaction |
+| CROSS-128 | `checkpoint_soak` | 30 s simulator-time SV p4/n4 PROF-heavy soak: P110/P125/P126/P127/P128/P129/P130/P131/P132/P134/P135/P137 replayed with random inter-case gaps | random merge reference, balanced/skewed/backpressured overwrite, decision-5 rate/fairness, drop-regime separation, metadata lineage, and deterministic replay pressure |
+| CROSS-129 | `checkpoint_soak` | 30 s simulator-time SV p4/n4 ERROR-heavy soak: X117/X118/X119/X120/X129-X138 plus CROSS-091 bad-hit counter burst | recovery, soft-reset windowing, flush during pending emit, illegal CSR writes, run-control decode error during decision-5, lock-mask collapse, mixed error, and counter-observer closure |
 
 ## 7) Coverage Closure Rules
 

@@ -22,13 +22,16 @@ module ring_buffer_cam_sector_lock_sva
   input logic                                      pop_flush_grant,
   input logic                                      push_write_sector_locked,
   input logic                                      push_erase_sector_locked,
+  input logic                                      push_write_search_key_conflict,
   input logic                                      pop_flush_req,
   input logic                                      push_erase_req,
   input logic                                      pop_erase_req,
   input logic                                      pop_issue_inflight,
   input logic                                      pop_output_pending,
   input logic                                      pop_emit_pending,
-  input logic [RING_BUFFER_N_ENTRY-1:0]            pop_snapshot,
+  input logic                                      pop_search_collecting,
+  input logic [LOCK_SECTOR_COUNT_CONST-1:0]        pop_snapshot_sector_mask,
+  input logic [LOCK_SECTOR_COUNT_CONST-1:0]        pop_search_unscanned_sector_mask,
   input logic [ADDR_W_CONST-1:0]                   write_pointer,
   input logic [ADDR_W_CONST-1:0]                   push_erase_addr_reg,
   input logic [15:0]                               pop_issue_addr,
@@ -50,36 +53,32 @@ module ring_buffer_cam_sector_lock_sva
     return LOCK_SECTOR_BITS_CONST'(addr >> ADDR_SECTOR_LSB_CONST);
   endfunction
 
-  function automatic logic [LOCK_SECTOR_COUNT_CONST-1:0] snapshot_sector_mask(
-    input logic [RING_BUFFER_N_ENTRY-1:0] snap
-  );
-    logic [LOCK_SECTOR_COUNT_CONST-1:0] mask;
-    logic [ADDR_W_CONST-1:0] addr;
-
-    mask = '0;
-    for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
-      if (snap[i]) begin
-        addr = ADDR_W_CONST'(i);
-        mask[addr_sector(addr)] = 1'b1;
-      end
-    end
-    return mask;
-  endfunction
-
   initial begin
     ai_lock_mask_width_matches_parameter:
       assert ($bits(pop_sector_lock_mask) == LOCK_SECTOR_COUNT_CONST);
   end
 
   ap_search_blocks_push_write:
-    assert property (!(pop_engine_state == POP_SEARCHING && push_write_grant));
+    assert property (
+      (pop_engine_state == POP_SEARCHING && !pop_search_collecting) |->
+      !push_write_grant
+    );
+
+  ap_search_hazard_blocks_push_write:
+    assert property (
+      (pop_engine_state == POP_SEARCHING &&
+       pop_search_collecting &&
+       (push_write_sector_locked || push_write_search_key_conflict)) |->
+      !push_write_grant
+    );
 
   ap_search_blocks_push_erase:
     assert property (!(pop_engine_state == POP_SEARCHING && push_erase_grant));
 
   ap_locked_sector_blocks_push_write:
     assert property (
-      !((pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) &&
+      !((pop_search_collecting ||
+         (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING})) &&
         push_write_sector_locked &&
         push_write_grant)
     );
@@ -110,14 +109,17 @@ module ring_buffer_cam_sector_lock_sva
          push_erase_sector_locked))) |-> !push_erase_grant
     );
 
-  ap_mask_equals_snapshot_without_extra_locks:
+  ap_mask_matches_active_pop_ownership_without_extra_locks:
     assert property (
-      (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) &&
+      (pop_search_collecting ||
+       (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING})) &&
       !pop_issue_inflight &&
       !pop_output_pending &&
       !pop_emit_pending &&
       !pop_erase_req |->
-      pop_sector_lock_mask == snapshot_sector_mask(pop_snapshot)
+      pop_sector_lock_mask ==
+        (pop_snapshot_sector_mask |
+         (pop_search_collecting ? pop_search_unscanned_sector_mask : '0))
     );
 
   ap_inflight_emit_addr_stays_locked:
@@ -135,22 +137,25 @@ module ring_buffer_cam_sector_lock_sva
   ap_push_write_sector_lock_is_exact:
     assert property (
       push_write_sector_locked ==
-      ((pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) &&
+      ((pop_search_collecting ||
+        (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING})) &&
        pop_sector_lock_mask[addr_sector(write_pointer)])
     );
 
   ap_push_erase_sector_lock_is_exact:
     assert property (
       push_erase_sector_locked ==
-      ((pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING}) &&
+      ((pop_search_collecting ||
+        (pop_engine_state inside {POP_LOADING, POP_COUNTING, POP_DRAINING})) &&
        pop_sector_lock_mask[addr_sector(push_erase_addr_reg)])
     );
 
   ap_locks_clear_outside_active_pop_window:
     assert property (
       (pop_engine_state inside {
-        POP_IDLING, POP_RESETTING, POP_SEARCHING, POP_FLUSHING, POP_FLUSHING_RST
-      }) |->
+        POP_IDLING, POP_RESETTING, POP_FLUSHING, POP_FLUSHING_RST
+      }) ||
+      (pop_engine_state == POP_SEARCHING && !pop_search_collecting) |->
       (!push_write_sector_locked && !push_erase_sector_locked)
     );
 
@@ -191,7 +196,8 @@ module ring_buffer_cam_sector_lock_sva
       !push_erase_req &&
       !push_write_sector_locked &&
       !pop_flush_req &&
-      pop_engine_state != POP_SEARCHING |->
+      ((pop_engine_state != POP_SEARCHING) ||
+       (pop_search_collecting && !push_write_search_key_conflict)) |->
       push_write_grant
     );
 
@@ -202,17 +208,18 @@ module ring_buffer_cam_sector_lock_sva
     assert property (
       pop_engine_state == POP_SEARCHING &&
       run_state_cmd != RUN_PREPARING &&
-      pop_search_wait_cnt < 3'd5 |=>
+      pop_search_wait_cnt < 3'd6 |=>
       pop_engine_state == POP_SEARCHING &&
       pop_search_wait_cnt == $past(pop_search_wait_cnt) + 3'd1
     );
 
-  ap_search_tail_enters_load:
+  ap_search_collecting_keeps_wait_saturated:
     assert property (
       pop_engine_state == POP_SEARCHING &&
       run_state_cmd != RUN_PREPARING &&
-      pop_search_wait_cnt == 3'd5 |=>
-      pop_engine_state == POP_LOADING
+      pop_search_wait_cnt >= 3'd6 |=>
+      (pop_engine_state != POP_SEARCHING ||
+       pop_search_wait_cnt == 3'd6)
     );
 
   ap_flush_request_grants_now:

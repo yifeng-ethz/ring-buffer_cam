@@ -1,6 +1,6 @@
 # ❌ CROSS-128
 
-**Kind:** `checkpoint_soak` &nbsp; **Build:** `default_p2_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time PROF-heavy soak: P110, P125, P126, P127, P128, P129 replayed with random inter-case gaps`
+**Kind:** `checkpoint_soak` &nbsp; **Build:** `p4_n4_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time SV p4/n4 PROF-heavy soak: P110/P125/P126/P127/P128/P129/P130/P131/P132/P134/P135/P137 replayed with random inter-case gaps`
 
 ## Summary
 

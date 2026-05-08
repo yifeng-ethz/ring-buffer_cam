@@ -34,9 +34,9 @@ class base_test extends uvm_test;
 `ifdef RBCAM_SV_IMPL
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0033;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0031;
-  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd10;
-  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd507;
-  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260507;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd12;
+  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd508;
+  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260508;
 `else
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0013;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0011;
@@ -62,6 +62,7 @@ class base_test extends uvm_test;
     void'(uvm_config_db#(int unsigned)::get(this, "", "n_partitions", m_cfg.n_partitions));
     void'(uvm_config_db#(int unsigned)::get(this, "", "encoder_leaf_width", m_cfg.encoder_leaf_width));
     void'(uvm_config_db#(int unsigned)::get(this, "", "encoder_pipe_stages", m_cfg.encoder_pipe_stages));
+    void'(uvm_config_db#(int unsigned)::get(this, "", "debug_level", m_cfg.debug_level));
     void'(uvm_config_db#(virtual avst_out_if.drv)::get(this, "", "out_vif", m_out_vif));
     uvm_config_db#(ring_buffer_cam_pkg::ring_buffer_cam_cfg)::set(
       this, "m_env", "cfg", m_cfg);
@@ -4134,32 +4135,50 @@ class base_test extends uvm_test;
   );
     case_ids.delete();
     if (run_id == "CROSS-125") begin
-      case_ids.push_back("B090");
-      case_ids.push_back("B091");
-      case_ids.push_back("B092");
-      case_ids.push_back("B130");
-      case_ids.push_back("B131");
-      case_ids.push_back("B133");
-      case_ids.push_back("E073");
-      case_ids.push_back("E102");
-      case_ids.push_back("E103");
-      case_ids.push_back("P031");
-      case_ids.push_back("X063");
+      case_ids.push_back("B135");
+      case_ids.push_back("B136");
+      case_ids.push_back("B138");
+      case_ids.push_back("B139");
+      case_ids.push_back("B148");
+      case_ids.push_back("E130");
+      case_ids.push_back("E134");
+      case_ids.push_back("E135");
+      case_ids.push_back("E138");
+      case_ids.push_back("E139");
+      case_ids.push_back("P130");
+      case_ids.push_back("P132");
+      case_ids.push_back("X133");
+      case_ids.push_back("X138");
     end else if (run_id == "CROSS-126") begin
       case_ids.push_back("B005");
       case_ids.push_back("B006");
+      case_ids.push_back("B143");
+      case_ids.push_back("B144");
+      case_ids.push_back("B145");
+      case_ids.push_back("B146");
+      case_ids.push_back("B147");
       case_ids.push_back("E082");
+      case_ids.push_back("E140");
       case_ids.push_back("P086");
       case_ids.push_back("P096");
+      case_ids.push_back("P133");
+      case_ids.push_back("P134");
       case_ids.push_back("X117");
       case_ids.push_back("X118");
+      case_ids.push_back("X135");
+      case_ids.push_back("X136");
       case_ids.push_back("P110");
     end else if (run_id == "CROSS-127") begin
       case_ids.push_back("B075");
       case_ids.push_back("B079");
+      case_ids.push_back("B142");
       case_ids.push_back("E089");
+      case_ids.push_back("E131");
       case_ids.push_back("P125");
       case_ids.push_back("P126");
+      case_ids.push_back("P135");
+      case_ids.push_back("P137");
+      case_ids.push_back("X134");
       case_ids.push_back("X119");
       case_ids.push_back("X120");
     end else if (run_id == "CROSS-128") begin
@@ -4169,6 +4188,12 @@ class base_test extends uvm_test;
       case_ids.push_back("P127");
       case_ids.push_back("P128");
       case_ids.push_back("P129");
+      case_ids.push_back("P130");
+      case_ids.push_back("P131");
+      case_ids.push_back("P132");
+      case_ids.push_back("P134");
+      case_ids.push_back("P135");
+      case_ids.push_back("P137");
     end else if (run_id == "CROSS-129") begin
       case_ids.push_back("X117");
       case_ids.push_back("X118");
@@ -4178,6 +4203,12 @@ class base_test extends uvm_test;
       case_ids.push_back("X130");
       case_ids.push_back("X131");
       case_ids.push_back("X132");
+      case_ids.push_back("X133");
+      case_ids.push_back("X134");
+      case_ids.push_back("X135");
+      case_ids.push_back("X136");
+      case_ids.push_back("X137");
+      case_ids.push_back("X138");
       case_ids.push_back("CROSS-091");
     end
   endtask
@@ -4202,11 +4233,30 @@ class base_test extends uvm_test;
     longint unsigned elapsed_ps;
     int unsigned     iteration_count;
     int unsigned     case_exec_count;
+    int unsigned     soak_start_index;
+    int unsigned     soak_case_limit;
+    int unsigned     soak_case_count;
     int unsigned     gap_cycles;
 
     build_signoff_soak_case_list(run_id, case_ids);
     if (case_ids.size() == 0) begin
       `uvm_fatal("SOAK", $sformatf("No signoff soak case list is defined for %s", run_id))
+    end
+
+    if (!$value$plusargs("DV_SOAK_START_INDEX=%d", soak_start_index)) begin
+      soak_start_index = 0;
+    end
+    if (!$value$plusargs("DV_SOAK_CASE_LIMIT=%d", soak_case_limit)) begin
+      soak_case_limit = 0;
+    end
+    if (soak_start_index >= case_ids.size()) begin
+      `uvm_fatal("SOAK", $sformatf(
+        "DV_SOAK_START_INDEX out of range for %s: start=%0d available=%0d",
+        run_id, soak_start_index, case_ids.size()))
+    end
+    soak_case_count = case_ids.size() - soak_start_index;
+    if (soak_case_limit != 0 && soak_case_limit < soak_case_count) begin
+      soak_case_count = soak_case_limit;
     end
 
     target_ps = get_soak_target_time_ps();
@@ -4215,17 +4265,18 @@ class base_test extends uvm_test;
     case_exec_count = 0;
 
     `uvm_info("SOAK", $sformatf(
-      "SIGNOFF_SOAK_BEGIN run_id=%s target_ps=%0d case_count=%0d seed=%0d",
-      run_id, target_ps, case_ids.size(), get_dv_seed()), UVM_LOW)
+      "SIGNOFF_SOAK_BEGIN run_id=%s target_ps=%0d case_count=%0d seed=%0d start_index=%0d original_case_count=%0d",
+      run_id, target_ps, soak_case_count, get_dv_seed(),
+      soak_start_index, case_ids.size()), UVM_LOW)
 
     while ((current_sim_time_ps() - start_ps) < target_ps) begin
       iteration_count++;
-      foreach (case_ids[idx]) begin
+      for (int unsigned local_idx = 0; local_idx < soak_case_count; local_idx++) begin
         elapsed_ps = current_sim_time_ps() - start_ps;
         if (elapsed_ps >= target_ps) begin
           break;
         end
-        run_signoff_soak_case(run_id, case_ids[idx]);
+        run_signoff_soak_case(run_id, case_ids[soak_start_index + local_idx]);
         case_exec_count++;
         gap_cycles = $urandom_range(0, 512);
         wait_clocks(gap_cycles);
@@ -4912,12 +4963,15 @@ class base_test extends uvm_test;
     bit          ready_now;
     logic [3:0]  observed_partition_mask;
     int unsigned observed_partition_idx;
+    int unsigned partition_size;
     int unsigned search_cycles;
 
     subhdr_before = m_env.m_out_mon.total_data_subheaders_seen;
     sink_low_cycles = 0;
     traffic_done = 1'b0;
     ready_lfsr = 32'h1bad_cafe;
+    partition_size = (m_cfg.n_partitions == 0) ? m_cfg.ring_buffer_n_entry :
+                     (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
     observed_partition_mask = '0;
 
     configure_and_start(latency);
@@ -4999,7 +5053,8 @@ class base_test extends uvm_test;
                 m_env.m_hit_drv.pending_source_items() != 0 ||
                 m_env.m_scb.remaining_entries() != 0)) begin
           if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
-            observed_partition_idx = m_env.m_dbg_mon.pop_issue_partition_idx;
+            observed_partition_idx = int'(m_env.m_dbg_mon.vif.pop_issue_addr) /
+                                     partition_size;
             if (observed_partition_idx < 4) begin
               observed_partition_mask[observed_partition_idx[1:0]] = 1'b1;
             end
@@ -5806,6 +5861,7 @@ class base_test extends uvm_test;
     int unsigned       cache_miss_count;
     int unsigned       fill_level;
     int unsigned       search_cycles;
+    int unsigned       issue_partition_idx;
     logic [3:0]        observed_partition_mask;
 
     configure_and_start(latency);
@@ -5846,8 +5902,13 @@ class base_test extends uvm_test;
     search_cycles = 0;
     while (search_cycles < timeout_cycles &&
            (m_env.m_out_mon.total_hits_seen - hit_before) < target_hits) begin
-      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
-        observed_partition_mask[m_env.m_dbg_mon.pop_issue_partition_idx] = 1'b1;
+      if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1 &&
+          m_env.m_dbg_mon.vif.pop_current_sk[7:0] == target_search_key[7:0]) begin
+        issue_partition_idx = int'(m_env.m_dbg_mon.vif.pop_issue_addr) /
+          (m_cfg.ring_buffer_n_entry / m_cfg.n_partitions);
+        if (issue_partition_idx < 4) begin
+          observed_partition_mask[issue_partition_idx] = 1'b1;
+        end
       end
       @(posedge m_env.m_csr_drv.vif.clk);
       search_cycles++;
@@ -7838,7 +7899,9 @@ class base_test extends uvm_test;
     int unsigned       pop_sector;
     int unsigned       write_sector;
     bit                pressure_done;
-    bit                saw_decision5;
+    bit                saw_disjoint_push_during_pop;
+    bit                saw_pop_erase;
+    bit                saw_push_write;
     bit [7:0]          focus_search_key;
 
 `ifndef RBCAM_SV_IMPL
@@ -7854,7 +7917,9 @@ class base_test extends uvm_test;
     csr_write(CSR_EXPECTED_LAT_ADDR, 32'h0000_0000);
     wait_for_pop_engine_state(3'd4, 500_000, {case_id, " decision5 DRAIN entry"});
 
-    saw_decision5 = 1'b0;
+    saw_disjoint_push_during_pop = 1'b0;
+    saw_pop_erase = 1'b0;
+    saw_push_write = 1'b0;
     pressure_done = 1'b0;
     fork
       begin
@@ -7866,36 +7931,50 @@ class base_test extends uvm_test;
       end
       begin
         cycles = 0;
-        while (cycles < 1_000_000 && !saw_decision5 &&
+        while (cycles < 1_000_000 && !saw_disjoint_push_during_pop &&
                (!pressure_done ||
                 m_env.m_hit_drv.pending_source_items() != 0 ||
                 m_env.m_dbg_mon.deassembly_fifo_usedw != 0 ||
                 (m_env.m_dbg_mon.pop_engine_state_code inside {3'd1, 3'd2, 3'd3, 3'd4, 3'd5}))) begin
-          if (m_env.m_dbg_mon.vif.decision_reg == 3'd5 &&
-              m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
+          if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1 &&
               m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
-            saw_decision5 = 1'b1;
             pop_sector = lock_sector_index(m_env.m_dbg_mon.vif.pop_issue_addr);
             write_sector = lock_sector_index(m_env.m_dbg_mon.vif.write_pointer);
-            if (pop_sector == write_sector) begin
-              `uvm_error("SECTOR_EXT", $sformatf(
-                "%s observed decision=5 with same-sector ownership: pop_addr=%0d write_pointer=%0d sector=%0d",
-                case_id, m_env.m_dbg_mon.vif.pop_issue_addr,
-                m_env.m_dbg_mon.vif.write_pointer, pop_sector))
+            `uvm_error("SECTOR_EXT", $sformatf(
+              "%s observed illegal same-cycle single-CAM push/pop grants: pop_addr=%0d write_pointer=%0d pop_sector=%0d write_sector=%0d",
+              case_id, m_env.m_dbg_mon.vif.pop_issue_addr,
+              m_env.m_dbg_mon.vif.write_pointer, pop_sector, write_sector))
+          end
+          if (m_env.m_dbg_mon.vif.pop_erase_grant === 1'b1) begin
+            saw_pop_erase = 1'b1;
+          end
+          if (m_env.m_dbg_mon.vif.push_write_grant === 1'b1) begin
+            saw_push_write = 1'b1;
+            if (m_env.m_dbg_mon.pop_engine_state_code inside {3'd2, 3'd3, 3'd4, 3'd5}) begin
+              pop_sector = lock_sector_index(m_env.m_dbg_mon.vif.pop_issue_addr);
+              write_sector = lock_sector_index(m_env.m_dbg_mon.vif.write_pointer);
+              if (pop_sector != write_sector) begin
+                saw_disjoint_push_during_pop = 1'b1;
+              end
             end
+          end
+          if (m_env.m_dbg_mon.vif.decision_reg == 3'd5) begin
+            `uvm_error("SECTOR_EXT", $sformatf(
+              "%s observed obsolete decision_reg=5 in single-CAM serialized mode",
+              case_id))
           end
           @(posedge m_env.m_csr_drv.vif.clk);
           cycles++;
         end
       end
     join
-    if (!saw_decision5) begin
+    if (!saw_pop_erase || !saw_push_write || !saw_disjoint_push_during_pop) begin
       `uvm_error("SECTOR_EXT", $sformatf(
-        "%s did not observe decision_reg=5 under disjoint-sector push/pop pressure",
-        case_id))
+        "%s did not observe serialized disjoint-sector push/pop progress: pop_erase=%0d push_write=%0d disjoint_push_during_pop=%0d",
+        case_id, saw_pop_erase, saw_push_write, saw_disjoint_push_during_pop))
     end
-    terminate_and_drain(1_000_000, {case_id, " decision5 drain"});
-    expect_service_model_accounting({case_id, " decision5 drain"}, 1, 0);
+    terminate_and_drain(1_000_000, {case_id, " serialized CAM drain"});
+    expect_service_model_accounting({case_id, " serialized CAM drain"}, 1, 0);
   endtask
 
   task automatic run_counter_freeze_extension_case(string case_id);
@@ -8044,8 +8123,9 @@ class base_test extends uvm_test;
           if (m_env.m_out_mon.vif.valid === 1'b1 &&
               m_env.m_out_mon.vif.ready === 1'b1 &&
               m_env.m_out_mon.vif.data[35:32] != 4'b0001) begin
-            expected_metadata = 64'h0660_0000_0000_0000 ^ 64'(observed_hits);
-            expected_valid = ~observed_hits[0];
+            expected_valid = (m_cfg.debug_level >= 2) ? ~observed_hits[0] : 1'b0;
+            expected_metadata =
+              expected_valid ? (64'h0660_0000_0000_0000 ^ 64'(observed_hits)) : 64'd0;
             if (m_env.m_out_mon.vif.metadata !== expected_metadata ||
                 m_env.m_out_mon.vif.metadata_valid !== expected_valid) begin
               `uvm_error("META_EXT", $sformatf(
@@ -10467,11 +10547,13 @@ class base_test extends uvm_test;
       search_cycles = 0;
       while (search_cycles < 8_192 && cycle_b == 0) begin
         if (cycle_a == 0 &&
+            m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
             m_env.m_dbg_mon.pop_partition_eval_stage0_valid[0] === 1'b1) begin
           cycle_a = m_env.m_dbg_mon.sampled_cycles;
           saw_stage0 = 1'b1;
         end
-        if (m_env.m_dbg_mon.pop_partition_eval_stage0_valid[0] === 1'b1) begin
+        if (m_env.m_dbg_mon.vif.pop_current_sk[7:0] == focus_search_key[7:0] &&
+            m_env.m_dbg_mon.pop_partition_eval_stage0_valid[0] === 1'b1) begin
           saw_stage0 = 1'b1;
         end
         if (cycle_a != 0 &&
@@ -10494,10 +10576,15 @@ class base_test extends uvm_test;
         `uvm_error("B097", "PIPE_STAGES=4 case never observed a flagged result_valid pulse")
       end else begin
         wait_min = int'(cycle_b - cycle_a);
-        if (wait_min != int'(m_cfg.encoder_pipe_stages - 1)) begin
+        wait_max =
+          ((m_cfg.ring_buffer_n_entry / m_cfg.n_partitions) +
+           m_cfg.encoder_leaf_width - 1) /
+          m_cfg.encoder_leaf_width;
+        wait_max = wait_max * m_cfg.n_partitions;
+        if (wait_min != wait_max) begin
           `uvm_error("B097", $sformatf(
-            "PIPE_STAGES=4 result latency mismatch: observed=%0d expected=%0d load_cycle=%0d result_cycle=%0d",
-            wait_min, m_cfg.encoder_pipe_stages - 1, cycle_a, cycle_b))
+            "PIPE_STAGES=4 serialized-search latency mismatch: observed=%0d expected=%0d stage0_cycle=%0d result_cycle=%0d",
+            wait_min, wait_max, cycle_a, cycle_b))
         end
       end
       if (!saw_stage0) begin
@@ -14333,7 +14420,8 @@ class base_test extends uvm_test;
         2,
         partition_size - (partition_size / 4),
         4'b1000,
-        3_000_000);
+        3_000_000,
+        partition_size - (partition_size / 4) - m_cfg.encoder_leaf_width);
     end else if (case_id == "P058") begin
       int unsigned expected_partition_hits[$];
       int unsigned staged_prefill_hits;
@@ -16959,15 +17047,9 @@ class test_overwrite_stress extends base_test;
   endfunction
 
   task run_phase(uvm_phase phase);
-    overwrite_stress_seq seq;
     phase.raise_objection(this);
     wait_for_reset_release();
-    configure_and_start();
-    seq = overwrite_stress_seq::type_id::create("seq");
-    seq.num_hits = 1024;
-    seq.start(m_env.m_hit_seqr);
-    terminate_and_drain(100_000, "test_overwrite_stress");
-    expect_service_model_accounting("test_overwrite_stress", 1, 1);
+    run_single_key_overwrite_window("test_overwrite_stress same-ts hotspot", 520);
     phase.drop_objection(this);
   endtask
 endclass

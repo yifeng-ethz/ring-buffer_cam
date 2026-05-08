@@ -1,6 +1,6 @@
 # ❌ CROSS-125
 
-**Kind:** `checkpoint_soak` &nbsp; **Build:** `default_p2_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time sector-lock/arbiter soak: repeated B090/B091/B092/B130/B131/B133 plus E073/E102/E103, P031, X063 with random inter-case gaps`
+**Kind:** `checkpoint_soak` &nbsp; **Build:** `p4_n4_pipe4` &nbsp; **Bucket:** `-` &nbsp; **Sequence:** `30 s simulator-time SV p4/n4 sector-lock/decision-5 soak: B135/B136/B138/B139/B148, E130/E134/E135/E138/E139, P130/P132, X133/X138 with random inter-case gaps`
 
 ## Summary
 

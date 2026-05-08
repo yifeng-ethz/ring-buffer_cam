@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.10
-// Date    : 20260507
-// Change  : propagate the metadata-preserving rbCAM core defaults
+// Version : 26.2.12
+// Date    : 20260508
+// Change  : propagate the M10K-backed SV CAM storage update
 
 module ring_buffer_cam #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,9 +16,9 @@ module ring_buffer_cam #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 10,
-  parameter int BUILD               = 507,
-  parameter int VERSION_DATE        = 20260507,
+  parameter int VERSION_PATCH       = 12,
+  parameter int BUILD               = 508,
+  parameter int VERSION_DATE        = 20260508,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
   parameter int DEBUG               = 1

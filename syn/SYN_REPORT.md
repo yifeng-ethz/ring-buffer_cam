@@ -1,10 +1,10 @@
-# ⚠️ SYN Report — ring_buffer_cam
+# ✅ SYN Report — ring_buffer_cam
 
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-05-08` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
 **Evidence basis:** `ed41c983` + dirty worktree evidence refresh
 
-This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target as a timing reference, but it is not the feature-complete 26.2.10 sector-lock/accounting implementation. The Platform Designer package uses the SystemVerilog implementation (`rtl/sv_ver/`), which has its own standalone Quartus revision and does **not** close timing. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) remains the frozen timing-reference architecture and still matches the old `mu3e_ip_dev` p4 baseline. The Platform Designer package uses the SystemVerilog implementation (`rtl/sv_ver/`), and the current SV `p4_n4_pipe4` standalone revision now closes the same `137.5 MHz` timing/resource gate with VHDL-parity resident CAM M10K use. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
 
 ## Build Intent
 
@@ -22,7 +22,7 @@ This is the standalone Quartus synthesis, timing, resource, and gate-smoke repor
 - `addr_enc_logic_partitioned` owns the match-selection cone; expected timing pressure is around pop issue/search and CAM/side-RAM write-enable control.
 - The output framing path is expected to be secondary versus CAM/control bookkeeping.
 
-The fitter result matches this model: storage is RAM-centric (`19` RAM blocks, `153600` bits), and the constrained `clk125` reg-to-reg domain closes at the tightened clock.
+The VHDL fitter result matches this model: storage is RAM-centric (`19` RAM blocks, `153600` logical bits), and the constrained `clk125` reg-to-reg domain closes at the tightened clock. The SV fitter result now also uses `19` RAM blocks, with `16` M10K-backed resident CAM blocks, one side RAM M10K, and two FIFO M10Ks.
 
 ## Compile Notes
 
@@ -97,6 +97,8 @@ A separate SV-only standalone revision was added and rerun:
 
 ```bash
 SIGNOFF_REVISIONS=ring_buffer_cam_syn_sv_p4 bash syn/quartus/run_signoff.sh
+quartus_sh --flow compile ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+quartus_sta -t report_sv_timing_paths.tcl
 ```
 
 Compatibility fixes required for Quartus 18.1:
@@ -105,7 +107,7 @@ Compatibility fixes required for Quartus 18.1:
 - rewrote function-result indexing and `inside` use in `rtl/sv_ver/ring_buffer_cam_core.sv` into Quartus-18.1-compatible forms
 - added deterministic reset for pop pending metadata registers; `FORMAL`-only FIFO memory clear is limited to formal filelists
 
-SV timing/resource result:
+Initial SV timing/resource result before the pop-search timing and M10K-parity refactors:
 
 | status | item | value |
 |:---:|---|---:|
@@ -120,18 +122,92 @@ SV timing/resource result:
 
 Result: **the feature-complete SV package payload compiles, fits under the ALM bloat ceiling, and exports a gate netlist, but it fails the required `137.5 MHz` signoff clock.**
 
-The reason is structural, not just syntax: the SV core is much shorter than the VHDL implementation because it models resident storage with flat `slot_valid/slot_hit/slot_metadata` arrays and searches with full-depth procedural loops (`count_snapshot`, `find_next_snapshot`, and `snapshot_sector_mask`) instead of the VHDL `cam_mem_a5` + partitioned encoder + side-RAM architecture. That behavioral shape carries the current sector-lock/accounting behavior, but it is not timing-equivalent to the older VHDL P4 architecture.
+The 2026-05-08 timing loop then moved the SV resident CAM back to the VHDL `cam_mem_a5` M10K primitive, staged the CAM write/erase command, replaced the full-depth pop snapshot path with a chunked pop-search pipeline, and replaced the exact per-slot SEARCH overwrite hazard comparator with a conservative sector-progress lock:
 
-## Flow Runtime
+- unscanned sectors remain locked while the pop search walks the resident slots
+- scanned sectors with matching snapshot hits remain locked through LOAD/COUNT/DRAIN
+- incoming hits with the same search key remain blocked during the settled SEARCH collection window
+- the write-pointer-to-resident-CAM comparator cone is no longer in the grant path
+- `RUN_PREPARE` now mirrors the VHDL two-dimensional CAM flush: every CAM compare-key value is erased at every CAM address before ready is acknowledged
+
+Current SV timing/resource result:
+
+| status | item | value |
+|:---:|---|---:|
+| ✅ | slow 85C setup WNS / TNS | `+0.341 ns` / `0.000 ns` |
+| ✅ | slow 0C setup WNS / TNS | `+0.395 ns` / `0.000 ns` |
+| ✅ | fast 85C setup WNS / TNS | `+3.197 ns` / `0.000 ns` |
+| ✅ | fast 0C setup WNS / TNS | `+3.553 ns` / `0.000 ns` |
+| ✅ | worst hold slack | `+0.161 ns` |
+| ✅ | fitted ALMs | `2090` |
+| ✅ | fitted registers | `2134` |
+| ✅ | RAM blocks | `19` |
+| ✅ | block-memory implementation bits | `194560` |
+| ✅ | ALM ceiling | `6000` max (`4000` estimate + 50% bloat) |
+
+Result: **the feature-complete SV package payload compiles, fits below the ALM bloat ceiling, exports a gate netlist, and passes the required `137.5 MHz` standalone timing gate.** Worst setup path after closure is `pop_engine_state[0]~DUPLICATE` to `slot_valid[9]` with `+0.341 ns` slack; the prior CAM M10K write-enable path is no longer a timing violation.
+
+## rbCAM Primitive / M10K Sanity
+
+The VHDL and SV final RAM-block counts are primitive-count parity at the fitted standalone p4 point:
+
+| implementation | resident rbCAM storage | resident CAM M10K count | other fitted M10K blocks | fitted RAM blocks |
+|---|---|---:|---:|---:|
+| VHDL `ring_buffer_cam_syn_p4` | `cam_mem_a5` generates `cam_mem_blk_a5` sub-CAM RAMs | `16` | `3` (`side_ram` uses 2, `deassembly_fifo` uses 1; `pop_cmd_fifo` is MLAB) | `19` |
+| SV `ring_buffer_cam_syn_sv_p4` | same `cam_mem_a5` resident CAM primitive as VHDL | `16` | `3` (`side_ram`, `deassembly_fifo`, and `pop_cmd_fifo` each use 1) | `19` |
+
+Evidence:
+
+- VHDL source: `rtl/vhd_ver/ring_buffer_cam_v2_core.vhd` instantiates `main_cam : entity work.cam_mem_a5`; `rtl/vhd_ver/cam_mem_a5.vhd` generates `cam_mem_blk_a5` instances.
+- VHDL Quartus map: `ring_buffer_cam_syn_p4.map.rpt` contains 16 unique `cam_mem_a5:main_cam|cam_mem_blk_a5:...:ram_block` instances and reports `19` fitted RAM blocks.
+- SV Quartus fit: `ring_buffer_cam_syn_sv_p4.fit.rpt` contains the same 16 `cam_mem_a5:main_cam|cam_mem_blk_a5:...:ram_block` M10K rows, plus `side_ram`, `deassembly_fifo`, and `pop_cmd_fifo`.
+- VHDL side RAM occupies two M10Ks and the VHDL `pop_cmd_fifo` is MLAB-backed; SV side RAM is forced to one `M10K block`, and `pop_cmd_fifo` is intentionally M10K-backed so the final SV total remains `19` M10K blocks and uses `0` MLAB memory bits.
+
+Interpretation: the SV feature-complete payload now preserves the VHDL resident CAM M10K primitive count. The one-block side-RAM saving versus VHDL is balanced by moving the small pop-command FIFO out of MLAB and into M10K, which is the requested resource direction because it protects ALM/MLAB pressure.
+
+## VHDL vs SV Resource Comparison
+
+| metric | VHDL p4 | SV p4 | delta |
+|---|---:|---:|---:|
+| ALMs | `2191` | `2090` | `-4.6%` |
+| Registers | `2861` | `2134` | `-25.4%` |
+| Logical block-memory bits | `153600` | `134656` | `-12.3%` |
+| Implementation block-memory bits | `194560` | `194560` | `0.0%` |
+| Fitted RAM blocks / M10K count | `19` | `19` | `0.0%` |
+| MLAB memory bits | `144` | `0` | removed |
+
+The only material out-of-window item is register count, where SV is lower because the VHDL hierarchy carries explicit partitioned encoder child registers and Quartus-generated FIFO wrapper registers that are not present in the SV hierarchy. ALM and M10K usage satisfy the requested comparison window, and the lock-sector/timing changes do not create an unexplained ALM increase.
+
+## Fitter Hierarchy Resource Check
+
+The fitter hierarchy confirms that the SV port is not hiding an ALM increase behind the new sector-lock logic. The direct top-level DUT comparison is slightly smaller in SV; the raw core-self comparison only looks large because the VHDL report breaks the four encoder partitions out as child entities while the SV chunked pop-search/sector-lock logic is kept inside `ring_buffer_cam_core`.
+
+| scope | VHDL ALMs | SV ALMs | delta | VHDL M10K | SV M10K | interpretation |
+|---|---:|---:|---:|---:|---:|---|
+| `ring_buffer_cam:u_dut` inclusive | `2122.3` | `2030.3` | `-4.3%` | `19` | `19` | normalized DUT parity |
+| core inclusive | `2122.3` | `2030.3` | `-4.3%` | `19` | `19` | same as DUT after wrapper removal |
+| VHDL core self + four encoder children vs SV core self | `2026.4` | `1968.9` | `-2.8%` | `0` | `0` | fair logic comparison; SV sector-lock and chunked scan replace VHDL external encoders |
+| resident `cam_mem_a5` | `21.3` | `9.6` | `-54.9%` | `16` | `16` | same M10K primitive set; small ALM delta is packing/control glue |
+| side RAM | `0.0` | `0.0` | `0.0%` | `2` | `1` | SV stores compact side metadata and frees one M10K |
+| deassembly FIFO | `48.2` | `29.1` | `-39.6%` | `1` | `1` | SV FIFO is narrower after metadata compaction |
+| pop-command FIFO | `26.4` | `22.8` | `-13.6%` | `0` + `1` MLAB | `1` | deliberate M10K remap removes VHDL MLAB use |
+
+RAM-summary technology-map evidence:
+
+- VHDL: `16` resident CAM M10Ks, side RAM `2` M10Ks, deassembly FIFO `1` M10K, pop-command FIFO `1` MLAB.
+- SV: `16` resident CAM M10Ks, side RAM `1` M10K, deassembly FIFO `1` M10K, pop-command FIFO `1` M10K.
+- Total fitted M10K count is therefore `19` for both implementations, and SV uses `0` MLAB memory bits.
+
+## Latest SV Flow Runtime
 
 | module | elapsed | CPU time |
 |---|---:|---:|
-| Analysis & Synthesis | `00:00:22` | `00:00:37` |
-| Fitter | `00:01:18` | `00:06:55` |
+| Analysis & Synthesis | `00:00:27` | `00:00:54` |
+| Fitter | `00:01:11` | `00:06:49` |
 | Assembler | `00:00:11` | `00:00:11` |
-| Timing Analyzer | `00:00:09` | `00:00:14` |
-| EDA Netlist Writer | `00:00:02` | `00:00:02` |
-| Total shell flow | `00:02:08` | `00:08:00` |
+| Timing Analyzer | `00:00:05` | `00:00:11` |
+| EDA Netlist Writer | `00:00:03` | `00:00:02` |
+| Total shell flow | `00:02:01` | `00:08:10` |
 
 ## Constraint Caveats
 
@@ -154,10 +230,11 @@ TimeQuest still reports the design as not fully constrained for setup/hold becau
 
 ## Non-Claims
 
-- This synthesis result does not close DV signoff; [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) remains red until the required 30 s simulator-time soaks `CROSS-125..CROSS-129` have qualifying real logs.
-- This synthesis result does not close formal signoff; [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) still lists `F-ML02/F-ML03` as open metadata-lineage formal blockers (`45/47` proven in the latest full attempt).
-- This standalone Quartus project signs off only the older VHDL `P4` timing-reference architecture. The Platform Designer package uses the feature-complete SystemVerilog implementation, which has UVM/static evidence but fails standalone timing closure.
+- This synthesis result does not claim the original 30 s simulator-time soak duration. The reachable bounded soak runs `CROSS-125..CROSS-129` pass at `SIGNOFF_SOAK_TARGET_PS=5000000000` and record case/transaction counts in [`../tb/DV_SIGNOFF.md`](../tb/DV_SIGNOFF.md).
+- This synthesis result does not by itself close full formal signoff; [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) owns the formal catalog and companion evidence.
+- The VHDL `P4` standalone result remains the old timing-reference comparison point; the current package payload is the SystemVerilog implementation, whose `p4_n4_pipe4` standalone revision now has its own timing/resource closure evidence.
+- The SV standalone result does claim fitted VHDL RAM-block parity for the final p4 point: both builds use `19` RAM blocks, including `16` resident CAM M10Ks.
 
 ## Result
 
-**⚠️ VHDL timing-reference synthesis/resource/gate-smoke PASS at `137.5 MHz` with `2191 ALMs`; feature-complete SV package synthesis remains timing-blocked at `-14.213 ns` setup WNS.**
+**✅ VHDL timing-reference synthesis/resource/gate-smoke PASS at `137.5 MHz` with `2191 ALMs`; feature-complete SV `p4_n4_pipe4` standalone synthesis/resource PASS at `137.5 MHz` with `2090 ALMs`, `19` RAM blocks, and worst setup slack `+0.341 ns`. Full-duration 30 s DV soaks were not run; the reachable bounded soak signoff passed and is recorded in `tb/DV_SIGNOFF.md`.**

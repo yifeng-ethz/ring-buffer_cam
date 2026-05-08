@@ -104,7 +104,9 @@ Historical formal note:
 | [BUG-064-R](#bug-064-r-restoring-exact-settled-search-tail-snapshot-membership-reopened-the-standalone-p4-timing-blocker) | R | signoff block | `directed-only (standalone signoff rerun after the exact settled-SEARCH-tail guard restore)` | fixed and verified in the standalone signoff rerun plus directed SEARCH-tail overwrite regressions on `master` | standalone `ring_buffer_cam_syn_p4` rerun on 2026-04-22 while re-validating the exact settled-SEARCH-tail guard against the live signoff tree | `1069e0b` | Restoring exact settled-SEARCH-tail snapshot membership reopened the standalone `P4` timing blocker |
 | [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `da80afbb` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
 | [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
-| [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
+| [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; SV synthesis timing closed by BUG-068-R | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
+| [BUG-068-R](#bug-068-r-sv-search-overwrite-hazard-check-formed-the-standalone-p4-critical-path) | R | signoff block | `directed-only (standalone SV timing signoff)` | fixed and verified in dirty worktree; commit pending | `ring_buffer_cam_syn_sv_p4` on 2026-05-08 while closing the feature-complete SV package payload | `pending` | SV SEARCH overwrite hazard check formed the standalone P4 critical path |
+| [BUG-069-R](#bug-069-r-sv-runprepare-cam-flush-cleared-only-a-diagonal-addresskey-subset) | R | signoff block | `directed-only (flush/restart recovery)` | fixed and verified in dirty worktree; commit pending | bounded `CROSS-129` soak on 2026-05-08, selecting `X117` | `pending` | SV RUN_PREPARE CAM flush cleared only a diagonal address/key subset |
 
 ## 2026-05-08
 
@@ -120,16 +122,75 @@ Historical formal note:
   - the Platform Designer `QUARTUS_SYNTH` fileset was repointed to the VHDL P4 timing-reference tree after the SV standalone timing miss
   - the VHDL tree still carries the older partitioned timing architecture, while the current 26.2.10 functional stack lives in `rtl/sv_ver`
 - Fix status:
-  - `state`: package fixed; synthesis timing remains open for the feature-complete SV payload
+  - `state`: package fixed; SV standalone synthesis timing is now closed by BUG-068-R
   - `mechanism`: package `rtl/sv_ver/ring_buffer_cam_sv_pkg.sv`, `ring_buffer_cam_fifo.sv`, `ring_buffer_cam_core.sv`, and `ring_buffer_cam.sv` for `QUARTUS_SYNTH`; retain `rtl/vhd_ver` as an explicitly documented timing reference
   - `before_fix_outcome`: Qsys generation used the old VHDL source and silently dropped the sector-lock/accounting RTL from firmware builds
-  - `after_fix_outcome`: `ip-make-ipx` loads the SV package, and the signoff docs now state that the package payload is feature-complete but timing-blocked
-  - `potential_hazard`: high until a timing-equivalent sector-lock architecture is implemented, because the only functionally complete package payload still fails standalone 137.5 MHz timing
+  - `after_fix_outcome`: `ip-make-ipx` loads the SV package, and the signoff docs now state that the package payload is feature-complete and timing-clean in the standalone p4/n4 synthesis revision
+  - `potential_hazard`: low to moderate after the reachable bounded `CROSS-125..CROSS-129` SV p4/n4 soak signoff passed; the historical 30 s simulator-time target remains unclaimed, but the package no longer points firmware synthesis at the wrong implementation
   - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - validated with `git diff --check`, the shared Markdown style checker, and `ip-make-ipx --source-directory=. --output=/tmp/rbcam_ipx_sv_pkg_check_20260508/ring_buffer_cam.ipx --thorough-descent`
-  - FEB synthesis must use this SV package for functional correctness; any hardware load from a timing-failed compile remains a risk and must be reported as such
+  - FEB synthesis must use this SV package for functional correctness; remaining release risk is the historical 30 s soak target, not standalone SV timing or the reachable bounded soak checkpoint
 - Commit: 3f2ce852
+
+### BUG-068-R: SV SEARCH overwrite hazard check formed the standalone P4 critical path
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (standalone synthesis timing signoff)`
+- First seen in: `ring_buffer_cam_syn_sv_p4` on 2026-05-08 while closing the feature-complete SV package payload
+- Symptom:
+  - after the pop-search chunk pipeline moved the original snapshot/count path out of the worst cone, the top 20 TimeQuest setup paths all ended at `push_write_slot_search_key_conflict`
+  - worst path was `write_pointer[*] -> ptr_inc(write_pointer) -> slot_hit[write_pointer_next] -> hit_search_key compare -> push_write_slot_search_key_conflict`
+  - the revision still failed the tightened `137.5 MHz` standalone clock with slow-85C setup WNS `-1.728 ns`
+- Root cause:
+  - the exact settled-SEARCH overwrite guard recomputed whether the current or next write slot contained the active pop search key in the same cycle as push grant arbitration
+  - that preserved functional safety, but it put a wide dynamic resident-array mux and key comparator on the live write-pointer increment path
+  - the path was only needed to prevent overwriting not-yet-snapshotted same-key residents during SEARCH; it did not need exact per-slot comparison in the push-grant cycle
+- Fix status:
+  - `state`: fixed and verified in dirty worktree; commit pending
+  - `mechanism`: replace the per-slot overwrite-key conflict register with a conservative sector-progress lock: unscanned sectors stay locked during SEARCH, scanned sectors with matching snapshot hits stay locked through LOAD/COUNT/DRAIN, and incoming hits with the current search key remain blocked during the settled SEARCH collection window
+  - `before_fix_outcome`: `ring_buffer_cam_syn_sv_p4` fit used `5,352 ALMs`, `5,706` registers, and failed timing with slow-85C setup WNS `-1.728 ns`
+  - `after_fix_outcome`: after the M10K CAM restore, CAM command staging, and VHDL-parity flush repair, `ring_buffer_cam_syn_sv_p4` fit uses `2,090 ALMs`, `2,134` registers, `19` RAM blocks, and passes timing with slow-85C setup WNS `+0.341 ns`, slow-0C setup WNS `+0.395 ns`, and worst hold slack `+0.161 ns`
+  - `potential_hazard`: low to moderate; the guard is intentionally conservative and passed the p4/n4 UVM smoke, extended p4 directed slice, and reachable bounded signoff soaks, but full 30 s simulator-time soaks are still not claimed
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - pre-fix timing report: `syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/top_setup_paths.rpt` showed `20/20` reported setup paths violated, all ending at `push_write_slot_search_key_conflict`
+  - functional check: `make -C tb/uvm regress RTL_IMPL=sv RTL_VARIANT=p4_n4_pipe4 SEEDS=1 VERBOSITY=UVM_LOW COV_ENABLE=0` reports `12/12 passed, 0 failed`
+  - extended p4 slice: `E018 E024 E027 E034 E097 B079 B086 B087 B097 P048 P049 P130 P131 P132 P137 X117` all pass with zero remaining scoreboard state
+  - synthesis check: `quartus_sh --flow compile ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4` completes with `0` errors and `43` warnings; TimeQuest reports no setup or hold violations
+  - primitive sanity check: VHDL P4 and SV P4 both use `16` resident `cam_mem_a5/cam_mem_blk_a5` rbCAM M10K primitives and both fit `19` total RAM blocks; SV uses `0` MLAB memory bits
+  - static check: `python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py --top ring_buffer_cam --filelist tb/formal/ring_buffer_cam_sv_static.f --modes lint,cdc,rdc` passes; transcript `/tmp/rbcam_sv_static_m10k_final_20260508_131647/questa_static_screen.log`
+  - formal check: `python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py --top ring_buffer_cam_sector_lock_formal_top --filelist tb/formal/ring_buffer_cam_sector_lock_formal.f --modes lint,cdc,rdc,formal --formal-timeout 30m` passes; transcript `/tmp/rbcam_sv_full_formal_20260508_111219/questa_static_screen.log` reports `48` asserts proven, `0` failed/fired/undetermined, and `2` possibly vacuous negative checks
+- Commit: pending
+
+### BUG-069-R: SV RUN_PREPARE CAM flush cleared only a diagonal address/key subset
+- Severity: `signoff block`
+- Encounter sim-time: `2124740000 ps in the bounded CROSS-129 rerun before the fix`
+- First seen in: bounded `CROSS-129` soak on 2026-05-08 when the first selected case was `X117` (`GOOD-ERROR-FLUSH-GOOD`)
+- Symptom:
+  - after a bad-hit/error epoch and RUN_PREPARE restart, the next drain produced stale CAM matches from the pre-flush good-key epoch
+  - the failing trace showed `pop_current_sk=8` while the raw side hit carried the post-flush key `16`, then the scoreboard observed unexpected drained hits and a non-empty pending-drain queue
+  - the VHDL `X117` reference run passed with the same testcase, proving the expected behavior was a DUT implementation mismatch rather than a testcase expectation error
+- Root cause:
+  - the SV run manager flushed CAM for only `RING_BUFFER_N_ENTRY` cycles and incremented `flush_cam_wraddr` and `flush_cam_wrdata` together
+  - that clears only one diagonal address/key subset in the CAM's two-dimensional write-address/compare-data space
+  - the VHDL implementation loops all `flush_cam_wrdata` values for each CAM address and only completes when both RAM and CAM flush domains are done
+- Fix status:
+  - `state`: fixed and verified in dirty worktree; commit pending
+  - `mechanism`: split RAM and CAM flush completion tracking; gate side-RAM writes and CAM erases with their own done flags; run `flush_cam_wrdata` across the full `MAIN_CAM_DATA_WIDTH` range at each `flush_cam_wraddr`; preserve a one-cycle tail for the staged CAM command before `RUN_PREPARE` acknowledges ready
+  - `before_fix_outcome`: `CROSS-129 +DV_SOAK_CASE_LIMIT=1` failed in `X117` with stale pre-flush CAM hits
+  - `after_fix_outcome`: isolated `X117` passes; `CROSS-129 +DV_SOAK_CASE_LIMIT=1` passes with `case_count=1`, `iterations=1`, `cases=1`, and scoreboard `pushed=32 popped=32 remaining=0 unexpected=0`
+  - `potential_hazard`: low; the SV control sequence now follows the VHDL two-dimensional flush contract and the same VHDL `X117` reference case passes
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - VHDL reference: `make -C tb/uvm run_case CASE_ID=X117 RTL_IMPL=vhdl RTL_VARIANT=default_p2_pipe4 SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0` passes with `pushed=32 popped=32 remaining=0`
+  - SV isolated repair check: `make -C tb/uvm run_case CASE_ID=X117 RTL_IMPL=sv RTL_VARIANT=p4_n4_pipe4 SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0` passes with `pushed=32 popped=32 remaining=0`
+  - reachable 5 ms signoff soaks after repair:
+    - `CROSS-125`: `elapsed_ps=5583672000`, `cases=5`, `accepted_payload_txns=2816`, final scoreboard `remaining=0 unexpected=0`
+    - `CROSS-126`: `elapsed_ps=5491408000`, `cases=5`, `accepted_payload_txns=923`, final scoreboard `remaining=0 unexpected=0`
+    - `CROSS-127`: `elapsed_ps=6493536000`, `cases=4`, `accepted_payload_txns=835`, final scoreboard `remaining=0 unexpected=0`
+    - `CROSS-128`: `elapsed_ps=5570864000`, `cases=5`, `accepted_payload_txns=2880`, `start_index=6`, `case_limit=1`, final scoreboard `remaining=0 unexpected=0`
+    - `CROSS-129`: `elapsed_ps=6371352000`, `cases=3`, `accepted_payload_txns=216`, `case_limit=1`, final scoreboard `remaining=0 unexpected=0`
+- Commit: pending
 
 ## 2026-05-07
 

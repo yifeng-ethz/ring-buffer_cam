@@ -1,7 +1,7 @@
 # FORMAL_PLAN.md — ring_buffer_cam
 
 **DUT:** `ring_buffer_cam` (SV core under `rtl/sv_ver/ring_buffer_cam_core.sv`, packaged top in `rtl/sv_ver/ring_buffer_cam.sv`)
-**Active variant:** `default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`)
+**Active variant:** `sv default_p2_pipe4` (`N_PARTITIONS=2`, `ENCODER_PIPE_STAGES=4`)
 **Date:** `2026-05-08`
 
 **Companion to:** [DV_PLAN.md](DV_PLAN.md), [DV_HARNESS.md](DV_HARNESS.md), [DV_BASIC.md](DV_BASIC.md), [DV_EDGE.md](DV_EDGE.md), [DV_PROF.md](DV_PROF.md), [DV_ERROR.md](DV_ERROR.md), [BUG_HISTORY.md](BUG_HISTORY.md)
@@ -65,21 +65,21 @@ Every property below maps to the SystemVerilog binding in §5 and to the matchin
 
 Current evidence:
 
-- qverify Lint/CDC/RDC pass after the reset/formal-model cleanup: `/tmp/rbcam_sv_static_codex_20260508_010728/questa_static_screen.log`
-- latest full qverify attempt after the metadata assertion cleanup: `/tmp/rbcam_sv_full_formal_codex5_20260508_010530/questa_static_screen.log`
-- latest full qverify property summary: `45/47` proven, `2` fired-with-warning
-- open formal blockers: `metadata_sva.ap_slot_write_metadata_comes_from_fifo_output` and `metadata_sva.ap_pop_metadata_pending_comes_from_slot` still fire in qverify; do not claim formal closure until those are resolved.
+- latest full qverify Lint/CDC/RDC/Formal pass after the sector-progress-lock SVA refresh: `/tmp/rbcam_sv_full_formal_20260508_111219/questa_static_screen.log`
+- latest full qverify property summary: `48/48` assertions proven, `0` failed/fired/undetermined, `2` possibly-vacuous legacy negative checks after the 30 m vacuity timeout
+- possibly-vacuous checks: `sector_lock_sva.ap_push_erase_not_granted_during_flush` and `sector_lock_sva.ap_blocked_push_erase_req_holds_without_grant`; both assertions are proven, but their vacuity checks did not close before timeout.
+- open formal blockers: none for the implemented metadata/sector-lock/accounting catalog. Reachable SV p4/n4 DV soak closure is recorded in [DV_SIGNOFF.md](DV_SIGNOFF.md); the historical 30 s simulator-time target remains a non-claim, not a formal blocker.
 
 ### 4.1 Sector-Lock Geometry And Mask Correctness
 
 | ID | Property (informal) | Why it matters | Bind site | Backing DV cases | Status |
 |---|---|---|---|---|---|
-| F-LM01 | `pop_sector_lock_mask` after SEARCH-tail equals `snapshot_sector_mask(pop_snapshot)` (set-equality, not just superset) when no in-flight emit and no `pop_erase_req` | catches a regression that would silently widen or narrow the lock | inside `ring_buffer_cam_sector_lock_sva` (read internal `pop_snapshot` via top wrapper) | B135, B140 | ✅ |
+| F-LM01 | During settled SEARCH collection or LOAD/COUNT/DRAIN, `pop_sector_lock_mask` equals `pop_snapshot_sector_mask` plus `pop_search_unscanned_sector_mask` while SEARCH is still scanning, when no in-flight emit and no `pop_erase_req` are active | catches a regression that would silently widen or narrow the sector-progress lock | inside `ring_buffer_cam_sector_lock_sva` (read internal masks via top wrapper) | B135, B140 | ✅ |
 | F-LM02 | When `pop_issue_inflight ∨ pop_output_pending ∨ pop_emit_pending`, the bit `addr_sector(pop_issue_addr_pending)` is set in `pop_sector_lock_mask` | proves the in-flight extra lock fires on every cycle of the emit window | same | B138, E135 | ✅ |
 | F-LM03 | When `pop_erase_req=1`, the bit `addr_sector(pop_issue_addr)` is set in `pop_sector_lock_mask` | proves the request-cycle extra lock | same | B139, E134 | ✅ |
-| F-LM04 | `push_write_sector_locked == (pop_engine_state inside {LOAD,COUNT,DRAIN}) ∧ pop_sector_lock_mask[addr_sector(write_pointer)]` | exact equality, not just one-way implication | same | B137, E132, E133 | ✅ |
-| F-LM05 | `push_erase_sector_locked == (pop_engine_state inside {LOAD,COUNT,DRAIN}) ∧ pop_sector_lock_mask[addr_sector(push_erase_addr_reg)]` | symmetric to F-LM04 for the delayed erase | same | B142 | ✅ |
-| F-LM06 | `pop_engine_state inside {POP_IDLING, POP_RESETTING, POP_SEARCHING, POP_FLUSHING, POP_FLUSHING_RST} |-> push_write_sector_locked=0 ∧ push_erase_sector_locked=0` | proves no lock leakage outside the active service window | same | B137, E139 | ✅ |
+| F-LM04 | `push_write_sector_locked == (pop_search_collecting ∨ pop_engine_state inside {LOAD,COUNT,DRAIN}) ∧ pop_sector_lock_mask[addr_sector(write_pointer)]` | exact equality, not just one-way implication | same | B137, E132, E133 | ✅ |
+| F-LM05 | `push_erase_sector_locked == (pop_search_collecting ∨ pop_engine_state inside {LOAD,COUNT,DRAIN}) ∧ pop_sector_lock_mask[addr_sector(push_erase_addr_reg)]` | symmetric to F-LM04 for the delayed erase | same | B142 | ✅ |
+| F-LM06 | idle/reset/flush and pre-collection SEARCH states imply `push_write_sector_locked=0 ∧ push_erase_sector_locked=0` | proves no lock leakage outside the active service window | same | B137, E139 | ✅ |
 | F-LM07 | Width invariant: `$bits(pop_sector_lock_mask) == LOCK_SECTOR_COUNT_CONST` and `addr_sector(addr) < LOCK_SECTOR_COUNT_CONST` for any `addr` of width `ADDR_W_CONST` | catches a parameterization regression | static elaboration assertion | B136, E136, E137 | ✅ |
 
 ### 4.2 Decision-5 (Concurrent Push-Write + Pop-Erase) Certification
@@ -96,10 +96,11 @@ Current evidence:
 
 | ID | Property (informal) | Why it matters | Bind site | Backing DV cases | Status |
 |---|---|---|---|---|---|
-| F-LV01 | `push_write_req ∧ ¬push_write_sector_locked ∧ ¬pop_flush_req ∧ pop_engine_state != POP_SEARCHING |-> ##[0:1] push_write_grant` | proves the sector-lock fix delivers progress for any unblocked sector | sva module (use `s_eventually` if available, else bounded-time bound) | B136, P130, P137 | ✅ |
+| F-LV01 | `push_write_req ∧ ¬push_write_sector_locked ∧ ¬pop_flush_req` grants immediately outside SEARCH, or during settled SEARCH when the same-key hazard is absent | proves the sector-progress lock delivers progress for any unblocked sector | sva module (use `s_eventually` if available, else bounded-time bound) | B136, P130, P137 | ✅ |
 | F-LV02 | `pop_erase_req |-> ##[0:1] pop_erase_grant` (no lock blocks pop_erase; pop_flush_req has higher priority but is gated separately) | catches a regression that would let push starve pop | sva module | B093, B130 | ✅ |
-| F-LV03 | `pop_engine_state == POP_SEARCHING |-> ##[6:6] pop_engine_state == POP_LOADING` (the SEARCH wait counter `pop_search_wait_cnt` is exactly 0..5 so the LOAD entry is at wait-cycle 6) | catches an off-by-one in the SEARCH guard | sva module | B056, B131 | ✅ |
+| F-LV03 | While SEARCH wait count is below `6`, `pop_search_wait_cnt` advances by exactly one cycle and the engine remains in SEARCH | catches an off-by-one in the SEARCH guard | sva module | B056, B131 | ✅ |
 | F-LV04 | `pop_flush_req |-> ##[0:1] pop_flush_grant` (with no other request blocking) | catches a regression that would let the flush starve | sva module | B108, X134 | ✅ |
+| F-LV05 | During settled SEARCH collection, `pop_search_wait_cnt` remains saturated at `6` until SEARCH exits | proves the sector-progress scan does not roll the SEARCH wait counter | sva module | B056, B131 | ✅ |
 
 ### 4.4 64-Bit Accounting Counters And Freeze
 
@@ -136,10 +137,10 @@ Current evidence:
 | ID | Property (informal) | Why it matters | Bind site | Backing DV cases | Status |
 |---|---|---|---|---|---|
 | F-ML01 | On every `deassembly_fifo_wrreq=1` cycle, the FIFO write-data carries `(asi_hit_type1_metadata, asi_hit_type1_metadata_valid)` of that cycle | catches a regression that would silently drop the sideband at write side | sva module | P135 | ✅ |
-| F-ML02 | On every resident `push_write_grant=1` slot write, `slot_metadata_valid[write_pointer]` takes `deassembly_fifo_dout.metadata_valid`; when valid is set, `slot_metadata[write_pointer]` takes `deassembly_fifo_dout.metadata`, NOT the live `asi_hit_type1_metadata*` ports | this is the BUG-066-R closure invariant; invalid metadata payload bits are not architectural | sva module | P135 | ⚠️ |
-| F-ML03 | On every valid resident `pop_erase_grant=1`, `pop_metadata_valid_pending` reflects the slot valid bit; when valid is set, `pop_metadata_pending` reflects the slot metadata captured for that hit; hit-beat emit uses the pending fields | end-to-end metadata lineage from ingress through the full pipeline | sva module | P135 | ⚠️ |
+| F-ML02 | On every resident `push_write_grant=1` slot write, `slot_metadata_valid[write_pointer]` takes `deassembly_fifo_dout.metadata_valid`; when valid is set, `slot_metadata[write_pointer]` takes `deassembly_fifo_dout.metadata`, NOT the live `asi_hit_type1_metadata*` ports | this is the BUG-066-R closure invariant; invalid metadata payload bits are not architectural | sva module | P135 | ✅ |
+| F-ML03 | On every valid resident `pop_erase_grant=1`, `pop_metadata_valid_pending` reflects the slot valid bit; when valid is set, `pop_metadata_pending` reflects the slot metadata captured for that hit; hit-beat emit uses the pending fields | end-to-end metadata lineage from ingress through the full pipeline | sva module | P135 | ✅ |
 
-F-ML01 is proven. F-ML02/F-ML03 are implemented and bound, and P135 passes in UVM on the SV implementation, but the current formal transcript still reports fired metadata assertions; these two rows block formal closure.
+F-ML01/F-ML02/F-ML03 are proven in `/tmp/rbcam_sv_full_formal_20260508_111219/questa_static_screen.log`. P135 remains the companion SV UVM evidence for the metadata-lineage datapath.
 
 ## 5. Binding Implementation
 
@@ -148,7 +149,7 @@ The §4 catalog is now bound through `tb/formal/ring_buffer_cam_sector_lock_form
 1. The metadata sideband is no longer tied off. `asi_hit_type1_metadata` and `asi_hit_type1_metadata_valid` are free formal inputs and feed `ring_buffer_cam_metadata_sva`.
 2. `ring_buffer_cam_sector_lock_sva` carries the sector-lock mask, decision-5, flush-priority, and bounded-progress assertions.
 3. `ring_buffer_cam_accounting_sva` carries the 64-bit accounting, freeze, soft-reset, drop-counter, and run-control assertions.
-4. `ring_buffer_cam_metadata_sva` carries the metadata FIFO/slot/emit assertions. The deassembly FIFO write and hit-emit properties are proven; the slot-write and pop-pending properties remain open.
+4. `ring_buffer_cam_metadata_sva` carries the metadata FIFO/slot/emit assertions. All metadata-lineage properties are proven in the current full run.
 5. `tb/formal/ring_buffer_cam_sector_lock_formal.f` compiles all three SVA modules and the lifted top.
 6. The formal filelist defines `FORMAL` so the FIFO memory model clears internal RAM only for formal X-determinism; synthesis does not see that define.
 7. The canonical full run uses `--formal-timeout 30m`. A passing lint-only screen is not a formal closure substitute.
@@ -161,7 +162,7 @@ A property may stay outside the formal set if and only if all of the following h
 - the property is fully covered by an isolated DV case PLUS a continuous-frame regression in [DV_CROSS.md](DV_CROSS.md)
 - the omission is recorded under this section with a one-line rationale
 
-Currently no property is accepted as a UVM-only substitute. P135 is companion evidence for F-ML02/F-ML03 and passes on `RTL_IMPL=sv`, but those rows remain formal blockers until the qverify fired metadata assertions are resolved or an explicit waiver is approved.
+Currently no property is accepted as a UVM-only substitute. P135 is companion evidence for F-ML02/F-ML03 and passes on `RTL_IMPL=sv`; those rows are no longer formal blockers.
 
 ## 7. Closure Gates
 
@@ -172,7 +173,7 @@ The IP is "formal-closed" when all of the following hold:
 - every BUG-065-R / BUG-066-R commit (currently `da80afbb`, `e2c672ae`, `3086685e`, `ed41c983`) is referenced from the `Commit:` field of the matching property's evidence row in `DV_REPORT.json`
 - the formal screen and the matching DV cases are both green on the current RTL revision (no isolated formal closure without DV companion evidence)
 
-A signoff git tag for `ring_buffer_cam` cannot be cut while any §4 row is in `❓` or `⚠️` and not justified under §6. Current blocker: F-ML02/F-ML03 are implemented and UVM-covered but not formally closed.
+A signoff git tag for `ring_buffer_cam` cannot be cut while any §4 row is in `❓` or `⚠️` and not justified under §6. Current formal and standalone SV timing evidence is closed; reachable SV p4/n4 soak evidence is recorded in [DV_SIGNOFF.md](DV_SIGNOFF.md), while the historical 30 s simulator-time soak remains outside this checkpoint claim.
 
 ## 8. Run Recipes
 
@@ -210,5 +211,6 @@ python3 ~/.codex/skills/rtl-linter-and-checker/scripts/questa_static_screen.py \
 ## 9. Change Log
 
 - 2026-05-07: First version. Records the 8/8 proven set from commit `e2c672ae` (sector-lock SVA) and `ed41c983` (BUG-066 ledger close), plus the queued §4 catalog driven by BUG-065-R / BUG-066-R review.
-- 2026-05-08: Implemented the §4 binding stack in three SVA modules and lifted metadata inputs in the formal top. qverify lint is clean; full formal closure remains blocked by F-ML02/F-ML03 metadata tracker fires.
-- 2026-05-08: Added reset cleanup for SV pop pending metadata registers, `FORMAL`-only FIFO memory clearing, and metadata assertions that treat invalid payload bits as don't-care while preserving valid-bit lineage. SV static Lint/CDC/RDC passes and P135 passes in UVM; full formal is still `45/47` with F-ML02/F-ML03 firing.
+- 2026-05-08: Implemented the §4 binding stack in three SVA modules and lifted metadata inputs in the formal top. The first full formal attempt exposed F-ML02/F-ML03 metadata tracker fires, which were resolved by the later packed-vector metadata cleanup.
+- 2026-05-08: Added reset cleanup for SV pop pending metadata registers, `FORMAL`-only FIFO memory clearing, packed-vector metadata storage, and metadata assertions that treat invalid payload bits as don't-care while preserving valid-bit lineage. Full qverify Lint/CDC/RDC/Formal pass is `48/48` assertions proven with `0` failed/fired/undetermined; two legacy negative sector-lock assertions remain marked possibly vacuous after the 30 m vacuity timeout.
+- 2026-05-08: Updated sector-lock assertions for the SV timing fix: settled SEARCH now uses a sector-progress lock over unscanned sectors plus same-key hazard blocking, and the refreshed full qverify run passes in `/tmp/rbcam_sv_full_formal_20260508_111219/questa_static_screen.log`.

@@ -235,6 +235,7 @@ module tb_top;
     uvm_config_db#(int unsigned)::set(null, "*", "n_partitions", G_N_PARTITIONS);
     uvm_config_db#(int unsigned)::set(null, "*", "encoder_leaf_width", G_ENCODER_LEAF_WIDTH);
     uvm_config_db#(int unsigned)::set(null, "*", "encoder_pipe_stages", G_ENCODER_PIPE_STAGES);
+    uvm_config_db#(int unsigned)::set(null, "*", "debug_level", G_DEBUG);
     uvm_config_db#(virtual avst_hit_if.drv)::set(
       null, "uvm_test_top.m_env.m_hit_drv", "vif", hit_if);
     uvm_config_db#(virtual dut_debug_if.mon)::set(

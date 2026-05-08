@@ -65,6 +65,7 @@ package ring_buffer_cam_pkg;
     int unsigned n_partitions     = N_PARTITIONS;
     int unsigned encoder_leaf_width = ENCODER_LEAF_WIDTH;
     int unsigned encoder_pipe_stages = ENCODER_PIPE_STAGES;
+    int unsigned debug_level      = 1;
 
     function new(string name = "ring_buffer_cam_cfg");
       super.new(name);

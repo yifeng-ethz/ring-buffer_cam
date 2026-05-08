@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_sv_pkg.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.8
-// Date    : 20260507
-// Change  : widen debug counters and expose loss-accounting counter fields
+// Version : 26.2.11
+// Date    : 20260508
+// Change  : align SV package provenance with the partitioned pop-core update
 
 package ring_buffer_cam_sv_pkg;
   localparam int TCC8N_LO_CONST  = 17;

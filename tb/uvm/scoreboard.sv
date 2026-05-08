@@ -630,6 +630,15 @@ class scoreboard extends uvm_scoreboard;
           "Undrained residents remain at end of test: accepted=%0d written=%0d drained=%0d remaining=%0d expected_overwrites=%0d unexpected_outputs=%0d",
           total_ingress_accepted, total_written, total_drained, remaining,
           total_expected_overwrites, total_unexpected_outputs))
+        foreach (current_remaining_by_key[search_key]) begin
+          if (current_remaining_by_key[search_key] != 0) begin
+            `uvm_info("SCB", $sformatf(
+              "Remaining residents by key: key=%0d remaining=%0d accepted=%0d written=%0d drained=%0d",
+              search_key, current_remaining_by_key[search_key],
+              accepted_hits_for_key(search_key), written_hits_for_key(search_key),
+              drained_hits_for_key(search_key)), UVM_LOW)
+          end
+        end
       end
     end
 

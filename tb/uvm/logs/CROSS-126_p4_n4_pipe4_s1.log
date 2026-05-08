@@ -1,0 +1,152 @@
+make: Entering directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+make[1]: Entering directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+=== Running test_case_engine seed=1 ===
+Reading pref.tcl
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+
+# 2026.1_1
+
+# ** Warning: (vsim-222) -modelsimini will be deprecated in future releases. Please use -ini instead.
+# ** Note: (vsim-220) 'modelsim.ini' is used as the ini file.
+# vsim -modelsimini modelsim.ini -c -quiet -dpicpppath /usr/bin/gcc -sv_lib /data1/questaone_sim/questasim/uvm-1.2/linux_x86_64/uvm_dpi -usenonstdcoveragesavesysf -sv_seed 1 "+UVM_TESTNAME=test_case_engine" "+UVM_VERBOSITY=UVM_LOW" "+DV_TB_DIR=/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb" "+DV_SEED=1" "+RTL_IMPL=sv" "+DV_EXEC_MODE=cross" "+DV_RUN_ID=CROSS-126" "+DV_SOAK_TARGET_TIME_PS=1" "+TB_TIMEOUT_CYCLES=3800000000" -suppress 19 -suppress 3009 -voptargs="+acc" work.tb_top -do "run -all; quit -f" -gG_ENCODER_LEAF_WIDTH=16 -gG_N_PARTITIONS=4 -gG_INTERLEAVING_FACTOR=4 -gG_DEBUG=1 -gG_ENCODER_PIPE_STAGES=4 -gG_INTERLEAVING_INDEX=0 -gG_RING_BUFFER_N_ENTRY=512 
+# Start time: 13:02:56 on May 08,2026
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# //  Questa Sim-64
+# //  Version 2026.1_1 linux_x86_64 Mar  2 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+# ** Note: (vsim-8785) UVM-aware debugging capabilities will be disabled since no compiled "questa_uvm_pkg" can be found.
+# This also means that later if you turn on UVM-aware debugging your debug simulations may have
+# different random seeds from your non-debug simulations.
+# run -all
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(392) @ 0: reporter [UVM/RELNOTES] 
+# ----------------------------------------------------------------
+# UVM-1.2
+# (C) 2007-2014 Mentor Graphics Corporation
+# (C) 2007-2014 Cadence Design Systems, Inc.
+# (C) 2006-2014 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# (C) 2013-2014 NVIDIA Corporation
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# UVM_INFO @ 0: reporter [RNTST] Running test test_case_engine...
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(0)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(1)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(2)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(3)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(4)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(5)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(6)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(7)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(8)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(9)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(10)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(11)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(12)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(13)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(14)
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Region: /tb_top/dut/v2_core/main_cam/wr_addr_page_encode(15)
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4266) @ 100000: uvm_test_top [SOAK] SIGNOFF_SOAK_BEGIN run_id=CROSS-126 target_ps=1 case_count=18 seed=1 start_index=0 original_case_count=18
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4216) @ 100000: uvm_test_top [CASE] CASE_BEGIN id=B005 mode=signoff_soak owner=CROSS-126
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4225) @ 23172000: uvm_test_top [CASE] CASE_END id=B005 mode=signoff_soak owner=CROSS-126
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(4291) @ 25308000: uvm_test_top [SOAK] SIGNOFF_SOAK_SUMMARY run_id=CROSS-126 target_ps=1 elapsed_ps=25208000 iterations=1 cases=1
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_objection.svh(1270) @ 25308000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/coverage.sv(88) @ 25308000: uvm_test_top.m_env.m_cov [COV] cg_output=73.8% cg_hit_data=39.6%
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(655) @ 25308000: uvm_test_top.m_env.m_scb [SCB] Summary: pushed=128 popped=128 remaining=0 pending_drain=0 overlap_evicted=0 overlap_fallback=0 overwrites=0 unexpected=0 subheaders=33 zero_hit_subheaders=32 accepted=128 cache_miss_outputs=0
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/scoreboard.sv(663) @ 25308000: uvm_test_top.m_env.m_scb [SCB] Pressure: max_remaining=128 ring_depth=512
+# UVM_INFO /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm/base_test.sv(16927) @ 25308000: uvm_test_top [TEST] *** TEST PASSED ***
+# UVM_INFO /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_report_server.svh(847) @ 25308000: reporter [UVM/REPORT/SERVER] 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :   11
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [CASE]     2
+# [COV]     1
+# [RNTST]     1
+# [SCB]     2
+# [SOAK]     2
+# [TEST]     1
+# [TEST_DONE]     1
+# [UVM/RELNOTES]     1
+# 
+# ** Note: $finish    : /data1/questaone_sim/questasim/verilog_src/uvm-1.2/src/base/uvm_root.svh(517)
+#    Time: 25308 ns  Iteration: 69  Instance: /tb_top
+# End time: 13:02:57 on May 08,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 33
+PASS: test_case_engine seed=1
+make[1]: Leaving directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'
+make: Leaving directory '/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/tb/uvm'

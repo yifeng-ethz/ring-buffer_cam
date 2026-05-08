@@ -117,23 +117,26 @@ module ring_buffer_cam_sector_lock_formal_top #(
     .push_erase_grant         (dut.v2_core.push_erase_grant),
     .pop_erase_grant          (dut.v2_core.pop_erase_grant),
     .pop_flush_grant          (dut.v2_core.pop_flush_grant),
-    .push_write_sector_locked (dut.v2_core.push_write_sector_locked),
-    .push_erase_sector_locked (dut.v2_core.push_erase_sector_locked),
-    .pop_flush_req            (dut.v2_core.pop_flush_req),
-    .push_erase_req           (dut.v2_core.push_erase_req),
-    .pop_erase_req            (dut.v2_core.pop_erase_req),
-    .pop_issue_inflight       (dut.v2_core.pop_issue_inflight),
-    .pop_output_pending       (dut.v2_core.pop_output_pending),
-    .pop_emit_pending         (dut.v2_core.pop_emit_pending),
-    .pop_snapshot             (dut.v2_core.pop_snapshot),
-    .write_pointer            (dut.v2_core.write_pointer),
-    .push_erase_addr_reg      (dut.v2_core.push_erase_addr_reg),
-    .pop_issue_addr           (dut.v2_core.pop_issue_addr),
-    .pop_issue_addr_pending   (dut.v2_core.pop_issue_addr_pending),
-    .pop_search_wait_cnt      (dut.v2_core.pop_search_wait_cnt),
-    .decision                 (dut.v2_core.decision),
-    .decision_reg             (dut.v2_core.decision_reg),
-    .pop_sector_lock_mask     (dut.v2_core.pop_sector_lock_mask)
+    .push_write_sector_locked        (dut.v2_core.push_write_sector_locked),
+    .push_erase_sector_locked        (dut.v2_core.push_erase_sector_locked),
+    .push_write_search_key_conflict  (dut.v2_core.push_write_search_key_conflict),
+    .pop_flush_req                   (dut.v2_core.pop_flush_req),
+    .push_erase_req                  (dut.v2_core.push_erase_req),
+    .pop_erase_req                   (dut.v2_core.pop_erase_req),
+    .pop_issue_inflight              (dut.v2_core.pop_issue_inflight),
+    .pop_output_pending              (dut.v2_core.pop_output_pending),
+    .pop_emit_pending                (dut.v2_core.pop_emit_pending),
+    .pop_search_collecting           (dut.v2_core.pop_search_collecting),
+    .pop_snapshot_sector_mask        (dut.v2_core.pop_snapshot_sector_mask),
+    .pop_search_unscanned_sector_mask(dut.v2_core.pop_search_unscanned_sector_mask),
+    .write_pointer                   (dut.v2_core.write_pointer),
+    .push_erase_addr_reg             (dut.v2_core.push_erase_addr_reg),
+    .pop_issue_addr                  (dut.v2_core.pop_issue_addr),
+    .pop_issue_addr_pending          (dut.v2_core.pop_issue_addr_pending),
+    .pop_search_wait_cnt             (dut.v2_core.pop_search_wait_cnt),
+    .decision                        (dut.v2_core.decision),
+    .decision_reg                    (dut.v2_core.decision_reg),
+    .pop_sector_lock_mask            (dut.v2_core.pop_sector_lock_mask)
   );
 
   ring_buffer_cam_accounting_sva #(
@@ -173,7 +176,8 @@ module ring_buffer_cam_sector_lock_formal_top #(
 
   ring_buffer_cam_metadata_sva #(
     .RING_BUFFER_N_ENTRY (RING_BUFFER_N_ENTRY),
-    .ADDR_W_CONST        (ADDR_W_CONST)
+    .ADDR_W_CONST        (ADDR_W_CONST),
+    .DEBUG               (DEBUG)
   ) metadata_sva (
     .i_clk                                (i_clk),
     .i_rst                                (i_rst),

@@ -1,0 +1,733 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Shell
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Copyright (C) 2018  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details.
+    Info: Processing started: Fri May  8 13:13:14 2026
+Info: Command: quartus_sh --flow compile ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info: Quartus(args): compile ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info: Project Name = /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn
+Info: Revision Name = ring_buffer_cam_syn_sv_p4
+Info: *******************************************************************
+Info: Running Quartus Prime Analysis & Synthesis
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:13:14 2026
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info (20032): Parallel compilation is enabled and will use up to 16 processors
+Info (12021): Found 2 design units, including 0 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_helper_pkg.vhd
+    Info (12022): Found design unit 1: cam_helper_pkg File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_helper_pkg.vhd Line: 7
+    Info (12022): Found design unit 2: cam_helper_pkg-body File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_helper_pkg.vhd Line: 12
+Info (12021): Found 3 design units, including 1 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_blk_a5.vhd
+    Info (12022): Found design unit 1: cam_mem_blk_a5-rtl_simple_dpram File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_blk_a5.vhd Line: 49
+    Info (12022): Found design unit 2: cam_mem_blk_a5-rtl_true_dpram File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_blk_a5.vhd Line: 109
+    Info (12023): Found entity 1: cam_mem_blk_a5 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_blk_a5.vhd Line: 32
+Info (12021): Found 2 design units, including 1 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_a5.vhd
+    Info (12022): Found design unit 1: cam_mem_a5-rtl File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_a5.vhd Line: 43
+    Info (12023): Found entity 1: cam_mem_a5 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_a5.vhd Line: 22
+Info (12021): Found 1 design units, including 0 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
+    Info (12022): Found design unit 1: ring_buffer_cam_sv_pkg (SystemVerilog) File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv Line: 7
+Info (12021): Found 2 design units, including 2 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_fifo.sv
+    Info (12023): Found entity 1: ring_buffer_cam_fifo File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_fifo.sv Line: 7
+    Info (12023): Found entity 2: ring_buffer_cam_fifo_mlab File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_fifo.sv Line: 81
+Info (12021): Found 2 design units, including 2 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv
+    Info (12023): Found entity 1: ring_buffer_cam_core File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 7
+    Info (12023): Found entity 2: ring_buffer_cam_side_ram File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 2013
+Info (12021): Found 1 design units, including 1 entities, in source file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam.sv
+    Info (12023): Found entity 1: ring_buffer_cam File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam.sv Line: 7
+Info (12021): Found 1 design units, including 1 entities, in source file ring_buffer_cam_syn_sv_harness.sv
+    Info (12023): Found entity 1: ring_buffer_cam_syn_sv_harness File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_harness.sv Line: 2
+Info (12021): Found 1 design units, including 1 entities, in source file ring_buffer_cam_syn_sv_p4_top.sv
+    Info (12023): Found entity 1: ring_buffer_cam_syn_sv_p4_top File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 1
+Info (12127): Elaborating entity "ring_buffer_cam_syn_sv_p4_top" for the top level hierarchy
+Info (12128): Elaborating entity "ring_buffer_cam_syn_sv_harness" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 15
+Info (12128): Elaborating entity "ring_buffer_cam" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_harness.sv Line: 247
+Info (12128): Elaborating entity "ring_buffer_cam_core" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam.sv Line: 116
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(122): object "debug_msg2_snap" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 122
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(127): object "csr_counter_freeze" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 127
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(129): object "csr_meta_sel" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 129
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(134): object "gts_end_of_run" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 134
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(135): object "gts_counter_rst" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 135
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(170): object "in_hit_ts8n" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 170
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(206): object "side_ram_dout" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 206
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(234): object "pop_pipeline_start" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 234
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(238): object "pop_last_hit_pending" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 238
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(256): object "pop_drain_partition_idx" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 256
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(274): object "pop_head_update_apply_next_chunk_idx" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 274
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(275): object "pop_head_update_apply_chunk_snapshot" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 275
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(278): object "dbg_pop_issue_partition_idx" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 278
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(280): object "dbg_pop_partition_pending" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 280
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(281): object "dbg_pop_partition_load" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 281
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(282): object "dbg_pop_partition_advance" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 282
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(283): object "dbg_pop_partition_result_valid" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 283
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(284): object "dbg_pop_partition_flag" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 284
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(285): object "dbg_pop_partition_has_more" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 285
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(286): object "dbg_pop_partition_eval_stage0_valid" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 286
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(292): object "run_mgmt_flush_memory_start" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 292
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(293): object "run_mgmt_flush_memory_done" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 293
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(2003): object "dbg_run_state_code" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 2003
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(2004): object "dbg_pop_engine_state_code" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 2004
+Warning (10036): Verilog HDL or VHDL warning at ring_buffer_cam_core.sv(2005): object "dbg_push_state_code" assigned a value but never read File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 2005
+Info (10264): Verilog HDL Case Statement information at ring_buffer_cam_core.sv(1031): all case item expressions in this case statement are onehot File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 1031
+Warning (10764): Verilog HDL warning at ring_buffer_cam_core.sv(1916): converting signed shift amount to unsigned File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 1916
+Info (12128): Elaborating entity "cam_mem_a5" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 366
+Warning (10445): VHDL Subtype or Type Declaration warning at cam_mem_a5.vhd(82): subtype or type has null range File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_a5.vhd Line: 82
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "une_addr" into its bus
+Info (12129): Elaborating entity "cam_mem_blk_a5" using architecture "A:rtl_simple_dpram" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:0:ram_block" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/vhd_ver/cam_mem_a5.vhd Line: 202
+Info (12128): Elaborating entity "ring_buffer_cam_side_ram" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_side_ram:side_ram" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 381
+Info (12128): Elaborating entity "ring_buffer_cam_fifo" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:deassembly_fifo" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 641
+Info (10264): Verilog HDL Case Statement information at ring_buffer_cam_fifo.sv(71): all case item expressions in this case statement are onehot File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_fifo.sv Line: 71
+Info (12128): Elaborating entity "ring_buffer_cam_fifo" for hierarchy "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:pop_cmd_fifo" File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_core.sv Line: 657
+Info (10264): Verilog HDL Case Statement information at ring_buffer_cam_fifo.sv(71): all case item expressions in this case statement are onehot File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/rtl/sv_ver/ring_buffer_cam_fifo.sv Line: 71
+Warning (276020): Inferred RAM node "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:pop_cmd_fifo|mem_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:deassembly_fifo|mem_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Info (19000): Inferred 19 megafunctions from design logic
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:pop_cmd_fifo|mem_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 8
+        Info (286033): Parameter WIDTHAD_A set to 4
+        Info (286033): Parameter NUMWORDS_A set to 16
+        Info (286033): Parameter WIDTH_B set to 8
+        Info (286033): Parameter WIDTHAD_B set to 4
+        Info (286033): Parameter NUMWORDS_B set to 16
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:deassembly_fifo|mem_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 6
+        Info (286033): Parameter WIDTHAD_A set to 6
+        Info (286033): Parameter NUMWORDS_A set to 64
+        Info (286033): Parameter WIDTH_B set to 6
+        Info (286033): Parameter WIDTHAD_B set to 6
+        Info (286033): Parameter NUMWORDS_B set to 64
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_side_ram:side_ram|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 6
+        Info (286033): Parameter WIDTHAD_A set to 9
+        Info (286033): Parameter NUMWORDS_A set to 512
+        Info (286033): Parameter WIDTH_B set to 6
+        Info (286033): Parameter WIDTHAD_B set to 9
+        Info (286033): Parameter NUMWORDS_B set to 512
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M10K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:15:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:14:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:13:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:12:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:11:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:10:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:9:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:8:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:7:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:6:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:5:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:4:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:3:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:2:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:1:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:0:ram_block|ram_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 1
+        Info (286033): Parameter WIDTHAD_A set to 13
+        Info (286033): Parameter NUMWORDS_A set to 8192
+        Info (286033): Parameter WIDTH_B set to 32
+        Info (286033): Parameter WIDTHAD_B set to 8
+        Info (286033): Parameter NUMWORDS_B set to 256
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+Info (12130): Elaborated megafunction instantiation "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:pop_cmd_fifo|altsyncram:mem_rtl_0"
+Info (12133): Instantiated megafunction "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:pop_cmd_fifo|altsyncram:mem_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "8"
+    Info (12134): Parameter "WIDTHAD_A" = "4"
+    Info (12134): Parameter "NUMWORDS_A" = "16"
+    Info (12134): Parameter "WIDTH_B" = "8"
+    Info (12134): Parameter "WIDTHAD_B" = "4"
+    Info (12134): Parameter "NUMWORDS_B" = "16"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_g9i1.tdf
+    Info (12023): Found entity 1: altsyncram_g9i1 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/db/altsyncram_g9i1.tdf Line: 27
+Info (12130): Elaborated megafunction instantiation "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:deassembly_fifo|altsyncram:mem_rtl_0"
+Info (12133): Instantiated megafunction "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_fifo:deassembly_fifo|altsyncram:mem_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "6"
+    Info (12134): Parameter "WIDTHAD_A" = "6"
+    Info (12134): Parameter "NUMWORDS_A" = "64"
+    Info (12134): Parameter "WIDTH_B" = "6"
+    Info (12134): Parameter "WIDTHAD_B" = "6"
+    Info (12134): Parameter "NUMWORDS_B" = "64"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_m9i1.tdf
+    Info (12023): Found entity 1: altsyncram_m9i1 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/db/altsyncram_m9i1.tdf Line: 27
+Info (12130): Elaborated megafunction instantiation "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_side_ram:side_ram|altsyncram:ram_rtl_0"
+Info (12133): Instantiated megafunction "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|ring_buffer_cam_side_ram:side_ram|altsyncram:ram_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "6"
+    Info (12134): Parameter "WIDTHAD_A" = "9"
+    Info (12134): Parameter "NUMWORDS_A" = "512"
+    Info (12134): Parameter "WIDTH_B" = "6"
+    Info (12134): Parameter "WIDTHAD_B" = "9"
+    Info (12134): Parameter "NUMWORDS_B" = "512"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+    Info (12134): Parameter "RAM_BLOCK_TYPE" = "M10K"
+    Info (12134): Parameter "READ_DURING_WRITE_MODE_MIXED_PORTS" = "OLD_DATA"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_lpo1.tdf
+    Info (12023): Found entity 1: altsyncram_lpo1 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/db/altsyncram_lpo1.tdf Line: 27
+Info (12130): Elaborated megafunction instantiation "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:15:ram_block|altsyncram:ram_rtl_0"
+Info (12133): Instantiated megafunction "ring_buffer_cam_syn_sv_harness:u_harness|ring_buffer_cam:u_dut|ring_buffer_cam_core:v2_core|cam_mem_a5:main_cam|cam_mem_blk_a5:\sub_cam:0:sub_cam2:15:ram_block|altsyncram:ram_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "1"
+    Info (12134): Parameter "WIDTHAD_A" = "13"
+    Info (12134): Parameter "NUMWORDS_A" = "8192"
+    Info (12134): Parameter "WIDTH_B" = "32"
+    Info (12134): Parameter "WIDTHAD_B" = "8"
+    Info (12134): Parameter "NUMWORDS_B" = "256"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+    Info (12134): Parameter "READ_DURING_WRITE_MODE_MIXED_PORTS" = "OLD_DATA"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_51n1.tdf
+    Info (12023): Found entity 1: altsyncram_51n1 File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/db/altsyncram_51n1.tdf Line: 27
+Info (284007): State machine "|ring_buffer_cam_syn_sv_p4_top|ring_buffer_cam_syn_sv_harness:u_harness|stim_state" will be implemented as a safe state machine. File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_harness.sv Line: 29
+Warning (13024): Output pins are stuck at VCC or GND
+    Warning (13410): Pin "probe_out[1]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[10]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[11]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[16]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[17]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[18]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[19]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[20]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[21]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Warning (13410): Pin "probe_out[22]" is stuck at GND File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+Info (286030): Timing-Driven Synthesis is running
+Info (17049): 755 registers lost all their fanouts during netlist optimizations.
+Info (144001): Generated suppressed messages file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.map.smsg
+Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
+    Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
+Critical Warning (15725): clock port is fed by virtual pin "clk125~input"; timing analysis treats input to the clock port as a ripple clock
+Info (15717): Design contains 34 virtual pins; timing numbers associated with paths containing virtual pins are estimates
+    Info (15719): Pin "probe_out[0]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[2]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[3]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[4]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[5]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[6]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[7]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[8]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[9]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[12]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[13]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[14]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[15]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[23]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[24]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[25]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[26]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[27]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[28]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[29]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[30]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[31]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[1]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[10]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[11]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[16]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[17]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[18]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[19]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[20]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[21]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15719): Pin "probe_out[22]" is virtual output pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 5
+    Info (15718): Pin "clk125" is virtual input pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 2
+    Info (15718): Pin "reset_n" is virtual input pin File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/ring_buffer_cam_syn_sv_p4_top.sv Line: 3
+Info (21057): Implemented 4457 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 0 input pins
+    Info (21059): Implemented 0 output pins
+    Info (21061): Implemented 4421 logic cells
+    Info (21064): Implemented 36 RAM segments
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 41 warnings
+    Info: Peak virtual memory: 1385 megabytes
+    Info: Processing ended: Fri May  8 13:13:41 2026
+    Info: Elapsed time: 00:00:27
+    Info: Total CPU time (on all processors): 00:00:54
+Info: *******************************************************************
+Info: Running Quartus Prime Fitter
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:13:41 2026
+Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info: qfit2_default_script.tcl version: #1
+Info: Project  = ring_buffer_cam_syn
+Info: Revision = ring_buffer_cam_syn_sv_p4
+Info (20032): Parallel compilation is enabled and will use up to 16 processors
+Info (119006): Selected device 5AGXBA7D4F31C5 for design "ring_buffer_cam_syn_sv_p4"
+Info (21076): High junction temperature operating condition is not set. Assuming a default value of '85'.
+Info (21076): Low junction temperature operating condition is not set. Assuming a default value of '0'.
+Info (171004): Fitter is performing a Standard Fit compilation using maximum Fitter effort to optimize design performance
+Info (176045): Design uses memory blocks. Violating setup or hold times of memory block address registers for either read or write operations could cause memory contents to be corrupted. Make sure that all memory block address registers meet the setup and hold time requirements.
+Info (184020): Starting Fitter periphery placement operations
+Info (11178): Promoted 1 clock (1 global)
+    Info (11162): clk125~CLKENA0 with 2512 fanout uses global clock CLKCTRL_G3
+        Info (12525): This signal is driven by core routing -- it may be moved during placement to reduce routing delays
+Info (11191): Automatically promoted 1 clock (1 global)
+    Info (11162): reset_n~CLKENA0 with 2434 fanout uses global clock CLKCTRL_G2
+        Info (12525): This signal is driven by core routing -- it may be moved during placement to reduce routing delays
+Info (184021): Fitter periphery placement operations ending: elapsed time is 00:00:00
+Info (176233): Starting register packing
+Info (332104): Reading SDC File: 'ring_buffer_cam_syn.sdc'
+Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info (332129): Detected timing requirements -- optimizing circuit to achieve only the specified requirements
+Info (332111): Found 1 clocks
+    Info (332111):   Period   Clock Name
+    Info (332111): ======== ============
+    Info (332111):    7.273       clk125
+Info (176235): Finished register packing
+    Extra Info (176218): Packed 512 registers into blocks of type Block RAM
+Info (128000): Starting physical synthesis optimizations for speed
+Info (128002): Starting physical synthesis algorithm combinational resynthesis using boolean division
+Info (128003): Physical synthesis algorithm combinational resynthesis using boolean division complete: estimated slack improvement of 0 ps
+Info (128002): Starting physical synthesis algorithm combinational resynthesis using boolean division
+Info (128003): Physical synthesis algorithm combinational resynthesis using boolean division complete: estimated slack improvement of 0 ps
+Info (128001): Physical synthesis optimizations for speed complete: elapsed time is 00:00:01
+Info (176233): Starting register packing
+Info (176235): Finished register packing
+    Extra Info (176219): No registers were packed into other blocks
+Info (11798): Fitter preparation operations ending: elapsed time is 00:00:11
+Info (170189): Fitter placement preparation operations beginning
+Info (14951): The Fitter is using Advanced Physical Optimization.
+Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:09
+Info (170191): Fitter placement operations beginning
+Info (170137): Fitter placement was successful
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:06
+Info (170193): Fitter routing operations beginning
+Info (170195): Router estimated average interconnect usage is 0% of the available device resources
+    Info (170196): Router estimated peak interconnect usage is 26% of the available device resources in the region that extends from location X48_Y45 to location X59_Y55
+Info (170194): Fitter routing operations ending: elapsed time is 00:00:14
+Info (11888): Total time spent on timing analysis during the Fitter is 3.93 seconds.
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (11801): Fitter post-fit operations ending: elapsed time is 00:00:05
+Info (144001): Generated suppressed messages file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.fit.smsg
+Info: Quartus Prime Fitter was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 3928 megabytes
+    Info: Processing ended: Fri May  8 13:14:52 2026
+    Info: Elapsed time: 00:01:11
+    Info: Total CPU time (on all processors): 00:06:49
+Info: *******************************************************************
+Info: Running Quartus Prime Assembler
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:14:53 2026
+Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info (115030): Assembler is generating device programming files
+Info: Quartus Prime Assembler was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 989 megabytes
+    Info: Processing ended: Fri May  8 13:15:04 2026
+    Info: Elapsed time: 00:00:11
+    Info: Total CPU time (on all processors): 00:00:11
+Info (293026): Skipped module Power Analyzer due to the assignment FLOW_ENABLE_POWER_ANALYZER
+Info: *******************************************************************
+Info: Running Quartus Prime Timing Analyzer
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:15:05 2026
+Info: Command: quartus_sta ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Info: qsta_default_script.tcl version: #1
+Info (20032): Parallel compilation is enabled and will use up to 16 processors
+Info (21076): High junction temperature operating condition is not set. Assuming a default value of '85'.
+Info (21076): Low junction temperature operating condition is not set. Assuming a default value of '0'.
+Info (332104): Reading SDC File: 'ring_buffer_cam_syn.sdc'
+Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info: Found TIMING_ANALYZER_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
+Info: Analyzing Slow 1100mV 85C Model
+Info (332146): Worst-case setup slack is 0.341
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.341               0.000 clk125 
+Info (332146): Worst-case hold slack is 0.304
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.304               0.000 clk125 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 2.689
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     2.689               0.000 clk125 
+Info: Analyzing Slow 1100mV 0C Model
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info (332146): Worst-case setup slack is 0.395
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.395               0.000 clk125 
+Info (332146): Worst-case hold slack is 0.290
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.290               0.000 clk125 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 2.665
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     2.665               0.000 clk125 
+Info: Analyzing Fast 1100mV 85C Model
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info (332146): Worst-case setup slack is 3.197
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.197               0.000 clk125 
+Info (332146): Worst-case hold slack is 0.184
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.184               0.000 clk125 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 2.842
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     2.842               0.000 clk125 
+Info: Analyzing Fast 1100mV 0C Model
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info (332146): Worst-case setup slack is 3.553
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.553               0.000 clk125 
+Info (332146): Worst-case hold slack is 0.161
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.161               0.000 clk125 
+Info (332140): No Recovery paths to report
+Info (332140): No Removal paths to report
+Info (332146): Worst-case minimum pulse width slack is 2.840
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     2.840               0.000 clk125 
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+Info: Quartus Prime Timing Analyzer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1591 megabytes
+    Info: Processing ended: Fri May  8 13:15:10 2026
+    Info: Elapsed time: 00:00:05
+    Info: Total CPU time (on all processors): 00:00:11
+Info: *******************************************************************
+Info: Running Quartus Prime EDA Netlist Writer
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:15:11 2026
+Info: Command: quartus_eda --read_settings_files=off --write_settings_files=off ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4
+Warning (10905): Generated the EDA functional simulation netlist because it is the only supported netlist type for this device.
+Info: *******************************************************************
+Info: Running Quartus Prime EDA Netlist Writer
+    Info: Version 18.1.0 Build 625 09/12/2018 SJ Standard Edition
+    Info: Processing started: Fri May  8 13:15:13 2026
+Info: Command: quartus_eda -t /data1/intelFPGA/18.1/quartus/common/tcl/internal/nativelink/qnativesim.tcl ring_buffer_cam_syn ring_buffer_cam_syn_sv_p4 --gen_script --called_from_qeda --qsf_sim_tool "ModelSim (Verilog)" --qsf_is_functional OFF --qsf_netlist_output_directory gate_sim_sv --qsf_user_compiled_directory <None>
+Info: Quartus(args): ring_buffer_cam_syn ring_buffer_cam_syn_sv_p4 --gen_script --called_from_qeda --qsf_sim_tool {ModelSim (Verilog)} --qsf_is_functional OFF --qsf_netlist_output_directory gate_sim_sv --qsf_user_compiled_directory <None>
+Warning: Warning: File ring_buffer_cam_syn_sv_p4_run_msim_gate_verilog.do already exists - backing up current file as ring_buffer_cam_syn_sv_p4_run_msim_gate_verilog.do.bak11
+Info: Info: Generated ModelSim script file /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/gate_sim_sv/ring_buffer_cam_syn_sv_p4_run_msim_gate_verilog.do File: /home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/gate_sim_sv/ring_buffer_cam_syn_sv_p4_run_msim_gate_verilog.do Line: 0
+Info: Info: tool command file generation was successful
+Info (23030): Evaluation of Tcl script /data1/intelFPGA/18.1/quartus/common/tcl/internal/nativelink/qnativesim.tcl was successful
+Info: Quartus Prime EDA Netlist Writer was successful. 0 errors, 1 warning
+    Info: Peak virtual memory: 1004 megabytes
+    Info: Processing ended: Fri May  8 13:15:13 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+Info (204019): Generated file ring_buffer_cam_syn_sv_p4.vo in folder "/home/yifeng/packages/mu3e_ip_dev/.worktrees/mu3e_ip_cores_hit_type0_mux_20260504/ring-buffer_cam/syn/quartus/gate_sim_sv/" for EDA simulation tool
+Info: Quartus Prime EDA Netlist Writer was successful. 0 errors, 2 warnings
+    Info: Peak virtual memory: 1193 megabytes
+    Info: Processing ended: Fri May  8 13:15:14 2026
+    Info: Elapsed time: 00:00:03
+    Info: Total CPU time (on all processors): 00:00:02
+Info (293000): Quartus Prime Full Compilation was successful. 0 errors, 43 warnings
+Info (23030): Evaluation of Tcl script /data1/intelFPGA/18.1/quartus/common/tcl/internal/qsh_flow.tcl was successful
+Info: Quartus Prime Shell was successful. 0 errors, 43 warnings
+    Info: Peak virtual memory: 935 megabytes
+    Info: Processing ended: Fri May  8 13:15:15 2026
+    Info: Elapsed time: 00:02:01
+    Info: Total CPU time (on all processors): 00:08:10
