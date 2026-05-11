@@ -111,6 +111,7 @@ VHDL_SRCS = \
 SV_DUT_SRCS = \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_sv_pkg.sv \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_fifo.sv \
+  $(IP_DIR)/rtl/sv_ver/cam_primitive_m10k_sv.sv \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam_core.sv \
   $(IP_DIR)/rtl/sv_ver/ring_buffer_cam.sv
 

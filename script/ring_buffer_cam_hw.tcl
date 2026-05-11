@@ -19,13 +19,13 @@ set DEFAULT_INTERLEAVING_INDEX_CONST  0
 set DEFAULT_N_PARTITIONS_CONST     4
 set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
-set DEFAULT_DEBUG_CONST            1
+set DEFAULT_DEBUG_CONST            0
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            507
+set BUILD_DEFAULT_CONST            511
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    10
-set VERSION_DATE_DEFAULT_CONST     20260507
+set VERSION_PATCH_DEFAULT_CONST    11
+set VERSION_DATE_DEFAULT_CONST     20260511
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
@@ -45,14 +45,14 @@ set VERSION_STRING_DEFAULT_CONST [format "%d.%d.%d.%04d" \
     $VERSION_PATCH_DEFAULT_CONST \
     $BUILD_DEFAULT_CONST]
 set INSTANCE_ID_DEFAULT_CONST      0
-set SIGNOFF_ALMS_CONST             4045
-set SIGNOFF_REGS_CONST             4821
-set SIGNOFF_RAM_BLOCKS_CONST       2
-set SIGNOFF_MEM_BITS_CONST         512
-set SIGNOFF_WNS_SLOW_85C_CONST     -14.213
-set SIGNOFF_WNS_SLOW_0C_CONST      -12.813
-set SIGNOFF_HOLD_WNS_CONST         0.180
-set SIGNOFF_FMAX_CONST             46.54
+set SIGNOFF_ALMS_CONST             1523
+set SIGNOFF_REGS_CONST             2016
+set SIGNOFF_RAM_BLOCKS_CONST       19
+set SIGNOFF_MEM_BITS_CONST         136192
+set SIGNOFF_WNS_SLOW_85C_CONST     0.401
+set SIGNOFF_WNS_SLOW_0C_CONST      0.608
+set SIGNOFF_HOLD_WNS_CONST         0.148
+set SIGNOFF_FMAX_CONST             145.52
 
 set_module_property NAME ring_buffer_cam
 set_module_property DISPLAY_NAME "Ring-buffer CAM"
@@ -313,6 +313,7 @@ set_fileset_property QUARTUS_SYNTH ENABLE_RELATIVE_INCLUDE_PATHS false
 set_fileset_property QUARTUS_SYNTH ENABLE_FILE_OVERWRITE_MODE false
 add_fileset_file ring_buffer_cam_sv_pkg.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
 add_fileset_file ring_buffer_cam_fifo.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_fifo.sv
+add_fileset_file cam_primitive_m10k_sv.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/cam_primitive_m10k_sv.sv
 add_fileset_file ring_buffer_cam_core.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam_core.sv
 add_fileset_file ring_buffer_cam.sv SYSTEM_VERILOG PATH ../rtl/sv_ver/ring_buffer_cam.sv TOP_LEVEL_FILE
 
@@ -452,7 +453,7 @@ add_display_item "Sizing" SEARCH_KEY_WIDTH parameter
 add_display_item "Sizing" RING_BUFFER_N_ENTRY parameter
 add_display_item "Sizing" SIDE_DATA_BITS parameter
 add_html_text "Sizing" sizing_html "<html><b>Derived sizing</b><br/>Updated by the validation callback.</html>"
-add_html_text "Delivered Footprint" resources_html [format {<html><b>Standalone package footprint</b><br/>Numbers below are for the feature-complete SystemVerilog package payload with <b>RING_BUFFER_N_ENTRY=%d</b>, <b>N_PARTITIONS=%d</b>, <b>ENCODER_PIPE_STAGES=%d</b> on Arria V <b>5AGXBA7D4F31C5</b>.<br/><br/><b>Fitter resources</b><br/>ALMs: <b>%d</b><br/>Registers: <b>%d</b><br/>RAM blocks: <b>%d</b><br/>Block memory bits: <b>%d</b><br/><br/><b>Timing at 137.5 MHz standalone check</b><br/>Slow 85C WNS: <b>%.3f ns</b><br/>Slow 0C WNS: <b>%.3f ns</b><br/>Worst reported hold slack: <b>%.3f ns</b><br/>Slow-corner Fmax: <b>%.2f MHz</b><br/><br/><b>Interpretation</b><br/>These values are the current package evidence and are not a timing signoff. The VHDL P4 timing-reference build closes 137.5 MHz, but it does not implement the full sector-lock/accounting stack.</html>} \
+add_html_text "Delivered Footprint" resources_html [format {<html><b>Standalone package footprint</b><br/>Numbers below are for the feature-complete SystemVerilog package payload with <b>RING_BUFFER_N_ENTRY=%d</b>, <b>N_PARTITIONS=%d</b>, <b>ENCODER_PIPE_STAGES=%d</b> on Arria V <b>5AGXBA7D4F31C5</b>.<br/><br/><b>Fitter resources</b><br/>ALMs: <b>%d</b><br/>Registers: <b>%d</b><br/>RAM blocks: <b>%d</b><br/>Block memory bits: <b>%d</b><br/><br/><b>Timing at 137.5 MHz standalone check</b><br/>Slow 85C WNS: <b>%.3f ns</b><br/>Slow 0C WNS: <b>%.3f ns</b><br/>Worst reported hold slack: <b>%.3f ns</b><br/>Slow-corner Fmax: <b>%.2f MHz</b><br/><br/><b>Interpretation</b><br/>The SystemVerilog package now infers the Arria V M10K CAM/side memories and closes the 137.5 MHz standalone check.</html>} \
     $DEFAULT_RING_DEPTH_CONST \
     $DEFAULT_N_PARTITIONS_CONST \
     $DEFAULT_PIPE_STAGES_CONST \
@@ -478,7 +479,7 @@ add_display_item $TAB_IDENTITY "Delivered Profile" GROUP
 add_display_item $TAB_IDENTITY "Versioning" GROUP
 add_display_item $TAB_IDENTITY "Debug" GROUP
 
-add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, sector-lock/decision=5 arbitration, 64-bit accounting, drop counters, freeze readback, and DEBUG-gated observability / metadata sidecar conduits. With <b>DEBUG=0</b>, optional debug outputs are deterministically zero and the nominal datapath is unchanged.<br/><br/><b>Timing status</b><br/>The packaged SystemVerilog payload currently reports <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks. This is below the required 137.5 MHz standalone signoff target; the VHDL P4 timing reference is faster but lacks this feature stack.<br/><br/><b>Runtime visibility</b><br/>Software can blind-scan the CSR window through <b>UID</b> at word <b>0</b> and the <b>META</b> mux at word <b>1</b>.</html>} \
+add_html_text "Delivered Profile" profile_html [format {<html><b>Catalog revision</b><br/>This release is packaged as <b>%s</b>.<br/><br/><b>Packaging provenance</b><br/>Default git stamp <b>%s</b> (%s). Git describe: <b>%s</b>.<br/><br/><b>Delivered interface contract</b><br/>The packaged image keeps the established <b>hit_type1</b>, <b>hit_type2</b>, <b>run_control</b>, and <b>filllevel</b> interface names so existing Platform Designer systems can be upgraded in place while picking up the common CSR identity header, the locked <b>BUILD=%d</b> / <b>VERSION_DATE=%d</b> metadata, sector-lock arbitration, 64-bit accounting, drop counters, freeze readback, and DEBUG-gated observability / metadata sidecar conduits. With <b>DEBUG=0</b>, optional debug outputs are deterministically zero and the nominal datapath is unchanged.<br/><br/><b>Timing status</b><br/>The packaged SystemVerilog payload currently reports <b>%.2f MHz</b> slow-corner Fmax with <b>%d ALMs</b>, <b>%d</b> registers, and <b>%d</b> RAM blocks, closing the required 137.5 MHz standalone signoff target.</html>} \
     $VERSION_STRING_DEFAULT_CONST \
     $VERSION_GIT_HEX_DEFAULT_CONST \
     $VERSION_GIT_SHORT_DEFAULT_CONST \

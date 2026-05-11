@@ -105,6 +105,35 @@ Historical formal note:
 | [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `da80afbb` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
 | [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
 | [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
+| [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `pending` | SV slot state inferred as fabric instead of Arria V M10K |
+
+## 2026-05-11
+
+### BUG-068-R: SV slot state inferred as fabric instead of Arria V M10K
+- Severity: `signoff block`
+- Encounter sim-time: `n/a (standalone synthesis timing and resource audit)`
+- First seen in: standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the feature-complete SV package was restored for FEB integration
+- Symptom:
+  - the SV standalone p4 build used 4,045 ALMs but only 512 block memory bits
+  - Slow 1100mV 85C setup slack was -14.213 ns, so the feature-complete SV payload could not close the 137.5 MHz standalone check
+  - Quartus did not map the reset-cleared `slot_hit` and `slot_metadata` arrays into M10K blocks despite the RAM style hint
+- Root cause:
+  - the SV slot memories were modeled as logic arrays with broadcast reset loops
+  - Quartus could not infer block RAM for those reset-on-all-entry arrays, so the CAM and side storage stayed in ALMs
+  - the first M10K refactor also exposed a single-read-port ownership hazard when push overwrite checks and pop erases tried to consume the side RAM read port in the same cycle
+- Fix status:
+  - `state`: fixed and verified in standalone synthesis plus directed SV p4 UVM
+  - `mechanism`: add `cam_primitive_m10k_sv.sv` with Quartus simple dual-port and mixed-width M10K inference templates; replace the reset-cleared arrays with M10K-backed CAM, hit, and metadata RAM wrappers; clear RAMs through the existing multi-cycle prepare path; pipeline pop hit counting; serialize push checks against pop erases so the side RAM read port has one owner
+  - `before_fix_outcome`: `ring_buffer_cam_syn_sv_p4.fit.summary` reported 4,045 ALMs, 512 block memory bits, 2 RAM blocks, and failing timing
+  - `after_fix_outcome`: `ring_buffer_cam_syn_sv_p4.fit.summary` reports 1,523 ALMs, 2,016 registers, 136,192 block memory bits, and 19 RAM blocks; `ring_buffer_cam_syn_sv_p4.sta.summary` reports setup slack of 0.401 ns at Slow 85C, 0.608 ns at Slow 0C, 3.383 ns at Fast 85C, and 3.705 ns at Fast 0C
+  - `potential_hazard`: low for the p4 standalone package; the memory inference is explicit in Quartus map output as M10K `altsyncram`, and the directed overlap/overwrite smoke covers the shared-read-port arbitration hazard
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - validated with `quartus_sh --flow compile ring_buffer_cam_syn -c ring_buffer_cam_syn_sv_p4`
+  - the requested `make -C ring-buffer_cam/tb/uvm smoke` target does not exist, so the SV p4 UVM directed smoke was run manually in `/tmp` without executing the Makefile cleanup recipes
+  - directed SV p4 UVM passed `test_cfg_reset_defaults`, `test_cfg_rw_semantics`, `test_cfg_activity_counters`, `test_single_push_pop`, `test_same_key_burst_128`, `test_same_key_burst_256`, `test_sequential_keys`, `test_sector_lock_overlap`, and `test_overwrite_stress`
+  - package fileset validated with `ip-make-ipx --source-directory=. --output=/tmp/rbcam_ipx_m10k_20260511_162305/ring_buffer_cam.ipx --thorough-descent`
+- Commit: pending
 
 ## 2026-05-08
 

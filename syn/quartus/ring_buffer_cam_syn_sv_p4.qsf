@@ -14,6 +14,7 @@ set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Standard Edition"
 set_global_assignment -name SEARCH_PATH ../../rtl/sv_ver
 set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/sv_ver/ring_buffer_cam_sv_pkg.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/sv_ver/ring_buffer_cam_fifo.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/sv_ver/cam_primitive_m10k_sv.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/sv_ver/ring_buffer_cam_core.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../../rtl/sv_ver/ring_buffer_cam.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ring_buffer_cam_syn_sv_harness.sv

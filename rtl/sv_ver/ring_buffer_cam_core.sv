@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.10
-// Date    : 20260507
-// Change  : preserve debug metadata through the deassembly FIFO
+// Version : 26.2.11
+// Date    : 20260511
+// Change  : move CAM lookup and side storage into inferred Arria V M10K RAMs
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -16,12 +16,12 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 10,
-  parameter int BUILD               = 507,
-  parameter int VERSION_DATE        = 20260507,
+  parameter int VERSION_PATCH       = 11,
+  parameter int BUILD               = 511,
+  parameter int VERSION_DATE        = 20260511,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
-  parameter int DEBUG               = 1
+  parameter int DEBUG               = 0
 ) (
   output logic [31:0] avs_csr_readdata,
   input  logic        avs_csr_read,
@@ -74,7 +74,18 @@ module ring_buffer_cam_core #(
   localparam int ADDR_SECTOR_LSB_CONST =
     (ADDR_W_CONST > LOCK_SECTOR_BITS_CONST) ?
     (ADDR_W_CONST - LOCK_SECTOR_BITS_CONST) : 0;
-  localparam int FLUSH_CYCLES_CONST    = (RING_BUFFER_N_ENTRY < 32) ? 32 : RING_BUFFER_N_ENTRY;
+  localparam int CAM_KEY_WIDTH_CONST    = 8;
+  localparam int CAM_KEY_COUNT_CONST    = 1 << CAM_KEY_WIDTH_CONST;
+  localparam int CAM_FLUSH_CYCLES_CONST = RING_BUFFER_N_ENTRY * CAM_KEY_COUNT_CONST;
+  localparam int FLUSH_COUNT_W_CONST    =
+    (CAM_FLUSH_CYCLES_CONST <= 2) ? 1 : $clog2(CAM_FLUSH_CYCLES_CONST + 1);
+  localparam int SIDE_META_WIDTH_CONST  = 65;
+  localparam int POP_COUNT_CHUNK_WIDTH_CONST = 16;
+  localparam int POP_COUNT_CHUNKS_CONST =
+    (RING_BUFFER_N_ENTRY + POP_COUNT_CHUNK_WIDTH_CONST - 1) /
+    POP_COUNT_CHUNK_WIDTH_CONST;
+  localparam int POP_COUNT_CHUNK_W_CONST =
+    (POP_COUNT_CHUNKS_CONST <= 2) ? 1 : $clog2(POP_COUNT_CHUNKS_CONST);
   localparam logic [8:0] CTRL_IDLE_CONST        = 9'b0_0000_0001;
   localparam logic [8:0] CTRL_RUN_PREPARE_CONST = 9'b0_0000_0010;
   localparam logic [8:0] CTRL_SYNC_CONST        = 9'b0_0000_0100;
@@ -140,9 +151,6 @@ module ring_buffer_cam_core #(
   logic pop_cmd_full_drop_event;
 
   logic [RING_BUFFER_N_ENTRY-1:0] slot_valid;
-  logic [38:0] slot_hit [RING_BUFFER_N_ENTRY];
-  logic [63:0] slot_metadata [RING_BUFFER_N_ENTRY];
-  logic slot_metadata_valid [RING_BUFFER_N_ENTRY];
   logic [ADDR_W_CONST-1:0] write_pointer;
 
   logic in_payload_valid;
@@ -159,6 +167,9 @@ module ring_buffer_cam_core #(
   logic push_erase_req;
   logic push_erase_grant;
   logic [7:0] push_write_sk_reg;
+  logic [7:0] push_erase_sk;
+  logic push_check_valid;
+  logic push_check_occupied;
   logic [ADDR_W_CONST-1:0] push_erase_addr_reg;
   logic [39:0] overwritten_side_word;
 
@@ -168,13 +179,26 @@ module ring_buffer_cam_core #(
   logic cam_erase_en;
   logic [15:0] cam_wr_addr;
   logic [7:0] cam_wr_data;
+  logic [RING_BUFFER_N_ENTRY-1:0] cam_match_addr_oh;
   logic [15:0] side_ram_waddr;
   logic [39:0] side_ram_din;
   logic side_ram_we;
   logic [15:0] side_ram_raddr;
+  logic [39:0] side_ram_raw_dout;
   logic [39:0] side_ram_dout;
+  logic [SIDE_META_WIDTH_CONST-1:0] side_meta_ram_din;
+  logic [SIDE_META_WIDTH_CONST-1:0] side_meta_ram_dout;
 
   logic [RING_BUFFER_N_ENTRY-1:0] pop_snapshot;
+  logic [LOCK_SECTOR_COUNT_CONST-1:0] pop_snapshot_sector_mask;
+  logic [RING_BUFFER_N_ENTRY-1:0] pop_scan_mask;
+  logic [ADDR_W_CONST-1:0] pop_scan_addr;
+  logic [RING_BUFFER_N_ENTRY-1:0] pop_count_mask;
+  logic [POP_COUNT_CHUNK_W_CONST-1:0] pop_count_chunk_idx;
+  logic [15:0] pop_count_acc;
+  logic [15:0] pop_count_next;
+  logic [POP_COUNT_CHUNK_WIDTH_CONST-1:0] pop_count_chunk_vec;
+  logic [4:0] pop_count_chunk_hits;
   logic [8:0] pop_current_sk;
   logic [15:0] pop_total_hits;
   logic [15:0] pop_hits_count;
@@ -186,6 +210,7 @@ module ring_buffer_cam_core #(
   logic pop_occupied_pending;
   logic pop_output_pending;
   logic pop_issue_inflight;
+  logic pop_ram_read_pending;
   logic pop_emit_pending;
   logic pop_erase_req;
   logic pop_erase_grant;
@@ -221,7 +246,7 @@ module ring_buffer_cam_core #(
   logic [15:0] flush_ram_wraddr;
   logic [15:0] flush_cam_wraddr;
   logic [15:0] flush_cam_wrdata;
-  logic [15:0] flush_cycle_count;
+  logic [FLUSH_COUNT_W_CONST-1:0] flush_cycle_count;
   logic prep_ready_latched;
 
   wire dbg_side_ram_patch_we;
@@ -235,7 +260,7 @@ module ring_buffer_cam_core #(
   assign expected_latency_48b = {16'd0, csr_expected_latency};
   assign deassembly_fifo_usedw = 8'(deassembly_fifo_usedw_int);
   assign pop_cmd_fifo_usedw = pop_cmd_fifo_usedw_int[3:0];
-  assign deassembly_fifo_sclr = csr_soft_reset_pulse || (run_state_cmd == RUN_PREPARING && flush_cycle_count == 16'd0);
+  assign deassembly_fifo_sclr = csr_soft_reset_pulse || (run_state_cmd == RUN_PREPARING && flush_cycle_count == '0);
   assign pop_cmd_fifo_sclr = deassembly_fifo_sclr;
   assign gts_counter_rst = (run_state_cmd != RUN_RUNNING && run_state_cmd != RUN_TERMINATING);
   assign egress_not_ready_drop_event = aso_hit_type2_valid && !aso_hit_type2_ready;
@@ -265,6 +290,13 @@ module ring_buffer_cam_core #(
   assign aso_filllevel_valid = 1'b1;
   assign aso_filllevel_data = fill_level_word[15:0];
   assign pop_hit_pending_epoch = hit_search_epoch(pop_hit_pending);
+  assign pop_count_chunk_vec = low_count_chunk(pop_count_mask);
+  assign pop_count_chunk_hits = count_ones_16(pop_count_chunk_vec);
+  assign pop_count_next = pop_count_acc + {11'd0, pop_count_chunk_hits};
+  assign side_ram_dout =
+    (pop_output_pending || pop_emit_pending || pop_hit_valid) ?
+    {pop_occupied_pending, pop_hit_pending} :
+    side_ram_raw_dout;
 
   function automatic logic [31:0] avs_fill_level_word();
     logic [63:0] level;
@@ -294,24 +326,30 @@ module ring_buffer_cam_core #(
     return ptr + {{(ADDR_W_CONST-1){1'b0}}, 1'b1};
   endfunction
 
-  function automatic int unsigned count_snapshot(input logic [RING_BUFFER_N_ENTRY-1:0] snap);
-    int unsigned count;
-    count = 0;
-    for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
-      if (snap[i]) begin
-        count++;
+  function automatic logic [POP_COUNT_CHUNK_WIDTH_CONST-1:0] low_count_chunk(
+    input logic [RING_BUFFER_N_ENTRY-1:0] snap
+  );
+    logic [POP_COUNT_CHUNK_WIDTH_CONST-1:0] chunk;
+
+    chunk = '0;
+    for (int i = 0; i < POP_COUNT_CHUNK_WIDTH_CONST; i++) begin
+      if (i < RING_BUFFER_N_ENTRY) begin
+        chunk[i] = snap[i];
       end
     end
-    return count;
+    return chunk;
   endfunction
 
-  function automatic int find_next_snapshot(input logic [RING_BUFFER_N_ENTRY-1:0] snap);
-    for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
-      if (snap[i]) begin
-        return i;
-      end
+  function automatic logic [4:0] count_ones_16(
+    input logic [POP_COUNT_CHUNK_WIDTH_CONST-1:0] bits
+  );
+    logic [4:0] count;
+
+    count = '0;
+    for (int i = 0; i < POP_COUNT_CHUNK_WIDTH_CONST; i++) begin
+      count = count + {4'd0, bits[i]};
     end
-    return -1;
+    return count;
   endfunction
 
   function automatic logic [LOCK_SECTOR_BITS_CONST-1:0] addr_sector(
@@ -410,6 +448,46 @@ module ring_buffer_cam_core #(
     .usedw(pop_cmd_fifo_usedw_int)
   );
 
+  cam_lookup_m10k_sv #(
+    .KEY_WIDTH(CAM_KEY_WIDTH_CONST),
+    .N_ENTRY(RING_BUFFER_N_ENTRY),
+    .ADDR_WIDTH(ADDR_W_CONST)
+  ) main_cam (
+    .clock(i_clk),
+    .write_addr(cam_wr_addr[ADDR_W_CONST-1:0]),
+    .write_key(cam_wr_data[CAM_KEY_WIDTH_CONST-1:0]),
+    .write_bit(cam_wr_en && !cam_erase_en),
+    .write_enable(cam_wr_en || cam_erase_en),
+    .read_key(pop_current_sk[CAM_KEY_WIDTH_CONST-1:0]),
+    .match_addr(cam_match_addr_oh)
+  );
+
+  cam_primitive_m10k_sv #(
+    .DATA_WIDTH(40),
+    .ADDR_WIDTH(ADDR_W_CONST),
+    .DEPTH(RING_BUFFER_N_ENTRY)
+  ) side_hit_ram (
+    .clock(i_clk),
+    .write_addr(side_ram_waddr[ADDR_W_CONST-1:0]),
+    .write_data(side_ram_din),
+    .write_enable(side_ram_we),
+    .read_addr(side_ram_raddr[ADDR_W_CONST-1:0]),
+    .read_data(side_ram_raw_dout)
+  );
+
+  cam_primitive_m10k_sv #(
+    .DATA_WIDTH(SIDE_META_WIDTH_CONST),
+    .ADDR_WIDTH(ADDR_W_CONST),
+    .DEPTH(RING_BUFFER_N_ENTRY)
+  ) side_metadata_ram (
+    .clock(i_clk),
+    .write_addr(side_ram_waddr[ADDR_W_CONST-1:0]),
+    .write_data(side_meta_ram_din),
+    .write_enable(side_ram_we),
+    .read_addr(side_ram_raddr[ADDR_W_CONST-1:0]),
+    .read_data(side_meta_ram_dout)
+  );
+
   always_comb begin
     ingress_lane_match = lane_matches(
       asi_hit_type1_data,
@@ -452,7 +530,9 @@ module ring_buffer_cam_core #(
     push_write_req = in_payload_valid &&
       (run_state_cmd == RUN_RUNNING || run_state_cmd == RUN_TERMINATING) &&
       !csr_soft_reset_pulse;
-    push_erase_req = (push_state == PUSH_ERASING);
+    push_check_occupied = push_check_valid && side_ram_raw_dout[39];
+    push_erase_sk = hit_search_key(side_ram_raw_dout[38:0]);
+    push_erase_req = push_check_occupied;
     deassembly_fifo_rdack = push_write_grant;
   end
 
@@ -487,7 +567,7 @@ module ring_buffer_cam_core #(
     push_write_allowed = 1'b0;
     push_write_sector_locked = 1'b0;
     push_erase_sector_locked = 1'b0;
-    pop_sector_lock_mask = snapshot_sector_mask(pop_snapshot);
+    pop_sector_lock_mask = pop_snapshot_sector_mask;
 
     if (pop_issue_inflight || pop_output_pending || pop_emit_pending) begin
       pop_sector_lock_mask[
@@ -511,6 +591,7 @@ module ring_buffer_cam_core #(
     push_write_allowed =
       push_write_req &&
       !push_erase_req &&
+      !pop_erase_req &&
       !pop_flush_req &&
       (pop_engine_state != POP_SEARCHING) &&
       !push_write_sector_locked;
@@ -525,6 +606,7 @@ module ring_buffer_cam_core #(
     end else begin
       push_erase_grant =
         push_erase_req &&
+        !pop_erase_req &&
         (pop_engine_state != POP_SEARCHING) &&
         !push_erase_sector_locked;
       pop_erase_grant = pop_erase_req;
@@ -552,18 +634,23 @@ module ring_buffer_cam_core #(
     side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
     side_ram_din = {1'b1, in_hit_side};
     side_ram_raddr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
+    side_meta_ram_din = '0;
 
     if (push_write_grant) begin
       cam_wr_en = 1'b1;
       side_ram_we = 1'b1;
       side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, write_pointer};
       side_ram_din = {1'b1, in_hit_side};
+      side_meta_ram_din = {
+        deassembly_fifo_dout.metadata_valid,
+        deassembly_fifo_dout.metadata
+      };
     end
 
     if (push_erase_grant && !pop_erase_grant && !push_write_grant) begin
-      cam_erase_en = 1'b1;
+      cam_erase_en = (push_erase_sk != push_write_sk_reg);
       cam_wr_addr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
-      cam_wr_data = push_write_sk_reg;
+      cam_wr_data = push_erase_sk;
       side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, push_erase_addr_reg};
     end
 
@@ -580,11 +667,18 @@ module ring_buffer_cam_core #(
     end
 
     if (pop_flush_grant) begin
-      cam_erase_en = 1'b1;
+      cam_erase_en = !pop_flush_cam_done;
       cam_wr_addr = flush_cam_wraddr;
-      side_ram_we = 1'b1;
+      side_ram_we = !pop_flush_ram_done;
       side_ram_waddr = flush_ram_wraddr;
       side_ram_din = '0;
+      side_meta_ram_din = '0;
+    end
+
+    if (dbg_side_ram_patch_we) begin
+      side_ram_we = 1'b1;
+      side_ram_waddr = {{(16-ADDR_W_CONST){1'b0}}, dbg_side_ram_patch_addr};
+      side_ram_din = dbg_side_ram_patch_data;
     end
   end
 
@@ -688,17 +782,34 @@ module ring_buffer_cam_core #(
 
         if (run_state_cmd == RUN_PREPARING) begin
           run_mgmt_flush_memory_start <= 1'b1;
-          if (flush_cycle_count < FLUSH_CYCLES_CONST[15:0]) begin
-            flush_cycle_count <= flush_cycle_count + 16'd1;
-            flush_ram_wraddr <= flush_ram_wraddr + 16'd1;
-            flush_cam_wraddr <= flush_cam_wraddr + 16'd1;
-            flush_cam_wrdata <= flush_cam_wrdata + 16'd1;
+          if (!pop_flush_ram_done || !pop_flush_cam_done) begin
+            flush_cycle_count <= flush_cycle_count + {{(FLUSH_COUNT_W_CONST-1){1'b0}}, 1'b1};
             run_mgmt_flushed <= 1'b0;
             run_mgmt_flush_memory_done <= 1'b0;
             prep_ready_latched <= 1'b0;
+
+            if (!pop_flush_ram_done) begin
+              if (flush_ram_wraddr == 16'(RING_BUFFER_N_ENTRY - 1)) begin
+                pop_flush_ram_done <= 1'b1;
+              end else begin
+                flush_ram_wraddr <= flush_ram_wraddr + 16'd1;
+              end
+            end
+
+            if (!pop_flush_cam_done) begin
+              if (flush_cam_wrdata[CAM_KEY_WIDTH_CONST-1:0] ==
+                  CAM_KEY_WIDTH_CONST'(CAM_KEY_COUNT_CONST - 1)) begin
+                flush_cam_wrdata <= '0;
+                if (flush_cam_wraddr == 16'(RING_BUFFER_N_ENTRY - 1)) begin
+                  pop_flush_cam_done <= 1'b1;
+                end else begin
+                  flush_cam_wraddr <= flush_cam_wraddr + 16'd1;
+                end
+              end else begin
+                flush_cam_wrdata <= flush_cam_wrdata + 16'd1;
+              end
+            end
           end else if (!run_mgmt_flushed) begin
-            pop_flush_ram_done <= 1'b1;
-            pop_flush_cam_done <= 1'b1;
             run_mgmt_flush_memory_done <= 1'b1;
             run_mgmt_flushed <= 1'b1;
             prep_ready_latched <= 1'b0;
@@ -766,22 +877,20 @@ module ring_buffer_cam_core #(
     if (i_rst) begin
       for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
         slot_valid[i] <= 1'b0;
-        slot_hit[i] <= '0;
-        slot_metadata[i] <= '0;
-        slot_metadata_valid[i] <= 1'b0;
       end
       write_pointer <= '0;
       push_state <= PUSH_WRITING;
       push_write_sk_reg <= '0;
+      push_check_valid <= 1'b0;
       push_erase_addr_reg <= '0;
       overwritten_side_word <= '0;
-      side_ram_dout <= '0;
       pop_issue_addr_pending <= '0;
       pop_hit_pending <= '0;
       pop_metadata_pending <= '0;
       pop_metadata_valid_pending <= 1'b0;
       pop_occupied_pending <= 1'b0;
       pop_output_pending <= 1'b0;
+      pop_ram_read_pending <= 1'b0;
       debug_msg2 <= '0;
       debug_msg2.cam_clean <= 1'b1;
     end else begin
@@ -789,25 +898,23 @@ module ring_buffer_cam_core #(
         (debug_msg2.push_cnt == (debug_msg2.pop_cnt + debug_msg2.overwrite_cnt));
 
       if (csr_soft_reset_pulse ||
-          (run_state_cmd == RUN_PREPARING && flush_cycle_count == 16'd0)) begin
+          (run_state_cmd == RUN_PREPARING && flush_cycle_count == '0)) begin
         for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
           slot_valid[i] <= 1'b0;
-          slot_hit[i] <= '0;
-          slot_metadata[i] <= '0;
-          slot_metadata_valid[i] <= 1'b0;
         end
         write_pointer <= '0;
         push_state <= PUSH_WRITING;
         push_write_sk_reg <= '0;
+        push_check_valid <= 1'b0;
         push_erase_addr_reg <= '0;
         overwritten_side_word <= '0;
-        side_ram_dout <= '0;
         pop_issue_addr_pending <= '0;
         pop_hit_pending <= '0;
         pop_metadata_pending <= '0;
         pop_metadata_valid_pending <= 1'b0;
         pop_occupied_pending <= 1'b0;
         pop_output_pending <= 1'b0;
+        pop_ram_read_pending <= 1'b0;
         debug_msg2 <= '0;
         debug_msg2.cam_clean <= 1'b1;
       end else begin
@@ -830,36 +937,43 @@ module ring_buffer_cam_core #(
 
         if (dbg_side_ram_patch_we) begin
           slot_valid[dbg_side_ram_patch_addr] <= dbg_side_ram_patch_data[39];
-          slot_hit[dbg_side_ram_patch_addr] <= dbg_side_ram_patch_data[38:0];
+        end
+
+        if (push_check_valid) begin
+          overwritten_side_word <= side_ram_raw_dout;
+          if (!push_check_occupied || push_erase_grant) begin
+            push_check_valid <= 1'b0;
+            push_state <= PUSH_WRITING;
+          end else begin
+            push_state <= PUSH_ERASING;
+          end
         end
 
         if (push_write_grant) begin
-          overwritten_side_word <= {slot_valid[write_pointer], slot_hit[write_pointer]};
           push_write_sk_reg <= in_hit_sk;
           push_erase_addr_reg <= write_pointer;
+          push_check_valid <= 1'b1;
           slot_valid[write_pointer] <= 1'b1;
-          slot_hit[write_pointer] <= in_hit_side;
-          slot_metadata[write_pointer] <= deassembly_fifo_dout.metadata;
-          slot_metadata_valid[write_pointer] <= deassembly_fifo_dout.metadata_valid;
           write_pointer <= ptr_inc(write_pointer);
           debug_msg2.push_cnt <= debug_msg2.push_cnt + 64'd1;
-          push_state <= slot_valid[write_pointer] ? PUSH_ERASING : PUSH_WRITING;
         end else if (push_erase_grant) begin
           debug_msg2.overwrite_cnt <= debug_msg2.overwrite_cnt + 64'd1;
           push_state <= PUSH_WRITING;
         end
 
         if (pop_erase_grant) begin
-          side_ram_dout <= {slot_valid[pop_issue_addr[ADDR_W_CONST-1:0]],
-                            slot_hit[pop_issue_addr[ADDR_W_CONST-1:0]]};
           pop_issue_addr_pending <= pop_issue_addr;
-          pop_hit_pending <= slot_hit[pop_issue_addr[ADDR_W_CONST-1:0]];
-          pop_metadata_pending <= slot_metadata[pop_issue_addr[ADDR_W_CONST-1:0]];
-          pop_metadata_valid_pending <= slot_metadata_valid[pop_issue_addr[ADDR_W_CONST-1:0]];
-          pop_occupied_pending <= slot_valid[pop_issue_addr[ADDR_W_CONST-1:0]];
           slot_valid[pop_issue_addr[ADDR_W_CONST-1:0]] <= 1'b0;
-          slot_metadata_valid[pop_issue_addr[ADDR_W_CONST-1:0]] <= 1'b0;
           debug_msg2.pop_cnt <= debug_msg2.pop_cnt + 64'd1;
+          pop_ram_read_pending <= 1'b1;
+        end
+
+        if (pop_ram_read_pending) begin
+          pop_hit_pending <= side_ram_raw_dout[38:0];
+          pop_metadata_pending <= side_meta_ram_dout[63:0];
+          pop_metadata_valid_pending <= side_meta_ram_dout[64];
+          pop_occupied_pending <= side_ram_raw_dout[39];
+          pop_ram_read_pending <= 1'b0;
           pop_output_pending <= 1'b1;
         end else if (pop_hit_valid) begin
           pop_output_pending <= 1'b0;
@@ -876,6 +990,12 @@ module ring_buffer_cam_core #(
     if (i_rst) begin
       pop_engine_state <= POP_IDLING;
       pop_snapshot <= '0;
+      pop_snapshot_sector_mask <= '0;
+      pop_scan_mask <= '0;
+      pop_scan_addr <= '0;
+      pop_count_mask <= '0;
+      pop_count_chunk_idx <= '0;
+      pop_count_acc <= '0;
       pop_current_sk <= '0;
       pop_total_hits <= '0;
       pop_hits_count <= '0;
@@ -930,6 +1050,12 @@ module ring_buffer_cam_core #(
       if (csr_soft_reset_pulse) begin
         pop_engine_state <= POP_IDLING;
         pop_snapshot <= '0;
+        pop_snapshot_sector_mask <= '0;
+        pop_scan_mask <= '0;
+        pop_scan_addr <= '0;
+        pop_count_mask <= '0;
+        pop_count_chunk_idx <= '0;
+        pop_count_acc <= '0;
         pop_current_sk <= '0;
         pop_total_hits <= '0;
         pop_hits_count <= '0;
@@ -944,6 +1070,13 @@ module ring_buffer_cam_core #(
         pop_flush_req <= 1'b1;
         pop_pipeline_start <= 1'b0;
         subheader_gen_done <= 1'b0;
+        pop_snapshot <= '0;
+        pop_snapshot_sector_mask <= '0;
+        pop_scan_mask <= '0;
+        pop_scan_addr <= '0;
+        pop_count_mask <= '0;
+        pop_count_chunk_idx <= '0;
+        pop_count_acc <= '0;
         if (prep_ready_latched) begin
           pop_engine_state <= POP_IDLING;
         end
@@ -958,6 +1091,12 @@ module ring_buffer_cam_core #(
               pop_cmd_fifo_rdack <= 1'b1;
               pop_search_wait_cnt <= '0;
               pop_snapshot <= '0;
+              pop_snapshot_sector_mask <= '0;
+              pop_scan_mask <= '0;
+              pop_scan_addr <= '0;
+              pop_count_mask <= '0;
+              pop_count_chunk_idx <= '0;
+              pop_count_acc <= '0;
               pop_engine_state <= POP_SEARCHING;
             end
           end
@@ -966,41 +1105,53 @@ module ring_buffer_cam_core #(
               pop_search_wait_cnt <= pop_search_wait_cnt + 3'd1;
             end else begin
               logic [RING_BUFFER_N_ENTRY-1:0] snapshot_tmp;
-              int unsigned hit_count_tmp;
-              snapshot_tmp = '0;
-              for (int i = 0; i < RING_BUFFER_N_ENTRY; i++) begin
-                if (slot_valid[i] && hit_search_key(slot_hit[i]) == pop_current_sk[7:0]) begin
-                  snapshot_tmp[i] = 1'b1;
-                end
-              end
-              hit_count_tmp = count_snapshot(snapshot_tmp);
+              snapshot_tmp = cam_match_addr_oh & slot_valid;
               pop_snapshot <= snapshot_tmp;
-              pop_total_hits <= hit_count_tmp[15:0];
-              pop_hits_count <= hit_count_tmp[15:0];
+              pop_snapshot_sector_mask <= snapshot_sector_mask(snapshot_tmp);
+              pop_scan_mask <= snapshot_tmp;
+              pop_scan_addr <= '0;
+              pop_count_mask <= snapshot_tmp;
+              pop_count_chunk_idx <= '0;
+              pop_count_acc <= '0;
+              pop_total_hits <= '0;
+              pop_hits_count <= '0;
               dbg_pop_partition_pending <= |snapshot_tmp ? 4'hf : 4'h0;
               pop_engine_state <= POP_LOADING;
             end
           end
           POP_LOADING: begin
             dbg_pop_partition_load <= 4'hf;
-            dbg_pop_partition_result_valid <= 4'hf;
-            dbg_pop_partition_flag <= (pop_total_hits != 0) ? 4'hf : 4'h0;
-            dbg_pop_partition_has_more <= (pop_total_hits > 1) ? 4'hf : 4'h0;
+            dbg_pop_partition_result_valid <= '0;
+            dbg_pop_partition_flag <= '0;
+            dbg_pop_partition_has_more <= '0;
             pop_engine_state <= POP_COUNTING;
           end
           POP_COUNTING: begin
+            pop_count_acc <= pop_count_next;
+            pop_count_mask <= pop_count_mask >> POP_COUNT_CHUNK_WIDTH_CONST;
             dbg_pop_count_partition_idx <= dbg_pop_count_partition_idx + 2'd1;
-            if (pop_total_hits == 0) begin
-              aso_hit_type2_valid <= 1'b1;
-              aso_hit_type2_startofpacket <= 1'b1;
-              aso_hit_type2_endofpacket <= 1'b1;
-              aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
-              aso_hit_type2_data <= make_subheader(pop_current_sk[7:0], 8'd0);
-              pop_engine_state <= POP_RESETTING;
+            if (pop_count_chunk_idx ==
+                POP_COUNT_CHUNK_W_CONST'(POP_COUNT_CHUNKS_CONST - 1)) begin
+              pop_total_hits <= pop_count_next;
+              pop_hits_count <= pop_count_next;
+              dbg_pop_partition_result_valid <= 4'hf;
+              dbg_pop_partition_flag <= (pop_count_next != 16'd0) ? 4'hf : 4'h0;
+              dbg_pop_partition_has_more <= (pop_count_next > 16'd1) ? 4'hf : 4'h0;
+              if (pop_count_next == 16'd0) begin
+                aso_hit_type2_valid <= 1'b1;
+                aso_hit_type2_startofpacket <= 1'b1;
+                aso_hit_type2_endofpacket <= 1'b1;
+                aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
+                aso_hit_type2_data <= make_subheader(pop_current_sk[7:0], 8'd0);
+                pop_engine_state <= POP_RESETTING;
+              end else begin
+                pop_pipeline_start <= 1'b1;
+                subheader_gen_done <= 1'b0;
+                pop_scan_addr <= '0;
+                pop_engine_state <= POP_DRAINING;
+              end
             end else begin
-              pop_pipeline_start <= 1'b1;
-              subheader_gen_done <= 1'b0;
-              pop_engine_state <= POP_DRAINING;
+              pop_count_chunk_idx <= pop_count_chunk_idx + POP_COUNT_CHUNK_W_CONST'(1);
             end
           end
           POP_DRAINING: begin
@@ -1034,20 +1185,22 @@ module ring_buffer_cam_core #(
             end else if (pop_issue_inflight) begin
               pop_engine_state <= POP_DRAINING;
             end else begin
-              int next_addr;
-              next_addr = find_next_snapshot(pop_snapshot);
-              if (next_addr >= 0) begin
-                pop_issue_addr <= next_addr[15:0];
-                pop_snapshot[next_addr] <= 1'b0;
+              if (pop_hits_count != 16'd0 && pop_scan_mask[0]) begin
+                pop_issue_addr <= {{(16-ADDR_W_CONST){1'b0}}, pop_scan_addr};
                 if (pop_hits_count != 0) begin
                   pop_hits_count <= pop_hits_count - 16'd1;
                 end
                 pop_erase_req <= 1'b1;
                 pop_issue_inflight <= 1'b1;
                 dbg_pop_rr_idx <= dbg_pop_rr_idx + 2'd1;
-                dbg_pop_issue_partition_idx <= next_addr[ADDR_W_CONST-1 -: 2];
-              end else if (!pop_issue_inflight) begin
+                dbg_pop_issue_partition_idx <= pop_scan_addr[ADDR_W_CONST-1 -: 2];
+              end else if (pop_hits_count != 16'd0 &&
+                           pop_scan_addr == ADDR_W_CONST'(RING_BUFFER_N_ENTRY - 1)) begin
                 pop_engine_state <= POP_RESETTING;
+              end
+              if (pop_hits_count != 16'd0) begin
+                pop_scan_mask <= {1'b0, pop_scan_mask[RING_BUFFER_N_ENTRY-1:1]};
+                pop_scan_addr <= ptr_inc(pop_scan_addr);
               end
             end
           end
@@ -1055,6 +1208,12 @@ module ring_buffer_cam_core #(
             pop_pipeline_start <= 1'b0;
             subheader_gen_done <= 1'b0;
             pop_snapshot <= '0;
+            pop_snapshot_sector_mask <= '0;
+            pop_scan_mask <= '0;
+            pop_scan_addr <= '0;
+            pop_count_mask <= '0;
+            pop_count_chunk_idx <= '0;
+            pop_count_acc <= '0;
             pop_issue_inflight <= 1'b0;
             pop_emit_pending <= 1'b0;
             pop_hits_count <= '0;
