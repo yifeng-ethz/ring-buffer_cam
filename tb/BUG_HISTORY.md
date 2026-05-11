@@ -105,7 +105,7 @@ Historical formal note:
 | [BUG-065-R](#bug-065-r-global-pop-ownership-lock-backpressured-safe-push-traffic-in-the-sv-rbcam) | R | soft error | `occasional (high-rate nominal multi-channel traffic)` | fixed and verified in the SV sector-lock regression | 32-channel ASIC0 1 MHz/ch trace analysis on 2026-05-07, then directed `B090/B091/B130/B131/B133` overlap guards | `da80afbb` | Global pop ownership lock backpressured safe push traffic in the SV rbCAM |
 | [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
 | [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
-| [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `pending` | SV slot state inferred as fabric instead of Arria V M10K |
+| [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `da466e4` | SV slot state inferred as fabric instead of Arria V M10K |
 
 ## 2026-05-11
 
@@ -133,7 +133,7 @@ Historical formal note:
   - the requested `make -C ring-buffer_cam/tb/uvm smoke` target does not exist, so the SV p4 UVM directed smoke was run manually in `/tmp` without executing the Makefile cleanup recipes
   - directed SV p4 UVM passed `test_cfg_reset_defaults`, `test_cfg_rw_semantics`, `test_cfg_activity_counters`, `test_single_push_pop`, `test_same_key_burst_128`, `test_same_key_burst_256`, `test_sequential_keys`, `test_sector_lock_overlap`, and `test_overwrite_stress`
   - package fileset validated with `ip-make-ipx --source-directory=. --output=/tmp/rbcam_ipx_m10k_20260511_162305/ring_buffer_cam.ipx --thorough-descent`
-- Commit: pending
+- Commit: da466e4
 
 ## 2026-05-08
 
