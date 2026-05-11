@@ -1,10 +1,15 @@
-# ⚠️ SYN Report — ring_buffer_cam
+# SYN Report - ring_buffer_cam
 
 **Revision:** `ring_buffer_cam_syn_p4` &nbsp; **Date:** `2026-05-08` &nbsp;
 **Device:** `5AGXBA7D4F31C5` &nbsp; **Quartus:** `18.1.0 Build 625` &nbsp;
 **Evidence basis:** `ed41c983` + dirty worktree evidence refresh
 
-This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target as a timing reference, but it is not the feature-complete 26.2.10 sector-lock/accounting implementation. The Platform Designer package uses the SystemVerilog implementation (`rtl/sv_ver/`), which has its own standalone Quartus revision and does **not** close timing. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+This is the standalone Quartus synthesis, timing, resource, and gate-smoke report for `ring_buffer_cam`. The VHDL `P4` implementation (`rtl/vhd_ver/` plus `rtl/common/`) closes the requested target as a timing reference, but it is not the feature-complete 26.2.10 sector-lock/accounting implementation. The Platform Designer package uses the SystemVerilog implementation (`rtl/sv_ver/`), and the M10K-inferred SV standalone revision now closes the same `1.1x` signoff target. The top-level signoff dashboard is [`../doc/SIGNOFF.md`](../doc/SIGNOFF.md).
+
+Variant map:
+
+- VHDL timing-reference variant: [`ring_buffer_cam_syn_p4`](#timing-summary) resource and timing evidence remains in the sections below.
+- SV package variant: [`ring_buffer_cam_syn_sv_p4`](#sv-variant---ring_buffer_cam_syn_sv_p4-m10k-inferred) records the M10K-inferred closure used by the FEB v3 build.
 
 ## Build Intent
 
@@ -44,10 +49,10 @@ Signoff target:
 
 | status | model | setup WNS (ns) | setup TNS (ns) | hold WNS (ns) | hold TNS (ns) | Fmax |
 |:---:|---|---:|---:|---:|---:|---:|
-| ✅ | Slow 1100mV 85C | `+0.515` | `0.000` | `+0.314` | `0.000` | `147.97 MHz` |
-| ✅ | Slow 1100mV 0C | `+0.575` | `0.000` | `+0.288` | `0.000` | `149.30 MHz` |
-| ✅ | Fast 1100mV 85C | `+3.295` | `0.000` | `+0.187` | `0.000` | n/a |
-| ✅ | Fast 1100mV 0C | `+3.648` | `0.000` | `+0.171` | `0.000` | n/a |
+| PASS | Slow 1100mV 85C | `+0.515` | `0.000` | `+0.314` | `0.000` | `147.97 MHz` |
+| PASS | Slow 1100mV 0C | `+0.575` | `0.000` | `+0.288` | `0.000` | `149.30 MHz` |
+| PASS | Fast 1100mV 85C | `+3.295` | `0.000` | `+0.187` | `0.000` | n/a |
+| PASS | Fast 1100mV 0C | `+3.648` | `0.000` | `+0.171` | `0.000` | n/a |
 
 Result: **timing pass** at the required `1.1 x 125 MHz` signoff clock. Worst setup slack is `+0.515 ns`; worst hold slack is `+0.171 ns`.
 
@@ -67,11 +72,11 @@ Resource gate:
 
 | status | metric | value |
 |:---:|---|---:|
-| ✅ | estimate | `4000 ALMs` |
-| ✅ | max allowed with 50% bloat | `6000 ALMs` |
-| ✅ | actual | `2191 ALMs` |
-| ✅ | actual / estimate | `54.8%` |
-| ✅ | margin to max | `3809 ALMs` |
+| PASS | estimate | `4000 ALMs` |
+| PASS | max allowed with 50% bloat | `6000 ALMs` |
+| PASS | actual | `2191 ALMs` |
+| PASS | actual / estimate | `54.8%` |
+| PASS | margin to max | `3809 ALMs` |
 
 Result: **resource pass**. The fitted design is below the estimate and well below the `6000 ALM` bloat ceiling.
 
@@ -85,42 +90,48 @@ make -C tb/gate compare SAMPLE_CYCLES=500000
 
 | status | check | evidence |
 |:---:|---|---|
-| ✅ | RTL harness smoke | `RBCAM_SIGNATURE=0xfd448996`, `*** TEST PASSED ***` |
-| ✅ | regenerated gate netlist smoke | `RBCAM_SIGNATURE=0xac7007dc`, `*** TEST PASSED ***` |
-| ✅ | compare target | `PASS: ring_buffer_cam gate smoke benches passed` |
+| PASS | RTL harness smoke | `RBCAM_SIGNATURE=0xfd448996`, `*** TEST PASSED ***` |
+| PASS | regenerated gate netlist smoke | `RBCAM_SIGNATURE=0xac7007dc`, `*** TEST PASSED ***` |
+| PASS | compare target | `PASS: ring_buffer_cam gate smoke benches passed` |
 
 The gate model is the Quartus-generated functional gate netlist for this device family; exact RTL/gate signature equality is advisory in the existing harness and is not treated as the pass criterion.
 
-## SystemVerilog Standalone Check
+## SV Variant - ring_buffer_cam_syn_sv_p4 (M10K-inferred)
 
-A separate SV-only standalone revision was added and rerun:
+This section records the standalone signoff for the Platform Designer SV package payload. The VHDL timing-reference section above remains the historical comparison point.
+
+| item | value |
+|---|---|
+| Revision | `ring_buffer_cam_syn_sv_p4` |
+| Date | `2026-05-11` |
+| Commit | `ring-buffer_cam@0bfc501` (parent `c9b78872`) |
+| Evidence basis | `output_files/ring_buffer_cam_syn_sv_p4/ring_buffer_cam_syn_sv_p4.{fit,sta}.summary` |
+
+Command:
 
 ```bash
 SIGNOFF_REVISIONS=ring_buffer_cam_syn_sv_p4 bash syn/quartus/run_signoff.sh
 ```
 
-Compatibility fixes required for Quartus 18.1:
+Resource summary:
 
-- removed unsupported `SYSTEMVERILOG_INPUT_VERSION` from the SV QSF
-- rewrote function-result indexing and `inside` use in `rtl/sv_ver/ring_buffer_cam_core.sv` into Quartus-18.1-compatible forms
-- added deterministic reset for pop pending metadata registers; `FORMAL`-only FIFO memory clear is limited to formal filelists
+| item | value |
+|---|---:|
+| Logic utilization | `1,523 / 91,680 ALMs (2%)` |
+| Registers | `2,016` |
+| Block memory bits | `136,192` |
+| RAM blocks | `19 M10K` |
 
-SV timing/resource result:
+Timing at `1.1x` signoff `clk125` (`137.5 MHz` / `7.273 ns`):
 
-| status | item | value |
-|:---:|---|---:|
-| ❌ | slow 85C setup WNS / TNS | `-14.213 ns` / `-27107.488 ns` |
-| ❌ | slow 0C setup WNS / TNS | `-12.813 ns` / `-24005.229 ns` |
-| ❌ | fast 85C setup WNS / TNS | `-5.729 ns` / `-4735.457 ns` |
-| ❌ | fast 0C setup WNS / TNS | `-4.403 ns` / `-2947.427 ns` |
-| ✅ | worst hold slack | `+0.180 ns` |
-| ❌ | slow 85C Fmax | `46.54 MHz` |
-| ✅ | fitted ALMs | `4045` |
-| ✅ | ALM ceiling | `6000` max (`4000` estimate + 50% bloat) |
+| Status | Model | Setup WNS (ns) | Hold WNS (ns) |
+|:-:|---|---:|---:|
+| PASS | Slow 1100mV 85C | `+0.401` | `+0.258` |
+| PASS | Slow 1100mV 0C | `+0.608` | `+0.238` |
+| PASS | Fast 1100mV 85C | `+3.383` | `+0.163` |
+| PASS | Fast 1100mV 0C | `+3.705` | `+0.148` |
 
-Result: **the feature-complete SV package payload compiles, fits under the ALM bloat ceiling, and exports a gate netlist, but it fails the required `137.5 MHz` signoff clock.**
-
-The reason is structural, not just syntax: the SV core is much shorter than the VHDL implementation because it models resident storage with flat `slot_valid/slot_hit/slot_metadata` arrays and searches with full-depth procedural loops (`count_snapshot`, `find_next_snapshot`, and `snapshot_sector_mask`) instead of the VHDL `cam_mem_a5` + partitioned encoder + side-RAM architecture. That behavioral shape carries the current sector-lock/accounting behavior, but it is not timing-equivalent to the older VHDL P4 architecture.
+Verdict: **1.1x signoff PASS**. All four setup/hold corners are clean, and the storage maps to `19` M10K blocks.
 
 ## Flow Runtime
 
@@ -156,8 +167,8 @@ TimeQuest still reports the design as not fully constrained for setup/hold becau
 
 - This synthesis result does not close DV signoff; [`../tb/DV_REPORT.md`](../tb/DV_REPORT.md) remains red until the required 30 s simulator-time soaks `CROSS-125..CROSS-129` have qualifying real logs.
 - This synthesis result does not close formal signoff; [`../tb/FORMAL_PLAN.md`](../tb/FORMAL_PLAN.md) still lists `F-ML02/F-ML03` as open metadata-lineage formal blockers (`45/47` proven in the latest full attempt).
-- This standalone Quartus project signs off only the older VHDL `P4` timing-reference architecture. The Platform Designer package uses the feature-complete SystemVerilog implementation, which has UVM/static evidence but fails standalone timing closure.
+- This standalone Quartus project signs off the older VHDL `P4` timing-reference architecture and the M10K-inferred SV package synthesis variant. It does not by itself close integration DV or formal signoff.
 
 ## Result
 
-**⚠️ VHDL timing-reference synthesis/resource/gate-smoke PASS at `137.5 MHz` with `2191 ALMs`; feature-complete SV package synthesis remains timing-blocked at `-14.213 ns` setup WNS.**
+**VHDL timing-reference synthesis/resource/gate-smoke PASS at `137.5 MHz` with `2191 ALMs`; SV M10K-inferred package variant PASS at `137.5 MHz` with `1523 ALMs` and `19` M10K blocks.**
