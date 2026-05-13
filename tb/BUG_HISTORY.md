@@ -117,7 +117,7 @@ Historical formal note:
 - Symptom:
   - the board image restored the upstream `arb_hit_type0_supercore` route and moved hits through arb/histogram, but FEB egress packet framing did not close because the decoded subheader count was `256/257`
   - the standalone negative UVM repro with `N_SHD=256 EXPECTED_N_SHD=128` failed at the exact wrap point with `observed_key=128 expected_key=0`
-  - raw packet-format checking was added so the harness now validates SOP/EOP, type nibbles, reserved bits, K-character placement, and declared-vs-observed subframe sequence rather than only hit metadata
+  - raw packet-format checking was added so the harness now validates SOP/EOP, type nibbles, reserved bits, K-character placement, AVST channel sideband, and declared-vs-observed subframe sequence rather than only hit metadata
 - Root cause:
   - the SV rbCAM search-key and epoch mapping were hard-coded around the full 8-bit key window, effectively treating one frame epoch as 256 subheaders
   - the package exposed no `N_SHD` parameter to bind the SV implementation to the FEB frame assembly contract of 128 subheaders per frame
@@ -126,15 +126,16 @@ Historical formal note:
   - `state`: fixed and verified in standalone SV UVM; integration cosim packet format is clean for sampled RN.BASIC rows, while the full RN.BASIC aggregate still has a separate slice-2 OPQ-egress lifetime-bound failure
   - `mechanism`: add `N_SHD` to the SV top/core and Qsys package; map `tcc8n[10:4]` as the 128-subheader search key and `tcc8n[11]` as the epoch bit when `N_SHD=128`; validate legal `N_SHD` values in `_hw.tcl`; gate pop descriptor generation with `read_time_valid`
   - `before_fix_outcome`: `test_subframe_frame_count N_SHD=256 EXPECTED_N_SHD=128` reports the frame-count mismatch at key 128, matching the board's 256-subheader symptom class
-  - `after_fix_outcome`: `test_subframe_frame_count N_SHD=128 EXPECTED_N_SHD=128` passes with one completed lane frame, zero packet-format mismatches, and zero UVM errors; sampled cosim rows decode `subheader_count_min=128` and `subheader_count_max=128`
+  - `after_fix_outcome`: `test_subframe_frame_count N_SHD=128 EXPECTED_N_SHD=128` passes with one completed lane frame, one lookahead subheader into the next lane frame, zero packet-format mismatches, and zero UVM errors; sampled cosim rows decode `subheader_count_min=128` and `subheader_count_max=128`
   - `potential_hazard`: packet-format risk is low in SV simulation; board closure still requires regenerating/recompiling the FEB image with commit `80c74a2` included and recapturing FEB/OPQ STP on the same stimulus
   - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
 - Runtime / coverage context:
   - SV compile guard: `make -C tb/uvm compile RTL_IMPL=sv COV_ENABLE=0`
   - positive directed: `make -C tb/uvm run RTL_IMPL=sv COV_ENABLE=0 TEST=test_subframe_frame_count N_SHD=128 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW`
   - negative repro: `make -C tb/uvm run RTL_IMPL=sv COV_ENABLE=0 TEST=test_subframe_frame_count N_SHD=256 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW` returned the expected nonzero result with `observed_key=128 expected_key=0`
+  - SV smoke regression after packet-checker tightening: `make -C tb/uvm regress RTL_IMPL=sv SEEDS=1 COV_ENABLE=0 VERBOSITY=UVM_LOW` passed `13/13`
   - BASIC bucket: `make -C tb/uvm run_bucket_frame RTL_IMPL=sv COV_ENABLE=0 BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW`
-  - VHDL guard: `make -C tb/uvm compile RTL_IMPL=vhdl COV_ENABLE=0`; no VHDL functional RTL was changed
+  - VHDL guard: `make -C tb/uvm regress RTL_IMPL=vhdl SEEDS=1 COV_ENABLE=0 VERBOSITY=UVM_LOW` passed `10/11`; `test_overwrite_stress` failed with legacy pop-key/overwrite-accounting errors and `packet_format_mismatches=0`; no VHDL functional RTL was changed
   - cosim packet-format evidence: `REPORT/RN.BASIC.001/rdma_rxbuffer_summary.json`, `REPORT/RN.BASIC.130/rdma_rxbuffer_summary.json`, and `REPORT/RN.BASIC.194/rdma_rxbuffer_summary.json` each report `format=mu3e_wire_32le`, `frames_decoded=66`, `bad_frame_count=0`, and `subheader_count_min/max=128/128`
 - Commit: 80c74a2
 

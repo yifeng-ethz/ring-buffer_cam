@@ -57,6 +57,7 @@ class out_monitor extends uvm_monitor;
     clone.hit_index_in_epoch = item.hit_index_in_epoch;
     clone.hit_count_expected = item.hit_count_expected;
     clone.raw_data           = item.raw_data;
+    clone.avst_channel       = item.avst_channel;
     clone.sop                = item.sop;
     clone.eop                = item.eop;
     clone.error              = item.error;
@@ -107,6 +108,7 @@ class out_monitor extends uvm_monitor;
       if (vif.valid === 1'b1) begin
         item = ring_buffer_cam_pkg::out_seq_item::type_id::create("out_item");
         item.raw_data = vif.data;
+        item.avst_channel = vif.channel;
         item.sop      = vif.startofpacket;
         item.eop      = vif.endofpacket;
         item.error    = vif.error[0];

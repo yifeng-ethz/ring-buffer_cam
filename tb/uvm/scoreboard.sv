@@ -215,6 +215,10 @@ class scoreboard extends uvm_scoreboard;
     return next_key & frame_mask;
   endfunction
 
+  function automatic bit [3:0] expected_avst_channel();
+    return m_cfg.interleaving_index & 4'hf;
+  endfunction
+
   function void note_subframe_subheader(ring_buffer_cam_pkg::out_seq_item item);
     int unsigned expected_count;
 
@@ -297,6 +301,11 @@ class scoreboard extends uvm_scoreboard;
         "Subheader marker mismatch: raw=0x%09h marker=0x%02h expected=0x%02h",
         item.raw_data, item.raw_data[7:0], ring_buffer_cam_pkg::K237));
     end
+    if (item.avst_channel != expected_avst_channel()) begin
+      note_packet_format_error($sformatf(
+        "Subheader AVST channel mismatch: raw=0x%09h channel=%0d expected=%0d",
+        item.raw_data, item.avst_channel, expected_avst_channel()));
+    end
     if (item.eop && item.hit_count != 0) begin
       note_packet_format_error($sformatf(
         "Subheader asserts EOP with nonzero hit_count: raw=0x%09h hit_count=%0d",
@@ -319,6 +328,11 @@ class scoreboard extends uvm_scoreboard;
       note_packet_format_error($sformatf(
         "Data hit reserved bits [27:26] are nonzero: raw=0x%09h reserved=0x%0h",
         item.raw_data, item.raw_data[27:26]));
+    end
+    if (item.avst_channel != expected_avst_channel()) begin
+      note_packet_format_error($sformatf(
+        "Data hit AVST channel mismatch: raw=0x%09h channel=%0d expected=%0d",
+        item.raw_data, item.avst_channel, expected_avst_channel()));
     end
   endfunction
 
@@ -377,6 +391,10 @@ class scoreboard extends uvm_scoreboard;
 
   function int unsigned completed_lane_frames();
     return total_subframe_frames;
+  endfunction
+
+  function int unsigned active_lane_frame_subheaders();
+    return subframe_subheaders_seen;
   endfunction
 
   function void note_flush_reset();
@@ -808,13 +826,14 @@ class scoreboard extends uvm_scoreboard;
 
   function void report_phase(uvm_phase phase);
       `uvm_info("SCB", $sformatf(
-      "Summary: pushed=%0d popped=%0d remaining=%0d pending_drain=%0d overlap_evicted=%0d overlap_fallback=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d packet_format_mismatches=%0d completed_lane_frames=%0d accepted=%0d cache_miss_outputs=%0d",
+      "Summary: pushed=%0d popped=%0d remaining=%0d pending_drain=%0d overlap_evicted=%0d overlap_fallback=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d packet_format_mismatches=%0d completed_lane_frames=%0d active_lane_frame_subheaders=%0d accepted=%0d cache_miss_outputs=%0d",
       total_written, total_drained, remaining_entries(),
       pending_drain_entries(), overlap_evicted_entries(),
       total_overlap_fallback_hits,
       total_expected_overwrites, total_unexpected_outputs,
       total_subheaders, total_zero_hit_subheaders,
       total_packet_format_mismatches, total_subframe_frames,
+      subframe_subheaders_seen,
       total_ingress_accepted,
       total_cache_miss_outputs), UVM_LOW)
     `uvm_info("SCB", $sformatf(

@@ -16974,11 +16974,17 @@ class test_subframe_frame_count extends base_test;
       expected_lane_subheaders + 1,
       timeout_cycles,
       "test_subframe_frame_count frame-boundary wrap");
-    if (m_env.m_scb.completed_lane_frames() < 1) begin
+    if (m_env.m_scb.completed_lane_frames() != 1) begin
       `uvm_error("SUBFRAME_COUNT", $sformatf(
-        "Subframe frame checker did not complete a lane frame: completed=%0d expected_lane_subheaders=%0d n_shd=%0d",
+        "Subframe frame checker completed the wrong number of lane frames: completed=%0d expected_completed=1 expected_lane_subheaders=%0d n_shd=%0d",
         m_env.m_scb.completed_lane_frames(), expected_lane_subheaders,
         m_cfg.n_shd))
+    end
+    if (m_env.m_scb.active_lane_frame_subheaders() != 1) begin
+      `uvm_error("SUBFRAME_COUNT", $sformatf(
+        "Subframe frame checker did not observe the expected one-subheader lookahead into the next lane frame: active_lane_frame_subheaders=%0d expected=1 completed=%0d n_shd=%0d",
+        m_env.m_scb.active_lane_frame_subheaders(),
+        m_env.m_scb.completed_lane_frames(), m_cfg.n_shd))
     end
     if (m_env.m_scb.total_subframe_frame_mismatches != 0) begin
       `uvm_error("SUBFRAME_COUNT", $sformatf(

@@ -327,6 +327,7 @@ package ring_buffer_cam_pkg;
     int unsigned hit_index_in_epoch;
     int unsigned hit_count_expected;
     bit [35:0] raw_data;
+    bit [3:0]  avst_channel;
     bit        sop;
     bit        eop;
     bit        error;
