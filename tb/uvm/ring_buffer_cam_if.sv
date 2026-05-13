@@ -141,6 +141,8 @@ interface dut_debug_if (input logic clk, input logic rst);
   logic         deassembly_fifo_sclr;
   logic         pop_cmd_fifo_wrreq;
   logic         pop_cmd_fifo_rdack;
+  logic [8:0]   pop_cmd_fifo_din;
+  logic [8:0]   pop_cmd_fifo_dout;
   logic         pop_cmd_fifo_empty;
   logic [3:0]   pop_cmd_fifo_usedw;
   logic         deassembly_fifo_empty;
@@ -186,7 +188,8 @@ interface dut_debug_if (input logic clk, input logic rst);
           pop_partition_eval_stage0_valid, pop_last_hit_pending,
           pop_pipeline_start, pop_hit_valid, pop_cache_miss_pulse, subheader_gen_done,
           pop_cmd_fifo_sclr, deassembly_fifo_sclr,
-          pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack, pop_cmd_fifo_empty,
+          pop_cmd_fifo_wrreq, pop_cmd_fifo_rdack,
+          pop_cmd_fifo_din, pop_cmd_fifo_dout, pop_cmd_fifo_empty,
           pop_cmd_fifo_usedw, deassembly_fifo_empty, deassembly_fifo_full,
           deassembly_fifo_usedw, endofrun_seen, terminating_drain_done,
           run_mgmt_flushed, cam_clean, gts_counter_rst,

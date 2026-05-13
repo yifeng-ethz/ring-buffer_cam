@@ -12,6 +12,7 @@ if {$IP_DIR_IS_SCRIPT} {
 }
 
 set DEFAULT_SEARCH_KEY_WIDTH_CONST 8
+set DEFAULT_N_SHD_CONST             128
 set DEFAULT_RING_DEPTH_CONST       512
 set DEFAULT_SIDE_DATA_BITS_CONST   31
 set DEFAULT_INTERLEAVING_FACTOR_CONST 4
@@ -21,11 +22,11 @@ set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
 set DEFAULT_DEBUG_CONST            0
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            511
+set BUILD_DEFAULT_CONST            513
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    11
-set VERSION_DATE_DEFAULT_CONST     20260511
+set VERSION_PATCH_DEFAULT_CONST    12
+set VERSION_DATE_DEFAULT_CONST     20260513
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
@@ -119,6 +120,7 @@ set CSR_TABLE_HTML {<html><table border="1" width="100%">
 
 proc compute_derived_values {} {
     set search_key_width    [get_parameter_value SEARCH_KEY_WIDTH]
+    set n_shd               [get_parameter_value N_SHD]
     set ring_depth          [get_parameter_value RING_BUFFER_N_ENTRY]
     set side_data_bits      [get_parameter_value SIDE_DATA_BITS]
     set interleaving_factor [get_parameter_value INTERLEAVING_FACTOR]
@@ -167,7 +169,7 @@ proc compute_derived_values {} {
     set_parameter_value SIDE_STORE_BITS_DERIVED      $side_store_bits
 
     catch {
-        set_display_item_property sizing_html TEXT "<html><b>Derived sizing</b><br/>Global depth: <b>${ring_depth}</b> entries<br/>Partition depth: <b>${partition_depth}</b> entries per encoder slice<br/>Entry address width: <b>${entry_addr_w}</b> bits<br/>Partition address width: <b>${partition_addr_w}</b> bits<br/>Interleaving bits consumed from timestamp: <b>${interleaving_bits}</b><br/>Byte-aligned CAM storage: <b>${cam_store_bits}</b> bits<br/>Side-RAM storage: <b>${side_store_bits}</b> bits</html>"
+        set_display_item_property sizing_html TEXT "<html><b>Derived sizing</b><br/>Global depth: <b>${ring_depth}</b> entries<br/>Subheaders per frame: <b>${n_shd}</b><br/>Partition depth: <b>${partition_depth}</b> entries per encoder slice<br/>Entry address width: <b>${entry_addr_w}</b> bits<br/>Partition address width: <b>${partition_addr_w}</b> bits<br/>Interleaving bits consumed from timestamp: <b>${interleaving_bits}</b><br/>Byte-aligned CAM storage: <b>${cam_store_bits}</b> bits<br/>Side-RAM storage: <b>${side_store_bits}</b> bits</html>"
     }
     catch {
         set_display_item_property encoder_html TEXT "<html><b>Encoder operating point</b><br/>Leaf width: <b>${encoder_leaf_width}</b><br/>Pipeline stages: <b>${encoder_pipe_stages}</b><br/>The delivered default is <b>N_PARTITIONS=4</b> with <b>ENCODER_PIPE_STAGES=4</b> so the physical partition count matches the staged encoder depth. Presets keep <b>P2</b> and <b>P3</b> available for timing/resource trade studies.</html>"
@@ -185,6 +187,7 @@ proc validate {} {
     compute_derived_values
 
     set search_key_width    [get_parameter_value SEARCH_KEY_WIDTH]
+    set n_shd               [get_parameter_value N_SHD]
     set ring_depth          [get_parameter_value RING_BUFFER_N_ENTRY]
     set side_data_bits      [get_parameter_value SIDE_DATA_BITS]
     set interleaving_factor [get_parameter_value INTERLEAVING_FACTOR]
@@ -209,6 +212,12 @@ proc validate {} {
     if {$search_key_width < 1 || $search_key_width > 512} {
         send_message error "SEARCH_KEY_WIDTH must stay in the range 1..512."
     }
+    if {![is_power_of_two $n_shd]} {
+        send_message error "N_SHD must be a power of two."
+    }
+    if {$n_shd < 1 || $n_shd > 256} {
+        send_message error "N_SHD must stay in the range 1..256 because hit_type2 subheaders carry an 8-bit search-key field."
+    }
     if {$side_data_bits < 0 || $side_data_bits > 512} {
         send_message error "SIDE_DATA_BITS must stay in the range 0..512."
     }
@@ -217,6 +226,9 @@ proc validate {} {
     }
     if {$interleaving_factor < 1 || $interleaving_factor > 32} {
         send_message error "INTERLEAVING_FACTOR must stay in the range 1,2,4,8,16,32."
+    }
+    if {$interleaving_factor != 0 && $n_shd % $interleaving_factor != 0} {
+        send_message error "N_SHD must be divisible by INTERLEAVING_FACTOR so each lane emits an integer number of subheaders per frame."
     }
     if {$interleaving_index < 0 || $interleaving_index >= $interleaving_factor} {
         send_message error "INTERLEAVING_INDEX must stay in the range 0..INTERLEAVING_FACTOR-1."
@@ -297,6 +309,7 @@ proc elaborate {} {
     set_parameter_property VERSION_GIT ENABLED false
 
     set_parameter_property RING_BUFFER_N_ENTRY ALLOWED_RANGES {32 64 128 256 384 512 1024 2048 4096}
+    set_parameter_property N_SHD ALLOWED_RANGES {1 2 4 8 16 32 64 128 256}
     set_parameter_property INTERLEAVING_FACTOR ALLOWED_RANGES {1 2 4 8 16 32}
     set_parameter_property INTERLEAVING_INDEX ALLOWED_RANGES 0:$interleaving_index_max
     set_parameter_property N_PARTITIONS ALLOWED_RANGES {1 2 4 8}
@@ -322,6 +335,13 @@ set_parameter_property SEARCH_KEY_WIDTH DISPLAY_NAME "Search Key Width"
 set_parameter_property SEARCH_KEY_WIDTH UNITS Bits
 set_parameter_property SEARCH_KEY_WIDTH HDL_PARAMETER true
 set_parameter_property SEARCH_KEY_WIDTH DESCRIPTION {Bit width of the CAM search key. The default 8-bit key corresponds to timestamp[11:4].}
+
+add_parameter N_SHD NATURAL $DEFAULT_N_SHD_CONST
+set_parameter_property N_SHD DISPLAY_NAME "Subheaders Per Frame"
+set_parameter_property N_SHD UNITS None
+set_parameter_property N_SHD ALLOWED_RANGES {1 2 4 8 16 32 64 128 256}
+set_parameter_property N_SHD HDL_PARAMETER true
+set_parameter_property N_SHD DESCRIPTION "Number of timestamp subheaders in one rbCAM frame. The default 128 maps the emitted search key to tcc8n[10:4] and uses tcc8n[11] as the epoch bit."
 
 add_parameter RING_BUFFER_N_ENTRY NATURAL $DEFAULT_RING_DEPTH_CONST
 set_parameter_property RING_BUFFER_N_ENTRY DISPLAY_NAME "Ring Depth"
@@ -450,6 +470,7 @@ add_display_item $TAB_CONFIGURATION "Advanced" GROUP
 
 add_html_text "Overview" overview_html "<html><b>Function</b><br/>This IP stores timestamp-tagged hits in a ring-buffer shaped CAM and drains them in timestamp order. The delivered release keeps the established Avalon-MM and Avalon-ST system contract, uses the active partitioned V2 core, and adds the common CSR identity header at words <b>0</b> and <b>1</b>.<br/><br/><b>Clocking</b><br/>All interfaces run inside a single synchronous domain shared by CSR, ingress, pop control, ordered egress, and fill-level monitoring.</html>"
 add_display_item "Sizing" SEARCH_KEY_WIDTH parameter
+add_display_item "Sizing" N_SHD parameter
 add_display_item "Sizing" RING_BUFFER_N_ENTRY parameter
 add_display_item "Sizing" SIDE_DATA_BITS parameter
 add_html_text "Sizing" sizing_html "<html><b>Derived sizing</b><br/>Updated by the validation callback.</html>"

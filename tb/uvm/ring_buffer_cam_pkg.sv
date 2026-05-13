@@ -9,6 +9,7 @@ package ring_buffer_cam_pkg;
 
   // ── DUT parameters (must match top-level generics) ────────────
   parameter int SEARCH_KEY_WIDTH    = 8;
+  parameter int N_SHD               = 128;
   parameter int RING_BUFFER_N_ENTRY = 512;
   parameter int SIDE_DATA_BITS      = 31;
   parameter int INTERLEAVING_FACTOR = 4;
@@ -58,9 +59,11 @@ package ring_buffer_cam_pkg;
     bit          filter_inerr     = 1;
     bit          go               = 1;
     bit          endofrun_seen    = 0;
+    bit          enable_subframe_frame_check = 0;
     run_state_e  run_state        = RUN_STATE_IDLE;
     int unsigned interleaving_factor = INTERLEAVING_FACTOR;
     int unsigned interleaving_index  = INTERLEAVING_INDEX;
+    int unsigned n_shd            = N_SHD;
     int unsigned ring_buffer_n_entry = RING_BUFFER_N_ENTRY;
     int unsigned n_partitions     = N_PARTITIONS;
     int unsigned encoder_leaf_width = ENCODER_LEAF_WIDTH;
@@ -75,11 +78,38 @@ package ring_buffer_cam_pkg;
       filter_inerr     = 1;
       go               = 1;
       endofrun_seen    = 0;
+      enable_subframe_frame_check = 0;
       run_state        = RUN_STATE_IDLE;
     endfunction
 
+    function int unsigned n_shd_key_bits();
+      int unsigned bits;
+      int unsigned limit;
+
+      bits = 0;
+      limit = 1;
+      while (limit < n_shd) begin
+        bits++;
+        limit <<= 1;
+      end
+      return bits;
+    endfunction
+
+    function bit [7:0] search_key_from_tcc8n(logic [12:0] tcc8n);
+      bit [7:0] search_key;
+      bit [7:0] search_mask;
+
+      search_key = tcc8n[11:4];
+      search_mask = n_shd - 1;
+      return search_key & search_mask;
+    endfunction
+
+    function bit search_epoch_bit_from_tcc8n(logic [12:0] tcc8n);
+      return tcc8n[4 + n_shd_key_bits()];
+    endfunction
+
     function int unsigned lane_key_ord_to_search_key(int unsigned key_ord);
-      return (key_ord * interleaving_factor) + interleaving_index;
+      return ((key_ord * interleaving_factor) + interleaving_index) & (n_shd - 1);
     endfunction
 
     function logic [12:0] make_tcc8n_for_lane_key(
@@ -89,10 +119,12 @@ package ring_buffer_cam_pkg;
     );
       logic [12:0] tcc8n;
       int unsigned sk;
+      int unsigned epoch_bit;
       sk = lane_key_ord_to_search_key(key_ord);
+      epoch_bit = 4 + n_shd_key_bits();
       tcc8n = '0;
       tcc8n[11:4] = sk[7:0];
-      tcc8n[12]   = ts12;
+      tcc8n[epoch_bit] = ts12;
       tcc8n[3:0]  = ts_low;
       return tcc8n;
     endfunction
@@ -224,13 +256,16 @@ package ring_buffer_cam_pkg;
     rand bit        metadata_valid;
 
     // Search key is ts[11:4], which is the CAM compare value and the
-    // low 8 bits of the emitted subheader search-key epoch.
+    // low 8 bits of the emitted subheader search-key epoch for default N_SHD.
     function bit [7:0] search_key();
-      return tcc8n[11:4];
+      bit [7:0] search_mask;
+
+      search_mask = N_SHD - 1;
+      return tcc8n[11:4] & search_mask;
     endfunction
 
     function bit [8:0] search_epoch();
-      return tcc8n[12:4];
+      return {tcc8n[4 + $clog2(N_SHD)], search_key()};
     endfunction
 
     function logic [38:0] pack_hit();

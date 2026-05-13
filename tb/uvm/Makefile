@@ -44,6 +44,8 @@ VERBOSITY ?= UVM_MEDIUM
 LOG_TAG ?=
 PLUSARGS ?=
 RING_BUFFER_N_ENTRY ?= 512
+N_SHD ?= 128
+EXPECTED_N_SHD ?= $(N_SHD)
 INTERLEAVING_FACTOR ?= 4
 INTERLEAVING_INDEX ?= 0
 RTL_VARIANT ?= default_p2_pipe4
@@ -158,6 +160,7 @@ DIRECTED_TESTS = \
 
 ifeq ($(RTL_IMPL),sv)
 DIRECTED_TESTS += \
+  test_subframe_frame_count \
   test_sector_lock_overlap
 endif
 
@@ -228,6 +231,8 @@ run: compile
 	  $(if $(UVM_DPI_LIB),-dpicpppath $(DPI_CPP) -sv_lib $(UVM_DPI_LIB)) \
 	  -usenonstdcoveragesavesysf \
 	  -gG_RING_BUFFER_N_ENTRY=$(RING_BUFFER_N_ENTRY) \
+	  -gG_N_SHD=$(N_SHD) \
+	  -gG_EXPECTED_N_SHD=$(EXPECTED_N_SHD) \
 	  -gG_INTERLEAVING_FACTOR=$(INTERLEAVING_FACTOR) \
 	  -gG_INTERLEAVING_INDEX=$(INTERLEAVING_INDEX) \
 	  -gG_N_PARTITIONS=$(N_PARTITIONS) \

@@ -78,6 +78,8 @@ class debug_monitor extends uvm_monitor;
   logic        pop_last_hit_pending;
   logic        pop_cmd_fifo_sclr;
   logic        deassembly_fifo_sclr;
+  logic [8:0]  pop_cmd_fifo_din;
+  logic [8:0]  pop_cmd_fifo_dout;
   logic [47:0] expected_latency_48b;
   logic [47:0] read_time_ptr;
   logic [47:0] gts_8n;
@@ -152,6 +154,8 @@ class debug_monitor extends uvm_monitor;
     pop_last_hit_pending = '0;
     pop_cmd_fifo_sclr = '0;
     deassembly_fifo_sclr = '0;
+    pop_cmd_fifo_din = '0;
+    pop_cmd_fifo_dout = '0;
     expected_latency_48b = '0;
     read_time_ptr = '0;
     gts_8n = '0;
@@ -226,6 +230,8 @@ class debug_monitor extends uvm_monitor;
       pop_last_hit_pending = vif.pop_last_hit_pending;
       pop_cmd_fifo_sclr   = vif.pop_cmd_fifo_sclr;
       deassembly_fifo_sclr = vif.deassembly_fifo_sclr;
+      pop_cmd_fifo_din    = vif.pop_cmd_fifo_din;
+      pop_cmd_fifo_dout   = vif.pop_cmd_fifo_dout;
       expected_latency_48b = vif.expected_latency_48b;
       read_time_ptr       = vif.read_time_ptr;
       gts_8n              = vif.gts_8n;
@@ -273,10 +279,27 @@ class debug_monitor extends uvm_monitor;
           vif.ingress_error === 1'b1)
         ingress_error_accept_count++;
 
-      if (vif.pop_cmd_fifo_wrreq === 1'b1)
+      if (vif.pop_cmd_fifo_wrreq === 1'b1) begin
         pop_cmd_wrreq_count++;
-      if (vif.pop_cmd_fifo_rdack === 1'b1)
+        if ($test$plusargs("RBCAM_TRACE_POP")) begin
+          `uvm_info("DBG_POP", $sformatf(
+            "pop_cmd_wrreq din=0x%03h key=%0d epoch=%0d read_time=0x%012h gts=0x%012h usedw=%0d run=%0d pop_state=%0d",
+            vif.pop_cmd_fifo_din, vif.pop_cmd_fifo_din[7:0],
+            vif.pop_cmd_fifo_din[8], vif.read_time_ptr, vif.gts_8n,
+            vif.pop_cmd_fifo_usedw, vif.run_state_code,
+            vif.pop_engine_state_code), UVM_LOW)
+        end
+      end
+      if (vif.pop_cmd_fifo_rdack === 1'b1) begin
         pop_cmd_rdack_count++;
+        if ($test$plusargs("RBCAM_TRACE_POP")) begin
+          `uvm_info("DBG_POP", $sformatf(
+            "pop_cmd_rdack dout=0x%03h key=%0d epoch=%0d usedw=%0d run=%0d pop_state=%0d",
+            vif.pop_cmd_fifo_dout, vif.pop_cmd_fifo_dout[7:0],
+            vif.pop_cmd_fifo_dout[8], vif.pop_cmd_fifo_usedw,
+            vif.run_state_code, vif.pop_engine_state_code), UVM_LOW)
+        end
+      end
       if (vif.push_write_grant === 1'b1)
         push_write_grant_count++;
       if (vif.push_erase_grant === 1'b1)

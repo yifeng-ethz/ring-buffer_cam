@@ -34,9 +34,9 @@ class base_test extends uvm_test;
 `ifdef RBCAM_SV_IMPL
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0033;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0031;
-  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd10;
-  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd507;
-  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260507;
+  localparam logic [3:0]  EXPECTED_VERSION_PATCH_CONST = 4'd12;
+  localparam logic [11:0] EXPECTED_VERSION_BUILD_CONST = 12'd513;
+  localparam logic [31:0] EXPECTED_VERSION_DATE_CONST  = 32'd20260513;
 `else
   localparam logic [31:0] EXPECTED_CTRL_MASK_CONST     = 32'h0000_0013;
   localparam logic [31:0] EXPECTED_CTRL_ALL_ONES_CONST = 32'h0000_0011;
@@ -57,6 +57,7 @@ class base_test extends uvm_test;
     super.build_phase(phase);
     m_cfg = ring_buffer_cam_pkg::ring_buffer_cam_cfg::type_id::create("cfg");
     void'(uvm_config_db#(int unsigned)::get(this, "", "ring_buffer_n_entry", m_cfg.ring_buffer_n_entry));
+    void'(uvm_config_db#(int unsigned)::get(this, "", "n_shd", m_cfg.n_shd));
     void'(uvm_config_db#(int unsigned)::get(this, "", "interleaving_factor", m_cfg.interleaving_factor));
     void'(uvm_config_db#(int unsigned)::get(this, "", "interleaving_index", m_cfg.interleaving_index));
     void'(uvm_config_db#(int unsigned)::get(this, "", "n_partitions", m_cfg.n_partitions));
@@ -6761,6 +6762,25 @@ class base_test extends uvm_test;
     `uvm_error("TIMEOUT", $sformatf(
       "Timed out waiting for %s after %0d cycles: seen=%0d target=%0d",
       what, max_cycles, m_env.m_out_mon.total_subheaders_seen, target_count))
+  endtask
+
+  task automatic wait_for_completed_lane_frames(
+    int unsigned target_count,
+    int unsigned max_cycles = 50_000,
+    string what = "lane-frame completion"
+  );
+    int unsigned cycles;
+    cycles = 0;
+    while (cycles < max_cycles) begin
+      if (m_env.m_scb.completed_lane_frames() >= target_count) begin
+        return;
+      end
+      @(posedge m_env.m_csr_drv.vif.clk);
+      cycles++;
+    end
+    `uvm_error("TIMEOUT", $sformatf(
+      "Timed out waiting for %s after %0d cycles: seen=%0d target=%0d",
+      what, max_cycles, m_env.m_scb.completed_lane_frames(), target_count))
   endtask
 
   task automatic wait_for_hit_output_count(
@@ -16929,6 +16949,42 @@ class test_sequential_keys extends base_test;
     seq.start_key    = 4;
     seq.start(m_env.m_hit_seqr);
     wait_for_scoreboard_idle(80_000, "test_sequential_keys");
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class test_subframe_frame_count extends base_test;
+  `uvm_component_utils(test_subframe_frame_count)
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  task run_phase(uvm_phase phase);
+    int unsigned timeout_cycles;
+    int unsigned expected_lane_subheaders;
+
+    phase.raise_objection(this);
+    wait_for_reset_release();
+    configure_and_start();
+    m_cfg.enable_subframe_frame_check = 1'b1;
+    expected_lane_subheaders = m_cfg.n_shd / m_cfg.interleaving_factor;
+    timeout_cycles = (m_cfg.n_shd * 80) + 20_000;
+    wait_for_subheader_count(
+      expected_lane_subheaders + 1,
+      timeout_cycles,
+      "test_subframe_frame_count frame-boundary wrap");
+    if (m_env.m_scb.completed_lane_frames() < 1) begin
+      `uvm_error("SUBFRAME_COUNT", $sformatf(
+        "Subframe frame checker did not complete a lane frame: completed=%0d expected_lane_subheaders=%0d n_shd=%0d",
+        m_env.m_scb.completed_lane_frames(), expected_lane_subheaders,
+        m_cfg.n_shd))
+    end
+    if (m_env.m_scb.total_subframe_frame_mismatches != 0) begin
+      `uvm_error("SUBFRAME_COUNT", $sformatf(
+        "Subframe frame checker reported %0d mismatches for n_shd=%0d",
+        m_env.m_scb.total_subframe_frame_mismatches, m_cfg.n_shd))
+    end
     phase.drop_objection(this);
   endtask
 endclass

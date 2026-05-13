@@ -1,11 +1,12 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.11
-// Date    : 20260511
-// Change  : move CAM lookup and side storage into inferred Arria V M10K RAMs
+// Version : 26.2.12
+// Date    : 20260513
+// Change  : add N_SHD-controlled subframe key/epoch mapping
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
+  parameter int N_SHD               = 128,
   parameter int RING_BUFFER_N_ENTRY = 512,
   parameter int SIDE_DATA_BITS      = 31,
   parameter int INTERLEAVING_FACTOR = 4,
@@ -16,9 +17,9 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 11,
-  parameter int BUILD               = 511,
-  parameter int VERSION_DATE        = 20260511,
+  parameter int VERSION_PATCH       = 12,
+  parameter int BUILD               = 513,
+  parameter int VERSION_DATE        = 20260513,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
   parameter int DEBUG               = 0
@@ -76,6 +77,7 @@ module ring_buffer_cam_core #(
     (ADDR_W_CONST - LOCK_SECTOR_BITS_CONST) : 0;
   localparam int CAM_KEY_WIDTH_CONST    = 8;
   localparam int CAM_KEY_COUNT_CONST    = 1 << CAM_KEY_WIDTH_CONST;
+  localparam int N_SHD_KEY_BITS_CONST   = (N_SHD <= 1) ? 0 : $clog2(N_SHD);
   localparam int CAM_FLUSH_CYCLES_CONST = RING_BUFFER_N_ENTRY * CAM_KEY_COUNT_CONST;
   localparam int FLUSH_COUNT_W_CONST    =
     (CAM_FLUSH_CYCLES_CONST <= 2) ? 1 : $clog2(CAM_FLUSH_CYCLES_CONST + 1);
@@ -100,6 +102,29 @@ module ring_buffer_cam_core #(
   } deasm_word_t;
   localparam int DEASM_WORD_BITS_CONST = $bits(deasm_word_t);
 
+  function automatic logic [7:0] tcc8n_search_key_local(input logic [12:0] tcc8n);
+    logic [7:0] search_key;
+    logic [7:0] search_mask;
+
+    search_key = tcc8n[SK_LO_CONST +: CAM_KEY_WIDTH_CONST];
+    search_mask = N_SHD - 1;
+    return search_key & search_mask;
+  endfunction
+
+  function automatic logic [8:0] tcc8n_search_epoch_local(input logic [12:0] tcc8n);
+    return {tcc8n[SK_LO_CONST + N_SHD_KEY_BITS_CONST], tcc8n_search_key_local(tcc8n)};
+  endfunction
+
+  function automatic logic [8:0] read_time_search_epoch_local(input logic [47:0] read_time);
+    logic [7:0] search_key;
+    logic [7:0] search_mask;
+
+    search_key = read_time[SK_LO_CONST +: CAM_KEY_WIDTH_CONST];
+    search_mask = N_SHD - 1;
+    search_key &= search_mask;
+    return {read_time[SK_LO_CONST + N_SHD_KEY_BITS_CONST], search_key};
+  endfunction
+
   typedef enum logic [1:0] {
     PUSH_WRITING = 2'd0,
     PUSH_ERASING = 2'd1
@@ -120,6 +145,7 @@ module ring_buffer_cam_core #(
   logic [47:0] expected_latency_48b;
   logic [47:0] read_time_ptr;
   logic [47:0] read_time_ptr_comb;
+  logic read_time_valid;
   logic [47:0] gts_8n;
   logic [47:0] gts_end_of_run;
   logic gts_counter_rst;
@@ -289,7 +315,7 @@ module ring_buffer_cam_core #(
   };
   assign aso_filllevel_valid = 1'b1;
   assign aso_filllevel_data = fill_level_word[15:0];
-  assign pop_hit_pending_epoch = hit_search_epoch(pop_hit_pending);
+  assign pop_hit_pending_epoch = tcc8n_search_epoch_local(hit_tcc8n(pop_hit_pending));
   assign pop_count_chunk_vec = low_count_chunk(pop_count_mask);
   assign pop_count_chunk_hits = count_ones_16(pop_count_chunk_vec);
   assign pop_count_next = pop_count_acc + {11'd0, pop_count_chunk_hits};
@@ -526,18 +552,19 @@ module ring_buffer_cam_core #(
     in_payload_valid = !deassembly_fifo_empty;
     in_hit_side = deassembly_fifo_dout.hit_word[38:0];
     in_hit_ts8n = hit_tcc8n(deassembly_fifo_dout.hit_word[38:0]);
-    in_hit_sk = hit_search_key(deassembly_fifo_dout.hit_word[38:0]);
+    in_hit_sk = tcc8n_search_key_local(hit_tcc8n(deassembly_fifo_dout.hit_word[38:0]));
     push_write_req = in_payload_valid &&
       (run_state_cmd == RUN_RUNNING || run_state_cmd == RUN_TERMINATING) &&
       !csr_soft_reset_pulse;
     push_check_occupied = push_check_valid && side_ram_raw_dout[39];
-    push_erase_sk = hit_search_key(side_ram_raw_dout[38:0]);
+    push_erase_sk = tcc8n_search_key_local(hit_tcc8n(side_ram_raw_dout[38:0]));
     push_erase_req = push_check_occupied;
     deassembly_fifo_rdack = push_write_grant;
   end
 
   always_comb begin
-    if (gts_8n >= expected_latency_48b) begin
+    read_time_valid = (gts_8n >= expected_latency_48b);
+    if (read_time_valid) begin
       read_time_ptr_comb = gts_8n - expected_latency_48b;
     end else begin
       read_time_ptr_comb = 48'd1;
@@ -550,12 +577,13 @@ module ring_buffer_cam_core #(
     pop_cmd_tick_due =
       (run_state_cmd == RUN_RUNNING ||
        (run_state_cmd == RUN_TERMINATING && !terminating_drain_done)) &&
+      read_time_valid &&
       read_time_ptr[3:0] == 4'h0 &&
       read_time_ptr[5:4] == INTERLEAVING_INDEX[1:0];
     pop_cmd_full_drop_event = pop_cmd_tick_due && pop_cmd_fifo_full;
     if (pop_cmd_tick_due && !pop_cmd_fifo_full) begin
       pop_cmd_fifo_wrreq = 1'b1;
-      pop_cmd_fifo_din = read_time_ptr[12:4];
+      pop_cmd_fifo_din = read_time_search_epoch_local(read_time_ptr);
     end
   end
 

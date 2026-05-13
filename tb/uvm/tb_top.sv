@@ -14,6 +14,8 @@ module tb_top;
 
   // ── Parameters (override via vsim -g) ─────────────────────────
   parameter int G_RING_BUFFER_N_ENTRY  = 512;
+  parameter int G_N_SHD                = 128;
+  parameter int G_EXPECTED_N_SHD       = G_N_SHD;
   parameter int G_INTERLEAVING_FACTOR  = 4;
   parameter int G_INTERLEAVING_INDEX   = 0;
   parameter int G_N_PARTITIONS         = 2;
@@ -52,6 +54,9 @@ module tb_top;
   // ── DUT (VHDL entity via mixed-language instantiation) ────────
   ring_buffer_cam #(
     .SEARCH_KEY_WIDTH    (8),
+`ifdef RBCAM_SV_IMPL
+    .N_SHD               (G_N_SHD),
+`endif
     .RING_BUFFER_N_ENTRY (G_RING_BUFFER_N_ENTRY),
     .SIDE_DATA_BITS      (31),
     .INTERLEAVING_FACTOR (G_INTERLEAVING_FACTOR),
@@ -194,6 +199,8 @@ module tb_top;
     dbg_if.deassembly_fifo_sclr = dut.v2_core.deassembly_fifo_sclr;
     dbg_if.pop_cmd_fifo_wrreq  = dut.v2_core.pop_cmd_fifo_wrreq;
     dbg_if.pop_cmd_fifo_rdack  = dut.v2_core.pop_cmd_fifo_rdack;
+    dbg_if.pop_cmd_fifo_din    = dut.v2_core.pop_cmd_fifo_din;
+    dbg_if.pop_cmd_fifo_dout   = dut.v2_core.pop_cmd_fifo_dout;
     dbg_if.pop_cmd_fifo_empty  = dut.v2_core.pop_cmd_fifo_empty;
     dbg_if.pop_cmd_fifo_usedw  = dut.v2_core.pop_cmd_fifo_usedw;
     dbg_if.deassembly_fifo_empty = dut.v2_core.deassembly_fifo_empty;
@@ -230,6 +237,7 @@ module tb_top;
   // ── UVM config_db wiring ──────────────────────────────────────
   initial begin
     uvm_config_db#(int unsigned)::set(null, "*", "ring_buffer_n_entry", G_RING_BUFFER_N_ENTRY);
+    uvm_config_db#(int unsigned)::set(null, "*", "n_shd", G_EXPECTED_N_SHD);
     uvm_config_db#(int unsigned)::set(null, "*", "interleaving_factor", G_INTERLEAVING_FACTOR);
     uvm_config_db#(int unsigned)::set(null, "*", "interleaving_index", G_INTERLEAVING_INDEX);
     uvm_config_db#(int unsigned)::set(null, "*", "n_partitions", G_N_PARTITIONS);

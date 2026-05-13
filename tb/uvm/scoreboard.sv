@@ -42,6 +42,9 @@ class scoreboard extends uvm_scoreboard;
   int unsigned total_subheaders;
   int unsigned total_zero_hit_subheaders;
   int unsigned total_subheader_mismatches;
+  int unsigned total_packet_format_mismatches;
+  int unsigned total_subframe_frames;
+  int unsigned total_subframe_frame_mismatches;
   int unsigned current_remaining;
   bit          allow_nonempty_end;
   int unsigned allowed_remaining_at_end;
@@ -58,6 +61,9 @@ class scoreboard extends uvm_scoreboard;
   hit_fingerprint_t overlap_evicted_q[$];
   int unsigned total_overlap_fallback_hits;
   int unsigned total_pop_observations;
+  bit          subframe_sequence_active;
+  bit [7:0]    subframe_expected_key;
+  int unsigned subframe_subheaders_seen;
 
   bit          epoch_active;
   bit [7:0]    active_search_key;
@@ -75,12 +81,18 @@ class scoreboard extends uvm_scoreboard;
     total_subheaders = 0;
     total_zero_hit_subheaders = 0;
     total_subheader_mismatches = 0;
+    total_packet_format_mismatches = 0;
+    total_subframe_frames = 0;
+    total_subframe_frame_mismatches = 0;
     current_remaining = 0;
     allow_nonempty_end = 1'b0;
     allowed_remaining_at_end = 0;
     max_remaining_seen = 0;
     total_overlap_fallback_hits = 0;
     total_pop_observations = 0;
+    subframe_sequence_active = 1'b0;
+    subframe_expected_key = '0;
+    subframe_subheaders_seen = 0;
     epoch_active = 1'b0;
     active_search_key = '0;
     active_expected_hits = 0;
@@ -100,7 +112,7 @@ class scoreboard extends uvm_scoreboard;
 
   function hit_fingerprint_t item_to_fp(ring_buffer_cam_pkg::hit_seq_item item);
     hit_fingerprint_t fp;
-    fp.search_key = item.search_key();
+    fp.search_key = m_cfg.search_key_from_tcc8n(item.tcc8n);
     fp.et1n6      = item.et1n6;
     fp.ts50p      = {item.tcc1n6, item.tfine};
     fp.asic       = item.asic;
@@ -187,6 +199,129 @@ class scoreboard extends uvm_scoreboard;
     return item.is_subheader && ((item.hit_count != 0) || !item.eop);
   endfunction
 
+  function automatic int unsigned lane_subheaders_per_frame();
+    if (m_cfg.interleaving_factor == 0) begin
+      return 0;
+    end
+    return m_cfg.n_shd / m_cfg.interleaving_factor;
+  endfunction
+
+  function automatic bit [7:0] next_lane_search_key(bit [7:0] search_key);
+    bit [7:0] next_key;
+    bit [7:0] frame_mask;
+
+    frame_mask = m_cfg.n_shd - 1;
+    next_key = search_key + m_cfg.interleaving_factor[7:0];
+    return next_key & frame_mask;
+  endfunction
+
+  function void note_subframe_subheader(ring_buffer_cam_pkg::out_seq_item item);
+    int unsigned expected_count;
+
+    expected_count = lane_subheaders_per_frame();
+    if ($test$plusargs("RBCAM_TRACE_SUBFRAME")) begin
+      `uvm_info("SCB_FRAME_TRACE", $sformatf(
+        "subheader raw=0x%09h key=%0d hit_count=%0d sop=%0b eop=%0b expected_key=%0d seen_in_lane_frame=%0d completed_lane_frames=%0d n_shd=%0d",
+        item.raw_data, item.search_key, item.hit_count, item.sop, item.eop,
+        subframe_expected_key, subframe_subheaders_seen,
+        total_subframe_frames, m_cfg.n_shd), UVM_LOW)
+    end
+    if (expected_count == 0) begin
+      total_subframe_frame_mismatches++;
+      `uvm_error("SCB_FRAME", $sformatf(
+        "Illegal N_SHD/interleaving configuration: n_shd=%0d interleaving_factor=%0d",
+        m_cfg.n_shd, m_cfg.interleaving_factor))
+      return;
+    end
+
+    if ((item.search_key % m_cfg.interleaving_factor) != m_cfg.interleaving_index) begin
+      total_subframe_frame_mismatches++;
+      `uvm_error("SCB_FRAME", $sformatf(
+        "Subheader key is not lane-matched: key=%0d interleaving_index=%0d interleaving_factor=%0d",
+        item.search_key, m_cfg.interleaving_index, m_cfg.interleaving_factor))
+    end
+
+    if (!subframe_sequence_active) begin
+      subframe_sequence_active = 1'b1;
+      subframe_expected_key = item.search_key;
+      subframe_subheaders_seen = 0;
+    end
+
+    if (item.search_key != subframe_expected_key) begin
+      total_subframe_frame_mismatches++;
+      `uvm_error("SCB_FRAME", $sformatf(
+        "Subheader frame sequence mismatch: observed_key=%0d expected_key=%0d seen_in_lane_frame=%0d expected_lane_frame_count=%0d n_shd=%0d",
+        item.search_key, subframe_expected_key, subframe_subheaders_seen,
+        expected_count, m_cfg.n_shd))
+      subframe_expected_key = item.search_key;
+      subframe_subheaders_seen = 0;
+    end
+
+    subframe_subheaders_seen++;
+    subframe_expected_key = next_lane_search_key(item.search_key);
+    if (subframe_subheaders_seen == expected_count) begin
+      total_subframe_frames++;
+      subframe_subheaders_seen = 0;
+    end else if (subframe_subheaders_seen > expected_count) begin
+      total_subframe_frame_mismatches++;
+      `uvm_error("SCB_FRAME", $sformatf(
+        "Too many lane subheaders in frame: observed=%0d expected=%0d n_shd=%0d",
+        subframe_subheaders_seen, expected_count, m_cfg.n_shd))
+      subframe_subheaders_seen = 0;
+    end
+  endfunction
+
+  function void note_packet_format_error(string msg);
+    total_packet_format_mismatches++;
+    `uvm_error("SCB_PKT", msg)
+  endfunction
+
+  function void check_subheader_packet_format(ring_buffer_cam_pkg::out_seq_item item);
+    if (!item.sop) begin
+      note_packet_format_error($sformatf(
+        "Subheader missing SOP: raw=0x%09h key=%0d hit_count=%0d eop=%0b",
+        item.raw_data, item.search_key, item.hit_count, item.eop));
+    end
+    if (item.raw_data[35:32] != 4'h1) begin
+      note_packet_format_error($sformatf(
+        "Subheader byte_is_k/type mismatch: raw=0x%09h observed=0x%0h expected=0x1",
+        item.raw_data, item.raw_data[35:32]));
+    end
+    if (item.raw_data[23:16] != 8'h00) begin
+      note_packet_format_error($sformatf(
+        "Subheader reserved byte is nonzero: raw=0x%09h reserved=0x%02h",
+        item.raw_data, item.raw_data[23:16]));
+    end
+    if (item.raw_data[7:0] != ring_buffer_cam_pkg::K237) begin
+      note_packet_format_error($sformatf(
+        "Subheader marker mismatch: raw=0x%09h marker=0x%02h expected=0x%02h",
+        item.raw_data, item.raw_data[7:0], ring_buffer_cam_pkg::K237));
+    end
+    if (item.eop && item.hit_count != 0) begin
+      note_packet_format_error($sformatf(
+        "Subheader asserts EOP with nonzero hit_count: raw=0x%09h hit_count=%0d",
+        item.raw_data, item.hit_count));
+    end
+  endfunction
+
+  function void check_hit_packet_format(ring_buffer_cam_pkg::out_seq_item item);
+    if (item.sop) begin
+      note_packet_format_error($sformatf(
+        "Data hit illegally asserts SOP: raw=0x%09h active_key=%0d",
+        item.raw_data, item.active_search_key));
+    end
+    if (item.raw_data[35:32] != 4'h0) begin
+      note_packet_format_error($sformatf(
+        "Data hit byte_is_k/type mismatch: raw=0x%09h observed=0x%0h expected=0x0",
+        item.raw_data, item.raw_data[35:32]));
+    end
+    if (item.raw_data[27:26] != 2'b00) begin
+      note_packet_format_error($sformatf(
+        "Data hit reserved bits [27:26] are nonzero: raw=0x%09h reserved=0x%0h",
+        item.raw_data, item.raw_data[27:26]));
+    end
+  endfunction
+
   function void update_peak_residency();
     int unsigned remaining;
     bit [7:0] search_key;
@@ -240,6 +375,10 @@ class scoreboard extends uvm_scoreboard;
     return !epoch_active;
   endfunction
 
+  function int unsigned completed_lane_frames();
+    return total_subframe_frames;
+  endfunction
+
   function void note_flush_reset();
     for (int i = 0; i < slot_model.size(); i++) begin
       slot_model[i].valid = 1'b0;
@@ -253,6 +392,9 @@ class scoreboard extends uvm_scoreboard;
     total_subheaders = 0;
     total_zero_hit_subheaders = 0;
     total_subheader_mismatches = 0;
+    total_packet_format_mismatches = 0;
+    total_subframe_frames = 0;
+    total_subframe_frame_mismatches = 0;
     max_remaining_seen = 0;
     current_remaining = 0;
     allow_nonempty_end = 1'b0;
@@ -269,6 +411,9 @@ class scoreboard extends uvm_scoreboard;
     overlap_evicted_q.delete();
     total_overlap_fallback_hits = 0;
     total_pop_observations = 0;
+    subframe_sequence_active = 1'b0;
+    subframe_expected_key = '0;
+    subframe_subheaders_seen = 0;
     clear_epoch();
   endfunction
 
@@ -290,7 +435,7 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
     total_ingress_accepted++;
-    key = item.search_key();
+    key = m_cfg.search_key_from_tcc8n(item.tcc8n);
     if (!total_ingress_accepted_by_key.exists(key)) begin
       total_ingress_accepted_by_key[key] = 0;
     end
@@ -299,7 +444,7 @@ class scoreboard extends uvm_scoreboard;
 
   function hit_fingerprint_t debug_item_to_fp(ring_buffer_cam_pkg::debug_push_item item);
     hit_fingerprint_t fp;
-    fp.search_key = item.search_key();
+    fp.search_key = m_cfg.search_key_from_tcc8n(item.tcc8n());
     fp.et1n6      = item.raw_hit[ring_buffer_cam_pkg::ET1N6_HI:ring_buffer_cam_pkg::ET1N6_LO];
     fp.ts50p      = item.raw_hit[ring_buffer_cam_pkg::TCC1N6_HI:ring_buffer_cam_pkg::TFINE_LO];
     fp.asic       = item.raw_hit[ring_buffer_cam_pkg::ASIC_HI:ring_buffer_cam_pkg::ASIC_LO];
@@ -309,7 +454,8 @@ class scoreboard extends uvm_scoreboard;
 
   function hit_fingerprint_t debug_pop_item_to_fp(ring_buffer_cam_pkg::debug_pop_item item);
     hit_fingerprint_t fp;
-    fp.search_key = item.raw_hit[ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO] >> 4;
+    fp.search_key = m_cfg.search_key_from_tcc8n(
+      item.raw_hit[ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO]);
     fp.et1n6      = item.raw_hit[ring_buffer_cam_pkg::ET1N6_HI:ring_buffer_cam_pkg::ET1N6_LO];
     fp.ts50p      = item.raw_hit[ring_buffer_cam_pkg::TCC1N6_HI:ring_buffer_cam_pkg::TFINE_LO];
     fp.asic       = item.raw_hit[ring_buffer_cam_pkg::ASIC_HI:ring_buffer_cam_pkg::ASIC_LO];
@@ -477,6 +623,10 @@ class scoreboard extends uvm_scoreboard;
       end
 
       total_subheaders++;
+      check_subheader_packet_format(item);
+      if (m_cfg.enable_subframe_frame_check) begin
+        note_subframe_subheader(item);
+      end
       epoch_active = 1'b1;
       active_search_key = item.search_key;
       active_expected_hits = item.hit_count;
@@ -495,6 +645,7 @@ class scoreboard extends uvm_scoreboard;
       return;
     end
 
+    check_hit_packet_format(item);
     total_drained++;
     if (!epoch_active) begin
       total_unexpected_outputs++;
@@ -640,16 +791,31 @@ class scoreboard extends uvm_scoreboard;
         total_drained, total_unexpected_outputs))
     end
 
+    if (m_cfg.enable_subframe_frame_check &&
+        total_subframe_frame_mismatches != 0) begin
+      `uvm_error("SCB_FRAME", $sformatf(
+        "Observed %0d subheader frame/sequence mismatches",
+        total_subframe_frame_mismatches))
+    end
+
+    if (total_packet_format_mismatches != 0) begin
+      `uvm_error("SCB_PKT", $sformatf(
+        "Observed %0d packet-format mismatches",
+        total_packet_format_mismatches))
+    end
+
   endfunction
 
   function void report_phase(uvm_phase phase);
       `uvm_info("SCB", $sformatf(
-      "Summary: pushed=%0d popped=%0d remaining=%0d pending_drain=%0d overlap_evicted=%0d overlap_fallback=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d accepted=%0d cache_miss_outputs=%0d",
+      "Summary: pushed=%0d popped=%0d remaining=%0d pending_drain=%0d overlap_evicted=%0d overlap_fallback=%0d overwrites=%0d unexpected=%0d subheaders=%0d zero_hit_subheaders=%0d packet_format_mismatches=%0d completed_lane_frames=%0d accepted=%0d cache_miss_outputs=%0d",
       total_written, total_drained, remaining_entries(),
       pending_drain_entries(), overlap_evicted_entries(),
       total_overlap_fallback_hits,
       total_expected_overwrites, total_unexpected_outputs,
-      total_subheaders, total_zero_hit_subheaders, total_ingress_accepted,
+      total_subheaders, total_zero_hit_subheaders,
+      total_packet_format_mismatches, total_subframe_frames,
+      total_ingress_accepted,
       total_cache_miss_outputs), UVM_LOW)
     `uvm_info("SCB", $sformatf(
       "Pressure: max_remaining=%0d ring_depth=%0d",
