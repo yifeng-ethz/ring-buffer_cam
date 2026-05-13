@@ -341,7 +341,7 @@ set_parameter_property N_SHD DISPLAY_NAME "Subheaders Per Frame"
 set_parameter_property N_SHD UNITS None
 set_parameter_property N_SHD ALLOWED_RANGES {1 2 4 8 16 32 64 128 256}
 set_parameter_property N_SHD HDL_PARAMETER true
-set_parameter_property N_SHD DESCRIPTION "Number of timestamp subheaders in one rbCAM frame. The default 128 maps the emitted search key to tcc8n[10:4] and uses tcc8n[11] as the epoch bit."
+set_parameter_property N_SHD DESCRIPTION {Number of timestamp subheaders in one rbCAM frame. The default 128 maps the emitted search key to tcc8n[10:4] and uses tcc8n[11] as the epoch bit.}
 
 add_parameter RING_BUFFER_N_ENTRY NATURAL $DEFAULT_RING_DEPTH_CONST
 set_parameter_property RING_BUFFER_N_ENTRY DISPLAY_NAME "Ring Depth"
