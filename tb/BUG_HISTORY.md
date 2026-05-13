@@ -106,6 +106,37 @@ Historical formal note:
 | [BUG-066-R](#bug-066-r-sv-deassembly-fifo-dropped-debug-metadata-lineage-under-queued-push-service) | R | soft error | `common (any nominal traffic with deassembly FIFO residency)` | fixed and verified in ASIC0 full32 post-rbCAM sweep | 32-channel ASIC0 10 kHz/ch post-rbCAM integration trace after the SV swap on 2026-05-07 | `3086685e` | SV deassembly FIFO dropped debug metadata lineage under queued push service |
 | [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
 | [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `da466e4` | SV slot state inferred as fabric instead of Arria V M10K |
+| [BUG-069-R](#bug-069-r-sv-subframe-key-mapping-assumed-256-subheaders-per-frame) | R | signoff block | `common (FEB frame assembly with 128 subheaders per frame)` | fixed and verified in standalone SV UVM plus RN.BASIC cosim packet-format decode | pulserdrop FEB egress STP on 2026-05-13 decoded `256/257` subheaders instead of `128` | `80c74a2` | SV subframe key mapping assumed 256 subheaders per frame |
+
+## 2026-05-13
+
+### BUG-069-R: SV subframe key mapping assumed 256 subheaders per frame
+- Severity: `signoff block`
+- Encounter sim-time: `directed N_SHD repro; failure at the first expected 128-subheader wrap`
+- First seen in: pulserdrop FEB egress STP on 2026-05-13 decoded frames with `256` or `257` subheaders instead of the `128` expected by FEB/SWB frame assembly
+- Symptom:
+  - the board image restored the upstream `arb_hit_type0_supercore` route and moved hits through arb/histogram, but FEB egress packet framing did not close because the decoded subheader count was `256/257`
+  - the standalone negative UVM repro with `N_SHD=256 EXPECTED_N_SHD=128` failed at the exact wrap point with `observed_key=128 expected_key=0`
+  - raw packet-format checking was added so the harness now validates SOP/EOP, type nibbles, reserved bits, K-character placement, and declared-vs-observed subframe sequence rather than only hit metadata
+- Root cause:
+  - the SV rbCAM search-key and epoch mapping were hard-coded around the full 8-bit key window, effectively treating one frame epoch as 256 subheaders
+  - the package exposed no `N_SHD` parameter to bind the SV implementation to the FEB frame assembly contract of 128 subheaders per frame
+  - trace-level debug also found an initial pop descriptor emitted before `gts_8n >= expected_latency`, duplicating key 0 before the first legal delayed read time
+- Fix status:
+  - `state`: fixed and verified in standalone SV UVM; integration cosim packet format is clean for sampled RN.BASIC rows, while the full RN.BASIC aggregate still has a separate slice-2 OPQ-egress lifetime-bound failure
+  - `mechanism`: add `N_SHD` to the SV top/core and Qsys package; map `tcc8n[10:4]` as the 128-subheader search key and `tcc8n[11]` as the epoch bit when `N_SHD=128`; validate legal `N_SHD` values in `_hw.tcl`; gate pop descriptor generation with `read_time_valid`
+  - `before_fix_outcome`: `test_subframe_frame_count N_SHD=256 EXPECTED_N_SHD=128` reports the frame-count mismatch at key 128, matching the board's 256-subheader symptom class
+  - `after_fix_outcome`: `test_subframe_frame_count N_SHD=128 EXPECTED_N_SHD=128` passes with one completed lane frame, zero packet-format mismatches, and zero UVM errors; sampled cosim rows decode `subheader_count_min=128` and `subheader_count_max=128`
+  - `potential_hazard`: packet-format risk is low in SV simulation; board closure still requires regenerating/recompiling the FEB image with commit `80c74a2` included and recapturing FEB/OPQ STP on the same stimulus
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - SV compile guard: `make -C tb/uvm compile RTL_IMPL=sv COV_ENABLE=0`
+  - positive directed: `make -C tb/uvm run RTL_IMPL=sv COV_ENABLE=0 TEST=test_subframe_frame_count N_SHD=128 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW`
+  - negative repro: `make -C tb/uvm run RTL_IMPL=sv COV_ENABLE=0 TEST=test_subframe_frame_count N_SHD=256 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW` returned the expected nonzero result with `observed_key=128 expected_key=0`
+  - BASIC bucket: `make -C tb/uvm run_bucket_frame RTL_IMPL=sv COV_ENABLE=0 BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW`
+  - VHDL guard: `make -C tb/uvm compile RTL_IMPL=vhdl COV_ENABLE=0`; no VHDL functional RTL was changed
+  - cosim packet-format evidence: `REPORT/RN.BASIC.001/rdma_rxbuffer_summary.json`, `REPORT/RN.BASIC.130/rdma_rxbuffer_summary.json`, and `REPORT/RN.BASIC.194/rdma_rxbuffer_summary.json` each report `format=mu3e_wire_32le`, `frames_decoded=66`, `bad_frame_count=0`, and `subheader_count_min/max=128/128`
+- Commit: 80c74a2
 
 ## 2026-05-11
 
