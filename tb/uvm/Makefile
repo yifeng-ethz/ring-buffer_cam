@@ -161,6 +161,7 @@ DIRECTED_TESTS = \
 ifeq ($(RTL_IMPL),sv)
 DIRECTED_TESTS += \
   test_subframe_frame_count \
+  test_subframe_highbit_hit_timestamp \
   test_sector_lock_overlap
 endif
 

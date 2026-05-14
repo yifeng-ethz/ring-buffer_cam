@@ -14,6 +14,8 @@ class scoreboard extends uvm_scoreboard;
 
   typedef struct packed {
     bit [7:0] search_key;
+    bit [7:0] subheader_key;
+    bit [3:0] ts_3_0;
     bit [8:0] et1n6;
     bit [7:0] ts50p;
     bit [3:0] asic;
@@ -113,6 +115,8 @@ class scoreboard extends uvm_scoreboard;
   function hit_fingerprint_t item_to_fp(ring_buffer_cam_pkg::hit_seq_item item);
     hit_fingerprint_t fp;
     fp.search_key = m_cfg.search_key_from_tcc8n(item.tcc8n);
+    fp.subheader_key = m_cfg.subheader_key_from_tcc8n(item.tcc8n);
+    fp.ts_3_0     = item.tcc8n[3:0];
     fp.et1n6      = item.et1n6;
     fp.ts50p      = {item.tcc1n6, item.tfine};
     fp.asic       = item.asic;
@@ -122,7 +126,8 @@ class scoreboard extends uvm_scoreboard;
 
   function bit output_matches_fp(ring_buffer_cam_pkg::out_seq_item item, hit_fingerprint_t fp);
     return
-      fp.search_key == item.active_search_key &&
+      fp.subheader_key == item.active_search_key &&
+      fp.ts_3_0     == item.ts_3_0 &&
       fp.et1n6      == item.et1n6 &&
       fp.ts50p      == item.ts50p &&
       fp.asic       == item.asic &&
@@ -132,6 +137,8 @@ class scoreboard extends uvm_scoreboard;
   function bit fp_matches(hit_fingerprint_t lhs, hit_fingerprint_t rhs);
     return
       lhs.search_key == rhs.search_key &&
+      lhs.subheader_key == rhs.subheader_key &&
+      lhs.ts_3_0     == rhs.ts_3_0 &&
       lhs.et1n6      == rhs.et1n6 &&
       lhs.ts50p      == rhs.ts50p &&
       lhs.asic       == rhs.asic &&
@@ -207,12 +214,10 @@ class scoreboard extends uvm_scoreboard;
   endfunction
 
   function automatic bit [7:0] next_lane_search_key(bit [7:0] search_key);
-    bit [7:0] next_key;
-    bit [7:0] frame_mask;
+    bit [8:0] next_key;
 
-    frame_mask = m_cfg.n_shd - 1;
-    next_key = search_key + m_cfg.interleaving_factor[7:0];
-    return next_key & frame_mask;
+    next_key = {1'b0, search_key} + m_cfg.interleaving_factor[7:0];
+    return next_key[7:0];
   endfunction
 
   function automatic bit [3:0] expected_avst_channel();
@@ -254,7 +259,7 @@ class scoreboard extends uvm_scoreboard;
     if (item.search_key != subframe_expected_key) begin
       total_subframe_frame_mismatches++;
       `uvm_error("SCB_FRAME", $sformatf(
-        "Subheader frame sequence mismatch: observed_key=%0d expected_key=%0d seen_in_lane_frame=%0d expected_lane_frame_count=%0d n_shd=%0d",
+        "Subheader byte sequence mismatch: observed_key=%0d expected_key=%0d seen_in_lane_frame=%0d expected_lane_frame_count=%0d n_shd=%0d",
         item.search_key, subframe_expected_key, subframe_subheaders_seen,
         expected_count, m_cfg.n_shd))
       subframe_expected_key = item.search_key;
@@ -463,6 +468,8 @@ class scoreboard extends uvm_scoreboard;
   function hit_fingerprint_t debug_item_to_fp(ring_buffer_cam_pkg::debug_push_item item);
     hit_fingerprint_t fp;
     fp.search_key = m_cfg.search_key_from_tcc8n(item.tcc8n());
+    fp.subheader_key = m_cfg.subheader_key_from_tcc8n(item.tcc8n());
+    fp.ts_3_0     = item.tcc8n()[3:0];
     fp.et1n6      = item.raw_hit[ring_buffer_cam_pkg::ET1N6_HI:ring_buffer_cam_pkg::ET1N6_LO];
     fp.ts50p      = item.raw_hit[ring_buffer_cam_pkg::TCC1N6_HI:ring_buffer_cam_pkg::TFINE_LO];
     fp.asic       = item.raw_hit[ring_buffer_cam_pkg::ASIC_HI:ring_buffer_cam_pkg::ASIC_LO];
@@ -474,6 +481,9 @@ class scoreboard extends uvm_scoreboard;
     hit_fingerprint_t fp;
     fp.search_key = m_cfg.search_key_from_tcc8n(
       item.raw_hit[ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO]);
+    fp.subheader_key = m_cfg.subheader_key_from_tcc8n(
+      item.raw_hit[ring_buffer_cam_pkg::TCC8N_HI:ring_buffer_cam_pkg::TCC8N_LO]);
+    fp.ts_3_0     = item.raw_hit[ring_buffer_cam_pkg::TCC8N_LO + 3:ring_buffer_cam_pkg::TCC8N_LO];
     fp.et1n6      = item.raw_hit[ring_buffer_cam_pkg::ET1N6_HI:ring_buffer_cam_pkg::ET1N6_LO];
     fp.ts50p      = item.raw_hit[ring_buffer_cam_pkg::TCC1N6_HI:ring_buffer_cam_pkg::TFINE_LO];
     fp.asic       = item.raw_hit[ring_buffer_cam_pkg::ASIC_HI:ring_buffer_cam_pkg::ASIC_LO];
@@ -572,10 +582,10 @@ class scoreboard extends uvm_scoreboard;
     end
 
     pop_fp = debug_pop_item_to_fp(item);
-    if (item.active_search_key != pop_fp.search_key) begin
+    if (item.active_search_key != pop_fp.subheader_key) begin
       `uvm_error("SCB", $sformatf(
-        "Pop-side key mismatch at slot %0d: pop_current_sk=%0d raw_hit_key=%0d occupied=%0b pop_count=%0d",
-        slot_addr, item.active_search_key, pop_fp.search_key,
+        "Pop-side subheader byte mismatch at slot %0d: pop_current_sk=%0d raw_hit_subheader=%0d cam_key=%0d occupied=%0b pop_count=%0d",
+        slot_addr, item.active_search_key, pop_fp.subheader_key, pop_fp.search_key,
         item.occupied, item.pop_count))
     end
     model_match_idx = -1;

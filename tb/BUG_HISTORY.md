@@ -107,6 +107,35 @@ Historical formal note:
 | [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
 | [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `da466e4` | SV slot state inferred as fabric instead of Arria V M10K |
 | [BUG-069-R](#bug-069-r-sv-subframe-key-mapping-assumed-256-subheaders-per-frame) | R | signoff block | `common (FEB frame assembly with 128 subheaders per frame)` | fixed and verified in standalone SV UVM plus RN.BASIC cosim packet-format decode | pulserdrop FEB egress STP on 2026-05-13 decoded `256/257` subheaders instead of `128` | `80c74a2` | SV subframe key mapping assumed 256 subheaders per frame |
+| [BUG-070-R](#bug-070-r-sv-nshd128-masking-dropped-the-subheader-timestamp-high-bit) | R | signoff block | `common (every odd 128-subheader frame)` | fixed and verified in standalone SV UVM plus focused RN.BASIC cosim | post-`BUG-069` N_SHD=128 audit on 2026-05-14 | `pending` | SV N_SHD=128 masking dropped the subheader timestamp high bit |
+
+## 2026-05-14
+
+### BUG-070-R: SV N_SHD=128 masking dropped the subheader timestamp high bit
+- Severity: `signoff block`
+- Encounter sim-time: `directed N_SHD=128 high-bit timestamp repro; failure appears at the first lookahead subheader after one 128-subheader frame`
+- First seen in: post-`BUG-069` trace-level audit on 2026-05-14 after checking the board symptom that FEB egress framing had not closed cleanly
+- Symptom:
+  - the temporary 128-subheader key mapping would have emitted subheader bytes `0..127` for every frame, losing the required `128..255` sequence for the next frame
+  - with FEB frame assembly reconstructing hit timestamp as `{header_ts[47:12], subheader_ts[7:0], hit_ts[3:0]}`, losing that high bit corrupts the global hit timestamp after post-rbCAM
+  - the UVM checker previously could match hit metadata while missing this true packet timestamp corruption
+- Root cause:
+  - the SV N_SHD mapping fix treated `N_SHD=128` as a reason to mask the emitted subheader byte, but the CAM compare epoch and the wire-format timestamp byte are different contracts
+  - the emitted subheader must carry the raw `ts[11:4]` byte; the high bit is part of the packet timestamp even when the frame contains only 128 subheaders
+- Fix status:
+  - `state`: fixed and verified in standalone SV UVM; VHDL was not functionally edited
+  - `mechanism`: keep CAM lookup/pop descriptors on the raw 8-bit timestamp byte plus raw epoch bit, add scoreboard fields for subheader byte and hit `ts[3:0]`, and add a directed high-bit timestamp test
+  - `before_fix_outcome`: negative repro failed at the lookahead subheader with `observed=0 expected=128`
+  - `after_fix_outcome`: `test_subframe_frame_count` traces lane-0 subheaders `0,4,...,124,128`; `test_subframe_highbit_hit_timestamp` pops a hit under subheader byte `128` with zero packet-format mismatches
+  - `potential_hazard`: low in standalone simulation; firmware regeneration must pick up this SV source revision before a board PASS can be claimed
+  - `Claude Opus 4.7 xhigh review decision`: `pending / not run`
+- Runtime / coverage context:
+  - SV directed high-bit test: `make -C tb/uvm run TEST=test_subframe_highbit_hit_timestamp RTL_IMPL=sv N_SHD=128 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 LOG_TAG=_final` passed with `pushed=1 popped=1 packet_format_mismatches=0`
+  - SV frame-count trace: `make -C tb/uvm run TEST=test_subframe_frame_count RTL_IMPL=sv N_SHD=128 EXPECTED_N_SHD=128 SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 LOG_TAG=_final PLUSARGS='+RBCAM_TRACE_SUBFRAME'` passed and observed the required `128` lookahead byte
+  - SV BASIC bucket: `make -C tb/uvm run_bucket_frame RTL_IMPL=sv BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 N_SHD=128 EXPECTED_N_SHD=128` passed with `pushed=417 popped=417`
+  - VHDL BASIC guard: `make -C tb/uvm run_bucket_frame RTL_IMPL=vhdl BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 N_SHD=128 EXPECTED_N_SHD=128` passed; no VHDL functional RTL was changed
+  - focused RN.BASIC cosim: `REPORT/RN_BASIC_true_ts_row001_fix_20260514_094142/RN.BASIC.001/rdma_rxbuffer_summary.json` reports `first_subheader_ts_hex` alternating `0x00/0x80`, `last_subheader_ts_hex` alternating `0x7f/0xff`, `subheader_sequence_bad_count=0`, and true frame `ts_deltas_hex=0x800`
+- Commit: pending
 
 ## 2026-05-13
 

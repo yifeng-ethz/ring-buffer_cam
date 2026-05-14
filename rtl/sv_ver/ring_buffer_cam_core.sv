@@ -77,7 +77,6 @@ module ring_buffer_cam_core #(
     (ADDR_W_CONST - LOCK_SECTOR_BITS_CONST) : 0;
   localparam int CAM_KEY_WIDTH_CONST    = 8;
   localparam int CAM_KEY_COUNT_CONST    = 1 << CAM_KEY_WIDTH_CONST;
-  localparam int N_SHD_KEY_BITS_CONST   = (N_SHD <= 1) ? 0 : $clog2(N_SHD);
   localparam int CAM_FLUSH_CYCLES_CONST = RING_BUFFER_N_ENTRY * CAM_KEY_COUNT_CONST;
   localparam int FLUSH_COUNT_W_CONST    =
     (CAM_FLUSH_CYCLES_CONST <= 2) ? 1 : $clog2(CAM_FLUSH_CYCLES_CONST + 1);
@@ -103,26 +102,23 @@ module ring_buffer_cam_core #(
   localparam int DEASM_WORD_BITS_CONST = $bits(deasm_word_t);
 
   function automatic logic [7:0] tcc8n_search_key_local(input logic [12:0] tcc8n);
-    logic [7:0] search_key;
-    logic [7:0] search_mask;
-
-    search_key = tcc8n[SK_LO_CONST +: CAM_KEY_WIDTH_CONST];
-    search_mask = N_SHD - 1;
-    return search_key & search_mask;
+    return tcc8n[SK_LO_CONST +: CAM_KEY_WIDTH_CONST];
   endfunction
 
   function automatic logic [8:0] tcc8n_search_epoch_local(input logic [12:0] tcc8n);
-    return {tcc8n[SK_LO_CONST + N_SHD_KEY_BITS_CONST], tcc8n_search_key_local(tcc8n)};
+    return {tcc8n[SK_LO_CONST + CAM_KEY_WIDTH_CONST], tcc8n_search_key_local(tcc8n)};
   endfunction
 
-  function automatic logic [8:0] read_time_search_epoch_local(input logic [47:0] read_time);
-    logic [7:0] search_key;
-    logic [7:0] search_mask;
+  function automatic logic [7:0] pop_cmd_search_key_local(input logic [8:0] pop_cmd);
+    return pop_cmd[7:0];
+  endfunction
 
-    search_key = read_time[SK_LO_CONST +: CAM_KEY_WIDTH_CONST];
-    search_mask = N_SHD - 1;
-    search_key &= search_mask;
-    return {read_time[SK_LO_CONST + N_SHD_KEY_BITS_CONST], search_key};
+  function automatic logic pop_cmd_epoch_bit_local(input logic [8:0] pop_cmd);
+    return pop_cmd[8];
+  endfunction
+
+  function automatic logic [8:0] read_time_pop_cmd_local(input logic [47:0] read_time);
+    return read_time[SK_LO_CONST + CAM_KEY_WIDTH_CONST:SK_LO_CONST];
   endfunction
 
   typedef enum logic [1:0] {
@@ -226,6 +222,9 @@ module ring_buffer_cam_core #(
   logic [POP_COUNT_CHUNK_WIDTH_CONST-1:0] pop_count_chunk_vec;
   logic [4:0] pop_count_chunk_hits;
   logic [8:0] pop_current_sk;
+  logic [7:0] pop_current_cam_key;
+  logic [7:0] pop_current_subheader_key;
+  logic pop_current_epoch_bit;
   logic [15:0] pop_total_hits;
   logic [15:0] pop_hits_count;
   logic [15:0] pop_issue_addr;
@@ -315,6 +314,9 @@ module ring_buffer_cam_core #(
   };
   assign aso_filllevel_valid = 1'b1;
   assign aso_filllevel_data = fill_level_word[15:0];
+  assign pop_current_cam_key = pop_cmd_search_key_local(pop_current_sk);
+  assign pop_current_subheader_key = pop_current_sk[7:0];
+  assign pop_current_epoch_bit = pop_cmd_epoch_bit_local(pop_current_sk);
   assign pop_hit_pending_epoch = tcc8n_search_epoch_local(hit_tcc8n(pop_hit_pending));
   assign pop_count_chunk_vec = low_count_chunk(pop_count_mask);
   assign pop_count_chunk_hits = count_ones_16(pop_count_chunk_vec);
@@ -484,7 +486,7 @@ module ring_buffer_cam_core #(
     .write_key(cam_wr_data[CAM_KEY_WIDTH_CONST-1:0]),
     .write_bit(cam_wr_en && !cam_erase_en),
     .write_enable(cam_wr_en || cam_erase_en),
-    .read_key(pop_current_sk[CAM_KEY_WIDTH_CONST-1:0]),
+    .read_key(pop_current_cam_key),
     .match_addr(cam_match_addr_oh)
   );
 
@@ -583,7 +585,7 @@ module ring_buffer_cam_core #(
     pop_cmd_full_drop_event = pop_cmd_tick_due && pop_cmd_fifo_full;
     if (pop_cmd_tick_due && !pop_cmd_fifo_full) begin
       pop_cmd_fifo_wrreq = 1'b1;
-      pop_cmd_fifo_din = read_time_search_epoch_local(read_time_ptr);
+      pop_cmd_fifo_din = read_time_pop_cmd_local(read_time_ptr);
     end
   end
 
@@ -685,7 +687,7 @@ module ring_buffer_cam_core #(
     if (pop_erase_grant) begin
       cam_erase_en = 1'b1;
       cam_wr_addr = pop_issue_addr;
-      cam_wr_data = pop_current_sk[7:0];
+      cam_wr_data = pop_current_cam_key;
       side_ram_raddr = pop_issue_addr;
       if (!push_write_grant) begin
         side_ram_we = 1'b1;
@@ -1170,7 +1172,7 @@ module ring_buffer_cam_core #(
                 aso_hit_type2_startofpacket <= 1'b1;
                 aso_hit_type2_endofpacket <= 1'b1;
                 aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
-                aso_hit_type2_data <= make_subheader(pop_current_sk[7:0], 8'd0);
+                aso_hit_type2_data <= make_subheader(pop_current_subheader_key, 8'd0);
                 pop_engine_state <= POP_RESETTING;
               end else begin
                 pop_pipeline_start <= 1'b1;
@@ -1188,13 +1190,13 @@ module ring_buffer_cam_core #(
               aso_hit_type2_valid <= 1'b1;
               aso_hit_type2_startofpacket <= 1'b1;
               aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
-              aso_hit_type2_data <= make_subheader(pop_current_sk[7:0], pop_total_hits[7:0]);
+              aso_hit_type2_data <= make_subheader(pop_current_subheader_key, pop_total_hits[7:0]);
               subheader_gen_done <= 1'b1;
             end else if (pop_emit_pending) begin
               aso_hit_type2_valid <= 1'b1;
               aso_hit_type2_channel <= INTERLEAVING_INDEX[3:0];
               aso_hit_type2_data <= make_hit_type2(pop_hit_pending);
-              aso_hit_type2_error[0] <= (pop_hit_pending_epoch[8] != pop_current_sk[8]);
+              aso_hit_type2_error[0] <= (pop_hit_pending_epoch[8] != pop_current_epoch_bit);
               aso_hit_type2_metadata <= pop_metadata_pending;
               aso_hit_type2_metadata_valid <= pop_metadata_valid_pending;
               if (!pop_occupied_pending) begin

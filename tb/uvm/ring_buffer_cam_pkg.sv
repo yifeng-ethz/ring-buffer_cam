@@ -96,16 +96,15 @@ package ring_buffer_cam_pkg;
     endfunction
 
     function bit [7:0] search_key_from_tcc8n(logic [12:0] tcc8n);
-      bit [7:0] search_key;
-      bit [7:0] search_mask;
+      return tcc8n[11:4];
+    endfunction
 
-      search_key = tcc8n[11:4];
-      search_mask = n_shd - 1;
-      return search_key & search_mask;
+    function bit [7:0] subheader_key_from_tcc8n(logic [12:0] tcc8n);
+      return tcc8n[11:4];
     endfunction
 
     function bit search_epoch_bit_from_tcc8n(logic [12:0] tcc8n);
-      return tcc8n[4 + n_shd_key_bits()];
+      return tcc8n[12];
     endfunction
 
     function int unsigned lane_key_ord_to_search_key(int unsigned key_ord);
@@ -256,16 +255,13 @@ package ring_buffer_cam_pkg;
     rand bit        metadata_valid;
 
     // Search key is ts[11:4], which is the CAM compare value and the
-    // low 8 bits of the emitted subheader search-key epoch for default N_SHD.
+    // emitted subheader timestamp byte.
     function bit [7:0] search_key();
-      bit [7:0] search_mask;
-
-      search_mask = N_SHD - 1;
-      return tcc8n[11:4] & search_mask;
+      return tcc8n[11:4];
     endfunction
 
     function bit [8:0] search_epoch();
-      return {tcc8n[4 + $clog2(N_SHD)], search_key()};
+      return {tcc8n[12], search_key()};
     endfunction
 
     function logic [38:0] pack_hit();

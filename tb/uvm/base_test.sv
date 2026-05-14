@@ -16963,12 +16963,14 @@ class test_subframe_frame_count extends base_test;
   task run_phase(uvm_phase phase);
     int unsigned timeout_cycles;
     int unsigned expected_lane_subheaders;
+    int unsigned expected_lookahead_key;
 
     phase.raise_objection(this);
     wait_for_reset_release();
     configure_and_start();
     m_cfg.enable_subframe_frame_check = 1'b1;
     expected_lane_subheaders = m_cfg.n_shd / m_cfg.interleaving_factor;
+    expected_lookahead_key = (m_cfg.n_shd + m_cfg.interleaving_index) & 8'hff;
     timeout_cycles = (m_cfg.n_shd * 80) + 20_000;
     wait_for_subheader_count(
       expected_lane_subheaders + 1,
@@ -16986,11 +16988,60 @@ class test_subframe_frame_count extends base_test;
         m_env.m_scb.active_lane_frame_subheaders(),
         m_env.m_scb.completed_lane_frames(), m_cfg.n_shd))
     end
+    if (m_env.m_out_mon.recent_subheaders.size() == 0 ||
+        m_env.m_out_mon.recent_subheaders[$].search_key != expected_lookahead_key[7:0]) begin
+      `uvm_error("SUBFRAME_COUNT", $sformatf(
+        "Subframe frame checker observed wrong lookahead byte: observed=%0d expected=%0d n_shd=%0d interleaving_index=%0d",
+        (m_env.m_out_mon.recent_subheaders.size() == 0) ? 0 :
+          m_env.m_out_mon.recent_subheaders[$].search_key,
+        expected_lookahead_key[7:0], m_cfg.n_shd, m_cfg.interleaving_index))
+    end
     if (m_env.m_scb.total_subframe_frame_mismatches != 0) begin
       `uvm_error("SUBFRAME_COUNT", $sformatf(
         "Subframe frame checker reported %0d mismatches for n_shd=%0d",
         m_env.m_scb.total_subframe_frame_mismatches, m_cfg.n_shd))
     end
+    phase.drop_objection(this);
+  endtask
+endclass
+
+class test_subframe_highbit_hit_timestamp extends base_test;
+  `uvm_component_utils(test_subframe_highbit_hit_timestamp)
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  task run_phase(uvm_phase phase);
+    ring_buffer_cam_pkg::hit_seq_item hit_item;
+    ring_buffer_cam_pkg::out_seq_item matched_subheader;
+    int unsigned expected_subheader_key;
+
+    phase.raise_objection(this);
+    wait_for_reset_release();
+    configure_and_start(0);
+
+    expected_subheader_key = (m_cfg.n_shd + m_cfg.interleaving_index) & 8'hff;
+    hit_item = ring_buffer_cam_pkg::hit_seq_item::type_id::create("highbit_hit");
+    hit_item.asic = 4'h1;
+    hit_item.ingress_channel = m_cfg.interleaving_index[3:0];
+    hit_item.channel = 5'd3;
+    hit_item.tcc8n = '0;
+    hit_item.tcc8n[11:4] = expected_subheader_key[7:0];
+    hit_item.tcc8n[3:0] = 4'h5;
+    hit_item.tcc1n6 = 3'd2;
+    hit_item.tfine = 5'd17;
+    hit_item.et1n6 = 9'd85;
+    hit_item.has_error = 1'b0;
+    hit_item.is_empty_marker = 1'b0;
+
+    force_raw_hit(hit_item, 1);
+    wait_for_push_count(1, 20_000, "test_subframe_highbit_hit_timestamp push");
+    wait_for_subheader_match(
+      expected_subheader_key[7:0], 8'd1, 1'b1, 1'b1, 300_000,
+      "test_subframe_highbit_hit_timestamp high-bit data subheader",
+      matched_subheader);
+    wait_for_scoreboard_idle(80_000, "test_subframe_highbit_hit_timestamp drain");
     phase.drop_objection(this);
   endtask
 endclass
