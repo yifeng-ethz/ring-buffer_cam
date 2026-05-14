@@ -107,7 +107,7 @@ Historical formal note:
 | [BUG-067-R](#bug-067-r-platform-designer-package-selected-the-vhdl-timing-reference-instead-of-the-feature-complete-sv-rbcam) | R | signoff block | `directed-only (package and FEB integration audit)` | fixed in package metadata; synthesis timing remains open for the SV payload | FEB Qsys regeneration on 2026-05-08 while checking that the firmware build used the pushed 26.2.10 rbCAM stack | `3f2ce852` | Platform Designer package selected the VHDL timing reference instead of the feature-complete SV rbCAM |
 | [BUG-068-R](#bug-068-r-sv-slot-state-inferred-as-fabric-instead-of-arria-v-m10k) | R | signoff block | `directed-only (standalone synthesis timing)` | fixed and verified in standalone SV p4 synthesis plus directed SV p4 UVM | standalone `ring_buffer_cam_syn_sv_p4` rerun on 2026-05-11 after the SV package was restored | `da466e4` | SV slot state inferred as fabric instead of Arria V M10K |
 | [BUG-069-R](#bug-069-r-sv-subframe-key-mapping-assumed-256-subheaders-per-frame) | R | signoff block | `common (FEB frame assembly with 128 subheaders per frame)` | fixed and verified in standalone SV UVM plus RN.BASIC cosim packet-format decode | pulserdrop FEB egress STP on 2026-05-13 decoded `256/257` subheaders instead of `128` | `80c74a2` | SV subframe key mapping assumed 256 subheaders per frame |
-| [BUG-070-R](#bug-070-r-sv-nshd128-masking-dropped-the-subheader-timestamp-high-bit) | R | signoff block | `common (every odd 128-subheader frame)` | fixed and verified in standalone SV UVM plus focused RN.BASIC cosim | post-`BUG-069` N_SHD=128 audit on 2026-05-14 | `pending` | SV N_SHD=128 masking dropped the subheader timestamp high bit |
+| [BUG-070-R](#bug-070-r-sv-nshd128-masking-dropped-the-subheader-timestamp-high-bit) | R | signoff block | `common (every odd 128-subheader frame)` | fixed and verified in standalone SV UVM plus focused RN.BASIC cosim | post-`BUG-069` N_SHD=128 audit on 2026-05-14 | `0140cda` | SV N_SHD=128 masking dropped the subheader timestamp high bit |
 
 ## 2026-05-14
 
@@ -135,7 +135,7 @@ Historical formal note:
   - SV BASIC bucket: `make -C tb/uvm run_bucket_frame RTL_IMPL=sv BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 N_SHD=128 EXPECTED_N_SHD=128` passed with `pushed=417 popped=417`
   - VHDL BASIC guard: `make -C tb/uvm run_bucket_frame RTL_IMPL=vhdl BUCKET=BASIC SEED=1 VERBOSITY=UVM_LOW COV_ENABLE=0 N_SHD=128 EXPECTED_N_SHD=128` passed; no VHDL functional RTL was changed
   - focused RN.BASIC cosim: `REPORT/RN_BASIC_true_ts_row001_fix_20260514_094142/RN.BASIC.001/rdma_rxbuffer_summary.json` reports `first_subheader_ts_hex` alternating `0x00/0x80`, `last_subheader_ts_hex` alternating `0x7f/0xff`, `subheader_sequence_bad_count=0`, and true frame `ts_deltas_hex=0x800`
-- Commit: pending
+- Commit: 0140cda
 
 ## 2026-05-13
 
