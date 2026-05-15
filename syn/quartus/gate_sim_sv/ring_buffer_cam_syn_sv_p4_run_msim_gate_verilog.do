@@ -46,3 +46,4 @@ vlib gate_work
 vmap work gate_work
 
 vlog -vlog01compat -work work +incdir+. {ring_buffer_cam_syn_sv_p4.vo}
+
