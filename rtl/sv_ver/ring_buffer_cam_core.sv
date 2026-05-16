@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam_core.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.12
-// Date    : 20260513
-// Change  : add N_SHD-controlled subframe key/epoch mapping
+// Version : 26.2.13
+// Date    : 20260516
+// Change  : use registered clean accounting for terminate-drain timing
 
 module ring_buffer_cam_core #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -17,9 +17,9 @@ module ring_buffer_cam_core #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 12,
-  parameter int BUILD               = 513,
-  parameter int VERSION_DATE        = 20260513,
+  parameter int VERSION_PATCH       = 13,
+  parameter int BUILD               = 516,
+  parameter int VERSION_DATE        = 20260516,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
   parameter int DEBUG               = 0
@@ -1270,7 +1270,7 @@ module ring_buffer_cam_core #(
       deassembly_fifo_empty &&
       pop_cmd_fifo_empty &&
       pop_engine_state == POP_IDLING &&
-      debug_msg2.push_cnt == (debug_msg2.pop_cnt + debug_msg2.overwrite_cnt);
+      debug_msg2.cam_clean;
   end
 
   logic [3:0] dbg_run_state_code;

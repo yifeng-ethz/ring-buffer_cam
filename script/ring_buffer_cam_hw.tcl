@@ -22,11 +22,11 @@ set DEFAULT_ENCODER_LEAF_WIDTH_CONST 16
 set DEFAULT_PIPE_STAGES_CONST      4
 set DEFAULT_DEBUG_CONST            0
 set IP_UID_DEFAULT_CONST           1380074317
-set BUILD_DEFAULT_CONST            513
+set BUILD_DEFAULT_CONST            516
 set VERSION_MAJOR_DEFAULT_CONST    26
 set VERSION_MINOR_DEFAULT_CONST    2
-set VERSION_PATCH_DEFAULT_CONST    12
-set VERSION_DATE_DEFAULT_CONST     20260513
+set VERSION_PATCH_DEFAULT_CONST    13
+set VERSION_DATE_DEFAULT_CONST     20260516
 set VERSION_GIT_DEFAULT_CONST      0
 set VERSION_GIT_SHORT_DEFAULT_CONST "unknown"
 set VERSION_GIT_DESCRIBE_DEFAULT_CONST "unknown"
@@ -315,6 +315,7 @@ proc elaborate {} {
     set_parameter_property N_PARTITIONS ALLOWED_RANGES {1 2 4 8}
     set_parameter_property ENCODER_LEAF_WIDTH ALLOWED_RANGES {4 8 16 32 64}
 
+    set_interface_property filllevel ENABLED $debug_conduit_enabled
     set_interface_property debug_observability ENABLED $debug_conduit_enabled
     set_interface_property hit_type1_metadata ENABLED $sidecar_conduit_enabled
     set_interface_property hit_type2_metadata ENABLED $sidecar_conduit_enabled

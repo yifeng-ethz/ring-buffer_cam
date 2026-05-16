@@ -1,8 +1,8 @@
 // File name: ring_buffer_cam.sv
 // Author  : Yifeng Wang (yifenwan@phys.ethz.ch), Codex migration
-// Version : 26.2.12
-// Date    : 20260513
-// Change  : propagate the N_SHD subframe mapping parameter
+// Version : 26.2.13
+// Date    : 20260516
+// Change  : propagate the terminate-drain timing revision
 
 module ring_buffer_cam #(
   parameter int SEARCH_KEY_WIDTH    = 8,
@@ -17,9 +17,9 @@ module ring_buffer_cam #(
   parameter int IP_UID              = 32'h5242_434d,
   parameter int VERSION_MAJOR       = 26,
   parameter int VERSION_MINOR       = 2,
-  parameter int VERSION_PATCH       = 12,
-  parameter int BUILD               = 513,
-  parameter int VERSION_DATE        = 20260513,
+  parameter int VERSION_PATCH       = 13,
+  parameter int BUILD               = 516,
+  parameter int VERSION_DATE        = 20260516,
   parameter int VERSION_GIT         = 0,
   parameter int INSTANCE_ID         = 0,
   parameter int DEBUG               = 0
