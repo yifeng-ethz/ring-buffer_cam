@@ -84,6 +84,13 @@ proc is_power_of_two {value} {
     return [expr {($value & ($value - 1)) == 0}]
 }
 
+proc check_feb_n_shd {} {
+    set n_shd [get_parameter_value N_SHD]
+    if {$n_shd != 128} {
+        send_message error "FEB rbCAM generation is hard-locked to N_SHD=128; got N_SHD=$n_shd. Do not generate a 256-subheader FEB source."
+    }
+}
+
 set CSR_ADDR_W_CONST            5
 set CSR_LAST_WORD_CONST         20
 set HIT_TYPE1_WIDTH_CONST       39
@@ -185,6 +192,7 @@ proc compute_derived_values {} {
 
 proc validate {} {
     compute_derived_values
+    check_feb_n_shd
 
     set search_key_width    [get_parameter_value SEARCH_KEY_WIDTH]
     set n_shd               [get_parameter_value N_SHD]
@@ -288,6 +296,7 @@ proc validate {} {
 
 proc elaborate {} {
     compute_derived_values
+    check_feb_n_shd
 
     set interleaving_factor [get_parameter_value INTERLEAVING_FACTOR]
     set interleaving_index_max [expr {$interleaving_factor - 1}]
@@ -309,7 +318,7 @@ proc elaborate {} {
     set_parameter_property VERSION_GIT ENABLED false
 
     set_parameter_property RING_BUFFER_N_ENTRY ALLOWED_RANGES {32 64 128 256 384 512 1024 2048 4096}
-    set_parameter_property N_SHD ALLOWED_RANGES {1 2 4 8 16 32 64 128 256}
+    set_parameter_property N_SHD ALLOWED_RANGES {128}
     set_parameter_property INTERLEAVING_FACTOR ALLOWED_RANGES {1 2 4 8 16 32}
     set_parameter_property INTERLEAVING_INDEX ALLOWED_RANGES 0:$interleaving_index_max
     set_parameter_property N_PARTITIONS ALLOWED_RANGES {1 2 4 8}
@@ -339,9 +348,9 @@ set_parameter_property SEARCH_KEY_WIDTH DESCRIPTION {Bit width of the CAM search
 add_parameter N_SHD NATURAL $DEFAULT_N_SHD_CONST
 set_parameter_property N_SHD DISPLAY_NAME "Subheaders Per Frame"
 set_parameter_property N_SHD UNITS None
-set_parameter_property N_SHD ALLOWED_RANGES {1 2 4 8 16 32 64 128 256}
+set_parameter_property N_SHD ALLOWED_RANGES {128}
 set_parameter_property N_SHD HDL_PARAMETER true
-set_parameter_property N_SHD DESCRIPTION {Number of timestamp subheaders in one rbCAM frame. The default 128 maps the emitted search key to tcc8n[10:4] and uses tcc8n[11] as the epoch bit.}
+set_parameter_property N_SHD DESCRIPTION {FEB generation is hard-locked to 128 timestamp subheaders per frame. 128 maps the emitted search key to tcc8n[10:4] and uses tcc8n[11] as the epoch bit; validation errors on any other value.}
 
 add_parameter RING_BUFFER_N_ENTRY NATURAL $DEFAULT_RING_DEPTH_CONST
 set_parameter_property RING_BUFFER_N_ENTRY DISPLAY_NAME "Ring Depth"
