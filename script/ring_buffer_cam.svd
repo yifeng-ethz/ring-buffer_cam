@@ -4,7 +4,7 @@
   <vendorID>MU3E</vendorID>
   <name>MU3E_RING_BUFFER_CAM</name>
   <series>MU3E_FPGA_IP</series>
-  <version>26.2.7.0506</version>
+  <version>26.2.13.0516</version>
   <description>CMSIS-SVD description of the ring_buffer_cam CSR window.</description>
   <addressUnitBits>8</addressUnitBits>
   <width>32</width>
@@ -98,10 +98,17 @@
               <access>read-write</access>
             </field>
             <field>
+              <name>counter_freeze</name>
+              <description>When set, freezes the latched-snapshot side of every counter so the host reads a consistent group; live counters keep advancing.</description>
+              <bitOffset>5</bitOffset>
+              <bitWidth>1</bitWidth>
+              <access>read-write</access>
+            </field>
+            <field>
               <name>reserved1</name>
               <description>Reserved, read as zero.</description>
-              <bitOffset>5</bitOffset>
-              <bitWidth>27</bitWidth>
+              <bitOffset>6</bitOffset>
+              <bitWidth>26</bitWidth>
               <access>read-only</access>
             </field>
           </fields>
@@ -209,6 +216,105 @@
               <bitWidth>32</bitWidth>
               <access>read-only</access>
             </field>
+          </fields>
+        </register>
+        <register>
+          <name>INERR_COUNT_LATCHED</name>
+          <description>Snapshot of INERR_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x28</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>PUSH_COUNT_LATCHED</name>
+          <description>Snapshot of PUSH_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x2C</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>POP_COUNT_LATCHED</name>
+          <description>Snapshot of POP_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x30</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>OVERWRITE_COUNT_LATCHED</name>
+          <description>Snapshot of OVERWRITE_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x34</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>CACHE_MISS_COUNT_LATCHED</name>
+          <description>Snapshot of CACHE_MISS_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x38</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>DEASM_FULL_DROP_COUNT</name>
+          <description>Live count of hits dropped because the upstream deassembly FIFO was full.</description>
+          <addressOffset>0x3C</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>DEASM_FULL_DROP_COUNT_LATCHED</name>
+          <description>Snapshot of DEASM_FULL_DROP_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x40</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>POP_CMD_FULL_DROP_COUNT</name>
+          <description>Live count of pop-commands dropped because the pop-command FIFO was full.</description>
+          <addressOffset>0x44</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>POP_CMD_FULL_DROP_COUNT_LATCHED</name>
+          <description>Snapshot of POP_CMD_FULL_DROP_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x48</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>EGRESS_NOT_READY_DROP_COUNT</name>
+          <description>Live count of hits dropped because the egress was not ready when a pop arrived.</description>
+          <addressOffset>0x4C</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
+          </fields>
+        </register>
+        <register>
+          <name>EGRESS_NOT_READY_DROP_COUNT_LATCHED</name>
+          <description>Snapshot of EGRESS_NOT_READY_DROP_COUNT captured on counter_freeze.</description>
+          <addressOffset>0x50</addressOffset>
+          <access>read-only</access>
+          <fields>
+            <field><name>value</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth><access>read-only</access></field>
           </fields>
         </register>
       </registers>
